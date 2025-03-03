@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.2.1...v0.3.0) (2025-03-03)
+
+
+### Features
+
+* add jira client ([0bcb329](https://github.com/b1ff/atlassian-dc-mcp/commit/0bcb32979a6c638dc759375de118a7d0eb3604fc))
+* improve error details for confluence and bitbucket so the LLM is able to correct itself based on the error. ([96f469f](https://github.com/b1ff/atlassian-dc-mcp/commit/96f469f6562c38f7460a4e13096b7f55d45acc1c))
+
+
+
+
+
 # [0.2.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.1.6...v0.2.0) (2025-03-02)
 
 
