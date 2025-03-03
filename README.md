@@ -101,7 +101,7 @@ The Atlassian DC MCP allows AI assistants to interact with Atlassian products th
 Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/atlassian-dc-mcp.git
+git clone https://github.com/b1ff/atlassian-dc-mcp.git
 cd atlassian-dc-mcp
 ```
 
