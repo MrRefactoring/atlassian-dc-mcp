@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.1](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.0...v0.3.1) (2025-03-03)
+
+
+### Bug Fixes
+
+* give confluence create a hint what format to use for body. ([d8167f0](https://github.com/b1ff/atlassian-dc-mcp/commit/d8167f0b4c18a634db6fde791be74e1e8b9a22a1))
+
+
+
+
+
 # [0.3.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.2.1...v0.3.0) (2025-03-03)
 
 
