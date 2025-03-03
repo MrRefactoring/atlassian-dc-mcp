@@ -23,8 +23,8 @@ server.tool(
   "jira_searchIssues",
   "Search for JIRA issues using JQL",
   jiraToolSchemas.searchIssues,
-  async ({ jql, maxResults = 10 }) => {
-    const result = await jiraService.searchIssues(jql, maxResults);
+  async ({ jql, expand, startAt, maxResults = 10 }) => {
+    const result = await jiraService.searchIssues(jql, startAt, expand, maxResults);
     return formatToolResponse(result);
   }
 );
@@ -34,11 +34,20 @@ server.tool(
   "jira_getIssue",
   "Get details of a JIRA issue by its key",
   jiraToolSchemas.getIssue,
-  async ({ issueKey }) => {
-    const result = await jiraService.getIssue(issueKey);
+  async ({ issueKey, expand }) => {
+    const result = await jiraService.getIssue(issueKey, expand);
     return formatToolResponse(result);
   }
 );
+
+server.tool(
+  'jira_getIssueComments',
+  'Get comments of a JIRA issue by its key',
+  jiraToolSchemas.getIssueComments,
+  async ({ issueKey, expand }) => {
+    const result = await jiraService.getIssueComments(issueKey, expand);
+    return formatToolResponse(result);
+  });
 
 // Add create JIRA issue tool
 server.tool(
@@ -50,6 +59,16 @@ server.tool(
     return formatToolResponse(result);
   }
 );
+
+server.tool(
+  "jira_postIssueComment",
+  "Post a comment on a JIRA issue",
+  jiraToolSchemas.postIssueComment,
+  async ({ issueKey, comment }) => {
+    const result = await jiraService.postIssueComment(issueKey, comment);
+    return formatToolResponse(result);
+  }
+)
 
 // Connect the server after all tools are registered
 await connectServer(server);

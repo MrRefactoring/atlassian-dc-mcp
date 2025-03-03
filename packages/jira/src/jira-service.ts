@@ -1,107 +1,53 @@
-import JiraClient from 'jira-client';
 import { z } from 'zod';
-import { extractJiraDataForLLM } from './jira-issue-mapper.js';
-
-// Type definitions for JIRA responses
-interface JiraIssueResponse {
-  key: string;
-  fields: {
-    summary: string;
-    description: string;
-    status: { name: string };
-    created: string;
-    updated: string;
-    assignee?: { displayName: string };
-  };
-}
-
-interface JiraError {
-  message: string;
-  statusCode?: number;
-}
+import { handleApiOperation } from '@atlassian-dc-mcp/common';
+import { IssueService, OpenAPI, SearchService } from './jira-client/index.js';
 
 export class JiraService {
-  private client: JiraClient;
-
   constructor(host: string, token: string) {
-    this.client = new JiraClient({
-      protocol: 'https',
-      host: host,
-      bearer: token,
-      apiVersion: '2',
-      strictSSL: true
-    });
+    OpenAPI.BASE = `https://${host}/rest`;
+    OpenAPI.TOKEN = token;
+    OpenAPI.VERSION = '2';
   }
 
-  private formatError(error: unknown): string {
-    if (error instanceof Error) {
-      return `JIRA API Error: ${error.message}`;
-    }
-    return 'Unknown JIRA API error occurred';
+  async searchIssues(jql: string, startAt?: number, expand?: string[], maxResults: number = 10) {
+    return handleApiOperation(() => {
+      return SearchService.searchUsingSearchRequest({
+        jql,
+        maxResults,
+        expand,
+        startAt
+      });
+    }, 'Error searching issues');
   }
 
-  private formatIssueResponse(issue: JiraIssueResponse) {
-    return extractJiraDataForLLM(issue);
+  async getIssue(issueKey: string, expand?: string) {
+    return handleApiOperation(() => IssueService.getIssue(issueKey, expand), 'Error getting issue');
   }
 
-  async searchIssues(jql: string, maxResults: number = 10) {
-    try {
-      const response = await this.client.searchJira(jql, { maxResults });
-      return {
-        success: true,
-        data: response.issues.map(this.formatIssueResponse)
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: this.formatError(error)
-      };
-    }
+  async getIssueComments(issueKey: string, expand?: string) {
+    return handleApiOperation(() => IssueService.getComments(issueKey, expand), 'Error getting issue comments');
   }
 
-  async getIssue(issueKey: string) {
-    try {
-      const issue = await this.client.getIssue(issueKey) as JiraIssueResponse;
-      return {
-        success: true,
-        data: this.formatIssueResponse(issue)
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: this.formatError(error)
-      };
-    }
+  async postIssueComment(issueKey: string, comment: string) {
+    return handleApiOperation(() => IssueService.addComment(issueKey, undefined, { body: comment }), 'Error posting issue comment');
   }
 
   async createIssue(params: {
-    project: string;
+    projectId: string;
     summary: string;
     description: string;
-    issueType: string;
+    issueTypeId: string;
   }) {
-    try {
-      const response = await this.client.addNewIssue({
+    return handleApiOperation(async () => {
+      return IssueService.createIssue(true, {
         fields: {
-          project: { key: params.project },
+          project: { key: params.projectId },
           summary: params.summary,
           description: params.description,
-          issuetype: { name: params.issueType }
+          issuetype: { id: params.issueTypeId }
         }
-      });
-      return {
-        success: true,
-        data: {
-          key: response.key,
-          summary: params.summary
-        }
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: this.formatError(error)
-      };
-    }
+      })
+    }, 'Error creating issue');
   }
 
   static validateConfig(): string[] {
@@ -113,15 +59,26 @@ export class JiraService {
 export const jiraToolSchemas = {
   searchIssues: {
     jql: z.string().describe("JQL query string"),
-    maxResults: z.number().optional().describe("Maximum number of results to return")
+    maxResults: z.number().optional().describe("Maximum number of results to return"),
+    startAt: z.number().optional().describe("Index of the first result to return"),
+    expand: z.array(z.string()).optional().describe("Fields to expand")
   },
   getIssue: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    expand: z.string().optional().describe("Comma separated fields to expand")
+  },
+  getIssueComments: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    expand: z.string().optional().describe("Comma separated fields to expand")
+  },
+  postIssueComment: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    comment: z.string().describe("Comment text")
   },
   createIssue: {
-    project: z.string().describe("Project key"),
+    projectId: z.string().describe("Project id"),
     summary: z.string().describe("Issue summary"),
     description: z.string().describe("Issue description"),
-    issueType: z.string().default("Task").describe("Issue type (e.g., Task, Bug, Story)")
+    issueTypeId: z.string().default("Task").describe("Issue type id (e.g. id of Task, Bug, Story)")
   }
 };

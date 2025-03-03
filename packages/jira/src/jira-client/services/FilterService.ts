@@ -302,7 +302,6 @@ export class FilterService {
     public static deleteSharePermission(
         permissionId: string,
         id: string,
-        permissionId: number,
     ): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',

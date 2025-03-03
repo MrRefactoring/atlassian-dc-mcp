@@ -7,7 +7,7 @@ import type { FieldOperation } from './FieldOperation.js';
 import type { HistoryMetadata } from './HistoryMetadata.js';
 import type { TransitionBean } from './TransitionBean.js';
 export type IssueUpdateBean = {
-    fields?: Record<string, Record<string, any>>;
+    fields?: Record<string, string | Record<string, any>>;
     historyMetadata?: HistoryMetadata;
     properties?: Array<EntityPropertyBean>;
     transition?: TransitionBean;
