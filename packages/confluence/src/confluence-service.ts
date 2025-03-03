@@ -113,7 +113,7 @@ export const confluenceToolSchemas = {
     title: z.string().describe("Title of the content"),
     spaceKey: z.string().describe("Space key where content will be created"),
     type: z.string().default("page").describe("Content type (page, blogpost, etc)"),
-    content: z.string().describe("Content body in storage format"),
+    content: z.string().describe("Content body in confluence \"storage\" format (confluence XML)"),
     parentId: z.string().optional().describe("ID of the parent page (if creating a child page)")
   },
   updateContent: {
