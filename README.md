@@ -28,7 +28,7 @@ Windows:
   "mcpServers": {
     "atlassian-jira-dc": {
       "command": "npx",
-      "args": ["@atlassian-dc-mcp/jira"],
+      "args": ["-y", "@atlassian-dc-mcp/jira"],
       "env": {
         "JIRA_HOST": "your-jira-host",
         "JIRA_API_TOKEN": "your-token"
@@ -36,7 +36,7 @@ Windows:
     },
     "atlassian-confluence-dc": {
       "command": "npx",
-      "args": ["@atlassian-dc-mcp/confluence"],
+      "args": ["-y", "@atlassian-dc-mcp/confluence"],
       "env": {
         "CONFLUENCE_HOST": "your-confluence-host",
         "CONFLUENCE_API_TOKEN": "your-token"
@@ -44,7 +44,7 @@ Windows:
     },
     "atlassian-bitbucket-dc": {
       "command": "npx",
-      "args": ["@atlassian-dc-mcp/bitbucket"],
+      "args": ["-y", "@atlassian-dc-mcp/bitbucket"],
       "env": {
         "BITBUCKET_HOST": "your-bitbucket-host",
         "BITBUCKET_API_TOKEN": "your-token"
