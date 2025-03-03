@@ -1,11 +1,8 @@
+import 'dotenv/config';
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import dotenv from 'dotenv';
-import express from 'express';
-
-// Load environment variables
-dotenv.config();
+export * from './api-error-handler.js'
 
 // Helper function to format tool responses
 export const formatToolResponse = (result: unknown) => ({

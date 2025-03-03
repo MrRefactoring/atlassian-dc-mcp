@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { OpenAPI, ProjectService, RepositoryService } from './bitbucket-client/index.js';
+import { handleApiOperation } from '@atlassian-dc-mcp/common';
 
 export class BitbucketService {
   constructor(host: string, token: string) {
@@ -20,10 +21,10 @@ export class BitbucketService {
    * @returns Promise with commits data
    */
   async getCommits(projectKey: string, repositorySlug: string, path?: string, since?: string, until?: string, limit: number = 25) {
-    try {
-      const response = await RepositoryService.getCommits(
-        projectKey, 
-        repositorySlug, 
+    return handleApiOperation(
+      () => RepositoryService.getCommits(
+        projectKey,
+        repositorySlug,
         undefined, // avatarScheme
         path,
         undefined, // withCounts
@@ -35,19 +36,9 @@ export class BitbucketService {
         undefined, // ignoreMissing
         0, // start
         limit
-      );
-      return {
-        success: true,
-        data: response
-      };
-    } catch (error) {
-      return {
-        success: false,
-        data: {
-          message: `Error fetching commits: ${error instanceof Error ? error.message : String(error)}`
-        }
-      };
-    }
+      ),
+      'Error fetching commits'
+    );
   }
 
   /**
@@ -59,20 +50,10 @@ export class BitbucketService {
    * @returns Promise with projects data
    */
   async getProjects(name?: string, permission?: string, start?: number, limit: number = 25) {
-    try {
-      const response = await ProjectService.getProjects(name, permission, start, limit);
-      return {
-        success: true,
-        data: response
-      };
-    } catch (error) {
-      return {
-        success: false,
-        data: {
-          message: `Error fetching projects: ${error instanceof Error ? error.message : String(error)}`
-        }
-      };
-    }
+    return handleApiOperation(
+      () => ProjectService.getProjects(name, permission, start, limit),
+      'Error fetching projects'
+    );
   }
 
   /**
@@ -81,20 +62,10 @@ export class BitbucketService {
    * @returns Promise with project data
    */
   async getProject(projectKey: string) {
-    try {
-      const response = await ProjectService.getProject(projectKey);
-      return {
-        success: true,
-        data: response
-      };
-    } catch (error) {
-      return {
-        success: false,
-        data: {
-          message: `Error fetching project: ${error instanceof Error ? error.message : String(error)}`
-        }
-      };
-    }
+    return handleApiOperation(
+      () => ProjectService.getProject(projectKey),
+      'Error fetching project'
+    );
   }
 
   /**
@@ -105,20 +76,10 @@ export class BitbucketService {
    * @returns Promise with repositories data
    */
   async getRepositories(projectKey: string, start?: number, limit: number = 25) {
-    try {
-      const response = await ProjectService.getRepositories(projectKey, start, limit);
-      return {
-        success: true,
-        data: response
-      };
-    } catch (error) {
-      return {
-        success: false,
-        data: {
-          message: `Error fetching repositories: ${error instanceof Error ? error.message : String(error)}`
-        }
-      };
-    }
+    return handleApiOperation(
+      () => ProjectService.getRepositories(projectKey, start, limit),
+      'Error fetching repositories'
+    );
   }
 
   /**
@@ -128,20 +89,10 @@ export class BitbucketService {
    * @returns Promise with repository data
    */
   async getRepository(projectKey: string, repositorySlug: string) {
-    try {
-      const response = await ProjectService.getRepository(projectKey, repositorySlug);
-      return {
-        success: true,
-        data: response
-      };
-    } catch (error) {
-      return {
-        success: false,
-        data: {
-          message: `Error fetching repository: ${error instanceof Error ? error.message : String(error)}`
-        }
-      };
-    }
+    return handleApiOperation(
+      () => ProjectService.getRepository(projectKey, repositorySlug),
+      'Error fetching repository'
+    );
   }
 
   static validateConfig(): string[] {

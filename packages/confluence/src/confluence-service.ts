@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { ContentResourceService, OpenAPI, SearchService, SpaceService } from './confluence-client/index.js';
+import { ContentResourceService, OpenAPI, SearchService } from './confluence-client/index.js';
+import { handleApiOperation } from '@atlassian-dc-mcp/common';
 
 export interface ConfluenceContent {
   id?: string;
@@ -37,7 +38,7 @@ export class ConfluenceService {
     const finalExpand = expand && !expand.includes('body.storage')
       ? `${expand},body.storage`
       : expandValue;
-    return this.handleApiOperation(() => ContentResourceService.getContentById(contentId, finalExpand), 'Error getting content');
+    return handleApiOperation(() => ContentResourceService.getContentById(contentId, finalExpand), 'Error getting content');
   }
 
   /**
@@ -48,10 +49,7 @@ export class ConfluenceService {
    * @param expand Optional comma-separated list of properties to expand
    */
   async searchContent(cql: string, limit?: number, start?: number, expand?: string) {
-    return this.handleApiOperation(
-      () => SearchService.search1(undefined, expand, undefined, limit?.toString(), start?.toString(), undefined, cql),
-      'Error searching for content'
-    );
+    return handleApiOperation(() => SearchService.search1(undefined, expand, undefined, limit?.toString(), start?.toString(), undefined, cql), 'Error searching for content');
   }
 
   /**
@@ -59,7 +57,7 @@ export class ConfluenceService {
    * @param content The content object to create
    */
   async createContent(content: ConfluenceContent) {
-    return this.handleApiOperation(() => ContentResourceService.createContent(content), 'Error creating content');
+    return handleApiOperation(() => ContentResourceService.createContent(content), 'Error creating content');
   }
 
   /**
@@ -68,7 +66,7 @@ export class ConfluenceService {
    * @param content The updated content object
    */
   async updateContent(contentId: string, content: ConfluenceContent) {
-    return this.handleApiOperation(() => ContentResourceService.update2(contentId, content), 'Error updating content');
+    return handleApiOperation(() => ContentResourceService.update2(contentId, content), 'Error updating content');
   }
 
   /**
@@ -83,43 +81,20 @@ export class ConfluenceService {
     // The correct syntax for space search is: type=space AND title ~ "searchText"
     const cql = `type=space AND title ~ "${searchText}"`;
 
-    return this.handleApiOperation(
-      () => SearchService.search1(
-        undefined,
-        expand,
-        undefined,
-        limit?.toString(),
-        start?.toString(),
-        undefined,
-        cql
-      ),
-      'Error searching for spaces'
-    );
+    return handleApiOperation(() => SearchService.search1(
+      undefined,
+      expand,
+      undefined,
+      limit?.toString(),
+      start?.toString(),
+      undefined,
+      cql
+    ), 'Error searching for spaces');
   }
 
   static validateConfig(): string[] {
     const requiredEnvVars = ['CONFLUENCE_HOST', 'CONFLUENCE_API_TOKEN'] as const;
     return requiredEnvVars.filter(varName => !process.env[varName]);
-  }
-
-  /**
-   * Handle API errors in a consistent way
-   * @param operation Function that performs the API operation
-   * @param errorPrefix Prefix for the error message
-   */
-  private async handleApiOperation<T>(operation: () => Promise<T>, errorPrefix: string): Promise<{ success: boolean; data?: T; error?: string }> {
-    try {
-      const data = await operation();
-      return {
-        success: true,
-        data
-      };
-    } catch (e) {
-      return {
-        success: false,
-        error: `${errorPrefix}: ${e instanceof Error ? e.message : String(e)}`
-      };
-    }
   }
 }
 
