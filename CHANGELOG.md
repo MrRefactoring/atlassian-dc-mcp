@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.2](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.1...v0.3.2) (2025-03-07)
+
+
+### Bug Fixes
+
+* **jira:** indicate clearly in tools descriptions and in the fields descriptions that it is JIRA Data Center edition with own formats and own instance details. ([5747bb1](https://github.com/b1ff/atlassian-dc-mcp/commit/5747bb14277937be41a0f84d8a785f665e99f26e))
+
+
+
+
+
 ## [0.3.1](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.0...v0.3.1) (2025-03-03)
 
 
