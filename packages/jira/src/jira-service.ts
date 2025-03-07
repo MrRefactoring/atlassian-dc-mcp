@@ -73,12 +73,12 @@ export const jiraToolSchemas = {
   },
   postIssueComment: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    comment: z.string().describe("Comment text")
+    comment: z.string().describe("Comment text in the format suitable for JIRA DATA CENTER edition (JIRA Wiki Markup).")
   },
   createIssue: {
     projectId: z.string().describe("Project id"),
     summary: z.string().describe("Issue summary"),
-    description: z.string().describe("Issue description"),
-    issueTypeId: z.string().default("Task").describe("Issue type id (e.g. id of Task, Bug, Story)")
+    description: z.string().describe("Issue description in the format suitable for JIRA DATA CENTER edition (JIRA Wiki Markup)."),
+    issueTypeId: z.string().describe("Issue type id (e.g. id of Task, Bug, Story). Should be found first a correct number for specific JIRA installation.")
   }
 };

@@ -18,10 +18,13 @@ const server = createMcpServer({
   version: "0.1.0"
 });
 
+// Define JIRA instance type
+const jiraInstanceType = "JIRA Data Center edition instance";
+
 // Add JIRA issue search tool
 server.tool(
   "jira_searchIssues",
-  "Search for JIRA issues using JQL",
+  `Search for JIRA issues using JQL in the ${jiraInstanceType}`,
   jiraToolSchemas.searchIssues,
   async ({ jql, expand, startAt, maxResults = 10 }) => {
     const result = await jiraService.searchIssues(jql, startAt, expand, maxResults);
@@ -32,7 +35,7 @@ server.tool(
 // Add get JIRA issue tool
 server.tool(
   "jira_getIssue",
-  "Get details of a JIRA issue by its key",
+  `Get details of a JIRA issue by its key from the ${jiraInstanceType}`,
   jiraToolSchemas.getIssue,
   async ({ issueKey, expand }) => {
     const result = await jiraService.getIssue(issueKey, expand);
@@ -42,7 +45,7 @@ server.tool(
 
 server.tool(
   'jira_getIssueComments',
-  'Get comments of a JIRA issue by its key',
+  `Get comments of a JIRA issue by its key from the ${jiraInstanceType}`,
   jiraToolSchemas.getIssueComments,
   async ({ issueKey, expand }) => {
     const result = await jiraService.getIssueComments(issueKey, expand);
@@ -52,7 +55,7 @@ server.tool(
 // Add create JIRA issue tool
 server.tool(
   "jira_createIssue",
-  "Create a new JIRA issue",
+  `Create a new JIRA issue in the ${jiraInstanceType}`,
   jiraToolSchemas.createIssue,
   async (params) => {
     const result = await jiraService.createIssue(params);
@@ -62,7 +65,7 @@ server.tool(
 
 server.tool(
   "jira_postIssueComment",
-  "Post a comment on a JIRA issue",
+  `Post a comment on a JIRA issue in the ${jiraInstanceType}`,
   jiraToolSchemas.postIssueComment,
   async ({ issueKey, comment }) => {
     const result = await jiraService.postIssueComment(issueKey, comment);
