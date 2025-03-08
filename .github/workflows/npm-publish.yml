@@ -60,5 +60,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          # Use npm with package-lock=false for the publish command
-          npm run publish:ci --package-lock=false
+          chmod +x scripts/publish.sh
+          ./scripts/publish.sh
