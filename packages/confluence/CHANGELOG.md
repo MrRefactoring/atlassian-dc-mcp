@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.3](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.2...v0.3.3) (2025-03-08)
+
+
+### Bug Fixes
+
+* **confluence:** clearly indicate in tools descriptions that it is data center edition, so the LLMs can make fewer mistakes using it. ([3577d7c](https://github.com/b1ff/atlassian-dc-mcp/commit/3577d7c5bf4842fb4d0616d820d795d1e12f862d))
+
+
+
+
+
 ## [0.3.1](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.0...v0.3.1) (2025-03-03)
 
 

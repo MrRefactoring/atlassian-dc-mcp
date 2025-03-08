@@ -1,6 +1,6 @@
 {
   "name": "@atlassian-dc-mcp/confluence",
-  "version": "0.3.1",
+  "version": "0.3.3",
   "main": "build/index.js",
   "type": "module",
   "bin": "./bin/run.js",

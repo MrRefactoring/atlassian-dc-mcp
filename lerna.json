@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "packages": [
     "packages/*"
   ],
@@ -10,11 +10,15 @@
   "createRelease": "github",
   "command": {
     "version": {
-      "ignoreChanges": ["package-lock.json"],
+      "ignoreChanges": [
+        "package-lock.json"
+      ],
       "message": "chore(release): publish %s"
     },
     "publish": {
-      "ignoreChanges": ["package-lock.json"]
+      "ignoreChanges": [
+        "package-lock.json"
+      ]
     }
   }
 }
