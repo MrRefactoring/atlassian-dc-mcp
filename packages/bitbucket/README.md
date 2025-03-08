@@ -63,13 +63,6 @@ Note: Set `BITBUCKET_HOST` variable only to domain + port without protocol (e.g.
 
 ## Usage
 
-Start the MCP server:
-
-```
-npm run build
-npm start
-```
-
 Or for development with auto-reload:
 
 ```
