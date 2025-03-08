@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "packages": [
     "packages/*"
   ],
@@ -24,5 +24,7 @@
     }
   },
   "npmClient": "npm",
-  "npmClientArgs": ["--no-package-lock"]
+  "npmClientArgs": [
+    "--no-package-lock"
+  ]
 }

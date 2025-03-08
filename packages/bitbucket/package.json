@@ -1,6 +1,6 @@
 {
   "name": "@atlassian-dc-mcp/bitbucket",
-  "version": "0.3.0",
+  "version": "0.3.4",
   "main": "build/index.js",
   "type": "module",
   "bin": "./bin/run.js",
