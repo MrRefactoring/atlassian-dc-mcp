@@ -37,19 +37,28 @@ jobs:
         with:
           node-version: '22'
           registry-url: https://registry.npmjs.org/
+      
+      - name: Configure npm
+        run: npm config set package-lock false
+
       - name: Install dependencies
-        run: npm ci --no-package-lock
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      
       - name: Build packages
         run: npm run build
+      
       - name: Configure Git
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git config --global core.autocrlf false
+          git config --global --add safe.directory /home/runner/work/atlassian-dc-mcp/atlassian-dc-mcp
+      
       - name: Version and Publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          npm run publish:ci
+          # Use npm with package-lock=false for the publish command
+          npm run publish:ci --package-lock=false

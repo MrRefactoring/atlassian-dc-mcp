@@ -11,14 +11,18 @@
   "command": {
     "version": {
       "ignoreChanges": [
-        "package-lock.json"
+        "package-lock.json",
+        "**/package-lock.json"
       ],
       "message": "chore(release): publish %s"
     },
     "publish": {
       "ignoreChanges": [
-        "package-lock.json"
+        "package-lock.json",
+        "**/package-lock.json"
       ]
     }
-  }
+  },
+  "npmClient": "npm",
+  "npmClientArgs": ["--no-package-lock"]
 }
