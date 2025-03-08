@@ -8,7 +8,13 @@
   "allowBranch": "master",
   "verbose": true,
   "createRelease": "github",
-  "npmClientArgs": [
-    "--no-package-lock"
-  ]
+  "command": {
+    "version": {
+      "ignoreChanges": ["package-lock.json"],
+      "message": "chore(release): publish %s"
+    },
+    "publish": {
+      "ignoreChanges": ["package-lock.json"]
+    }
+  }
 }
