@@ -19,8 +19,8 @@ if git diff-tree --no-commit-id --name-only -r HEAD | grep -q "package-lock.json
   echo "Git status after reverting package-lock.json files:"
   git status
 
-  # If there are changes to commit after reverting
-  if ! git diff --quiet; then
+  # Check for both staged and unstaged changes
+  if ! git diff --quiet || ! git diff --staged --quiet; then
     echo "Changes detected, amending commit..."
     git add -A
     # Amend the last commit instead of creating a new one

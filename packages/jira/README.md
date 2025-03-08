@@ -67,7 +67,6 @@ Start the MCP server:
 
 ```
 npm run build
-npm start
 ```
 
 Or for development with auto-reload:
