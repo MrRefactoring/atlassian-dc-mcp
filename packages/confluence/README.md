@@ -1,6 +1,6 @@
-# Atlassian Confluence MCP
+# Atlassian Confluence Data Center MCP
 
-This package provides a Machine Comprehension Protocol (MCP) server for interacting with Atlassian Confluence.
+This package provides a Machine Comprehension Protocol (MCP) server for interacting with Atlassian Confluence Data Center edition.
 
 ## Features
 
@@ -47,7 +47,7 @@ npm run dev
 
 #### 1. confluence_getContent
 
-Get Confluence content by ID.
+Get Confluence Data Center content by ID.
 
 Parameters:
 - `contentId` (string, required): The ID of the content to retrieve
@@ -55,7 +55,7 @@ Parameters:
 
 #### 2. confluence_searchContent
 
-Search for content in Confluence using CQL.
+Search for content in Confluence Data Center using CQL.
 
 Parameters:
 - `cql` (string, required): Confluence Query Language search string
@@ -65,68 +65,22 @@ Parameters:
 
 #### 3. confluence_createContent
 
-Create new content in Confluence.
+Create new content in Confluence Data Center.
 
 Parameters:
 - `title` (string, required): Title of the content
 - `spaceKey` (string, required): Space key where content will be created
 - `type` (string, default: "page"): Content type (page, blogpost, etc)
-- `content` (string, required): Content body in storage format (Confluence's HTML-like format)
+- `content` (string, required): Content body in Confluence Data Center's storage format (XML-based storage format)
 - `parentId` (string, optional): ID of the parent page (if creating a child page)
 
 #### 4. confluence_updateContent
 
-Update existing content in Confluence.
+Update existing content in Confluence Data Center.
 
 Parameters:
 - `contentId` (string, required): ID of the content to update
 - `title` (string, optional): New title of the content
-- `content` (string, optional): New content body in storage format
+- `content` (string, optional): New content body in Confluence Data Center's storage format (XML-based)
 - `version` (number, required): New version number (must be incremented from current version)
 - `versionComment` (string, optional): Comment for this version
-
-## Examples
-
-### Get a page by ID
-
-```javascript
-const response = await fetch('http://localhost:3000/api/tools/confluence_getContent', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    contentId: '123456',
-    expand: 'body.storage,version'
-  })
-});
-```
-
-### Create a new page
-
-```javascript
-const response = await fetch('http://localhost:3000/api/tools/confluence_createContent', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    title: 'My New Page',
-    spaceKey: 'DEMO',
-    content: '<p>This is the content of my new page.</p>',
-    type: 'page'
-  })
-});
-```
-
-### Update an existing page
-
-```javascript
-const response = await fetch('http://localhost:3000/api/tools/confluence_updateContent', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    contentId: '123456',
-    title: 'Updated Page Title',
-    content: '<p>This is the updated content.</p>',
-    version: 2,
-    versionComment: 'Updated via API'
-  })
-});
-```

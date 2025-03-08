@@ -100,11 +100,11 @@ export class ConfluenceService {
 
 export const confluenceToolSchemas = {
   getContent: {
-    contentId: z.string().describe("Confluence content ID"),
+    contentId: z.string().describe("Confluence Data Center content ID"),
     expand: z.string().optional().describe("Comma-separated list of properties to expand")
   },
   searchContent: {
-    cql: z.string().describe("Confluence Query Language (CQL) search string"),
+    cql: z.string().describe("Confluence Query Language (CQL) search string for Confluence Data Center"),
     limit: z.number().optional().describe("Maximum number of results to return"),
     start: z.number().optional().describe("Start index for pagination"),
     expand: z.string().optional().describe("Comma-separated list of properties to expand")
@@ -113,18 +113,18 @@ export const confluenceToolSchemas = {
     title: z.string().describe("Title of the content"),
     spaceKey: z.string().describe("Space key where content will be created"),
     type: z.string().default("page").describe("Content type (page, blogpost, etc)"),
-    content: z.string().describe("Content body in confluence \"storage\" format (confluence XML)"),
+    content: z.string().describe("Content body in Confluence Data Center \"storage\" format (confluence XML)"),
     parentId: z.string().optional().describe("ID of the parent page (if creating a child page)")
   },
   updateContent: {
     contentId: z.string().describe("ID of the content to update"),
     title: z.string().optional().describe("New title of the content"),
-    content: z.string().optional().describe("New content body in storage format"),
+    content: z.string().optional().describe("New content body in Confluence Data Center storage format (XML-based)"),
     version: z.number().describe("New version number (must be incremented)"),
     versionComment: z.string().optional().describe("Comment for this version")
   },
   searchSpaces: {
-    searchText: z.string().describe("Text to search for in space names or descriptions"),
+    searchText: z.string().describe("Text to search for in Confluence Data Center space names or descriptions"),
     limit: z.number().optional().describe("Maximum number of results to return"),
     start: z.number().optional().describe("Start index for pagination"),
     expand: z.string().optional().describe("Comma-separated list of properties to expand")

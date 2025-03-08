@@ -17,6 +17,9 @@ const confluenceService = new ConfluenceService(
   process.env.CONFLUENCE_API_TOKEN!
 );
 
+// Define Confluence instance type
+const confluenceInstanceType = "Confluence Data Center edition instance";
+
 // Initialize MCP server
 const server = createMcpServer({
   name: "atlassian-confluence-mcp",
@@ -26,7 +29,7 @@ const server = createMcpServer({
 // Add Confluence content tools
 server.tool(
   "confluence_getContent",
-  "Get Confluence content by ID",
+  `Get Confluence content by ID from the ${confluenceInstanceType}`,
   confluenceToolSchemas.getContent,
   async ({ contentId, expand }) => {
     const result = await confluenceService.getContent(contentId, expand);
@@ -36,7 +39,7 @@ server.tool(
 
 server.tool(
   "confluence_searchContent",
-  "Search for content in Confluence using CQL",
+  `Search for content in ${confluenceInstanceType} using CQL`,
   confluenceToolSchemas.searchContent,
   async ({ cql, limit, start, expand }) => {
     const result = await confluenceService.searchContent(cql, limit, start, expand);
@@ -46,7 +49,7 @@ server.tool(
 
 server.tool(
   "confluence_createContent",
-  "Create new content in Confluence",
+  `Create new content in ${confluenceInstanceType}`,
   confluenceToolSchemas.createContent,
   async ({ title, spaceKey, type, content, parentId }) => {
     const contentObj: ConfluenceContent = {
@@ -73,7 +76,7 @@ server.tool(
 
 server.tool(
   "confluence_updateContent",
-  "Update existing content in Confluence",
+  `Update existing content in ${confluenceInstanceType}`,
   confluenceToolSchemas.updateContent,
   async ({ contentId, title, content, version, versionComment }) => {
     // First get the current content to build upon
@@ -120,7 +123,7 @@ server.tool(
 );
 
 server.tool('confluence_searchSpace',
-  'Search for spaces in Confluence',
+  `Search for spaces in ${confluenceInstanceType}`,
   confluenceToolSchemas.searchSpaces,
   async ({
            searchText,
