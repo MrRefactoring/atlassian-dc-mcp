@@ -18,9 +18,26 @@ This package provides a Machine Comprehension Protocol (MCP) server for interact
 
 2. Create a `.env` file in the packages/confluence directory with the following variables:
    ```
+   # Either CONFLUENCE_HOST or CONFLUENCE_API_BASE_PATH must be set
    CONFLUENCE_HOST=your-confluence-instance.atlassian.net
    CONFLUENCE_API_TOKEN=your-personal-access-token
-   ```
+
+   # Optional: Use one of the following approaches:
+   # 1. If your Confluence instance hosted on the subpath:
+   # CONFLUENCE_API_BASE_PATH=https://your-confluence-instance.atlassian.net/sub-path
+
+   # 2. Or continue using CONFLUENCE_HOST with the default API path (/rest):
+   # CONFLUENCE_HOST=your-confluence-instance.atlassian.net
+    ```
+
+   Note: You have two options for configuring the API URL:
+
+   1. Set `CONFLUENCE_API_BASE_PATH` to the full API URL (e.g., "https://host.com/rest/api" or "https://host.com/wiki/rest/api").
+      When this is set, the `CONFLUENCE_HOST` variable is ignored.
+
+   2. Set `CONFLUENCE_HOST` only, which will use the default API path (/rest).
+
+   3. Confluence uses `/rest` as a path part always, so it will be added automatically, no need to add it manually.
 
    To create a personal access token:
    - In Confluence, select your profile picture at the top right

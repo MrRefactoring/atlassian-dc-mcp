@@ -13,8 +13,9 @@ if (missingEnvVars.length > 0) {
 
 // Initialize Confluence service
 const confluenceService = new ConfluenceService(
-  process.env.CONFLUENCE_HOST!,
-  process.env.CONFLUENCE_API_TOKEN!
+  process.env.CONFLUENCE_API_BASE_PATH ? undefined : process.env.CONFLUENCE_HOST!,
+  process.env.CONFLUENCE_API_TOKEN!,
+  process.env.CONFLUENCE_API_BASE_PATH
 );
 
 // Define Confluence instance type

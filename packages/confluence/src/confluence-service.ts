@@ -23,8 +23,20 @@ export interface ConfluenceContent {
 }
 
 export class ConfluenceService {
-  constructor(host: string, token: string) {
-    OpenAPI.BASE = `https://${host}`;
+  /**
+   * Creates a new ConfluenceService instance
+   * @param host The hostname of the Confluence server (e.g., "host.com")
+   * @param token The API token for authentication
+   * @param fullApiUrl Optional full API URL (e.g., "https://host.com/wiki/"). If provided, host and apiBasePath are ignored.
+   */
+  constructor(host: string | undefined, token: string, fullApiUrl?: string) {
+    if (fullApiUrl) {
+      OpenAPI.BASE = fullApiUrl;
+    } else if (host) {
+      OpenAPI.BASE = `https://${host}`;
+    } else {
+      throw new Error('Either host or fullApiUrl must be provided');
+    }
     OpenAPI.TOKEN = token;
     OpenAPI.VERSION = '1.0';
   }
@@ -93,8 +105,19 @@ export class ConfluenceService {
   }
 
   static validateConfig(): string[] {
-    const requiredEnvVars = ['CONFLUENCE_HOST', 'CONFLUENCE_API_TOKEN'] as const;
-    return requiredEnvVars.filter(varName => !process.env[varName]);
+    const missingVars: string[] = [];
+
+    // API token is always required
+    if (!process.env.CONFLUENCE_API_TOKEN) {
+      missingVars.push('CONFLUENCE_API_TOKEN');
+    }
+
+    // Either CONFLUENCE_HOST or CONFLUENCE_API_BASE_PATH must be set
+    if (!process.env.CONFLUENCE_HOST && !process.env.CONFLUENCE_API_BASE_PATH) {
+      missingVars.push('CONFLUENCE_HOST or CONFLUENCE_API_BASE_PATH');
+    }
+
+    return missingVars;
   }
 }
 
