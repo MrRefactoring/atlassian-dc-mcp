@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.4...v0.4.0) (2025-05-03)
+
+
+### Features
+
+* **confluence:** add support of a base path in configuration to be useful for the sub-path installation. ([e3e05dd](https://github.com/b1ff/atlassian-dc-mcp/commit/e3e05dd4dc18b9dca730ab4d50d90f54fbf116c8))
+
+
+
+
+
 ## [0.3.3](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.2...v0.3.3) (2025-03-08)
 
 
