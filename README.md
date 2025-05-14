@@ -10,14 +10,16 @@ To use these MCP connectors with Claude Desktop, add the following to your Claud
 
 Set `*_HOST` variables only to domain + port without protocol (e.g., `your-instance.atlassian.net`). The https protocol is assumed.
 
+Alternatively, you can use `*_API_BASE_PATH` variables instead of `*_HOST` to specify the complete API base URL including protocol (e.g., `https://your-instance.atlassian.net/rest`). Note that the `/api/latest/` part is static and added automatically in the code, so you don't need to include it in the `*_API_BASE_PATH` values.
+
 You can leave only the services you need in the configuration.
 
-macOS: 
+macOS:
 ```
 ~/Library/Application Support/Claude/claude_desktop_config.json
 ```
 
-Windows: 
+Windows:
 ```
 %APPDATA%\Claude\claude_desktop_config.json
 ```
@@ -47,6 +49,39 @@ Windows:
       "args": ["-y", "@atlassian-dc-mcp/bitbucket"],
       "env": {
         "BITBUCKET_HOST": "your-bitbucket-host",
+        "BITBUCKET_API_TOKEN": "your-token"
+      }
+    }
+  }
+}
+```
+
+You can also use the alternative API base path configuration:
+
+```json
+{
+  "mcpServers": {
+    "atlassian-jira-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "env": {
+        "JIRA_API_BASE_PATH": "https://your-jira-host/rest",
+        "JIRA_API_TOKEN": "your-token"
+      }
+    },
+    "atlassian-confluence-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/confluence"],
+      "env": {
+        "CONFLUENCE_API_BASE_PATH": "https://your-confluence-host/rest",
+        "CONFLUENCE_API_TOKEN": "your-token"
+      }
+    },
+    "atlassian-bitbucket-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/bitbucket"],
+      "env": {
+        "BITBUCKET_API_BASE_PATH": "https://your-bitbucket-host/rest",
         "BITBUCKET_API_TOKEN": "your-token"
       }
     }
@@ -162,16 +197,25 @@ npm run dev:bitbucket   # For Bitbucket
 Create a `.env` file in the root directory with the following variables:
 
 ```
-# Jira configuration
+# Jira configuration - choose one of these options:
 JIRA_HOST=your-instance.atlassian.net
+# OR
+JIRA_API_BASE_PATH=https://your-instance.atlassian.net/rest
+# Note: part /api/2/search/ is added automatically, do not include it
 JIRA_API_TOKEN=your-api-token
 
-# Confluence configuration
+# Confluence configuration - choose one of these options:
 CONFLUENCE_HOST=your-instance.atlassian.net
+# OR
+CONFLUENCE_API_BASE_PATH=https://your-instance.atlassian.net/confluence
+# Note: part /rest/api is added automatically, do not include it
 CONFLUENCE_API_TOKEN=your-api-token
 
-# Bitbucket configuration
+# Bitbucket configuration - choose one of these options:
 BITBUCKET_HOST=your-instance.atlassian.net
+# OR
+BITBUCKET_API_BASE_PATH=https://your-instance.atlassian.net/rest
+# Note: part /api/latest/ is added automatically, do not include it
 BITBUCKET_API_TOKEN=your-api-token
 ```
 
