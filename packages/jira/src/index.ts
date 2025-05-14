@@ -1,5 +1,6 @@
 import { connectServer, createMcpServer, formatToolResponse } from '@atlassian-dc-mcp/common';
 import { JiraService, jiraToolSchemas } from './jira-service.js';
+import * as process from 'node:process';
 
 // Validate required environment variables
 const missingEnvVars = JiraService.validateConfig();
@@ -9,7 +10,8 @@ if (missingEnvVars.length > 0) {
 
 const jiraService = new JiraService(
   process.env.JIRA_HOST!,
-  process.env.JIRA_API_TOKEN!
+  process.env.JIRA_API_TOKEN!,
+  process.env.JIRA_API_BASE_PATH,
 );
 
 // Initialize MCP server

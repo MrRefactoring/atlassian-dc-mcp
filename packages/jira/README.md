@@ -31,8 +31,9 @@ Windows:
 }
 ```
 
-Note: Set `JIRA_HOST` variable only to domain + port without protocol (e.g., `your-instance.atlassian.net`). The https protocol is assumed.
+Note: Set `JIRA_HOST` variable only to domain + port without a protocol (e.g., `your-instance.atlassian.net`). The https protocol is assumed.
 
+Alternatively, you can use `JIRA_API_BASE_PATH` instead of `JIRA_HOST` to specify the complete API base URL including protocol (e.g., `https://your-instance.atlassian.net/rest`). Note that the `/api/2/search/` part is static and added automatically in the code, so you don't need to include it in the `JIRA_API_BASE_PATH` value.
 
 ## Features
 
@@ -52,14 +53,17 @@ Note: Set `JIRA_HOST` variable only to domain + port without protocol (e.g., `yo
 2. Create a `.env` file in the packages/jira directory with the following variables:
    ```
    JIRA_HOST=your-jira-instance.atlassian.net
+   # OR alternatively use
+   # JIRA_API_BASE_PATH=https://your-jira-instance.atlassian.net/rest
+   # Note: /api/latest/ is added automatically, do not include it
    JIRA_API_TOKEN=your-personal-access-token
    ```
 
    To create a personal access token:
-   - In Jira, select your profile picture at the top right
-   - Select **Personal Access Tokens**
-   - Select **Create token** and give it a name
-   - Copy the token and store it securely (you won't be able to see it again)
+  - In Jira, select your profile picture at the top right
+  - Select **Personal Access Tokens**
+  - Select **Create token** and give it a name
+  - Copy the token and store it securely (you won't be able to see it again)
 
 ## Usage
 

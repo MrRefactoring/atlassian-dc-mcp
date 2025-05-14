@@ -3,8 +3,8 @@ import { handleApiOperation } from '@atlassian-dc-mcp/common';
 import { IssueService, OpenAPI, SearchService } from './jira-client/index.js';
 
 export class JiraService {
-  constructor(host: string, token: string) {
-    OpenAPI.BASE = `https://${host}/rest`;
+  constructor(host: string, token: string, fullBaseUrl?: string) {
+    OpenAPI.BASE = fullBaseUrl ?? `https://${host}/rest`;
     OpenAPI.TOKEN = token;
     OpenAPI.VERSION = '2';
   }
@@ -51,8 +51,13 @@ export class JiraService {
   }
 
   static validateConfig(): string[] {
-    const requiredEnvVars = ['JIRA_HOST', 'JIRA_API_TOKEN'] as const;
-    return requiredEnvVars.filter(varName => !process.env[varName]);
+    const requiredEnvVars = ['JIRA_API_TOKEN'] as const;
+    const missingVars: string[] = requiredEnvVars.filter(varName => !process.env[varName]);
+    if (!process.env.JIRA_HOST && !process.env.JIRA_API_BASE_PATH) {
+      missingVars.push('JIRA_HOST or JIRA_API_BASE_PATH');
+    }
+
+    return missingVars;
   }
 }
 
