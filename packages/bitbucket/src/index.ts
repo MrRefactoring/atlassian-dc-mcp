@@ -15,7 +15,8 @@ if (missingVars.length > 0) {
 // Initialize Bitbucket service
 const bitbucketService = new BitbucketService(
   process.env.BITBUCKET_HOST!,
-  process.env.BITBUCKET_API_TOKEN!
+  process.env.BITBUCKET_API_TOKEN!,
+  process.env.BITBUCKET_API_BASE_PATH,
 );
 
 // Initialize MCP server

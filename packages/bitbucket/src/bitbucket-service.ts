@@ -3,9 +3,8 @@ import { OpenAPI, ProjectService, RepositoryService } from './bitbucket-client/i
 import { handleApiOperation } from '@atlassian-dc-mcp/common';
 
 export class BitbucketService {
-  constructor(host: string, token: string) {
-    // Configure the OpenAPI client
-    OpenAPI.BASE = `https://${host}/rest`;
+  constructor(host: string, token: string, fullBaseUrl?: string) {
+    OpenAPI.BASE = fullBaseUrl ?? `https://${host}/rest`;
     OpenAPI.TOKEN = token;
     OpenAPI.VERSION = '1.0';
   }
@@ -96,8 +95,16 @@ export class BitbucketService {
   }
 
   static validateConfig(): string[] {
-    const requiredEnvVars = ['BITBUCKET_HOST', 'BITBUCKET_API_TOKEN'] as const;
-    return requiredEnvVars.filter(varName => !process.env[varName]);
+    // Check for BITBUCKET_HOST or its alternative BITBUCKET_API_BASE_PATH
+    const requiredEnvVars = ['BITBUCKET_API_TOKEN'] as const;
+    const missingVars: string[] = requiredEnvVars.filter(varName => !process.env[varName]);
+
+    // Special handling for BITBUCKET_HOST with BITBUCKET_API_BASE_PATH as an alternative
+    if (!process.env.BITBUCKET_HOST && !process.env.BITBUCKET_API_BASE_PATH) {
+      missingVars.push('BITBUCKET_HOST or BITBUCKET_API_BASE_PATH');
+    }
+
+    return missingVars;
   }
 }
 
