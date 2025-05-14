@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.4...v0.5.0) (2025-05-14)
+
+
+### Features
+
+* **jira:** add support of api base path instead of only host to support paths based installations. ([e42cf70](https://github.com/b1ff/atlassian-dc-mcp/commit/e42cf70f885e2dda3e2cac5c02f697fbbb19cb98))
+
+
+
+
+
 # [0.4.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.4...v0.4.0) (2025-05-03)
 
 **Note:** Version bump only for package @atlassian-dc-mcp/jira

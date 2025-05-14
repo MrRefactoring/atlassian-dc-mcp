@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.4...v0.5.0) (2025-05-14)
+
+
+### Features
+
+* **bitbucket:** add support of api base path instead of only host to support paths based installations. ([dea959b](https://github.com/b1ff/atlassian-dc-mcp/commit/dea959bf64493a90a9a5058db6bf80c462de2ee7))
+* **confluence:** add support of a base path in configuration to be useful for the sub-path installation. ([e3e05dd](https://github.com/b1ff/atlassian-dc-mcp/commit/e3e05dd4dc18b9dca730ab4d50d90f54fbf116c8))
+* **jira:** add support of api base path instead of only host to support paths based installations. ([e42cf70](https://github.com/b1ff/atlassian-dc-mcp/commit/e42cf70f885e2dda3e2cac5c02f697fbbb19cb98))
+
+
+
+
+
 # [0.4.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.4...v0.4.0) (2025-05-03)
 
 
