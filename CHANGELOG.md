@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.5.0...v0.6.0) (2025-05-26)
+
+
+### Features
+
+* add the ability to read PR comments for bitbucket. ([3a895f5](https://github.com/b1ff/atlassian-dc-mcp/commit/3a895f5e353b62fb71985ea14d6b57a24740662b))
+
+
+
+
+
 # [0.5.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.3.4...v0.5.0) (2025-05-14)
 
 
