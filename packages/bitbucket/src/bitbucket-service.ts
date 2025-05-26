@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { OpenAPI, ProjectService, RepositoryService } from './bitbucket-client/index.js';
+import { OpenAPI, ProjectService, PullRequestsService, RepositoryService } from './bitbucket-client/index.js';
 import { handleApiOperation } from '@atlassian-dc-mcp/common';
 
 export class BitbucketService {
@@ -19,7 +19,9 @@ export class BitbucketService {
    * @param limit Optional pagination limit (default: 25)
    * @returns Promise with commits data
    */
-  async getCommits(projectKey: string, repositorySlug: string, path?: string, since?: string, until?: string, limit: number = 25) {
+  async getCommits(projectKey: string, repositorySlug: string, path?: string, since?: string, until?: string,
+    limit: number = 25
+  ) {
     return handleApiOperation(
       () => RepositoryService.getCommits(
         projectKey,
@@ -94,6 +96,23 @@ export class BitbucketService {
     );
   }
 
+  async getPullRequestCommentsAndActions(projectKey: string, repositorySlug: string, pullRequestId: string, start?: number,
+    limit: number = 25
+  ) {
+    return handleApiOperation(
+      () => PullRequestsService.getActivities(
+        projectKey,
+        pullRequestId,
+        repositorySlug,
+        undefined,
+        undefined,
+        start,
+        limit
+      ),
+      'Error fetching pull request comments'
+    )
+  }
+
   static validateConfig(): string[] {
     // Check for BITBUCKET_HOST or its alternative BITBUCKET_API_BASE_PATH
     const requiredEnvVars = ['BITBUCKET_API_TOKEN'] as const;
@@ -133,6 +152,13 @@ export const bitbucketToolSchemas = {
     path: z.string().optional().describe("Optional path to filter commits by"),
     since: z.string().optional().describe("The commit ID (exclusively) to retrieve commits after"),
     until: z.string().optional().describe("The commit ID (inclusively) to retrieve commits before"),
+    limit: z.number().optional().default(25).describe("Number of items to return")
+  },
+  getPullRequestComments: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    pullRequestId: z.string().describe("The pull request ID"),
+    start: z.number().optional().describe("Start number for pagination"),
     limit: z.number().optional().default(25).describe("Number of items to return")
   }
 };
