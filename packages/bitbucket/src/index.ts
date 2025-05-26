@@ -73,7 +73,7 @@ server.tool(
 );
 
 server.tool(
-  "bitbucket_getPullRequestCommentsAndAction",
+  "bitbucket_getPR_CommentsAndAction",
   "Get comments for a Bitbucket pull request and other actions, like approvals",
   bitbucketToolSchemas.getPullRequestComments,
   async ({ projectKey, repositorySlug, pullRequestId, start, limit }) => {
