@@ -55,3 +55,6 @@ temp/
 .yarn-integrity
 .aider*
 .mcpregistry_*
+
+# Claude
+.claude/settings.local.json
