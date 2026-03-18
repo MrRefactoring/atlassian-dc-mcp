@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.12.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.11.2...v0.12.0) (2026-03-18)
+
+
+### Features
+
+* add support for dashboard api ([a7b1eef](https://github.com/b1ff/atlassian-dc-mcp/commit/a7b1eef732b8d7ee8e9f32aee0c6d6502bf18c95))
+
+
+
+
+
 ## [0.11.2](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.11.1...v0.11.2) (2026-03-12)
 
 
