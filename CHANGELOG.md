@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.12.2](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.12.1...v0.12.2) (2026-03-21)
+
+
+### Bug Fixes
+
+* **jira:** address [#16](https://github.com/b1ff/atlassian-dc-mcp/issues/16) exposing labels and other hints through the customFields in the description of the tool. Update docs as well to reflect it. ([979a5fa](https://github.com/b1ff/atlassian-dc-mcp/commit/979a5fab8290f300c57a812be1cff4faa885a0ab))
+
+
+
+
+
 ## [0.12.1](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.12.0...v0.12.1) (2026-03-21)
 
 
