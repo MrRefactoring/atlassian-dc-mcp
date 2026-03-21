@@ -96,8 +96,8 @@ server.tool(
   "bitbucket_getPR_CommentsAndAction",
   "Get comments for a Bitbucket pull request and other actions, like approvals",
   bitbucketToolSchemas.getPullRequestComments,
-  async ({ projectKey, repositorySlug, pullRequestId, start, limit }) => {
-    const result = await bitbucketService.getPullRequestCommentsAndActions(projectKey, repositorySlug, pullRequestId, start, limit);
+  async ({ projectKey, repositorySlug, pullRequestId, start, limit, output }) => {
+    const result = await bitbucketService.getPullRequestCommentsAndActions(projectKey, repositorySlug, pullRequestId, start, limit, output);
     return formatToolResponse(result);
   }
 );
@@ -106,8 +106,8 @@ server.tool(
   "bitbucket_getPullRequestChanges",
   "Get the changes for a Bitbucket pull request",
   bitbucketToolSchemas.getPullRequestChanges,
-  async ({ projectKey, repositorySlug, pullRequestId, sinceId, changeScope, untilId, withComments, start, limit }) => {
-    const result = await bitbucketService.getPullRequestChanges(projectKey, repositorySlug, pullRequestId, sinceId, changeScope, untilId, withComments, start, limit);
+  async ({ projectKey, repositorySlug, pullRequestId, sinceId, changeScope, untilId, withComments, start, limit, output }) => {
+    const result = await bitbucketService.getPullRequestChanges(projectKey, repositorySlug, pullRequestId, sinceId, changeScope, untilId, withComments, start, limit, output);
     return formatToolResponse(result);
   }
 );
@@ -126,8 +126,8 @@ server.tool(
   "bitbucket_postPullRequestComment",
   "Post a comment to a Bitbucket pull request. Use pending: true to create a draft comment that is only visible to you until you call bitbucket_submitPullRequestReview. NOTE: pending only works when filePath is provided (file-level or inline comments). True top-level PR comments (no filePath) are always posted live and cannot be drafted.",
   bitbucketToolSchemas.postPullRequestComment,
-  async ({ projectKey, repositorySlug, pullRequestId, text, parentId, filePath, line, lineType, pending }) => {
-    const result = await bitbucketService.postPullRequestComment(projectKey, repositorySlug, pullRequestId, text, parentId, filePath, line, lineType, pending);
+  async ({ projectKey, repositorySlug, pullRequestId, text, parentId, filePath, line, lineType, pending, output }) => {
+    const result = await bitbucketService.postPullRequestComment(projectKey, repositorySlug, pullRequestId, text, parentId, filePath, line, lineType, pending, output);
     return formatToolResponse(result);
   }
 );
@@ -157,8 +157,8 @@ server.tool(
   "bitbucket_createPullRequest",
   "Create a new pull request in a Bitbucket repository. IMPORTANT: Before creating a PR, use bitbucket_getRequiredReviewers to fetch required reviewers for the source and target branches to ensure the PR is not created without mandatory reviewers.",
   bitbucketToolSchemas.createPullRequest,
-  async ({ projectKey, repositorySlug, title, description, fromRefId, toRefId, reviewers }) => {
-    const result = await bitbucketService.createPullRequest(projectKey, repositorySlug, title, description, fromRefId, toRefId, reviewers);
+  async ({ projectKey, repositorySlug, title, description, fromRefId, toRefId, reviewers, output }) => {
+    const result = await bitbucketService.createPullRequest(projectKey, repositorySlug, title, description, fromRefId, toRefId, reviewers, output);
     return formatToolResponse(result);
   }
 );
@@ -167,8 +167,8 @@ server.tool(
   "bitbucket_updatePullRequest",
   "Update the title, description, reviewers, destination branch or draft status of an existing pull request. IMPORTANT: The reviewers parameter replaces ALL existing reviewers. If you want to preserve existing reviewers, first fetch the current PR details (using bitbucket_getPullRequests filtered by ID) and include those reviewers along with any new ones you want to add.",
   bitbucketToolSchemas.updatePullRequest,
-  async ({ projectKey, repositorySlug, pullRequestId, version, title, description, reviewers }) => {
-    const result = await bitbucketService.updatePullRequest(projectKey, repositorySlug, pullRequestId, version, title, description, reviewers);
+  async ({ projectKey, repositorySlug, pullRequestId, version, title, description, reviewers, output }) => {
+    const result = await bitbucketService.updatePullRequest(projectKey, repositorySlug, pullRequestId, version, title, description, reviewers, output);
     return formatToolResponse(result);
   }
 );

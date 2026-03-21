@@ -2,9 +2,16 @@ import { z } from 'zod';
 import { OpenAPI, ProjectService, PullRequestsService, RepositoryService } from './bitbucket-client/index.js';
 import { request as __request } from './bitbucket-client/core/request.js';
 import { handleApiOperation } from '@atlassian-dc-mcp/common';
-import { simplifyBitbucketPRComments } from './pr-comment-mapper.js';
-import { simplifyBitbucketPRChanges } from './pr-changes-mapper.js';
 import { simplifyInboxPullRequests } from './inbox-pr-mapper.js';
+import { DEFAULT_PAGE_SIZE } from './config.js';
+import {
+  BitbucketMutationOutputMode,
+  BitbucketOutputMode,
+  shapePullRequestAck,
+  shapePullRequestChangesResponse,
+  shapePullRequestCommentAck,
+  shapePullRequestCommentsResponse,
+} from './bitbucket-response-mapper.js';
 
 export class BitbucketService {
   constructor(host: string, token: string, fullBaseUrl?: string) {
@@ -24,7 +31,7 @@ export class BitbucketService {
    * @returns Promise with commits data
    */
   async getCommits(projectKey: string, repositorySlug: string, path?: string, since?: string, until?: string,
-    limit: number = 25
+    limit: number = DEFAULT_PAGE_SIZE
   ) {
     return handleApiOperation(
       () => RepositoryService.getCommits(
@@ -54,7 +61,7 @@ export class BitbucketService {
    * @param limit Optional pagination limit (default: 25)
    * @returns Promise with projects data
    */
-  async getProjects(name?: string, permission?: string, start?: number, limit: number = 25) {
+  async getProjects(name?: string, permission?: string, start?: number, limit: number = DEFAULT_PAGE_SIZE) {
     return handleApiOperation(
       () => ProjectService.getProjects(name, permission, start, limit),
       'Error fetching projects'
@@ -80,7 +87,7 @@ export class BitbucketService {
    * @param limit Optional pagination limit (default: 25)
    * @returns Promise with repositories data
    */
-  async getRepositories(projectKey: string, start?: number, limit: number = 25) {
+  async getRepositories(projectKey: string, start?: number, limit: number = DEFAULT_PAGE_SIZE) {
     return handleApiOperation(
       () => ProjectService.getRepositories(projectKey, start, limit),
       'Error fetching repositories'
@@ -128,7 +135,7 @@ export class BitbucketService {
     order?: string,
     direction?: string,
     start?: number,
-    limit: number = 25
+    limit: number = DEFAULT_PAGE_SIZE
   ) {
     return handleApiOperation(
       () => PullRequestsService.getPage(
@@ -167,8 +174,13 @@ export class BitbucketService {
     );
   }
 
-  async getPullRequestCommentsAndActions(projectKey: string, repositorySlug: string, pullRequestId: string, start?: number,
-    limit: number = 25
+  async getPullRequestCommentsAndActions(
+    projectKey: string,
+    repositorySlug: string,
+    pullRequestId: string,
+    start?: number,
+    limit: number = DEFAULT_PAGE_SIZE,
+    output: BitbucketOutputMode = 'compact'
   ) {
     const result = await handleApiOperation(
       () => PullRequestsService.getActivities(
@@ -183,12 +195,10 @@ export class BitbucketService {
       'Error fetching pull request comments'
     );
 
-    // Apply simplification if the API call was successful
     if (result.success && result.data) {
-      const simplifiedData = simplifyBitbucketPRComments(result.data);
       return {
         success: true,
-        data: simplifiedData
+        data: shapePullRequestCommentsResponse(result.data, output)
       };
     }
 
@@ -217,7 +227,8 @@ export class BitbucketService {
     untilId?: string,
     withComments?: string,
     start?: number,
-    limit: number = 25
+    limit: number = DEFAULT_PAGE_SIZE,
+    output: BitbucketOutputMode = 'compact'
   ) {
     const result = await handleApiOperation(
       () => PullRequestsService.streamChanges1(
@@ -234,12 +245,10 @@ export class BitbucketService {
       'Error fetching pull request changes'
     );
 
-    // Apply simplification if the API call was successful
     if (result.success && result.data) {
-      const simplifiedData = simplifyBitbucketPRChanges(result.data);
       return {
         ...result,
-        data: simplifiedData
+        data: shapePullRequestChangesResponse(result.data, output)
       };
     }
 
@@ -270,7 +279,8 @@ export class BitbucketService {
     filePath?: string,
     line?: number,
     lineType?: 'ADDED' | 'REMOVED' | 'CONTEXT',
-    pending?: boolean
+    pending?: boolean,
+    output: BitbucketMutationOutputMode = 'ack'
   ) {
     const comment: any = {
       text
@@ -302,7 +312,7 @@ export class BitbucketService {
       }
     }
 
-    return handleApiOperation(
+    const result = await handleApiOperation(
       () => PullRequestsService.createComment2(
         projectKey,
         pullRequestId,
@@ -311,6 +321,15 @@ export class BitbucketService {
       ),
       'Error posting pull request comment'
     );
+
+    if (result.success && result.data && output !== 'full') {
+      return {
+        ...result,
+        data: shapePullRequestCommentAck(result.data),
+      };
+    }
+
+    return result;
   }
 
   /**
@@ -452,7 +471,8 @@ export class BitbucketService {
     description: string | undefined,
     fromRefId: string,
     toRefId: string,
-    reviewers?: string[]
+    reviewers?: string[],
+    output: BitbucketMutationOutputMode = 'ack'
   ) {
     const pullRequestData: any = {
       title,
@@ -485,10 +505,19 @@ export class BitbucketService {
       }));
     }
 
-    return handleApiOperation(
+    const result = await handleApiOperation(
       () => PullRequestsService.create(projectKey, repositorySlug, pullRequestData),
       'Error creating pull request'
     );
+
+    if (result.success && result.data && output !== 'full') {
+      return {
+        ...result,
+        data: shapePullRequestAck(result.data),
+      };
+    }
+
+    return result;
   }
 
   /**
@@ -509,7 +538,8 @@ export class BitbucketService {
     version: number,
     title?: string,
     description?: string,
-    reviewers?: string[]
+    reviewers?: string[],
+    output: BitbucketMutationOutputMode = 'ack'
   ) {
     const pullRequestData: any = {
       version
@@ -531,10 +561,19 @@ export class BitbucketService {
       }));
     }
 
-    return handleApiOperation(
+    const result = await handleApiOperation(
       () => PullRequestsService.update(projectKey, pullRequestId, repositorySlug, pullRequestData),
       'Error updating pull request'
     );
+
+    if (result.success && result.data && output !== 'full') {
+      return {
+        ...result,
+        data: shapePullRequestAck(result.data),
+      };
+    }
+
+    return result;
   }
 
   /**
@@ -577,7 +616,7 @@ export class BitbucketService {
    * @param closedSince Optional timestamp (in milliseconds) to filter PRs closed after this date
    * @param order Order: NEWEST (default), OLDEST, or PARTICIPANT
    * @param start Optional pagination start
-   * @param limit Pagination limit (default: 10)
+   * @param limit Pagination limit (defaults to the package page size)
    * @returns Promise with dashboard pull requests data
    */
   async getDashboardPullRequests(
@@ -586,7 +625,7 @@ export class BitbucketService {
     closedSince?: number,
     order: string = 'NEWEST',
     start?: number,
-    limit: number = 10
+    limit: number = DEFAULT_PAGE_SIZE
   ) {
     return handleApiOperation(
       () => __request(OpenAPI, {
@@ -611,10 +650,10 @@ export class BitbucketService {
   /**
    * Get pull requests from the authenticated user's inbox (PRs awaiting review)
    * @param start Optional pagination start
-   * @param limit Optional pagination limit (default: 25)
+   * @param limit Optional pagination limit (defaults to the package page size)
    * @returns Promise with inbox pull requests data
    */
-  async getInboxPullRequests(start?: number, limit: number = 25) {
+  async getInboxPullRequests(start?: number, limit: number = DEFAULT_PAGE_SIZE) {
     const result = await handleApiOperation(
       () => __request(OpenAPI, {
         method: 'GET',
@@ -659,7 +698,7 @@ export const bitbucketToolSchemas = {
     name: z.string().optional().describe("Filter projects by name"),
     permission: z.string().optional().describe("Filter projects by permission"),
     start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().default(25).describe("Number of items to return")
+    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return")
   },
   getPullRequests: {
     projectKey: z.string().describe("The project key"),
@@ -673,7 +712,7 @@ export const bitbucketToolSchemas = {
     order: z.string().optional().describe("(optional, defaults to NEWEST) the order to return pull requests in, either OLDEST (as in: \"oldest first\") or NEWEST"),
     direction: z.string().optional().describe("(optional, defaults to INCOMING) the direction relative to the specified repository. Either INCOMING or OUTGOING"),
     start: z.number().optional().describe("Start number for the page (inclusive). If not passed, first page is assumed"),
-    limit: z.number().optional().default(25).describe("Number of items to return. If not passed, a page size of 25 is used")
+    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return. If not passed, the package default page size is used")
   },
   getPullRequest: {
     projectKey: z.string().describe("The project key"),
@@ -686,7 +725,7 @@ export const bitbucketToolSchemas = {
   getRepositories: {
     projectKey: z.string().describe("The project key"),
     start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().default(25).describe("Number of items to return")
+    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return")
   },
   getRepository: {
     projectKey: z.string().describe("The project key"),
@@ -698,14 +737,15 @@ export const bitbucketToolSchemas = {
     path: z.string().optional().describe("Optional path to filter commits by"),
     since: z.string().optional().describe("The commit ID (exclusively) to retrieve commits after"),
     until: z.string().optional().describe("The commit ID (inclusively) to retrieve commits before"),
-    limit: z.number().optional().default(25).describe("Number of items to return")
+    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return")
   },
   getPullRequestComments: {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug"),
     pullRequestId: z.string().describe("The pull request ID"),
     start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().default(25).describe("Number of items to return")
+    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return"),
+    output: z.enum(['summary', 'compact', 'full']).optional().describe("Choose between summary lines, compact structured output, or the full API payload. Defaults to compact.")
   },
   getPullRequestChanges: {
     projectKey: z.string().describe("The project key"),
@@ -716,7 +756,8 @@ export const bitbucketToolSchemas = {
     untilId: z.string().optional().describe("The until commit hash to stream changes for a RANGE arbitrary change scope"),
     withComments: z.string().optional().describe("true to apply comment counts in the changes (default), false to stream changes without comment counts"),
     start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().default(25).describe("Number of items to return")
+    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return"),
+    output: z.enum(['summary', 'compact', 'full']).optional().describe("Choose between summary lines, compact structured output, or the full API payload. Defaults to compact.")
   },
   postPullRequestComment: {
     projectKey: z.string().describe("The project key"),
@@ -727,7 +768,8 @@ export const bitbucketToolSchemas = {
     filePath: z.string().optional().describe("File path for file-specific comments"),
     line: z.number().optional().describe("Line number for line-specific comments"),
     lineType: z.enum(['ADDED', 'REMOVED', 'CONTEXT']).optional().describe("Line type for line comments"),
-    pending: z.boolean().optional().describe("If true, creates a pending (draft) comment not visible to others until the review is submitted via bitbucket_submitPullRequestReview. Only works when filePath is provided — top-level PR comments (no filePath) are always posted live.")
+    pending: z.boolean().optional().describe("If true, creates a pending (draft) comment not visible to others until the review is submitted via bitbucket_submitPullRequestReview. Only works when filePath is provided — top-level PR comments (no filePath) are always posted live."),
+    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
   },
   getUser: {
     userSlug: z.string().optional().describe("Exact slug of the user to look up (e.g. 'tdepole'). Use this to confirm a known slug or fetch a user's details."),
@@ -760,7 +802,8 @@ export const bitbucketToolSchemas = {
     description: z.string().optional().describe("The pull request description"),
     fromRefId: z.string().describe("The source branch reference ID (e.g., 'refs/heads/feature-branch')"),
     toRefId: z.string().describe("The destination branch reference ID (e.g., 'refs/heads/main')"),
-    reviewers: z.array(z.string()).optional().describe("Optional array of reviewer usernames")
+    reviewers: z.array(z.string()).optional().describe("Optional array of reviewer usernames"),
+    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
   },
   updatePullRequest: {
     projectKey: z.string().describe("The project key"),
@@ -769,7 +812,8 @@ export const bitbucketToolSchemas = {
     version: z.number().describe("The current version of the pull request (required for optimistic locking)"),
     title: z.string().optional().describe("The new title for the pull request"),
     description: z.string().optional().describe("The new description for the pull request"),
-    reviewers: z.array(z.string()).optional().describe("Optional array of reviewer usernames to set")
+    reviewers: z.array(z.string()).optional().describe("Optional array of reviewer usernames to set"),
+    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
   },
   getRequiredReviewers: {
     projectKey: z.string().describe("The project key"),
@@ -785,10 +829,10 @@ export const bitbucketToolSchemas = {
     closedSince: z.number().optional().describe("Timestamp in milliseconds. If state is not OPEN, return only PRs closed after this date"),
     order: z.enum(['NEWEST', 'OLDEST', 'PARTICIPANT']).optional().default('NEWEST').describe("Order of results: NEWEST (default), OLDEST, or PARTICIPANT"),
     start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().default(10).describe("Number of items to return (default: 10)")
+    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return")
   },
   getInboxPullRequests: {
     start: z.number().optional().describe("Start number for the page (inclusive). If not passed, first page is assumed"),
-    limit: z.number().optional().default(25).describe("Number of items to return. If not passed, a page size of 25 is used")
+    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return. If not passed, the package default page size is used")
   }
 };

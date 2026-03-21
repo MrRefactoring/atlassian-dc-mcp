@@ -709,7 +709,10 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockComment);
+      expect(result.data).toEqual({
+        id: 12345,
+        pending: false,
+      });
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
@@ -735,7 +738,10 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockComment);
+      expect(result.data).toEqual({
+        id: 12346,
+        pending: false,
+      });
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
@@ -765,7 +771,10 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockComment);
+      expect(result.data).toEqual({
+        id: 12347,
+        pending: false,
+      });
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
@@ -800,7 +809,10 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockComment);
+      expect(result.data).toEqual({
+        id: 12348,
+        pending: false,
+      });
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
@@ -982,7 +994,15 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockPullRequest);
+      expect(result.data).toEqual({
+        id: 1,
+        version: 0,
+        title: 'Test PR',
+        state: 'OPEN',
+        fromRefId: 'refs/heads/feature-branch',
+        toRefId: 'refs/heads/main',
+        reviewerCount: 0,
+      });
       expect(PullRequestsService.create).toHaveBeenCalledWith(
         mockProjectKey,
         mockRepositorySlug,
@@ -1040,7 +1060,15 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockPullRequest);
+      expect(result.data).toEqual({
+        id: 2,
+        version: 0,
+        title: 'Test PR without description',
+        state: 'OPEN',
+        fromRefId: 'refs/heads/feature-branch',
+        toRefId: 'refs/heads/main',
+        reviewerCount: 0,
+      });
       expect(PullRequestsService.create).toHaveBeenCalledWith(
         mockProjectKey,
         mockRepositorySlug,
@@ -1090,7 +1118,15 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockPullRequest);
+      expect(result.data).toEqual({
+        id: 3,
+        version: 0,
+        title: 'Test PR with reviewers',
+        state: 'OPEN',
+        fromRefId: 'refs/heads/feature-branch',
+        toRefId: 'refs/heads/main',
+        reviewerCount: 2,
+      });
       expect(PullRequestsService.create).toHaveBeenCalledWith(
         mockProjectKey,
         mockRepositorySlug,
@@ -1172,7 +1208,13 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockUpdatedPR);
+      expect(result.data).toEqual({
+        id: 1,
+        version: 1,
+        title: 'Updated Title',
+        state: 'OPEN',
+        reviewerCount: 0,
+      });
       expect(PullRequestsService.update).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
@@ -1204,7 +1246,13 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockUpdatedPR);
+      expect(result.data).toEqual({
+        id: 1,
+        version: 1,
+        title: 'Original Title',
+        state: 'OPEN',
+        reviewerCount: 0,
+      });
       expect(PullRequestsService.update).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
@@ -1236,7 +1284,13 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockUpdatedPR);
+      expect(result.data).toEqual({
+        id: 1,
+        version: 1,
+        title: 'Updated Title',
+        state: 'OPEN',
+        reviewerCount: 0,
+      });
       expect(PullRequestsService.update).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
@@ -1275,7 +1329,13 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockUpdatedPR);
+      expect(result.data).toEqual({
+        id: 1,
+        version: 1,
+        title: 'Test PR',
+        state: 'OPEN',
+        reviewerCount: 3,
+      });
       expect(PullRequestsService.update).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
@@ -1316,7 +1376,13 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockUpdatedPR);
+      expect(result.data).toEqual({
+        id: 1,
+        version: 2,
+        title: 'Updated Title',
+        state: 'OPEN',
+        reviewerCount: 2,
+      });
       expect(PullRequestsService.update).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
@@ -1351,7 +1417,13 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockUpdatedPR);
+      expect(result.data).toEqual({
+        id: 1,
+        version: 1,
+        title: 'Original Title',
+        state: 'OPEN',
+        reviewerCount: 0,
+      });
       expect(PullRequestsService.update).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
@@ -1510,7 +1582,7 @@ describe('BitbucketService', () => {
   describe('getDashboardPullRequests', () => {
     const { request: mockRequest } = require('../bitbucket-client/core/request.js');
 
-    it('should default to AUTHOR role and limit of 10', async () => {
+    it('should default to AUTHOR role and the package page size', async () => {
       const mockData = {
         values: [
           { id: 1, title: 'PR 1', state: 'OPEN' },
@@ -1536,7 +1608,7 @@ describe('BitbucketService', () => {
             'closedSince': undefined,
             'order': 'NEWEST',
             'start': undefined,
-            'limit': 10,
+            'limit': 25,
           },
           errors: {
             401: 'The currently authenticated user is not permitted to access the dashboard.',
@@ -1612,7 +1684,7 @@ describe('BitbucketService', () => {
             'closedSince': closedSince,
             'order': 'NEWEST',
             'start': undefined,
-            'limit': 10,
+            'limit': 25,
           },
           errors: {
             401: 'The currently authenticated user is not permitted to access the dashboard.',

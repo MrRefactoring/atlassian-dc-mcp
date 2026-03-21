@@ -57,6 +57,9 @@ Alternatively, you can use `BITBUCKET_API_BASE_PATH` instead of `BITBUCKET_HOST`
    # BITBUCKET_API_BASE_PATH=https://your-bitbucket-instance.atlassian.net/rest
    # Note: /api/latest/ is added automatically, do not include it
    BITBUCKET_API_TOKEN=your-personal-access-token
+
+   # Optional: default page size for paginated read tools (fallback: 25)
+   BITBUCKET_DEFAULT_PAGE_SIZE=25
    ```
 
    To create a personal access token:
@@ -134,5 +137,11 @@ Parameters:
 - `state` (string, optional): Filter by PR state — OPEN (default), DECLINED, or MERGED
 - `closedSince` (number, optional): Timestamp in milliseconds. If state is not OPEN, return only PRs closed after this date
 - `order` (string, optional): Order of results — NEWEST (default), OLDEST, or PARTICIPANT
-- `limit` (number, optional): Maximum number of results to return (default: 10)
+- `limit` (number, optional): Maximum number of results to return. Defaults to `BITBUCKET_DEFAULT_PAGE_SIZE` or `25`.
 - `start` (number, optional): Starting index for pagination
+
+## Response Shaping
+
+- Paginated read tools use `BITBUCKET_DEFAULT_PAGE_SIZE` when `limit` is omitted.
+- `bitbucket_getPR_CommentsAndAction` and `bitbucket_getPullRequestChanges` support `output=summary|compact|full`. The default is `compact`.
+- `bitbucket_postPullRequestComment`, `bitbucket_createPullRequest`, and `bitbucket_updatePullRequest` support `output=ack|full`. The default is `ack`.
