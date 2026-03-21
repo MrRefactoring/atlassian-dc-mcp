@@ -1,5 +1,5 @@
 import { JiraService } from '../jira-service.js';
-import { IssueService } from '../jira-client/index.js';
+import { IssueService, SearchService } from '../jira-client/index.js';
 
 jest.mock('../jira-client/index.js', () => ({
   IssueService: {
@@ -94,6 +94,90 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Insufficient permissions to view transitions');
+    });
+  });
+
+  describe('token optimization paths', () => {
+    it('uses the default field profile and page size for search', async () => {
+      const mockSearchResults = { issues: [] };
+      (SearchService.searchUsingSearchRequest as jest.Mock).mockResolvedValue(mockSearchResults);
+
+      const result = await jiraService.searchIssues('project = TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSearchResults);
+      expect(SearchService.searchUsingSearchRequest).toHaveBeenCalledWith({
+        jql: 'project = TEST',
+        maxResults: 25,
+        fields: ['summary', 'description', 'status', 'assignee', 'reporter', 'priority', 'issuetype', 'labels', 'updated'],
+        expand: undefined,
+        startAt: undefined,
+      });
+    });
+
+    it('honors explicit search fields and maxResults', async () => {
+      const mockSearchResults = { issues: [] };
+      (SearchService.searchUsingSearchRequest as jest.Mock).mockResolvedValue(mockSearchResults);
+
+      await jiraService.searchIssues('project = TEST', 20, ['changelog'], 5, ['summary', 'status']);
+
+      expect(SearchService.searchUsingSearchRequest).toHaveBeenCalledWith({
+        jql: 'project = TEST',
+        maxResults: 5,
+        fields: ['summary', 'status'],
+        expand: ['changelog'],
+        startAt: 20,
+      });
+    });
+
+    it('uses the richer default field profile for single issue reads', async () => {
+      const mockIssue = { key: mockIssueKey };
+      (IssueService.getIssue as jest.Mock).mockResolvedValue(mockIssue);
+
+      const result = await jiraService.getIssue(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockIssue);
+      expect(IssueService.getIssue).toHaveBeenCalledWith(mockIssueKey, undefined, [
+        'summary',
+        'description',
+        'status',
+        'assignee',
+        'reporter',
+        'priority',
+        'issuetype',
+        'labels',
+        'updated',
+        'parent',
+        'subtasks',
+      ]);
+    });
+
+    it('honors explicit issue fields', async () => {
+      (IssueService.getIssue as jest.Mock).mockResolvedValue({ key: mockIssueKey });
+
+      await jiraService.getIssue(mockIssueKey, 'renderedFields', ['summary', 'status']);
+
+      expect(IssueService.getIssue).toHaveBeenCalledWith(mockIssueKey, 'renderedFields', ['summary', 'status']);
+    });
+
+    it('uses the package default page size for issue comments', async () => {
+      const mockComments = { comments: [] };
+      (IssueService.getComments as jest.Mock).mockResolvedValue(mockComments);
+
+      const result = await jiraService.getIssueComments(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockComments);
+      expect(IssueService.getComments).toHaveBeenCalledWith(mockIssueKey, undefined, '25', undefined, undefined);
+    });
+
+    it('forwards explicit issue comment pagination', async () => {
+      (IssueService.getComments as jest.Mock).mockResolvedValue({ comments: [] });
+
+      await jiraService.getIssueComments(mockIssueKey, 'renderedBody', 10, 20);
+
+      expect(IssueService.getComments).toHaveBeenCalledWith(mockIssueKey, 'renderedBody', '10', undefined, '20');
     });
   });
 

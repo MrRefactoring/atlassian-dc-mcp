@@ -24,8 +24,8 @@ server.tool(
   "jira_searchIssues",
   `Search for JIRA issues using JQL in the ${jiraInstanceType}`,
   jiraToolSchemas.searchIssues,
-  async ({ jql, expand, startAt, maxResults = 10 }) => {
-    const result = await jiraService.searchIssues(jql, startAt, expand, maxResults);
+  async ({ jql, expand, startAt, maxResults, fields }) => {
+    const result = await jiraService.searchIssues(jql, startAt, expand, maxResults, fields);
     return formatToolResponse(result);
   }
 );
@@ -34,8 +34,8 @@ server.tool(
   "jira_getIssue",
   `Get details of a JIRA issue by its key from the ${jiraInstanceType}`,
   jiraToolSchemas.getIssue,
-  async ({ issueKey, expand }) => {
-    const result = await jiraService.getIssue(issueKey, expand);
+  async ({ issueKey, expand, fields }) => {
+    const result = await jiraService.getIssue(issueKey, expand, fields);
     return formatToolResponse(result);
   }
 );
@@ -44,8 +44,8 @@ server.tool(
   'jira_getIssueComments',
   `Get comments of a JIRA issue by its key from the ${jiraInstanceType}`,
   jiraToolSchemas.getIssueComments,
-  async ({ issueKey, expand }) => {
-    const result = await jiraService.getIssueComments(issueKey, expand);
+  async ({ issueKey, expand, maxResults, startAt }) => {
+    const result = await jiraService.getIssueComments(issueKey, expand, maxResults, startAt);
     return formatToolResponse(result);
   });
 

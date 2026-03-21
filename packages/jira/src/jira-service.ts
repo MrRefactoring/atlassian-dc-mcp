@@ -1,6 +1,16 @@
 import { z } from 'zod';
 import { handleApiOperation } from '@atlassian-dc-mcp/common';
 import { IssueService, OpenAPI, SearchService } from './jira-client/index.js';
+import type { StringList } from './jira-client/models/StringList.js';
+import { DEFAULT_PAGE_SIZE } from './config.js';
+
+const DEFAULT_SEARCH_FIELDS = ['summary', 'description', 'status', 'assignee', 'reporter', 'priority', 'issuetype', 'labels', 'updated'];
+const DEFAULT_ISSUE_FIELDS = [...DEFAULT_SEARCH_FIELDS, 'parent', 'subtasks'];
+
+function toIssueFieldSelection(fields: string[]): Array<StringList> {
+  // The generated client types this query param as StringList[], but the API expects repeated string field names.
+  return fields as unknown as Array<StringList>;
+}
 
 export class JiraService {
   constructor(host: string, token: string, fullBaseUrl?: string) {
@@ -9,23 +19,30 @@ export class JiraService {
     OpenAPI.VERSION = '2';
   }
 
-  async searchIssues(jql: string, startAt?: number, expand?: string[], maxResults: number = 10) {
+  async searchIssues(jql: string, startAt?: number, expand?: string[], maxResults: number = DEFAULT_PAGE_SIZE, fields?: string[]) {
     return handleApiOperation(() => {
       return SearchService.searchUsingSearchRequest({
         jql,
         maxResults,
+        fields: fields ?? DEFAULT_SEARCH_FIELDS,
         expand,
         startAt
       });
     }, 'Error searching issues');
   }
 
-  async getIssue(issueKey: string, expand?: string) {
-    return handleApiOperation(() => IssueService.getIssue(issueKey, expand), 'Error getting issue');
+  async getIssue(issueKey: string, expand?: string, fields?: string[]) {
+    return handleApiOperation(
+      () => IssueService.getIssue(issueKey, expand, toIssueFieldSelection(fields ?? DEFAULT_ISSUE_FIELDS)),
+      'Error getting issue'
+    );
   }
 
-  async getIssueComments(issueKey: string, expand?: string) {
-    return handleApiOperation(() => IssueService.getComments(issueKey, expand), 'Error getting issue comments');
+  async getIssueComments(issueKey: string, expand?: string, maxResults: number = DEFAULT_PAGE_SIZE, startAt?: number) {
+    return handleApiOperation(
+      () => IssueService.getComments(issueKey, expand, maxResults.toString(), undefined, startAt?.toString()),
+      'Error getting issue comments'
+    );
   }
 
   async postIssueComment(issueKey: string, comment: string) {
@@ -121,15 +138,19 @@ export const jiraToolSchemas = {
     jql: z.string().describe("JQL query string"),
     maxResults: z.number().optional().describe("Maximum number of results to return"),
     startAt: z.number().optional().describe("Index of the first result to return"),
-    expand: z.array(z.string()).optional().describe("Fields to expand")
+    expand: z.array(z.string()).optional().describe("Additional sections to expand in the search response, such as renderedFields, names, or schema"),
+    fields: z.array(z.string()).optional().describe("Issue field names to include in the response. When omitted, a moderate-detail default field set is used.")
   },
   getIssue: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    expand: z.string().optional().describe("Comma separated fields to expand")
+    expand: z.string().optional().describe("Comma-separated response sections to expand, such as renderedFields, changelog, or transitions"),
+    fields: z.array(z.string()).optional().describe("Issue field names to include in the response. When omitted, a moderate-detail default field set is used.")
   },
   getIssueComments: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    expand: z.string().optional().describe("Comma separated fields to expand")
+    expand: z.string().optional().describe("Comma-separated comment expansions, such as renderedBody"),
+    maxResults: z.number().optional().describe("Maximum number of comments to return"),
+    startAt: z.number().optional().describe("Index of the first comment to return")
   },
   postIssueComment: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),

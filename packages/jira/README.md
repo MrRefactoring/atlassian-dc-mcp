@@ -57,6 +57,9 @@ Alternatively, you can use `JIRA_API_BASE_PATH` instead of `JIRA_HOST` to specif
    # JIRA_API_BASE_PATH=https://your-jira-instance.atlassian.net/rest
    # Note: /api/latest/ is added automatically, do not include it
    JIRA_API_TOKEN=your-personal-access-token
+
+   # Optional: default page size for paginated read tools (fallback: 25)
+   JIRA_DEFAULT_PAGE_SIZE=25
    ```
 
    To create a personal access token:
@@ -87,9 +90,10 @@ Search for JIRA issues using JQL in the JIRA Data Center edition instance.
 
 Parameters:
 - `jql` (string, required): JIRA Query Language search string
-- `expand` (array, optional): Fields to expand in the response
+- `expand` (array, optional): Additional response sections to expand, such as `renderedFields`, `names`, or `schema`
 - `startAt` (number, optional): Starting index for pagination
-- `maxResults` (number, optional): Maximum number of results to return (default: 10)
+- `maxResults` (number, optional): Maximum number of results to return. Defaults to `JIRA_DEFAULT_PAGE_SIZE` or `25`.
+- `fields` (array, optional): Issue field names to return. When omitted, the tool uses a moderate-detail default field set.
 
 #### 2. jira_getIssue
 
@@ -97,7 +101,8 @@ Get details of a JIRA issue by its key from the JIRA Data Center edition instanc
 
 Parameters:
 - `issueKey` (string, required): The issue key (e.g., "PROJECT-123")
-- `expand` (string, optional): Comma-separated list of fields to expand
+- `expand` (string, optional): Comma-separated response sections to expand, such as `renderedFields`, `changelog`, or `transitions`
+- `fields` (array, optional): Issue field names to return. When omitted, the tool uses the search default field set plus `parent` and `subtasks`.
 
 #### 3. jira_getIssueComments
 
@@ -105,7 +110,9 @@ Get comments for a JIRA issue from the JIRA Data Center edition instance.
 
 Parameters:
 - `issueKey` (string, required): The issue key (e.g., "PROJECT-123")
-- `expand` (string, optional): Comma-separated list of fields to expand
+- `expand` (string, optional): Comma-separated comment expansions, such as `renderedBody`
+- `maxResults` (number, optional): Maximum number of comments to return. Defaults to `JIRA_DEFAULT_PAGE_SIZE` or `25`.
+- `startAt` (number, optional): Starting comment offset for pagination
 
 #### 4. jira_createIssue
 
