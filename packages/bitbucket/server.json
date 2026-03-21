@@ -18,22 +18,29 @@
       },
       "environmentVariables": [
         {
-          "description": "Bitbucket host domain (e.g. your-instance.atlassian.net)",
+          "description": "Absolute path to a shared dotenv-style config file. When set, values are read from this file before direct environment variable overrides are applied.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "ATLASSIAN_DC_MCP_CONFIG_FILE"
+        },
+        {
+          "description": "Bitbucket host domain (e.g. your-instance.atlassian.net). Required unless provided through ATLASSIAN_DC_MCP_CONFIG_FILE or BITBUCKET_API_BASE_PATH.",
           "isRequired": false,
           "format": "string",
           "isSecret": false,
           "name": "BITBUCKET_HOST"
         },
         {
-          "description": "Bitbucket API base path (alternative to BITBUCKET_HOST)",
+          "description": "Bitbucket API base path (alternative to BITBUCKET_HOST). Required unless provided through ATLASSIAN_DC_MCP_CONFIG_FILE or BITBUCKET_HOST.",
           "isRequired": false,
           "format": "string",
           "isSecret": false,
           "name": "BITBUCKET_API_BASE_PATH"
         },
         {
-          "description": "Bitbucket Personal Access Token or API token",
-          "isRequired": true,
+          "description": "Bitbucket Personal Access Token or API token. Required unless provided through ATLASSIAN_DC_MCP_CONFIG_FILE.",
+          "isRequired": false,
           "format": "string",
           "isSecret": true,
           "name": "BITBUCKET_API_TOKEN"

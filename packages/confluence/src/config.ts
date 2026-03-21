@@ -1,17 +1,13 @@
-const FALLBACK_PAGE_SIZE = 25;
+import { getProductRuntimeConfig, validateProductRuntimeConfig } from '@atlassian-dc-mcp/common';
 
-function parsePositiveInteger(value: string | undefined): number | undefined {
-  if (!value) {
-    return undefined;
-  }
-
-  const trimmed = value.trim();
-  if (!/^\d+$/.test(trimmed)) {
-    return undefined;
-  }
-
-  const parsed = Number.parseInt(trimmed, 10);
-  return parsed > 0 ? parsed : undefined;
+export function getConfluenceRuntimeConfig() {
+  return getProductRuntimeConfig('confluence');
 }
 
-export const DEFAULT_PAGE_SIZE = parsePositiveInteger(process.env.CONFLUENCE_DEFAULT_PAGE_SIZE) ?? FALLBACK_PAGE_SIZE;
+export function getDefaultPageSize() {
+  return getConfluenceRuntimeConfig().defaultPageSize;
+}
+
+export function getMissingConfig() {
+  return validateProductRuntimeConfig('confluence');
+}

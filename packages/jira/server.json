@@ -18,22 +18,29 @@
       },
       "environmentVariables": [
         {
-          "description": "Jira host domain (e.g. your-instance.atlassian.net)",
+          "description": "Absolute path to a shared dotenv-style config file. When set, values are read from this file before direct environment variable overrides are applied.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "ATLASSIAN_DC_MCP_CONFIG_FILE"
+        },
+        {
+          "description": "Jira host domain (e.g. your-instance.atlassian.net). Required unless provided through ATLASSIAN_DC_MCP_CONFIG_FILE or JIRA_API_BASE_PATH.",
           "isRequired": false,
           "format": "string",
           "isSecret": false,
           "name": "JIRA_HOST"
         },
         {
-          "description": "Jira API base path (alternative to JIRA_HOST)",
+          "description": "Jira API base path (alternative to JIRA_HOST). Required unless provided through ATLASSIAN_DC_MCP_CONFIG_FILE or JIRA_HOST.",
           "isRequired": false,
           "format": "string",
           "isSecret": false,
           "name": "JIRA_API_BASE_PATH"
         },
         {
-          "description": "Jira Personal Access Token or API token",
-          "isRequired": true,
+          "description": "Jira Personal Access Token or API token. Required unless provided through ATLASSIAN_DC_MCP_CONFIG_FILE.",
+          "isRequired": false,
           "format": "string",
           "isSecret": true,
           "name": "JIRA_API_TOKEN"

@@ -31,6 +31,38 @@ Windows:
 }
 ```
 
+To reuse one shared dotenv file across multiple tools or MCP hosts, point the server at an absolute file path:
+
+```json
+{
+  "mcpServers": {
+    "atlassian-bitbucket-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/bitbucket"],
+      "env": {
+        "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
+      }
+    }
+  }
+}
+```
+
+Windows example:
+
+```json
+{
+  "mcpServers": {
+    "atlassian-bitbucket-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/bitbucket"],
+      "env": {
+        "ATLASSIAN_DC_MCP_CONFIG_FILE": "C:\\\\Users\\\\your-user\\\\AppData\\\\Roaming\\\\atlassian-dc-mcp.env"
+      }
+    }
+  }
+}
+```
+
 Note: Set `BITBUCKET_HOST` variable only to domain + port without protocol (e.g., `your-instance.atlassian.net`). The https protocol is assumed.
 
 Alternatively, you can use `BITBUCKET_API_BASE_PATH` instead of `BITBUCKET_HOST` to specify the complete API base URL including protocol (e.g., `https://your-instance.atlassian.net/rest`). Note that the `/api/latest/` part is static and added automatically in the code, so you don't need to include it in the `BITBUCKET_API_BASE_PATH` value.
@@ -50,7 +82,7 @@ Alternatively, you can use `BITBUCKET_API_BASE_PATH` instead of `BITBUCKET_HOST`
    npm install
    ```
 
-2. Create a `.env` file in the packages/bitbucket directory with the following variables:
+2. Create a `.env` file in the packages/bitbucket directory, or put the same values in a shared dotenv file and set `ATLASSIAN_DC_MCP_CONFIG_FILE` to its absolute path:
    ```
    BITBUCKET_HOST=your-bitbucket-instance.atlassian.net
    # OR alternatively use
@@ -61,6 +93,8 @@ Alternatively, you can use `BITBUCKET_API_BASE_PATH` instead of `BITBUCKET_HOST`
    # Optional: default page size for paginated read tools (fallback: 25)
    BITBUCKET_DEFAULT_PAGE_SIZE=25
    ```
+
+   Direct environment variables override values loaded from `ATLASSIAN_DC_MCP_CONFIG_FILE`.
 
    To create a personal access token:
   - In Bitbucket, select your profile picture at the bottom left

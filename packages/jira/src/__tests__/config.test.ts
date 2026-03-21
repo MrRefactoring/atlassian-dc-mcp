@@ -1,30 +1,64 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
 describe('Jira config', () => {
-  const originalValue = process.env.JIRA_DEFAULT_PAGE_SIZE;
+  const originalEnv = process.env;
+  const originalCwd = process.cwd();
+  let tempDir: string;
+
+  beforeEach(() => {
+    jest.resetModules();
+    process.env = { ...originalEnv };
+    delete process.env.ATLASSIAN_DC_MCP_CONFIG_FILE;
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jira-config-'));
+    process.chdir(tempDir);
+  });
 
   afterEach(() => {
-    if (originalValue === undefined) {
-      delete process.env.JIRA_DEFAULT_PAGE_SIZE;
-    } else {
-      process.env.JIRA_DEFAULT_PAGE_SIZE = originalValue;
-    }
-    jest.resetModules();
+    fs.rmSync(tempDir, { recursive: true, force: true });
+    process.chdir(originalCwd);
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
   });
 
   it('uses the configured page size when the env var is a positive integer', async () => {
     process.env.JIRA_DEFAULT_PAGE_SIZE = '40';
-    jest.resetModules();
 
-    const { DEFAULT_PAGE_SIZE } = await import('../config.js');
+    const { getDefaultPageSize } = await import('../config.js');
 
-    expect(DEFAULT_PAGE_SIZE).toBe(40);
+    expect(getDefaultPageSize()).toBe(40);
   });
 
   it('falls back to 25 when the env var is invalid', async () => {
     process.env.JIRA_DEFAULT_PAGE_SIZE = 'invalid';
-    jest.resetModules();
 
-    const { DEFAULT_PAGE_SIZE } = await import('../config.js');
+    const { getDefaultPageSize } = await import('../config.js');
 
-    expect(DEFAULT_PAGE_SIZE).toBe(25);
+    expect(getDefaultPageSize()).toBe(25);
+  });
+
+  it('reads the page size from the shared config file', async () => {
+    const sharedConfigPath = path.join(tempDir, 'shared.env');
+    fs.writeFileSync(sharedConfigPath, 'JIRA_HOST=file-host\nJIRA_API_TOKEN=file-token\nJIRA_DEFAULT_PAGE_SIZE=35\n');
+    process.env.ATLASSIAN_DC_MCP_CONFIG_FILE = sharedConfigPath;
+
+    const { getDefaultPageSize, getJiraRuntimeConfig } = await import('../config.js');
+
+    expect(getDefaultPageSize()).toBe(35);
+    expect(getJiraRuntimeConfig().token).toBe('file-token');
+  });
+
+  it('keeps env values higher priority than the shared config file', async () => {
+    const sharedConfigPath = path.join(tempDir, 'shared.env');
+    fs.writeFileSync(sharedConfigPath, 'JIRA_HOST=file-host\nJIRA_API_TOKEN=file-token\nJIRA_DEFAULT_PAGE_SIZE=35\n');
+    process.env.ATLASSIAN_DC_MCP_CONFIG_FILE = sharedConfigPath;
+    process.env.JIRA_DEFAULT_PAGE_SIZE = '45';
+
+    const { getDefaultPageSize } = await import('../config.js');
+
+    expect(getDefaultPageSize()).toBe(45);
   });
 });

@@ -1,16 +1,20 @@
-import { connectServer, createMcpServer, formatToolResponse } from '@atlassian-dc-mcp/common';
+import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from '@atlassian-dc-mcp/common';
 import { JiraService, jiraToolSchemas } from './jira-service.js';
-import * as process from 'node:process';
+import { getDefaultPageSize, getJiraRuntimeConfig } from './config.js';
+
+initializeRuntimeConfig();
 
 const missingEnvVars = JiraService.validateConfig();
 if (missingEnvVars.length > 0) {
   throw new Error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
 }
 
+const jiraConfig = getJiraRuntimeConfig();
 const jiraService = new JiraService(
-  process.env.JIRA_HOST!,
-  process.env.JIRA_API_TOKEN!,
-  process.env.JIRA_API_BASE_PATH,
+  jiraConfig.host,
+  () => getJiraRuntimeConfig().token,
+  jiraConfig.apiBasePath,
+  getDefaultPageSize,
 );
 
 const server = createMcpServer({

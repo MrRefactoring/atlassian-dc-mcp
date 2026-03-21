@@ -31,6 +31,38 @@ Windows:
 }
 ```
 
+To reuse one shared dotenv file across multiple tools or MCP hosts, point the server at an absolute file path:
+
+```json
+{
+  "mcpServers": {
+    "atlassian-jira-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "env": {
+        "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
+      }
+    }
+  }
+}
+```
+
+Windows example:
+
+```json
+{
+  "mcpServers": {
+    "atlassian-jira-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "env": {
+        "ATLASSIAN_DC_MCP_CONFIG_FILE": "C:\\\\Users\\\\your-user\\\\AppData\\\\Roaming\\\\atlassian-dc-mcp.env"
+      }
+    }
+  }
+}
+```
+
 Note: Set `JIRA_HOST` variable only to domain + port without a protocol (e.g., `your-instance.atlassian.net`). The https protocol is assumed.
 
 Alternatively, you can use `JIRA_API_BASE_PATH` instead of `JIRA_HOST` to specify the complete API base URL including protocol (e.g., `https://your-instance.atlassian.net/rest`). Note that the `/api/2/search/` part is static and added automatically in the code, so you don't need to include it in the `JIRA_API_BASE_PATH` value.
@@ -50,7 +82,7 @@ Alternatively, you can use `JIRA_API_BASE_PATH` instead of `JIRA_HOST` to specif
    npm install
    ```
 
-2. Create a `.env` file in the packages/jira directory with the following variables:
+2. Create a `.env` file in the packages/jira directory, or put the same values in a shared dotenv file and set `ATLASSIAN_DC_MCP_CONFIG_FILE` to its absolute path:
    ```
    JIRA_HOST=your-jira-instance.atlassian.net
    # OR alternatively use
@@ -61,6 +93,8 @@ Alternatively, you can use `JIRA_API_BASE_PATH` instead of `JIRA_HOST` to specif
    # Optional: default page size for paginated read tools (fallback: 25)
    JIRA_DEFAULT_PAGE_SIZE=25
    ```
+
+   Direct environment variables override values loaded from `ATLASSIAN_DC_MCP_CONFIG_FILE`.
 
    To create a personal access token:
   - In Jira, select your profile picture at the top right

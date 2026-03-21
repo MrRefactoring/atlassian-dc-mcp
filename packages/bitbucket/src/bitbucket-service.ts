@@ -3,7 +3,7 @@ import { OpenAPI, ProjectService, PullRequestsService, RepositoryService } from 
 import { request as __request } from './bitbucket-client/core/request.js';
 import { handleApiOperation } from '@atlassian-dc-mcp/common';
 import { simplifyInboxPullRequests } from './inbox-pr-mapper.js';
-import { DEFAULT_PAGE_SIZE } from './config.js';
+import { getDefaultPageSize, getMissingConfig } from './config.js';
 import {
   BitbucketMutationOutputMode,
   BitbucketOutputMode,
@@ -13,11 +13,36 @@ import {
   shapePullRequestCommentsResponse,
 } from './bitbucket-response-mapper.js';
 
+function resolveToken(token: string | (() => string | undefined), missingTokenMessage: string) {
+  return async () => {
+    const resolvedToken = typeof token === 'function' ? token() : token;
+    if (!resolvedToken) {
+      throw new Error(missingTokenMessage);
+    }
+    return resolvedToken;
+  };
+}
+
 export class BitbucketService {
-  constructor(host: string, token: string, fullBaseUrl?: string) {
-    OpenAPI.BASE = fullBaseUrl ?? `https://${host}/rest`;
-    OpenAPI.TOKEN = token;
+  private readonly getPageSize: () => number;
+
+  constructor(
+    host: string | undefined,
+    token: string | (() => string | undefined),
+    fullBaseUrl?: string,
+    getPageSize: () => number = getDefaultPageSize,
+  ) {
+    if (fullBaseUrl) {
+      OpenAPI.BASE = fullBaseUrl;
+    } else if (host) {
+      OpenAPI.BASE = `https://${host}/rest`;
+    } else {
+      throw new Error('Either host or fullBaseUrl must be provided');
+    }
+
+    OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: BITBUCKET_API_TOKEN');
     OpenAPI.VERSION = '1.0';
+    this.getPageSize = getPageSize;
   }
 
   /**
@@ -31,7 +56,7 @@ export class BitbucketService {
    * @returns Promise with commits data
    */
   async getCommits(projectKey: string, repositorySlug: string, path?: string, since?: string, until?: string,
-    limit: number = DEFAULT_PAGE_SIZE
+    limit?: number
   ) {
     return handleApiOperation(
       () => RepositoryService.getCommits(
@@ -47,7 +72,7 @@ export class BitbucketService {
         undefined, // merges
         undefined, // ignoreMissing
         0, // start
-        limit
+        limit ?? this.getPageSize()
       ),
       'Error fetching commits'
     );
@@ -61,9 +86,9 @@ export class BitbucketService {
    * @param limit Optional pagination limit (default: 25)
    * @returns Promise with projects data
    */
-  async getProjects(name?: string, permission?: string, start?: number, limit: number = DEFAULT_PAGE_SIZE) {
+  async getProjects(name?: string, permission?: string, start?: number, limit?: number) {
     return handleApiOperation(
-      () => ProjectService.getProjects(name, permission, start, limit),
+      () => ProjectService.getProjects(name, permission, start, limit ?? this.getPageSize()),
       'Error fetching projects'
     );
   }
@@ -87,9 +112,9 @@ export class BitbucketService {
    * @param limit Optional pagination limit (default: 25)
    * @returns Promise with repositories data
    */
-  async getRepositories(projectKey: string, start?: number, limit: number = DEFAULT_PAGE_SIZE) {
+  async getRepositories(projectKey: string, start?: number, limit?: number) {
     return handleApiOperation(
-      () => ProjectService.getRepositories(projectKey, start, limit),
+      () => ProjectService.getRepositories(projectKey, start, limit ?? this.getPageSize()),
       'Error fetching repositories'
     );
   }
@@ -135,7 +160,7 @@ export class BitbucketService {
     order?: string,
     direction?: string,
     start?: number,
-    limit: number = DEFAULT_PAGE_SIZE
+    limit?: number
   ) {
     return handleApiOperation(
       () => PullRequestsService.getPage(
@@ -150,7 +175,7 @@ export class BitbucketService {
         order,
         direction,
         start,
-        limit
+        limit ?? this.getPageSize()
       ),
       'Error fetching pull requests'
     );
@@ -179,7 +204,7 @@ export class BitbucketService {
     repositorySlug: string,
     pullRequestId: string,
     start?: number,
-    limit: number = DEFAULT_PAGE_SIZE,
+    limit?: number,
     output: BitbucketOutputMode = 'compact'
   ) {
     const result = await handleApiOperation(
@@ -190,7 +215,7 @@ export class BitbucketService {
         undefined,
         undefined,
         start,
-        limit
+        limit ?? this.getPageSize()
       ),
       'Error fetching pull request comments'
     );
@@ -227,7 +252,7 @@ export class BitbucketService {
     untilId?: string,
     withComments?: string,
     start?: number,
-    limit: number = DEFAULT_PAGE_SIZE,
+    limit?: number,
     output: BitbucketOutputMode = 'compact'
   ) {
     const result = await handleApiOperation(
@@ -240,7 +265,7 @@ export class BitbucketService {
         untilId,
         withComments,
         start,
-        limit
+        limit ?? this.getPageSize()
       ),
       'Error fetching pull request changes'
     );
@@ -625,7 +650,7 @@ export class BitbucketService {
     closedSince?: number,
     order: string = 'NEWEST',
     start?: number,
-    limit: number = DEFAULT_PAGE_SIZE
+    limit?: number
   ) {
     return handleApiOperation(
       () => __request(OpenAPI, {
@@ -637,7 +662,7 @@ export class BitbucketService {
           'closedSince': closedSince,
           'order': order,
           'start': start,
-          'limit': limit,
+          'limit': limit ?? this.getPageSize(),
         },
         errors: {
           401: 'The currently authenticated user is not permitted to access the dashboard.',
@@ -653,14 +678,14 @@ export class BitbucketService {
    * @param limit Optional pagination limit (defaults to the package page size)
    * @returns Promise with inbox pull requests data
    */
-  async getInboxPullRequests(start?: number, limit: number = DEFAULT_PAGE_SIZE) {
+  async getInboxPullRequests(start?: number, limit?: number) {
     const result = await handleApiOperation(
       () => __request(OpenAPI, {
         method: 'GET',
         url: '/api/latest/inbox/pull-requests',
         query: {
           'start': start,
-          'limit': limit,
+          'limit': limit ?? this.getPageSize(),
         },
         errors: {
           401: 'The currently authenticated user is not permitted to access the inbox.',
@@ -680,16 +705,7 @@ export class BitbucketService {
   }
 
   static validateConfig(): string[] {
-    // Check for BITBUCKET_HOST or its alternative BITBUCKET_API_BASE_PATH
-    const requiredEnvVars = ['BITBUCKET_API_TOKEN'] as const;
-    const missingVars: string[] = requiredEnvVars.filter(varName => !process.env[varName]);
-
-    // Special handling for BITBUCKET_HOST with BITBUCKET_API_BASE_PATH as an alternative
-    if (!process.env.BITBUCKET_HOST && !process.env.BITBUCKET_API_BASE_PATH) {
-      missingVars.push('BITBUCKET_HOST or BITBUCKET_API_BASE_PATH');
-    }
-
-    return missingVars;
+    return getMissingConfig();
   }
 }
 
@@ -698,7 +714,7 @@ export const bitbucketToolSchemas = {
     name: z.string().optional().describe("Filter projects by name"),
     permission: z.string().optional().describe("Filter projects by permission"),
     start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return")
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
   },
   getPullRequests: {
     projectKey: z.string().describe("The project key"),
@@ -712,7 +728,7 @@ export const bitbucketToolSchemas = {
     order: z.string().optional().describe("(optional, defaults to NEWEST) the order to return pull requests in, either OLDEST (as in: \"oldest first\") or NEWEST"),
     direction: z.string().optional().describe("(optional, defaults to INCOMING) the direction relative to the specified repository. Either INCOMING or OUTGOING"),
     start: z.number().optional().describe("Start number for the page (inclusive). If not passed, first page is assumed"),
-    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return. If not passed, the package default page size is used")
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
   },
   getPullRequest: {
     projectKey: z.string().describe("The project key"),
@@ -725,7 +741,7 @@ export const bitbucketToolSchemas = {
   getRepositories: {
     projectKey: z.string().describe("The project key"),
     start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return")
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
   },
   getRepository: {
     projectKey: z.string().describe("The project key"),
@@ -737,14 +753,14 @@ export const bitbucketToolSchemas = {
     path: z.string().optional().describe("Optional path to filter commits by"),
     since: z.string().optional().describe("The commit ID (exclusively) to retrieve commits after"),
     until: z.string().optional().describe("The commit ID (inclusively) to retrieve commits before"),
-    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return")
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
   },
   getPullRequestComments: {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug"),
     pullRequestId: z.string().describe("The pull request ID"),
     start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return"),
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used."),
     output: z.enum(['summary', 'compact', 'full']).optional().describe("Choose between summary lines, compact structured output, or the full API payload. Defaults to compact.")
   },
   getPullRequestChanges: {
@@ -756,7 +772,7 @@ export const bitbucketToolSchemas = {
     untilId: z.string().optional().describe("The until commit hash to stream changes for a RANGE arbitrary change scope"),
     withComments: z.string().optional().describe("true to apply comment counts in the changes (default), false to stream changes without comment counts"),
     start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return"),
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used."),
     output: z.enum(['summary', 'compact', 'full']).optional().describe("Choose between summary lines, compact structured output, or the full API payload. Defaults to compact.")
   },
   postPullRequestComment: {
@@ -829,10 +845,10 @@ export const bitbucketToolSchemas = {
     closedSince: z.number().optional().describe("Timestamp in milliseconds. If state is not OPEN, return only PRs closed after this date"),
     order: z.enum(['NEWEST', 'OLDEST', 'PARTICIPANT']).optional().default('NEWEST').describe("Order of results: NEWEST (default), OLDEST, or PARTICIPANT"),
     start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return")
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
   },
   getInboxPullRequests: {
     start: z.number().optional().describe("Start number for the page (inclusive). If not passed, first page is assumed"),
-    limit: z.number().optional().default(DEFAULT_PAGE_SIZE).describe("Number of items to return. If not passed, the package default page size is used")
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
   }
 };

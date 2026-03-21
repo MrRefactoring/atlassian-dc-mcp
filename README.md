@@ -93,6 +93,73 @@ You can also use the alternative API base path configuration:
 }
 ```
 
+## Shared External Config File
+
+If you want multiple MCP hosts or tools on one machine to reuse the same Atlassian credentials, put the existing `JIRA_*`, `CONFLUENCE_*`, and `BITBUCKET_*` variables into one dotenv-style file and point each MCP server at it with `ATLASSIAN_DC_MCP_CONFIG_FILE`.
+
+The path must be absolute. Direct environment variables still override values from the shared file.
+
+Example shared file:
+
+```dotenv
+JIRA_HOST=your-jira-host
+JIRA_API_TOKEN=your-jira-token
+JIRA_DEFAULT_PAGE_SIZE=50
+
+CONFLUENCE_HOST=your-confluence-host
+CONFLUENCE_API_TOKEN=your-confluence-token
+
+BITBUCKET_HOST=your-bitbucket-host
+BITBUCKET_API_TOKEN=your-bitbucket-token
+BITBUCKET_DEFAULT_PAGE_SIZE=50
+```
+
+Claude Desktop example using one shared file:
+
+```json
+{
+  "mcpServers": {
+    "atlassian-jira-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "env": {
+        "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
+      }
+    },
+    "atlassian-confluence-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/confluence"],
+      "env": {
+        "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
+      }
+    },
+    "atlassian-bitbucket-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/bitbucket"],
+      "env": {
+        "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
+      }
+    }
+  }
+}
+```
+
+Windows example path:
+
+```json
+{
+  "mcpServers": {
+    "atlassian-jira-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "env": {
+        "ATLASSIAN_DC_MCP_CONFIG_FILE": "C:\\\\Users\\\\your-user\\\\AppData\\\\Roaming\\\\atlassian-dc-mcp.env"
+      }
+    }
+  }
+}
+```
+
 ## Claude Code CLI Configuration
 
 To use these MCP connectors with [Claude Code](https://docs.anthropic.com/en/docs/claude-code), add MCP servers using the `claude mcp add` command.
@@ -134,6 +201,22 @@ To add servers at user scope (available across all projects):
 claude mcp add -s user atlassian-jira-dc \
   -e JIRA_HOST=your-jira-host \
   -e JIRA_API_TOKEN=your-token \
+  -- npx -y @atlassian-dc-mcp/jira
+```
+
+To use the shared config file instead of passing credentials inline:
+
+```bash
+claude mcp add atlassian-jira-dc \
+  -e ATLASSIAN_DC_MCP_CONFIG_FILE=/Users/your-user/.config/atlassian-dc-mcp.env \
+  -- npx -y @atlassian-dc-mcp/jira
+```
+
+Windows PowerShell example:
+
+```powershell
+claude mcp add atlassian-jira-dc `
+  -e ATLASSIAN_DC_MCP_CONFIG_FILE=C:\Users\your-user\AppData\Roaming\atlassian-dc-mcp.env `
   -- npx -y @atlassian-dc-mcp/jira
 ```
 
@@ -242,7 +325,7 @@ npm run dev:bitbucket   # For Bitbucket
 
 ## Configuration
 
-Create a `.env` file in the root directory with the following variables:
+Create a `.env` file in the root directory, or a shared dotenv-style file anywhere on disk and point `ATLASSIAN_DC_MCP_CONFIG_FILE` to it, with the following variables:
 
 ```
 # Jira configuration - choose one of these options:
@@ -266,6 +349,8 @@ BITBUCKET_API_BASE_PATH=https://your-instance.atlassian.net/rest
 # Note: part /api/latest/ is added automatically, do not include it
 BITBUCKET_API_TOKEN=your-api-token
 ```
+
+Direct environment variables always win over values loaded from the file referenced by `ATLASSIAN_DC_MCP_CONFIG_FILE`.
 
 ## License
 

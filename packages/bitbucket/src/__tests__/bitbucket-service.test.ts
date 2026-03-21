@@ -1,3 +1,7 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { initializeRuntimeConfig } from '@atlassian-dc-mcp/common';
 import { BitbucketService } from '../bitbucket-service.js';
 import { PullRequestsService } from '../bitbucket-client/index.js';
 import { request as mockRequest } from '../bitbucket-client/core/request.js';
@@ -1804,10 +1808,17 @@ describe('BitbucketService', () => {
 
   describe('validateConfig', () => {
     const originalEnv = process.env;
+    let tempDir: string;
 
     beforeEach(() => {
-      jest.resetModules();
       process.env = { ...originalEnv };
+      delete process.env.ATLASSIAN_DC_MCP_CONFIG_FILE;
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bitbucket-validate-config-'));
+      initializeRuntimeConfig({ cwd: tempDir });
+    });
+
+    afterEach(() => {
+      fs.rmSync(tempDir, { recursive: true, force: true });
     });
 
     afterAll(() => {
@@ -1843,6 +1854,15 @@ describe('BitbucketService', () => {
       process.env.BITBUCKET_API_TOKEN = 'test-token';
       delete process.env.BITBUCKET_HOST;
       process.env.BITBUCKET_API_BASE_PATH = 'https://test-host/rest';
+
+      const missingVars = BitbucketService.validateConfig();
+      expect(missingVars).toEqual([]);
+    });
+
+    it('should accept required config from the shared config file', () => {
+      const sharedConfigPath = path.join(tempDir, 'shared.env');
+      fs.writeFileSync(sharedConfigPath, 'BITBUCKET_HOST=file-host\nBITBUCKET_API_TOKEN=file-token\n');
+      process.env.ATLASSIAN_DC_MCP_CONFIG_FILE = sharedConfigPath;
 
       const missingVars = BitbucketService.validateConfig();
       expect(missingVars).toEqual([]);

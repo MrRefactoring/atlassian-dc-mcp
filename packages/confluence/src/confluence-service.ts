@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ContentResourceService, OpenAPI, SearchService } from './confluence-client/index.js';
 import { handleApiOperation } from '@atlassian-dc-mcp/common';
-import { DEFAULT_PAGE_SIZE } from './config.js';
+import { getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
 
 /**
@@ -33,14 +33,31 @@ export interface ConfluenceContent {
   ancestors?: Array<{ id: string }>;
 }
 
+function resolveToken(token: string | (() => string | undefined), missingTokenMessage: string) {
+  return async () => {
+    const resolvedToken = typeof token === 'function' ? token() : token;
+    if (!resolvedToken) {
+      throw new Error(missingTokenMessage);
+    }
+    return resolvedToken;
+  };
+}
+
 export class ConfluenceService {
+  private readonly getPageSize: () => number;
+
   /**
    * Creates a new ConfluenceService instance
    * @param host The hostname of the Confluence server (e.g., "host.com")
    * @param token The API token for authentication
    * @param fullApiUrl Optional full API URL (e.g., "https://host.com/wiki/"). If provided, host and apiBasePath are ignored.
    */
-  constructor(host: string | undefined, token: string, fullApiUrl?: string) {
+  constructor(
+    host: string | undefined,
+    token: string | (() => string | undefined),
+    fullApiUrl?: string,
+    getPageSize: () => number = getDefaultPageSize,
+  ) {
     if (fullApiUrl) {
       OpenAPI.BASE = fullApiUrl;
     } else if (host) {
@@ -48,8 +65,9 @@ export class ConfluenceService {
     } else {
       throw new Error('Either host or fullApiUrl must be provided');
     }
-    OpenAPI.TOKEN = token;
+    OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: CONFLUENCE_API_TOKEN');
     OpenAPI.VERSION = '1.0';
+    this.getPageSize = getPageSize;
   }
   /**
    * Get a Confluence page by ID
@@ -89,7 +107,7 @@ export class ConfluenceService {
         undefined,
         expand,
         undefined,
-        (limit ?? DEFAULT_PAGE_SIZE).toString(),
+        (limit ?? this.getPageSize()).toString(),
         start?.toString(),
         excerpt,
         cql
@@ -138,7 +156,7 @@ export class ConfluenceService {
       undefined,
       expand,
       undefined,
-      (limit ?? DEFAULT_PAGE_SIZE).toString(),
+      (limit ?? this.getPageSize()).toString(),
       start?.toString(),
       excerpt,
       cql
@@ -146,19 +164,7 @@ export class ConfluenceService {
   }
 
   static validateConfig(): string[] {
-    const missingVars: string[] = [];
-
-    // API token is always required
-    if (!process.env.CONFLUENCE_API_TOKEN) {
-      missingVars.push('CONFLUENCE_API_TOKEN');
-    }
-
-    // Either CONFLUENCE_HOST or CONFLUENCE_API_BASE_PATH must be set
-    if (!process.env.CONFLUENCE_HOST && !process.env.CONFLUENCE_API_BASE_PATH) {
-      missingVars.push('CONFLUENCE_HOST or CONFLUENCE_API_BASE_PATH');
-    }
-
-    return missingVars;
+    return getMissingConfig();
   }
 }
 

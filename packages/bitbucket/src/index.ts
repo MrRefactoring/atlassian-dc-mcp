@@ -1,9 +1,8 @@
-import { connectServer, createMcpServer, formatToolResponse } from '@atlassian-dc-mcp/common';
-import dotenv from 'dotenv';
+import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from '@atlassian-dc-mcp/common';
 import { BitbucketService, bitbucketToolSchemas } from './bitbucket-service.js';
+import { getBitbucketRuntimeConfig, getDefaultPageSize } from './config.js';
 
-// Load environment variables
-dotenv.config();
+initializeRuntimeConfig();
 
 const missingVars = BitbucketService.validateConfig();
 if (missingVars.length > 0) {
@@ -11,10 +10,12 @@ if (missingVars.length > 0) {
   process.exit(1);
 }
 
+const bitbucketConfig = getBitbucketRuntimeConfig();
 const bitbucketService = new BitbucketService(
-  process.env.BITBUCKET_HOST!,
-  process.env.BITBUCKET_API_TOKEN!,
-  process.env.BITBUCKET_API_BASE_PATH,
+  bitbucketConfig.host,
+  () => getBitbucketRuntimeConfig().token,
+  bitbucketConfig.apiBasePath,
+  getDefaultPageSize,
 );
 
 const server = createMcpServer({

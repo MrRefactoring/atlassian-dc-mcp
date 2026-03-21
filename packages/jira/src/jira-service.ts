@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { handleApiOperation } from '@atlassian-dc-mcp/common';
 import { IssueService, OpenAPI, SearchService } from './jira-client/index.js';
 import type { StringList } from './jira-client/models/StringList.js';
-import { DEFAULT_PAGE_SIZE } from './config.js';
+import { getDefaultPageSize, getMissingConfig } from './config.js';
 
 const DEFAULT_SEARCH_FIELDS = ['summary', 'description', 'status', 'assignee', 'reporter', 'priority', 'issuetype', 'labels', 'updated'];
 const DEFAULT_ISSUE_FIELDS = [...DEFAULT_SEARCH_FIELDS, 'parent', 'subtasks'];
@@ -12,18 +12,43 @@ function toIssueFieldSelection(fields: string[]): Array<StringList> {
   return fields as unknown as Array<StringList>;
 }
 
+function resolveToken(token: string | (() => string | undefined), missingTokenMessage: string) {
+  return async () => {
+    const resolvedToken = typeof token === 'function' ? token() : token;
+    if (!resolvedToken) {
+      throw new Error(missingTokenMessage);
+    }
+    return resolvedToken;
+  };
+}
+
 export class JiraService {
-  constructor(host: string, token: string, fullBaseUrl?: string) {
-    OpenAPI.BASE = fullBaseUrl ?? `https://${host}/rest`;
-    OpenAPI.TOKEN = token;
+  private readonly getPageSize: () => number;
+
+  constructor(
+    host: string | undefined,
+    token: string | (() => string | undefined),
+    fullBaseUrl?: string,
+    getPageSize: () => number = getDefaultPageSize,
+  ) {
+    if (fullBaseUrl) {
+      OpenAPI.BASE = fullBaseUrl;
+    } else if (host) {
+      OpenAPI.BASE = `https://${host}/rest`;
+    } else {
+      throw new Error('Either host or fullBaseUrl must be provided');
+    }
+
+    OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: JIRA_API_TOKEN');
     OpenAPI.VERSION = '2';
+    this.getPageSize = getPageSize;
   }
 
-  async searchIssues(jql: string, startAt?: number, expand?: string[], maxResults: number = DEFAULT_PAGE_SIZE, fields?: string[]) {
+  async searchIssues(jql: string, startAt?: number, expand?: string[], maxResults?: number, fields?: string[]) {
     return handleApiOperation(() => {
       return SearchService.searchUsingSearchRequest({
         jql,
-        maxResults,
+        maxResults: maxResults ?? this.getPageSize(),
         fields: fields ?? DEFAULT_SEARCH_FIELDS,
         expand,
         startAt
@@ -38,9 +63,9 @@ export class JiraService {
     );
   }
 
-  async getIssueComments(issueKey: string, expand?: string, maxResults: number = DEFAULT_PAGE_SIZE, startAt?: number) {
+  async getIssueComments(issueKey: string, expand?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => IssueService.getComments(issueKey, expand, maxResults.toString(), undefined, startAt?.toString()),
+      () => IssueService.getComments(issueKey, expand, (maxResults ?? this.getPageSize()).toString(), undefined, startAt?.toString()),
       'Error getting issue comments'
     );
   }
@@ -123,13 +148,7 @@ export class JiraService {
   }
 
   static validateConfig(): string[] {
-    const requiredEnvVars = ['JIRA_API_TOKEN'] as const;
-    const missingVars: string[] = requiredEnvVars.filter(varName => !process.env[varName]);
-    if (!process.env.JIRA_HOST && !process.env.JIRA_API_BASE_PATH) {
-      missingVars.push('JIRA_HOST or JIRA_API_BASE_PATH');
-    }
-
-    return missingVars;
+    return getMissingConfig();
   }
 }
 

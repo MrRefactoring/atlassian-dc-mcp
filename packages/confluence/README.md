@@ -16,7 +16,7 @@ This package provides a Machine Comprehension Protocol (MCP) server for interact
    npm install
    ```
 
-2. Create a `.env` file in the packages/confluence directory with the following variables:
+2. Create a `.env` file in the packages/confluence directory, or put the same values in a shared dotenv file and set `ATLASSIAN_DC_MCP_CONFIG_FILE` to its absolute path:
    ```
    # Either CONFLUENCE_HOST or CONFLUENCE_API_BASE_PATH must be set
    CONFLUENCE_HOST=your-confluence-instance.atlassian.net
@@ -33,6 +33,24 @@ This package provides a Machine Comprehension Protocol (MCP) server for interact
    CONFLUENCE_DEFAULT_PAGE_SIZE=25
     ```
 
+   Shared file example:
+   ```
+   CONFLUENCE_HOST=your-confluence-instance.atlassian.net
+   CONFLUENCE_API_TOKEN=your-personal-access-token
+   CONFLUENCE_DEFAULT_PAGE_SIZE=25
+   ```
+
+   Start the server with:
+   ```
+   ATLASSIAN_DC_MCP_CONFIG_FILE=/absolute/path/to/atlassian-dc-mcp.env npm run dev
+   ```
+
+   Windows example:
+   ```
+   set ATLASSIAN_DC_MCP_CONFIG_FILE=C:\Users\your-user\AppData\Roaming\atlassian-dc-mcp.env
+   npm run dev
+   ```
+
    Note: You have two options for configuring the API URL:
 
    1. Set `CONFLUENCE_API_BASE_PATH` to the full API URL (e.g., "https://host.com/rest/api" or "https://host.com/wiki/rest/api").
@@ -41,6 +59,8 @@ This package provides a Machine Comprehension Protocol (MCP) server for interact
    2. Set `CONFLUENCE_HOST` only, which will use the default API path (/rest).
 
    3. Confluence uses `/rest` as a path part always, so it will be added automatically, no need to add it manually.
+
+   Direct environment variables override values loaded from `ATLASSIAN_DC_MCP_CONFIG_FILE`.
 
    To create a personal access token:
    - In Confluence, select your profile picture at the top right

@@ -1,10 +1,9 @@
-import { connectServer, createMcpServer, formatToolResponse } from '@atlassian-dc-mcp/common';
+import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from '@atlassian-dc-mcp/common';
 import { ConfluenceService, ConfluenceContent, confluenceToolSchemas } from './confluence-service.js';
 import { shapeConfluenceMutationAck } from './confluence-response-mapper.js';
-import dotenv from 'dotenv';
+import { getConfluenceRuntimeConfig, getDefaultPageSize } from './config.js';
 
-// Load environment variables
-dotenv.config();
+initializeRuntimeConfig();
 
 // Validate required environment variables
 const missingEnvVars = ConfluenceService.validateConfig();
@@ -13,10 +12,12 @@ if (missingEnvVars.length > 0) {
 }
 
 // Initialize Confluence service
+const confluenceConfig = getConfluenceRuntimeConfig();
 const confluenceService = new ConfluenceService(
-  process.env.CONFLUENCE_API_BASE_PATH ? undefined : process.env.CONFLUENCE_HOST!,
-  process.env.CONFLUENCE_API_TOKEN!,
-  process.env.CONFLUENCE_API_BASE_PATH
+  confluenceConfig.host,
+  () => getConfluenceRuntimeConfig().token,
+  confluenceConfig.apiBasePath,
+  getDefaultPageSize
 );
 
 // Define Confluence instance type
