@@ -112,15 +112,43 @@ Parameters:
 Create a new issue in the JIRA Data Center edition instance.
 
 Parameters:
-- `projectId` (string, required): ID of the project
+- `projectId` (string, required): Project key (despite the parameter name, e.g., "PROJ")
 - `summary` (string, required): Issue summary
 - `description` (string, required): Issue description in format suitable for JIRA Data Center edition (JIRA Wiki Markup)
 - `issueTypeId` (string, required): ID of the issue type
+- `customFields` (object, optional): Additional JIRA fields merged into the issue payload. Can be used for custom fields and standard fields such as `labels`. Example: `{"labels":["urgent","bug"],"customfield_10001":"Custom Value"}`
 
-#### 5. jira_postIssueComment
+#### 5. jira_updateIssue
+
+Update an existing issue in the JIRA Data Center edition instance.
+
+Parameters:
+- `issueKey` (string, required): The issue key (e.g., "PROJECT-123")
+- `summary` (string, optional): New issue summary
+- `description` (string, optional): New issue description in format suitable for JIRA Data Center edition (JIRA Wiki Markup)
+- `issueTypeId` (string, optional): New issue type ID
+- `customFields` (object, optional): Additional JIRA fields merged into the update payload. Can be used for custom fields and standard fields such as `labels`. Example: `{"labels":["urgent","bug"],"customfield_10001":"Custom Value"}`
+
+#### 6. jira_postIssueComment
 
 Add a comment to a JIRA issue in the JIRA Data Center edition instance.
 
 Parameters:
 - `issueKey` (string, required): The issue key (e.g., "PROJECT-123")
 - `comment` (string, required): Comment text in format suitable for JIRA Data Center edition (JIRA Wiki Markup)
+
+#### 7. jira_getTransitions
+
+Get the available workflow transitions for a JIRA issue in the JIRA Data Center edition instance.
+
+Parameters:
+- `issueKey` (string, required): The issue key (e.g., "PROJECT-123")
+
+#### 8. jira_transitionIssue
+
+Transition a JIRA issue to a new status in the JIRA Data Center edition instance.
+
+Parameters:
+- `issueKey` (string, required): The issue key (e.g., "PROJECT-123")
+- `transitionId` (string, required): Transition ID returned by `jira_getTransitions`
+- `fields` (object, optional): Additional fields required by the transition screen
