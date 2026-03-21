@@ -1,5 +1,6 @@
 import { connectServer, createMcpServer, formatToolResponse } from '@atlassian-dc-mcp/common';
 import { ConfluenceService, ConfluenceContent, confluenceToolSchemas } from './confluence-service.js';
+import { shapeConfluenceMutationAck } from './confluence-response-mapper.js';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -32,8 +33,8 @@ server.tool(
   "confluence_getContent",
   `Get Confluence content by ID from the ${confluenceInstanceType}`,
   confluenceToolSchemas.getContent,
-  async ({ contentId, expand }) => {
-    const result = await confluenceService.getContent(contentId, expand);
+  async ({ contentId, expand, bodyMode, maxBodyChars }) => {
+    const result = await confluenceService.getContent(contentId, expand, bodyMode, maxBodyChars);
     return formatToolResponse(result);
   }
 );
@@ -42,8 +43,8 @@ server.tool(
   "confluence_searchContent",
   `Search for content in ${confluenceInstanceType} using CQL`,
   confluenceToolSchemas.searchContent,
-  async ({ cql, limit, start, expand }) => {
-    const result = await confluenceService.searchContent(cql, limit, start, expand);
+  async ({ cql, limit, start, expand, excerpt }) => {
+    const result = await confluenceService.searchContent(cql, limit, start, expand, excerpt);
     return formatToolResponse(result);
   }
 );
@@ -52,7 +53,7 @@ server.tool(
   "confluence_createContent",
   `Create new content in ${confluenceInstanceType}`,
   confluenceToolSchemas.createContent,
-  async ({ title, spaceKey, type, content, parentId }) => {
+  async ({ title, spaceKey, type, content, parentId, output }) => {
     const contentObj: ConfluenceContent = {
       type: type || 'page',
       title,
@@ -71,6 +72,12 @@ server.tool(
     }
 
     const result = await confluenceService.createContent(contentObj);
+    if (result.success && result.data && output !== 'full') {
+      return formatToolResponse({
+        ...result,
+        data: shapeConfluenceMutationAck(result.data),
+      });
+    }
     return formatToolResponse(result);
   }
 );
@@ -79,9 +86,9 @@ server.tool(
   "confluence_updateContent",
   `Update existing content in ${confluenceInstanceType}`,
   confluenceToolSchemas.updateContent,
-  async ({ contentId, title, content, version, versionComment }) => {
+  async ({ contentId, title, content, version, versionComment, output }) => {
     // First get the current content to build upon
-    const currentContent = await confluenceService.getContent(contentId);
+    const currentContent = await confluenceService.getContentRaw(contentId);
 
     if (!currentContent.success || !currentContent.data) {
       return formatToolResponse({
@@ -119,6 +126,12 @@ server.tool(
     }
 
     const result = await confluenceService.updateContent(contentId, updateObj);
+    if (result.success && result.data && output !== 'full') {
+      return formatToolResponse({
+        ...result,
+        data: shapeConfluenceMutationAck(result.data),
+      });
+    }
     return formatToolResponse(result);
   }
 );
@@ -130,9 +143,10 @@ server.tool('confluence_searchSpace',
            searchText,
            limit,
            start,
-           expand
+           expand,
+           excerpt
          }) => {
-    const result = await confluenceService.searchSpaces(searchText, limit, start, expand);
+    const result = await confluenceService.searchSpaces(searchText, limit, start, expand, excerpt);
     return formatToolResponse(result);
   });
 

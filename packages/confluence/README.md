@@ -28,6 +28,9 @@ This package provides a Machine Comprehension Protocol (MCP) server for interact
 
    # 2. Or continue using CONFLUENCE_HOST with the default API path (/rest):
    # CONFLUENCE_HOST=your-confluence-instance.atlassian.net
+
+   # Optional: default page size for paginated search tools (fallback: 25)
+   CONFLUENCE_DEFAULT_PAGE_SIZE=25
     ```
 
    Note: You have two options for configuring the API URL:
@@ -83,6 +86,8 @@ Get Confluence Data Center content by ID.
 Parameters:
 - `contentId` (string, required): The ID of the content to retrieve
 - `expand` (string, optional): Comma-separated list of properties to expand (e.g., "body.storage,version")
+- `bodyMode` (`storage` | `text` | `none`, optional): Response shape for the content body. Defaults to `storage` for backward compatibility.
+- `maxBodyChars` (number, optional): Maximum number of characters to keep when `bodyMode=text`
 
 #### 2. confluence_searchContent
 
@@ -90,9 +95,10 @@ Search for content in Confluence Data Center using CQL.
 
 Parameters:
 - `cql` (string, required): Confluence Query Language search string
-- `limit` (number, optional): Maximum number of results to return
+- `limit` (number, optional): Maximum number of results to return. Defaults to `CONFLUENCE_DEFAULT_PAGE_SIZE` or `25`.
 - `start` (number, optional): Start index for pagination
 - `expand` (string, optional): Comma-separated list of properties to expand
+- `excerpt` (`none` | `highlight`, optional): Excerpt mode for search results. Defaults to `none`.
 
 #### 3. confluence_createContent
 
@@ -104,6 +110,7 @@ Parameters:
 - `type` (string, default: "page"): Content type (page, blogpost, etc)
 - `content` (string, required): Content body in Confluence Data Center's storage format (XML-based storage format)
 - `parentId` (string, optional): ID of the parent page (if creating a child page)
+- `output` (`ack` | `full`, optional): Return a compact acknowledgement or the full API response. Defaults to `ack`.
 
 #### 4. confluence_updateContent
 
@@ -115,3 +122,15 @@ Parameters:
 - `content` (string, optional): New content body in Confluence Data Center's storage format (XML-based)
 - `version` (number, required): New version number (must be incremented from current version)
 - `versionComment` (string, optional): Comment for this version
+- `output` (`ack` | `full`, optional): Return a compact acknowledgement or the full API response. Defaults to `ack`.
+
+#### 5. confluence_searchSpace
+
+Search for Confluence spaces by name text.
+
+Parameters:
+- `searchText` (string, required): Text to search for in space names or descriptions
+- `limit` (number, optional): Maximum number of results to return. Defaults to `CONFLUENCE_DEFAULT_PAGE_SIZE` or `25`.
+- `start` (number, optional): Start index for pagination
+- `expand` (string, optional): Comma-separated list of properties to expand
+- `excerpt` (`none` | `highlight`, optional): Excerpt mode for search results. Defaults to `none`.
