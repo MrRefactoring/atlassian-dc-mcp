@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.13.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.12.2...v0.13.0) (2026-03-21)
+
+
+### Features
+
+* add ability to specify external config file to MCP, to provide configuration to MCP without specifying credentials in the file ([c97d380](https://github.com/b1ff/atlassian-dc-mcp/commit/c97d38004ebc7e233ea276a36c2e233536d2d0ca))
+* **bitbucket:** add token-optimized response modes ([9c8f3c8](https://github.com/b1ff/atlassian-dc-mcp/commit/9c8f3c8c99be2fffb7a32ecf14def5e004a11512))
+* **confluence:** add token-optimized content shaping ([0a23201](https://github.com/b1ff/atlassian-dc-mcp/commit/0a232014c8de1d8f1c0d10d3e1d9377949ca90ad))
+* **jira:** add configurable issue field projections ([06c50a9](https://github.com/b1ff/atlassian-dc-mcp/commit/06c50a978f8d2e7b0f8c9e8a6e7f7706dcc879ab))
+
+
+
+
+
 ## [0.12.2](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.12.1...v0.12.2) (2026-03-21)
 
 
