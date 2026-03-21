@@ -139,6 +139,7 @@ interface SimplifiedComment {
   author: SimplifiedUser;
   createdDate: number;
   anchor?: SimplifiedAnchor;
+  comments: SimplifiedComment[];
   threadResolved: boolean;
   state: string;
 }
@@ -239,13 +240,20 @@ function simplifyAnchor(anchor: CommentAnchor): SimplifiedAnchor {
   };
 }
 
-function simplifyComment(comment: Comment): SimplifiedComment {
+function simplifyComment(comment: Comment, ancestorIds: Set<number> = new Set()): SimplifiedComment {
+  const nextAncestorIds = new Set(ancestorIds);
+  nextAncestorIds.add(comment.id);
+
   return {
     id: comment.id,
     text: comment.text,
     author: simplifyUser(comment.author),
     createdDate: comment.createdDate,
     ...(comment.anchor && { anchor: simplifyAnchor(comment.anchor) }),
+    comments: comment.comments
+      .filter(isComment)
+      .filter(childComment => !nextAncestorIds.has(childComment.id))
+      .map(childComment => simplifyComment(childComment, nextAncestorIds)),
     threadResolved: comment.threadResolved,
     state: comment.state
   };
@@ -258,7 +266,9 @@ function simplifyActivity(activity: PRActivity): SimplifiedActivity {
     user: simplifyUser(activity.user),
     action: activity.action,
     ...(activity.commentAction && { commentAction: activity.commentAction }),
-    ...(activity.comment && { comment: simplifyComment(activity.comment) })
+    ...(activity.comment && isComment(activity.comment) && {
+      comment: simplifyComment(activity.comment)
+    })
   };
 }
 
