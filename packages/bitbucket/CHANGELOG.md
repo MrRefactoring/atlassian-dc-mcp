@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.12.1](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.12.0...v0.12.1) (2026-03-21)
+
+
+### Bug Fixes
+
+* **bitbucket:** [#22](https://github.com/b1ff/atlassian-dc-mcp/issues/22) address the issue that replies in PRs are invisible to LLM ([bb22fa1](https://github.com/b1ff/atlassian-dc-mcp/commit/bb22fa1e8cc80f3983c08f58bd6cdd735f7eb9d7))
+
+
+
+
+
 # [0.12.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.11.2...v0.12.0) (2026-03-18)
 
 
