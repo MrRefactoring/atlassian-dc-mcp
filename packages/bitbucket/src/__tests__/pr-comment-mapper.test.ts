@@ -1,4 +1,5 @@
 import {
+  filterPullRequestComments,
   simplifyBitbucketPRComments,
   getCommentSummary,
   type BitbucketPRApiResponse,
@@ -106,6 +107,7 @@ describe('PR Comment Mapper', () => {
     ],
     start: 0
   };
+  const [baseCommentActivity, openedActivity] = validPRResponse.values ?? [];
 
   describe('simplifyBitbucketPRComments', () => {
     it('should simplify valid PR response correctly', () => {
@@ -224,6 +226,143 @@ describe('PR Comment Mapper', () => {
           threadResolved: false,
           state: "OPEN"
         }
+      ]);
+    });
+
+    it('should exclude resolved threads and all replies by default', () => {
+      const resolvedThreadResponse: BitbucketPRApiResponse = {
+        ...validPRResponse,
+        values: [
+          openedActivity!,
+          {
+            id: 1003,
+            createdDate: 1600000002000,
+            user: createUser('reviewer3', 105, 'Reviewer Three'),
+            action: 'COMMENTED',
+            commentAction: 'ADDED',
+            comment: createComment({
+              id: 2004,
+              text: 'Resolved thread root',
+              threadResolved: true,
+              comments: [
+                createComment({
+                  id: 2005,
+                  text: 'Resolved reply',
+                  anchor: undefined,
+                  threadResolved: true,
+                })
+              ]
+            })
+          },
+          baseCommentActivity!,
+        ],
+      };
+
+      const result = simplifyBitbucketPRComments(resolvedThreadResponse) as SimplifiedPRResponse;
+
+      expect(result.activities).toEqual([
+        {
+          id: 1002,
+          createdDate: 1600000001000,
+          user: {
+            name: 'testuser2',
+            displayName: 'User B'
+          },
+          action: 'OPENED'
+        },
+        {
+          id: 1001,
+          createdDate: 1600000000000,
+          user: {
+            name: 'testuser1',
+            displayName: 'User A'
+          },
+          action: 'COMMENTED',
+          commentAction: 'ADDED',
+          comment: {
+            id: 2001,
+            text: 'This needs review',
+            author: {
+              name: 'testuser1',
+              displayName: 'User A'
+            },
+            createdDate: 1600000000000,
+            anchor: {
+              line: 6,
+              path: 'config.yml',
+              fileType: 'TO'
+            },
+            comments: [],
+            threadResolved: false,
+            state: 'OPEN'
+          }
+        }
+      ]);
+      expect(result.summary.commentCount).toBe(1);
+      expect(getCommentSummary(resolvedThreadResponse)).toEqual(['User A on config.yml:6: This needs review']);
+    });
+
+    it('should include resolved threads when requested', () => {
+      const resolvedThreadResponse: BitbucketPRApiResponse = {
+        ...validPRResponse,
+        values: [
+          {
+            id: 1003,
+            createdDate: 1600000002000,
+            user: createUser('reviewer3', 105, 'Reviewer Three'),
+            action: 'COMMENTED',
+            commentAction: 'ADDED',
+            comment: createComment({
+              id: 2004,
+              text: 'Resolved thread root',
+              threadResolved: true,
+              comments: [
+                createComment({
+                  id: 2005,
+                  text: 'Resolved reply',
+                  anchor: undefined,
+                  threadResolved: true,
+                })
+              ]
+            })
+          }
+        ],
+      };
+
+      const result = simplifyBitbucketPRComments(resolvedThreadResponse, { includeResolved: true }) as SimplifiedPRResponse;
+
+      expect(result.activities[0].comment).toEqual({
+        id: 2004,
+        text: 'Resolved thread root',
+        author: {
+          name: 'testuser1',
+          displayName: 'User A'
+        },
+        createdDate: 1600000000000,
+        anchor: {
+          line: 6,
+          path: 'config.yml',
+          fileType: 'TO'
+        },
+        comments: [
+          {
+            id: 2005,
+            text: 'Resolved reply',
+            author: {
+              name: 'testuser1',
+              displayName: 'User A'
+            },
+            createdDate: 1600000000000,
+            comments: [],
+            threadResolved: true,
+            state: 'OPEN'
+          }
+        ],
+        threadResolved: true,
+        state: 'OPEN'
+      });
+      expect(getCommentSummary(resolvedThreadResponse, { includeResolved: true })).toEqual([
+        'User A on config.yml:6: Resolved thread root'
       ]);
     });
 
@@ -394,6 +533,27 @@ describe('PR Comment Mapper', () => {
       const summary = getCommentSummary(emptyResponse);
       expect(Array.isArray(summary)).toBe(true);
       expect(summary).toHaveLength(0);
+    });
+  });
+
+  describe('filterPullRequestComments', () => {
+    it('should keep non-comment activities while removing resolved comment activities by default', () => {
+      const response: BitbucketPRApiResponse = {
+        ...validPRResponse,
+        values: [
+          openedActivity!,
+          {
+            id: 1004,
+            createdDate: 1600000003000,
+            user: createUser('reviewer4', 106, 'Reviewer Four'),
+            action: 'COMMENTED',
+            commentAction: 'ADDED',
+            comment: createComment({ id: 2006, threadResolved: true })
+          }
+        ]
+      };
+
+      expect(filterPullRequestComments(response).values).toEqual([openedActivity!]);
     });
   });
 });

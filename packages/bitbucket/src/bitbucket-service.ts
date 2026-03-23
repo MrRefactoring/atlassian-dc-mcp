@@ -205,7 +205,8 @@ export class BitbucketService {
     pullRequestId: string,
     start?: number,
     limit?: number,
-    output: BitbucketOutputMode = 'compact'
+    output: BitbucketOutputMode = 'compact',
+    includeResolved = false
   ) {
     const result = await handleApiOperation(
       () => PullRequestsService.getActivities(
@@ -223,7 +224,7 @@ export class BitbucketService {
     if (result.success && result.data) {
       return {
         success: true,
-        data: shapePullRequestCommentsResponse(result.data, output)
+        data: shapePullRequestCommentsResponse(result.data, output, { includeResolved })
       };
     }
 
@@ -761,7 +762,8 @@ export const bitbucketToolSchemas = {
     pullRequestId: z.string().describe("The pull request ID"),
     start: z.number().optional().describe("Start number for pagination"),
     limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used."),
-    output: z.enum(['summary', 'compact', 'full']).optional().describe("Choose between summary lines, compact structured output, or the full API payload. Defaults to compact.")
+    output: z.enum(['summary', 'compact', 'full']).optional().describe("Choose between summary lines, compact structured output, or the full API payload. Defaults to compact."),
+    includeResolved: z.boolean().optional().describe("Include resolved comment threads and their replies. Defaults to false, so resolved threads are omitted.")
   },
   getPullRequestChanges: {
     projectKey: z.string().describe("The project key"),
