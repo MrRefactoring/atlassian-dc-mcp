@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.14.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.13.0...v0.14.0) (2026-03-23)
+
+
+### Features
+
+* **bitbucket:** add automatic filtering out resolved comment threads in PR activities ([f44244e](https://github.com/b1ff/atlassian-dc-mcp/commit/f44244ee739c7aa56dc11836f63af121d0e3e2c6))
+
+
+
+
+
 # [0.13.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.12.2...v0.13.0) (2026-03-21)
 
 

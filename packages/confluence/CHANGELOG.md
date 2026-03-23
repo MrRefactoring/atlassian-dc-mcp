@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.14.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.13.0...v0.14.0) (2026-03-23)
+
+**Note:** Version bump only for package @atlassian-dc-mcp/confluence
+
+
+
+
+
 # [0.13.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.12.2...v0.13.0) (2026-03-21)
 
 
