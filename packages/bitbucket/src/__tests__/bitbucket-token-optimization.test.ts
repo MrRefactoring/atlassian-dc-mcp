@@ -139,6 +139,104 @@ describe('BitbucketService token optimization paths', () => {
       expect(PullRequestsService.getActivities).toHaveBeenCalledWith('TEST', '123', 'repo', undefined, undefined, undefined, 25);
     });
 
+    it('skips resolved threads by default and includes them on request', async () => {
+      const resolvedActivityResponse = {
+        isLastPage: true,
+        values: [
+          {
+            id: 1,
+            createdDate: 10,
+            user: createUser('author', 'Author'),
+            action: 'OPENED',
+          },
+          {
+            id: 2,
+            createdDate: 20,
+            user: createUser('reviewer', 'Reviewer'),
+            action: 'COMMENTED',
+            comment: createComment({
+              id: 202,
+              text: 'Resolved comment',
+              threadResolved: true,
+              comments: [createComment({ id: 203, text: 'Resolved reply', anchor: undefined, threadResolved: true })],
+            }),
+          },
+        ],
+      };
+
+      (PullRequestsService.getActivities as jest.Mock).mockResolvedValue(resolvedActivityResponse);
+
+      const defaultResult = await service.getPullRequestCommentsAndActions('TEST', 'repo', '123');
+      const includeResolvedResult = await service.getPullRequestCommentsAndActions('TEST', 'repo', '123', undefined, undefined, 'compact', true);
+
+      expect(defaultResult.success).toBe(true);
+      expect(defaultResult.data).toEqual({
+        isLastPage: true,
+        activities: [
+          {
+            id: 1,
+            createdDate: 10,
+            user: { name: 'author', displayName: 'Author' },
+            action: 'OPENED',
+          },
+        ],
+        summary: {
+          totalActivities: 1,
+          prAuthor: { name: 'author', displayName: 'Author' },
+          commentCount: 0,
+          unresolvedCount: 0,
+        },
+      });
+      expect(includeResolvedResult.success).toBe(true);
+      expect(includeResolvedResult.data).toEqual({
+        isLastPage: true,
+        activities: [
+          {
+            id: 1,
+            createdDate: 10,
+            user: { name: 'author', displayName: 'Author' },
+            action: 'OPENED',
+          },
+          {
+            id: 2,
+            createdDate: 20,
+            user: { name: 'reviewer', displayName: 'Reviewer' },
+            action: 'COMMENTED',
+            comment: {
+              id: 202,
+              text: 'Resolved comment',
+              author: { name: 'reviewer', displayName: 'Reviewer' },
+              createdDate: 20,
+              anchor: {
+                line: 10,
+                path: 'src/app.ts',
+                fileType: 'TO',
+              },
+              comments: [
+                {
+                  id: 203,
+                  text: 'Resolved reply',
+                  author: { name: 'reviewer', displayName: 'Reviewer' },
+                  createdDate: 20,
+                  comments: [],
+                  threadResolved: true,
+                  state: 'OPEN',
+                },
+              ],
+              threadResolved: true,
+              state: 'OPEN',
+            },
+          },
+        ],
+        summary: {
+          totalActivities: 2,
+          prAuthor: { name: 'author', displayName: 'Author' },
+          commentCount: 1,
+          unresolvedCount: 0,
+        },
+      });
+    });
+
     it('returns summary output when requested', async () => {
       (PullRequestsService.getActivities as jest.Mock).mockResolvedValue(mockActivityResponse);
 
@@ -164,7 +262,7 @@ describe('BitbucketService token optimization paths', () => {
       const result = await service.getPullRequestCommentsAndActions('TEST', 'repo', '123', undefined, undefined, 'full');
 
       expect(result.success).toBe(true);
-      expect(result.data).toBe(mockActivityResponse);
+      expect(result.data).toStrictEqual(mockActivityResponse);
     });
   });
 

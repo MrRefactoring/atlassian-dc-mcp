@@ -164,6 +164,10 @@ export interface SimplifiedPRResponse {
   };
 }
 
+export interface PullRequestCommentOptions {
+  includeResolved?: boolean;
+}
+
 // Type guard functions to validate object structure
 function isBitbucketUser(obj: unknown): obj is BitbucketUser {
   return (
@@ -259,6 +263,56 @@ function simplifyComment(comment: Comment, ancestorIds: Set<number> = new Set())
   };
 }
 
+function filterComment(comment: Comment, includeResolved: boolean, ancestorIds: Set<number> = new Set()): Comment | null {
+  if (!includeResolved && comment.threadResolved) {
+    return null;
+  }
+
+  const nextAncestorIds = new Set(ancestorIds);
+  nextAncestorIds.add(comment.id);
+
+  const comments = comment.comments
+    .filter(isComment)
+    .filter(childComment => !nextAncestorIds.has(childComment.id))
+    .map(childComment => filterComment(childComment, includeResolved, nextAncestorIds))
+    .filter((childComment): childComment is Comment => childComment !== null);
+
+  return {
+    ...comment,
+    comments,
+  };
+}
+
+export function filterPullRequestComments(
+  response: BitbucketPRApiResponse,
+  options: PullRequestCommentOptions = {}
+): BitbucketPRApiResponse {
+  const includeResolved = options.includeResolved ?? false;
+
+  if (includeResolved) {
+    return response;
+  }
+
+  return {
+    ...response,
+    values: (response.values || []).flatMap(activity => {
+      if (!isPRActivity(activity) || activity.action !== 'COMMENTED' || !activity.comment || !isComment(activity.comment)) {
+        return [activity];
+      }
+
+      const filteredComment = filterComment(activity.comment, includeResolved);
+      if (!filteredComment) {
+        return [];
+      }
+
+      return [{
+        ...activity,
+        comment: filteredComment,
+      }];
+    })
+  };
+}
+
 function simplifyActivity(activity: PRActivity): SimplifiedActivity {
   return {
     id: activity.id,
@@ -272,11 +326,15 @@ function simplifyActivity(activity: PRActivity): SimplifiedActivity {
   };
 }
 
-export function simplifyBitbucketPRComments(response: BitbucketPRApiResponse): SimplifiedPRResponse | BitbucketPRApiResponse {
+export function simplifyBitbucketPRComments(
+  response: BitbucketPRApiResponse,
+  options: PullRequestCommentOptions = {}
+): SimplifiedPRResponse | BitbucketPRApiResponse {
+  const filteredResponse = filterPullRequestComments(response, options);
   const activities: SimplifiedActivity[] = [];
 
   // Process each activity with type guard validation
-  for (const activity of response.values || []) {
+  for (const activity of filteredResponse.values || []) {
     if (isPRActivity(activity)) {
       activities.push(simplifyActivity(activity));
     }
@@ -284,8 +342,8 @@ export function simplifyBitbucketPRComments(response: BitbucketPRApiResponse): S
   }
 
   // If no valid activities were found, return the original response
-  if (activities.length === 0 && (response.values || []).length > 0) {
-    return response;
+  if (activities.length === 0 && (filteredResponse.values || []).length > 0) {
+    return filteredResponse;
   }
 
   // Find PR author (usually the one who OPENED the PR)
@@ -296,7 +354,7 @@ export function simplifyBitbucketPRComments(response: BitbucketPRApiResponse): S
   const unresolvedCount = comments.filter(a => a.comment && !a.comment.threadResolved).length;
 
   return {
-    isLastPage: response.isLastPage ?? true,
+    isLastPage: filteredResponse.isLastPage ?? true,
     activities,
     summary: {
       totalActivities: activities.length,
@@ -307,10 +365,11 @@ export function simplifyBitbucketPRComments(response: BitbucketPRApiResponse): S
   };
 }
 
-export function getCommentSummary(response: BitbucketPRApiResponse): string[] {
+export function getCommentSummary(response: BitbucketPRApiResponse, options: PullRequestCommentOptions = {}): string[] {
+  const filteredResponse = filterPullRequestComments(response, options);
   const commentSummaries: string[] = [];
 
-  for (const activity of response.values || []) {
+  for (const activity of filteredResponse.values || []) {
     // Use type guard to validate activity structure
     if (isPRActivity(activity) && activity.action === 'COMMENTED' && activity.comment) {
       // Additional validation for comment structure

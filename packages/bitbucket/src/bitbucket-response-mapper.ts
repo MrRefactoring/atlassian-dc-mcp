@@ -1,4 +1,10 @@
-import { BitbucketPRApiResponse, getCommentSummary, simplifyBitbucketPRComments } from './pr-comment-mapper.js';
+import {
+  BitbucketPRApiResponse,
+  filterPullRequestComments,
+  getCommentSummary,
+  type PullRequestCommentOptions,
+  simplifyBitbucketPRComments
+} from './pr-comment-mapper.js';
 import { getChangesSummary, simplifyBitbucketPRChanges } from './pr-changes-mapper.js';
 
 export type BitbucketOutputMode = 'summary' | 'compact' | 'full';
@@ -25,26 +31,29 @@ function hasSummary(value: any): value is { summary: unknown; isLastPage?: boole
 export function shapePullRequestCommentsResponse(
   response: BitbucketPRApiResponse,
   output: BitbucketOutputMode = 'compact',
+  options: PullRequestCommentOptions = {}
 ): Record<string, any> {
+  const filteredResponse = filterPullRequestComments(response, options);
+
   if (output === 'full') {
-    return response;
+    return filteredResponse;
   }
 
-  const compact = simplifyBitbucketPRComments(response);
+  const compact = simplifyBitbucketPRComments(filteredResponse, options);
   if (output === 'compact') {
     return compact;
   }
 
   return {
-    isLastPage: hasSummary(compact) ? compact.isLastPage ?? true : response.isLastPage ?? true,
+    isLastPage: hasSummary(compact) ? compact.isLastPage ?? true : filteredResponse.isLastPage ?? true,
     summary: hasSummary(compact)
       ? compact.summary
       : {
-          totalActivities: Array.isArray(response.values) ? response.values.length : 0,
-          commentCount: getCommentSummary(response).length,
+          totalActivities: Array.isArray(filteredResponse.values) ? filteredResponse.values.length : 0,
+          commentCount: getCommentSummary(filteredResponse, options).length,
           unresolvedCount: 0,
         },
-    items: getCommentSummary(response),
+    items: getCommentSummary(filteredResponse, options),
   };
 }
 

@@ -97,8 +97,16 @@ server.tool(
   "bitbucket_getPR_CommentsAndAction",
   "Get comments for a Bitbucket pull request and other actions, like approvals",
   bitbucketToolSchemas.getPullRequestComments,
-  async ({ projectKey, repositorySlug, pullRequestId, start, limit, output }) => {
-    const result = await bitbucketService.getPullRequestCommentsAndActions(projectKey, repositorySlug, pullRequestId, start, limit, output);
+  async ({ projectKey, repositorySlug, pullRequestId, start, limit, output, includeResolved }) => {
+    const result = await bitbucketService.getPullRequestCommentsAndActions(
+      projectKey,
+      repositorySlug,
+      pullRequestId,
+      start,
+      limit,
+      output,
+      includeResolved
+    );
     return formatToolResponse(result);
   }
 );
