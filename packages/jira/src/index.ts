@@ -1,6 +1,10 @@
 import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from '@atlassian-dc-mcp/common';
 import { JiraService, jiraToolSchemas } from './jira-service.js';
 import { getDefaultPageSize, getJiraRuntimeConfig } from './config.js';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json');
 
 initializeRuntimeConfig();
 
@@ -19,7 +23,7 @@ const jiraService = new JiraService(
 
 const server = createMcpServer({
   name: "atlassian-jira-mcp",
-  version: "0.1.0"
+  version
 });
 
 const jiraInstanceType = "JIRA Data Center edition instance";
