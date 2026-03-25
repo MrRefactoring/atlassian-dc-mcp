@@ -58,6 +58,8 @@ export class BitbucketService {
   async getCommits(projectKey: string, repositorySlug: string, path?: string, since?: string, until?: string,
     limit?: number
   ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     return handleApiOperation(
       () => RepositoryService.getCommits(
         projectKey,
@@ -99,6 +101,7 @@ export class BitbucketService {
    * @returns Promise with project data
    */
   async getProject(projectKey: string) {
+    projectKey = projectKey.toUpperCase();
     return handleApiOperation(
       () => ProjectService.getProject(projectKey),
       'Error fetching project'
@@ -113,6 +116,7 @@ export class BitbucketService {
    * @returns Promise with repositories data
    */
   async getRepositories(projectKey: string, start?: number, limit?: number) {
+    projectKey = projectKey.toUpperCase();
     return handleApiOperation(
       () => ProjectService.getRepositories(projectKey, start, limit ?? this.getPageSize()),
       'Error fetching repositories'
@@ -126,6 +130,8 @@ export class BitbucketService {
    * @returns Promise with repository data
    */
   async getRepository(projectKey: string, repositorySlug: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     return handleApiOperation(
       () => ProjectService.getRepository(projectKey, repositorySlug),
       'Error fetching repository'
@@ -162,6 +168,8 @@ export class BitbucketService {
     start?: number,
     limit?: number
   ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     return handleApiOperation(
       () => PullRequestsService.getPage(
         projectKey,
@@ -193,6 +201,8 @@ export class BitbucketService {
     repositorySlug: string,
     pullRequestId: string
   ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     return handleApiOperation(
       () => PullRequestsService.get3(projectKey, pullRequestId, repositorySlug),
       'Error fetching pull request'
@@ -208,6 +218,8 @@ export class BitbucketService {
     output: BitbucketOutputMode = 'compact',
     includeResolved = false
   ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => PullRequestsService.getActivities(
         projectKey,
@@ -256,6 +268,8 @@ export class BitbucketService {
     limit?: number,
     output: BitbucketOutputMode = 'compact'
   ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => PullRequestsService.streamChanges1(
         projectKey,
@@ -308,6 +322,8 @@ export class BitbucketService {
     pending?: boolean,
     output: BitbucketMutationOutputMode = 'ack'
   ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     const comment: any = {
       text
     };
@@ -404,6 +420,8 @@ export class BitbucketService {
     status: 'APPROVED' | 'NEEDS_WORK' | 'UNAPPROVED',
     lastReviewedCommit?: string
   ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     const requestBody: any = {
       status,
       ...(lastReviewedCommit ? { lastReviewedCommit } : {})
@@ -448,6 +466,8 @@ export class BitbucketService {
     untilId?: string,
     whitespace?: string
   ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     return handleApiOperation(
       () => __request(OpenAPI, {
         method: 'GET',
@@ -500,6 +520,8 @@ export class BitbucketService {
     reviewers?: string[],
     output: BitbucketMutationOutputMode = 'ack'
   ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     const pullRequestData: any = {
       title,
       description,
@@ -567,6 +589,8 @@ export class BitbucketService {
     reviewers?: string[],
     output: BitbucketMutationOutputMode = 'ack'
   ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     const pullRequestData: any = {
       version
     };
@@ -622,6 +646,8 @@ export class BitbucketService {
     sourceRepoId?: string,
     targetRepoId?: string
   ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
     return handleApiOperation(
       () => PullRequestsService.getReviewers(
         projectKey,
