@@ -1,6 +1,10 @@
 import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from '@atlassian-dc-mcp/common';
 import { BitbucketService, bitbucketToolSchemas } from './bitbucket-service.js';
 import { getBitbucketRuntimeConfig, getDefaultPageSize } from './config.js';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json');
 
 initializeRuntimeConfig();
 
@@ -20,7 +24,7 @@ const bitbucketService = new BitbucketService(
 
 const server = createMcpServer({
   name: "atlassian-bitbucket-mcp",
-  version: "0.1.0"
+  version
 });
 
 server.tool(
@@ -97,16 +101,8 @@ server.tool(
   "bitbucket_getPR_CommentsAndAction",
   "Get comments for a Bitbucket pull request and other actions, like approvals",
   bitbucketToolSchemas.getPullRequestComments,
-  async ({ projectKey, repositorySlug, pullRequestId, start, limit, output, includeResolved }) => {
-    const result = await bitbucketService.getPullRequestCommentsAndActions(
-      projectKey,
-      repositorySlug,
-      pullRequestId,
-      start,
-      limit,
-      output,
-      includeResolved
-    );
+  async ({ projectKey, repositorySlug, pullRequestId, start, limit, output }) => {
+    const result = await bitbucketService.getPullRequestCommentsAndActions(projectKey, repositorySlug, pullRequestId, start, limit, output);
     return formatToolResponse(result);
   }
 );

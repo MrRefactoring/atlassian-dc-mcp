@@ -2,6 +2,10 @@ import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeCo
 import { ConfluenceService, ConfluenceContent, confluenceToolSchemas } from './confluence-service.js';
 import { shapeConfluenceMutationAck } from './confluence-response-mapper.js';
 import { getConfluenceRuntimeConfig, getDefaultPageSize } from './config.js';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json');
 
 initializeRuntimeConfig();
 
@@ -26,7 +30,7 @@ const confluenceInstanceType = "Confluence Data Center edition instance";
 // Initialize MCP server
 const server = createMcpServer({
   name: "atlassian-confluence-mcp",
-  version: "1.0.0"
+  version
 });
 
 // Add Confluence content tools
