@@ -2086,4 +2086,78 @@ describe('BitbucketService', () => {
       expect(result.error).toBe('Not Found');
     });
   });
+
+  describe('case-insensitive project keys and repository slugs', () => {
+    it('should uppercase projectKey and lowercase repositorySlug for getPullRequests', async () => {
+      const mockData = { values: [], size: 0, isLastPage: true };
+      (PullRequestsService.getPage as jest.Mock).mockResolvedValue(mockData);
+
+      await bitbucketService.getPullRequests('test', 'Test-Repo');
+
+      expect(PullRequestsService.getPage).toHaveBeenCalledWith(
+        'TEST',
+        'test-repo',
+        undefined, undefined, undefined, undefined, undefined,
+        undefined, undefined, undefined, undefined, 25
+      );
+    });
+
+    it('should uppercase projectKey and lowercase repositorySlug for getPullRequest', async () => {
+      const mockData = { id: 1, title: 'Test PR' };
+      (PullRequestsService.get3 as jest.Mock).mockResolvedValue(mockData);
+
+      await bitbucketService.getPullRequest('test', 'Test-Repo', '1');
+
+      expect(PullRequestsService.get3).toHaveBeenCalledWith('TEST', '1', 'test-repo');
+    });
+
+    it('should uppercase projectKey and lowercase repositorySlug for getPullRequestChanges', async () => {
+      const mockData = { values: [], size: 0, isLastPage: true };
+      (PullRequestsService.streamChanges1 as jest.Mock).mockResolvedValue(mockData);
+
+      await bitbucketService.getPullRequestChanges('test', 'Test-Repo', '1');
+
+      expect(PullRequestsService.streamChanges1).toHaveBeenCalledWith(
+        'TEST', '1', 'test-repo',
+        undefined, undefined, undefined, undefined, undefined, 25
+      );
+    });
+
+    it('should uppercase projectKey and lowercase repositorySlug for createPullRequest', async () => {
+      const mockData = { id: 1, title: 'New PR' };
+      (PullRequestsService.create as jest.Mock).mockResolvedValue(mockData);
+
+      await bitbucketService.createPullRequest(
+        'test', 'Test-Repo', 'title', 'desc',
+        'refs/heads/feature', 'refs/heads/main'
+      );
+
+      expect(PullRequestsService.create).toHaveBeenCalledWith(
+        'TEST', 'test-repo',
+        expect.objectContaining({
+          title: 'title',
+          fromRef: expect.objectContaining({
+            repository: expect.objectContaining({
+              slug: 'test-repo',
+              project: { key: 'TEST' }
+            })
+          })
+        })
+      );
+    });
+
+    it('should uppercase projectKey and lowercase repositorySlug for getRequiredReviewers', async () => {
+      const mockData: never[] = [];
+      (PullRequestsService.getReviewers as jest.Mock).mockResolvedValue(mockData);
+
+      await bitbucketService.getRequiredReviewers(
+        'test', 'Test-Repo', 'refs/heads/feature', 'refs/heads/main'
+      );
+
+      expect(PullRequestsService.getReviewers).toHaveBeenCalledWith(
+        'TEST', 'test-repo', undefined, undefined,
+        'refs/heads/feature', 'refs/heads/main'
+      );
+    });
+  });
 });
