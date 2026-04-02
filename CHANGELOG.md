@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.2](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.14.1...v0.14.2) (2026-04-02)
+
+
+### Bug Fixes
+
+* resolve npm audit vulnerabilities in dependencies ([96d5997](https://github.com/b1ff/atlassian-dc-mcp/commit/96d5997da6b0d55d7ec2c0cba38980e340bbdc13))
+
+
+
+
+
 ## [0.14.1](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.14.0...v0.14.1) (2026-04-01)
 
 
