@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.3](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.14.2...v0.14.3) (2026-04-02)
+
+
+### Bug Fixes
+
+* **bitbucket:** normalize project key and repo slug casing in API calls ([35cf924](https://github.com/b1ff/atlassian-dc-mcp/commit/35cf924d78974f73d59f2d6879873eb8bbe027e8))
+
+
+
+
+
 ## [0.14.2](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.14.1...v0.14.2) (2026-04-02)
 
 
