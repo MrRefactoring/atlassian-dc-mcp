@@ -5,6 +5,16 @@
   "type": "module",
   "bin": "./bin/run.js",
   "private": false,
+  "description": "Community-maintained MCP server for Atlassian Confluence Data Center. Not affiliated with Atlassian.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b1ff/atlassian-dc-mcp.git",
+    "directory": "packages/confluence"
+  },
+  "homepage": "https://github.com/b1ff/atlassian-dc-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/b1ff/atlassian-dc-mcp/issues"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
