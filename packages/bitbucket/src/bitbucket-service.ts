@@ -853,7 +853,7 @@ export const bitbucketToolSchemas = {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug"),
     pullRequestId: z.string().describe("The pull request ID"),
-    version: z.number().describe("The current version of the pull request (required for optimistic locking)"),
+    version: z.number().describe("The current version of the pull request (required for optimistic locking). Obtain this by calling bitbucket_getPullRequest first."),
     title: z.string().optional().describe("The new title for the pull request"),
     description: z.string().optional().describe("The new description for the pull request"),
     reviewers: z.array(z.string()).optional().describe("Optional array of reviewer usernames to set"),
