@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.15.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.14.3...v0.15.0) (2026-04-07)
+
+
+### Features
+
+* **bitbucket:** improve updatePullRequest tool descriptions to prevent missing version parameter ([7999012](https://github.com/b1ff/atlassian-dc-mcp/commit/7999012a7abad2fa55dc5a2300abef516bd92631))
+
+
+
+
+
 ## [0.14.3](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.14.2...v0.14.3) (2026-04-02)
 
 
