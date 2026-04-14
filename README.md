@@ -4,6 +4,9 @@
 
 # Atlassian Data Center MCP
 
+> **Note:** This is a community-maintained project and is **not affiliated with, endorsed by, or supported by Atlassian**.
+> Use at your own discretion.
+
 This project provides a Model Context Protocol (MCP) integration for Atlassian Data Center products, including Jira, Confluence, and Bitbucket.
 
 ## Claude Desktop Configuration
