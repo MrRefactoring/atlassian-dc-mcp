@@ -1,11 +1,16 @@
 {
   "name": "@atlassian-dc-mcp/common",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "main": "build/index.js",
   "type": "module",
   "private": false,
   "description": "Shared utilities for @atlassian-dc-mcp MCP servers. Not affiliated with Atlassian.",
-  "keywords": ["mcp", "atlassian", "data-center", "model-context-protocol"],
+  "keywords": [
+    "mcp",
+    "atlassian",
+    "data-center",
+    "model-context-protocol"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/b1ff/atlassian-dc-mcp.git",

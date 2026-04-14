@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.16.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.15.0...v0.16.0) (2026-04-14)
+
+
+### Features
+
+* add keywords to package.json for npm search visibility ([0735f27](https://github.com/b1ff/atlassian-dc-mcp/commit/0735f27600d8215ba0c11c48916d3edc844f01b5))
+* improve supply-chain transparency (closes [#26](https://github.com/b1ff/atlassian-dc-mcp/issues/26)) ([98912b2](https://github.com/b1ff/atlassian-dc-mcp/commit/98912b26bddc4cafd847eb526fa8f76546576203))
+
+
+
+
+
 # [0.15.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.14.3...v0.15.0) (2026-04-07)
 
 **Note:** Version bump only for package @atlassian-dc-mcp/common
