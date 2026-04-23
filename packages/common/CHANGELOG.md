@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.17.1](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.17.0...v0.17.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* enhance resolveOpenApiBase to normalize and strip generated path suffixes ([30f0517](https://github.com/b1ff/atlassian-dc-mcp/commit/30f0517a985c2757cd33423d05b9937d86c54490))
+* prevent double-concatenation of API base path after setup CLI ([39cd1c7](https://github.com/b1ff/atlassian-dc-mcp/commit/39cd1c7c6dc6dc842b110c6650002487df534dd5))
+
+
+
+
+
 # [0.17.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.16.0...v0.17.0) (2026-04-23)
 
 
