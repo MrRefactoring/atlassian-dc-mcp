@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.17.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.16.0...v0.17.0) (2026-04-23)
+
+
+### Features
+
+* add interactive setup CLI with secure credential storage ([f317903](https://github.com/b1ff/atlassian-dc-mcp/commit/f317903a9975b66442f54e520a5a1656a69d1a1b))
+
+
+
+
+
 # [0.16.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.15.0...v0.16.0) (2026-04-14)
 
 
