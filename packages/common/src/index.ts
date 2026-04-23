@@ -2,7 +2,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 export * from './api-error-handler.js'
-export * from './runtime-config.js';
+export * from './config/index.js';
+export { runSetup } from './setup-cli.js';
 
 // Helper function to format tool responses
 export const formatToolResponse = (result: unknown) => ({

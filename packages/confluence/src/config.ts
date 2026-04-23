@@ -1,7 +1,22 @@
-import { getProductRuntimeConfig, validateProductRuntimeConfig } from '@atlassian-dc-mcp/common';
+import {
+  getProductRuntimeConfig,
+  validateProductRuntimeConfig,
+  type ProductDefinition,
+} from '@atlassian-dc-mcp/common';
+
+export const CONFLUENCE_PRODUCT: ProductDefinition = {
+  id: 'confluence',
+  envVars: {
+    host: 'CONFLUENCE_HOST',
+    apiBasePath: 'CONFLUENCE_API_BASE_PATH',
+    token: 'CONFLUENCE_API_TOKEN',
+    defaultPageSize: 'CONFLUENCE_DEFAULT_PAGE_SIZE',
+  },
+  defaultApiBasePath: '/rest/api',
+};
 
 export function getConfluenceRuntimeConfig() {
-  return getProductRuntimeConfig('confluence');
+  return getProductRuntimeConfig(CONFLUENCE_PRODUCT);
 }
 
 export function getDefaultPageSize() {
@@ -9,5 +24,5 @@ export function getDefaultPageSize() {
 }
 
 export function getMissingConfig() {
-  return validateProductRuntimeConfig('confluence');
+  return validateProductRuntimeConfig(CONFLUENCE_PRODUCT);
 }

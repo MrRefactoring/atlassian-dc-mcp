@@ -2,6 +2,35 @@
 
 This package provides a Machine Comprehension Protocol (MCP) server for interacting with Atlassian Confluence Data Center edition.
 
+## Interactive Setup
+
+The easiest way to configure this server is the built-in `setup` subcommand:
+
+```bash
+npx @atlassian-dc-mcp/confluence setup
+```
+
+It prompts for host, API base path, default page size, and API token, then stores them in the most secure place available:
+
+- **macOS** — token in the login Keychain (service `atlassian-dc-mcp`, account `confluence-token`); host / base path / page size in `~/.atlassian-dc-mcp/confluence.env` (mode `0600`).
+- **Linux** — everything in `~/.atlassian-dc-mcp/confluence.env` with POSIX mode `0600` (read/write for your user only).
+- **Windows** — everything in `~/.atlassian-dc-mcp/confluence.env`. Node passes the mode bits but Windows ignores them, so the file inherits the ACL of your user profile directory (typically readable only by your user, SYSTEM, and Administrators).
+
+After setup, you can launch the server without any environment variables:
+
+```json
+{
+  "mcpServers": {
+    "atlassian-confluence-dc": {
+      "command": "npx",
+      "args": ["-y", "@atlassian-dc-mcp/confluence"]
+    }
+  }
+}
+```
+
+Environment variables still override stored values — see [Configuration sources](#configuration-sources) below.
+
 ## Features
 
 - Get content by ID
@@ -60,13 +89,26 @@ This package provides a Machine Comprehension Protocol (MCP) server for interact
 
    3. Confluence uses `/rest` as a path part always, so it will be added automatically, no need to add it manually.
 
-   Direct environment variables override values loaded from `ATLASSIAN_DC_MCP_CONFIG_FILE`.
+   See [Configuration sources](#configuration-sources) for the full precedence chain.
 
    To create a personal access token:
    - In Confluence, select your profile picture at the top right
    - Select **Settings** > **Personal Access Tokens**
    - Select **Create token** and give it a name
    - Copy the token and store it securely (you won't be able to see it again)
+
+## Configuration sources
+
+Each key is resolved by walking these sources in priority order and taking the first non-empty value:
+
+| Priority | Source | Reads | Written by `setup` |
+|---------:|--------|-------|--------------------|
+| 100 | `process.env` (`CONFLUENCE_HOST`, `CONFLUENCE_API_BASE_PATH`, `CONFLUENCE_API_TOKEN`, `CONFLUENCE_DEFAULT_PAGE_SIZE`) | all keys | — |
+| 80  | env file — `ATLASSIAN_DC_MCP_CONFIG_FILE` (absolute path) or `./.env` | all keys | — |
+| 60  | home file — `~/.atlassian-dc-mcp/confluence.env` (mode `0600` on macOS/Linux; Windows inherits the user-profile ACL) | all keys | host, apiBasePath, defaultPageSize (always); token (non-darwin or keychain fallback) |
+| 40  | macOS Keychain — service `atlassian-dc-mcp`, account `confluence-token` | token only | token (darwin only) |
+
+`setup` always writes non-secret fields to the home file and tries the keychain first for the token. If a higher-priority source shadows the value being saved, `setup` prints a warning so you can unset the env var.
 
 ## Usage
 

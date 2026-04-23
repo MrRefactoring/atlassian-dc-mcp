@@ -1,2 +1,7 @@
 #!/usr/bin/env node
-import '../build/index.js';
+const sub = process.argv[2];
+if (sub === 'setup') {
+  await import('../build/setup.js');
+} else {
+  await import('../build/index.js');
+}
