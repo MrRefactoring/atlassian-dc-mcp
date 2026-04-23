@@ -35,6 +35,26 @@ describe('resolveOpenApiBase', () => {
     expect(base).toBe('https://real.example.com/rest');
   });
 
+  it('strips known generated suffix from a fully-qualified apiBasePath', () => {
+    const base = resolveOpenApiBase({
+      host: 'ignored.example.com',
+      apiBasePath: 'https://real.example.com/rest/api/2',
+      defaultBasePath: '/rest',
+      strippableSuffixes: ['/api/2'],
+    });
+    expect(base).toBe('https://real.example.com/rest');
+  });
+
+  it('strips a confluence generated suffix from a fully-qualified apiBasePath with a context path', () => {
+    const base = resolveOpenApiBase({
+      host: 'ignored.example.com',
+      apiBasePath: 'https://wiki.example.com/confluence/rest/api',
+      defaultBasePath: '',
+      strippableSuffixes: ['/rest/api', '/rest'],
+    });
+    expect(base).toBe('https://wiki.example.com/confluence');
+  });
+
   it('strips known generated suffix included by mistake (jira)', () => {
     const base = resolveOpenApiBase({
       host: 'jira.example.com',

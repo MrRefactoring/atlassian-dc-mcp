@@ -21,17 +21,23 @@ function stripGeneratedSuffix(path: string, suffixes: readonly string[]): string
   return path;
 }
 
+function normalizeBasePath(path: string, suffixes: readonly string[]): string {
+  const stripped = stripGeneratedSuffix(path, suffixes).replace(/\/+$/, '');
+  return stripped === '/' ? '' : stripped;
+}
+
 export function resolveOpenApiBase(options: ResolveOpenApiBaseOptions): string {
   const { host, apiBasePath, defaultBasePath, strippableSuffixes = [] } = options;
 
   if (apiBasePath && /^https?:\/\//i.test(apiBasePath)) {
-    return apiBasePath.replace(/\/+$/, '');
+    const url = new URL(apiBasePath);
+    return `${url.origin}${normalizeBasePath(url.pathname, strippableSuffixes)}`;
   }
 
   if (!host) {
     throw new Error('host or apiBasePath must be provided');
   }
 
-  const basePath = apiBasePath ? stripGeneratedSuffix(apiBasePath, strippableSuffixes) : defaultBasePath;
+  const basePath = apiBasePath ? normalizeBasePath(apiBasePath, strippableSuffixes) : defaultBasePath;
   return `${normalizeHost(host)}${basePath}`;
 }
