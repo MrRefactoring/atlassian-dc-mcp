@@ -1,3 +1,7 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { initializeRuntimeConfig } from '@atlassian-dc-mcp/common';
 import { BitbucketService } from '../bitbucket-service.js';
 import { PullRequestsService } from '../bitbucket-client/index.js';
 
@@ -67,10 +71,23 @@ function createComment(overrides: Record<string, unknown> = {}) {
 
 describe('BitbucketService token optimization paths', () => {
   let service: BitbucketService;
+  let tempHome: string;
+  let homedirSpy: jest.SpyInstance;
+  const originalPlatform = process.platform;
 
   beforeEach(() => {
+    tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'bitbucket-token-opt-home-'));
+    homedirSpy = jest.spyOn(os, 'homedir').mockReturnValue(tempHome);
+    Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
+    initializeRuntimeConfig();
     service = new BitbucketService('test-host', 'test-token');
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    homedirSpy.mockRestore();
+    Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
+    fs.rmSync(tempHome, { recursive: true, force: true });
   });
 
   describe('getPullRequestCommentsAndActions', () => {

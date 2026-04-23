@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ContentResourceService, OpenAPI, SearchService } from './confluence-client/index.js';
-import { handleApiOperation } from '@atlassian-dc-mcp/common';
+import { handleApiOperation, resolveOpenApiBase } from '@atlassian-dc-mcp/common';
 import { getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
 
@@ -46,25 +46,18 @@ function resolveToken(token: string | (() => string | undefined), missingTokenMe
 export class ConfluenceService {
   private readonly getPageSize: () => number;
 
-  /**
-   * Creates a new ConfluenceService instance
-   * @param host The hostname of the Confluence server (e.g., "host.com")
-   * @param token The API token for authentication
-   * @param fullApiUrl Optional full API URL (e.g., "https://host.com/wiki/"). If provided, host and apiBasePath are ignored.
-   */
   constructor(
     host: string | undefined,
     token: string | (() => string | undefined),
-    fullApiUrl?: string,
+    apiBasePath?: string,
     getPageSize: () => number = getDefaultPageSize,
   ) {
-    if (fullApiUrl) {
-      OpenAPI.BASE = fullApiUrl;
-    } else if (host) {
-      OpenAPI.BASE = `https://${host}`;
-    } else {
-      throw new Error('Either host or fullApiUrl must be provided');
-    }
+    OpenAPI.BASE = resolveOpenApiBase({
+      host,
+      apiBasePath,
+      defaultBasePath: '',
+      strippableSuffixes: ['/rest/api', '/rest'],
+    });
     OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: CONFLUENCE_API_TOKEN');
     OpenAPI.VERSION = '1.0';
     this.getPageSize = getPageSize;

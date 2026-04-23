@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { OpenAPI, ProjectService, PullRequestsService, RepositoryService } from './bitbucket-client/index.js';
 import { request as __request } from './bitbucket-client/core/request.js';
-import { handleApiOperation } from '@atlassian-dc-mcp/common';
+import { handleApiOperation, resolveOpenApiBase } from '@atlassian-dc-mcp/common';
 import { simplifyInboxPullRequests } from './inbox-pr-mapper.js';
 import { getDefaultPageSize, getMissingConfig } from './config.js';
 import {
@@ -29,17 +29,15 @@ export class BitbucketService {
   constructor(
     host: string | undefined,
     token: string | (() => string | undefined),
-    fullBaseUrl?: string,
+    apiBasePath?: string,
     getPageSize: () => number = getDefaultPageSize,
   ) {
-    if (fullBaseUrl) {
-      OpenAPI.BASE = fullBaseUrl;
-    } else if (host) {
-      OpenAPI.BASE = `https://${host}/rest`;
-    } else {
-      throw new Error('Either host or fullBaseUrl must be provided');
-    }
-
+    OpenAPI.BASE = resolveOpenApiBase({
+      host,
+      apiBasePath,
+      defaultBasePath: '/rest',
+      strippableSuffixes: ['/api/1.0', '/api/latest'],
+    });
     OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: BITBUCKET_API_TOKEN');
     OpenAPI.VERSION = '1.0';
     this.getPageSize = getPageSize;

@@ -12,7 +12,7 @@ export const BITBUCKET_PRODUCT: ProductDefinition = {
     token: 'BITBUCKET_API_TOKEN',
     defaultPageSize: 'BITBUCKET_DEFAULT_PAGE_SIZE',
   },
-  defaultApiBasePath: '/rest/api/1.0',
+  defaultApiBasePath: '/rest',
 };
 
 export function getBitbucketRuntimeConfig() {

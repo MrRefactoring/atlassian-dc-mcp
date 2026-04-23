@@ -12,7 +12,7 @@ export const JIRA_PRODUCT: ProductDefinition = {
     token: 'JIRA_API_TOKEN',
     defaultPageSize: 'JIRA_DEFAULT_PAGE_SIZE',
   },
-  defaultApiBasePath: '/rest/api/2',
+  defaultApiBasePath: '/rest',
 };
 
 export function getJiraRuntimeConfig() {

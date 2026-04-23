@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { handleApiOperation } from '@atlassian-dc-mcp/common';
+import { handleApiOperation, resolveOpenApiBase } from '@atlassian-dc-mcp/common';
 import { IssueService, OpenAPI, SearchService } from './jira-client/index.js';
 import type { StringList } from './jira-client/models/StringList.js';
 import { getDefaultPageSize, getMissingConfig } from './config.js';
@@ -28,17 +28,15 @@ export class JiraService {
   constructor(
     host: string | undefined,
     token: string | (() => string | undefined),
-    fullBaseUrl?: string,
+    apiBasePath?: string,
     getPageSize: () => number = getDefaultPageSize,
   ) {
-    if (fullBaseUrl) {
-      OpenAPI.BASE = fullBaseUrl;
-    } else if (host) {
-      OpenAPI.BASE = `https://${host}/rest`;
-    } else {
-      throw new Error('Either host or fullBaseUrl must be provided');
-    }
-
+    OpenAPI.BASE = resolveOpenApiBase({
+      host,
+      apiBasePath,
+      defaultBasePath: '/rest',
+      strippableSuffixes: ['/api/2'],
+    });
     OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: JIRA_API_TOKEN');
     OpenAPI.VERSION = '2';
     this.getPageSize = getPageSize;

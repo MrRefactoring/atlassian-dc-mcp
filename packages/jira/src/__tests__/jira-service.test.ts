@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from '@atlassian-dc-mcp/common';
 import { JiraService } from '../jira-service.js';
-import { IssueService, SearchService } from '../jira-client/index.js';
+import { IssueService, OpenAPI, SearchService } from '../jira-client/index.js';
 
 jest.mock('../jira-client/index.js', () => ({
   IssueService: {
@@ -275,18 +275,48 @@ describe('JiraService', () => {
     });
   });
 
+  describe('constructor base URL resolution', () => {
+    it('builds BASE from host + default /rest when apiBasePath is missing', () => {
+      new JiraService('jira.example.com', 'test-token');
+      expect(OpenAPI.BASE).toBe('https://jira.example.com/rest');
+    });
+
+    it('strips accidentally-included /api/2 suffix from saved apiBasePath', () => {
+      new JiraService('jira.example.com', 'test-token', '/rest/api/2');
+      expect(OpenAPI.BASE).toBe('https://jira.example.com/rest');
+    });
+
+    it('accepts a fully-qualified apiBasePath as an override', () => {
+      new JiraService('ignored.example.com', 'test-token', 'https://real.example.com/rest');
+      expect(OpenAPI.BASE).toBe('https://real.example.com/rest');
+    });
+  });
+
   describe('validateConfig', () => {
     const originalEnv = process.env;
+    const originalPlatform = process.platform;
     let tempDir: string;
+    let tempHome: string;
+    let homedirSpy: jest.SpyInstance;
 
     beforeEach(() => {
       process.env = { ...originalEnv };
       delete process.env.ATLASSIAN_DC_MCP_CONFIG_FILE;
+      delete process.env.JIRA_API_TOKEN;
+      delete process.env.JIRA_HOST;
+      delete process.env.JIRA_API_BASE_PATH;
+      delete process.env.JIRA_DEFAULT_PAGE_SIZE;
+      tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'jira-validate-config-home-'));
+      homedirSpy = jest.spyOn(os, 'homedir').mockReturnValue(tempHome);
+      Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
       tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jira-validate-config-'));
       initializeRuntimeConfig({ cwd: tempDir });
     });
 
     afterEach(() => {
+      homedirSpy.mockRestore();
+      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
+      fs.rmSync(tempHome, { recursive: true, force: true });
       fs.rmSync(tempDir, { recursive: true, force: true });
     });
 

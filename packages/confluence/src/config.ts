@@ -12,7 +12,7 @@ export const CONFLUENCE_PRODUCT: ProductDefinition = {
     token: 'CONFLUENCE_API_TOKEN',
     defaultPageSize: 'CONFLUENCE_DEFAULT_PAGE_SIZE',
   },
-  defaultApiBasePath: '/rest/api',
+  defaultApiBasePath: '',
 };
 
 export function getConfluenceRuntimeConfig() {
