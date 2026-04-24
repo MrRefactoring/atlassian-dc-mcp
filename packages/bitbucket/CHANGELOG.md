@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.18.0](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.17.1...v0.18.0) (2026-04-24)
+
+
+### Features
+
+* **setup:** validate credentials via product services with retry and friendly errors ([6056320](https://github.com/b1ff/atlassian-dc-mcp/commit/60563200e62b513fe8f3b5b4a190edfa1be25a13))
+
+
+
+
+
 ## [0.17.1](https://github.com/b1ff/atlassian-dc-mcp/compare/v0.17.0...v0.17.1) (2026-04-23)
 
 
