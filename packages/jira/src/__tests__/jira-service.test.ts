@@ -30,7 +30,7 @@ describe('JiraService', () => {
   const mockIssueKey = 'PROJ-123';
 
   beforeEach(() => {
-    jiraService = new JiraService('test-host', 'test-token');
+    jiraService = new JiraService('test-host', 'test-token', undefined, () => 25);
     jest.clearAllMocks();
   });
 

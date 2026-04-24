@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { ContentResourceService, OpenAPI, SearchService } from './confluence-client/index.js';
+import { ContentResourceService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from '@atlassian-dc-mcp/common';
-import { getDefaultPageSize, getMissingConfig } from './config.js';
+import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
 
 /**
@@ -55,8 +55,8 @@ export class ConfluenceService {
     OpenAPI.BASE = resolveOpenApiBase({
       host,
       apiBasePath,
-      defaultBasePath: '',
-      strippableSuffixes: ['/rest/api', '/rest'],
+      defaultBasePath: CONFLUENCE_PRODUCT.defaultApiBasePath ?? '',
+      strippableSuffixes: CONFLUENCE_PRODUCT.apiBasePathStrippableSuffixes,
     });
     OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: CONFLUENCE_API_TOKEN');
     OpenAPI.VERSION = '1.0';
@@ -154,6 +154,10 @@ export class ConfluenceService {
       excerpt,
       cql
     ), 'Error searching for spaces');
+  }
+
+  async validateSetup(): Promise<void> {
+    await UserService.getCurrent();
   }
 
   static validateConfig(): string[] {

@@ -8,6 +8,7 @@ export interface ProductDefinition {
   readonly id: string;
   readonly envVars: Record<ConfigKey, string>;
   readonly defaultApiBasePath?: string;
+  readonly apiBasePathStrippableSuffixes?: readonly string[];
 }
 
 export interface ReadableSource {

@@ -13,6 +13,7 @@ export const BITBUCKET_PRODUCT: ProductDefinition = {
     defaultPageSize: 'BITBUCKET_DEFAULT_PAGE_SIZE',
   },
   defaultApiBasePath: '/rest',
+  apiBasePathStrippableSuffixes: ['/api/1.0', '/api/latest'],
 };
 
 export function getBitbucketRuntimeConfig() {

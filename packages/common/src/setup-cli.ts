@@ -8,19 +8,45 @@ import type {
 } from './config/source.js';
 import { HomeFileSource, getHomeFilePath } from './config/sources/home-file.js';
 import { MacosKeychainSource } from './config/sources/macos-keychain.js';
+import { SetupValueValidator } from './setup/value-validator.js';
 
 const FALLBACK_PAGE_SIZE = 25;
+const MAX_VALIDATION_ATTEMPTS = 3;
+
+type PromptDefaults = {
+  host?: string;
+  apiBasePath?: string;
+  token?: string;
+  defaultPageSize?: number;
+};
 
 type PromptResult = {
   host: string;
   apiBasePath: string;
   defaultPageSize: string;
-  token: string | undefined;
+  tokenToWrite: string | undefined;
+  tokenForValidation: string | undefined;
 };
+
+type TokenPromptResult = Pick<PromptResult, 'tokenToWrite' | 'tokenForValidation'>;
+
+export type CredentialValidationContext = {
+  host: string;
+  apiBasePath: string;
+  token: string;
+};
+
+export type CredentialValidationResult =
+  | { ok: true; detail?: string }
+  | { ok: false; message: string };
+
+export type ValidateCredentials = (
+  context: CredentialValidationContext,
+) => Promise<CredentialValidationResult>;
 
 export type SetupPrompts = {
   input: (opts: { message: string; default?: string; validate?: (raw: string) => true | string }) => Promise<string>;
-  password: (opts: { message: string; mask?: string }) => Promise<string>;
+  password: (opts: { message: string; mask?: string; validate?: (raw: string) => true | string }) => Promise<string>;
   confirm: (opts: { message: string; default?: boolean }) => Promise<boolean>;
 };
 
@@ -29,6 +55,7 @@ export type SetupDeps = {
   log?: (message: string) => void;
   exit?: (code: number) => void;
   prompts?: SetupPrompts;
+  validateCredentials?: ValidateCredentials;
 };
 
 const DEFAULT_PROMPTS: SetupPrompts = {
@@ -51,21 +78,110 @@ export async function runSetup(product: ProductDefinition, deps: SetupDeps = {})
   const current = getProductRuntimeConfig(product);
   printCurrent(log, registry, product, current);
 
-  let answers: PromptResult;
-  try {
-    answers = await promptForValues(prompts, product, current);
-  } catch (error) {
-    if (isUserCancel(error)) {
-      exit(130);
-      return;
-    }
-    throw error;
+  const answers = await collectAnswersWithValidation(product, deps, prompts, current, log, exit);
+  if (!answers) {
+    return;
   }
 
   const homeFile = requireHomeFile(registry);
   writeNonSecretFields(registry, product, answers, homeFile, log);
-  const tokenWriter = await writeToken(registry, product, answers.token, homeFile, log, prompts);
+  const tokenWriter = await writeToken(registry, product, answers.tokenToWrite, homeFile, log, prompts);
   printSummary(log, product, answers, tokenWriter);
+}
+
+async function collectAnswersWithValidation(
+  product: ProductDefinition,
+  deps: SetupDeps,
+  prompts: SetupPrompts,
+  current: ReturnType<typeof getProductRuntimeConfig>,
+  log: (message: string) => void,
+  exit: (code: number) => void,
+): Promise<PromptResult | undefined> {
+  let defaults: PromptDefaults = current;
+
+  for (let attempt = 1; ; attempt++) {
+    let answers: PromptResult;
+    try {
+      answers = await promptForValues(prompts, product, defaults);
+    } catch (error) {
+      if (isUserCancel(error)) {
+        exit(130);
+        return undefined;
+      }
+      throw error;
+    }
+
+    const answerErrors = validateAnswers(product, answers);
+    if (answerErrors.length > 0) {
+      for (const message of answerErrors) {
+        log(`Validation failed: ${message}`);
+      }
+      const retry = await confirmRetry(prompts, 'Try again?');
+      if (retry) {
+        defaults = answersAsDefaults(answers);
+        continue;
+      }
+      exit(1);
+      return undefined;
+    }
+
+    if (!deps.validateCredentials || !answers.tokenForValidation) {
+      return answers;
+    }
+
+    const result = await deps.validateCredentials({
+      host: answers.host,
+      apiBasePath: answers.apiBasePath,
+      token: answers.tokenForValidation,
+    });
+    if (result.ok) {
+      log(result.detail ? `Validation succeeded: ${result.detail}` : 'Validation succeeded.');
+      return answers;
+    }
+
+    log(`Validation failed: ${result.message}`);
+    const outcome = await offerRetryAfterFailure(prompts, attempt);
+    if (outcome === 'retry') {
+      defaults = answersAsDefaults(answers);
+      continue;
+    }
+    if (outcome === 'save-anyway') {
+      return answers;
+    }
+    exit(1);
+    return undefined;
+  }
+}
+
+function answersAsDefaults(answers: PromptResult): PromptDefaults {
+  const pageSize = Number.parseInt(answers.defaultPageSize, 10);
+  return {
+    host: answers.host,
+    apiBasePath: answers.apiBasePath,
+    token: answers.tokenForValidation,
+    defaultPageSize: Number.isFinite(pageSize) && pageSize > 0 ? pageSize : undefined,
+  };
+}
+
+async function confirmRetry(prompts: SetupPrompts, message: string): Promise<boolean> {
+  return prompts.confirm({ message, default: true });
+}
+
+async function offerRetryAfterFailure(
+  prompts: SetupPrompts,
+  attempt: number,
+): Promise<'retry' | 'save-anyway' | 'abort'> {
+  if (attempt < MAX_VALIDATION_ATTEMPTS) {
+    const retry = await confirmRetry(prompts, 'Try again with different values?');
+    if (retry) {
+      return 'retry';
+    }
+  }
+  const saveAnyway = await prompts.confirm({
+    message: 'Save configuration anyway?',
+    default: false,
+  });
+  return saveAnyway ? 'save-anyway' : 'abort';
 }
 
 function requireHomeFile(registry: ConfigRegistry): HomeFileSource {
@@ -98,42 +214,84 @@ function printCurrent(
 async function promptForValues(
   prompts: SetupPrompts,
   product: ProductDefinition,
-  current: ReturnType<typeof getProductRuntimeConfig>,
+  defaults: PromptDefaults,
 ): Promise<PromptResult> {
   const host = await prompts.input({
     message: 'Host (e.g. jira.example.com):',
-    default: current.host ?? '',
+    default: defaults.host ?? '',
+    validate: SetupValueValidator.host,
   });
   const apiBasePath = await prompts.input({
     message: 'API base path:',
-    default: current.apiBasePath ?? product.defaultApiBasePath ?? '',
+    default: defaults.apiBasePath ?? product.defaultApiBasePath ?? '',
+    validate: SetupValueValidator.apiBasePath,
   });
   const defaultPageSize = await prompts.input({
     message: 'Default page size:',
-    default: String(current.defaultPageSize ?? FALLBACK_PAGE_SIZE),
-    validate: (raw) =>
-      /^\d+$/.test(raw.trim()) && Number.parseInt(raw.trim(), 10) > 0
-        ? true
-        : 'Enter a positive integer',
+    default: String(defaults.defaultPageSize ?? FALLBACK_PAGE_SIZE),
+    validate: SetupValueValidator.pageSize,
   });
-  const token = await promptForToken(prompts, current.token);
-  return { host: host.trim(), apiBasePath: apiBasePath.trim(), defaultPageSize: defaultPageSize.trim(), token };
+  const token = await promptForToken(prompts, defaults.token);
+  return {
+    host: host.trim(),
+    apiBasePath: apiBasePath.trim(),
+    defaultPageSize: defaultPageSize.trim(),
+    ...token,
+  };
 }
 
 async function promptForToken(
   prompts: SetupPrompts,
   existing: string | undefined,
-): Promise<string | undefined> {
-  const entered = await prompts.password({ message: 'API token:', mask: '*' });
+): Promise<TokenPromptResult> {
+  const entered = await prompts.password({
+    message: 'API token:',
+    mask: '*',
+    validate: SetupValueValidator.token,
+  });
   const trimmed = entered.trim();
   if (trimmed.length > 0) {
-    return trimmed;
+    return { tokenToWrite: trimmed, tokenForValidation: trimmed };
   }
   if (!existing) {
-    return undefined;
+    return { tokenToWrite: undefined, tokenForValidation: undefined };
   }
-  await prompts.confirm({ message: 'Keep existing token?', default: true });
-  return undefined;
+  const keepExisting = await prompts.confirm({ message: 'Keep existing token?', default: true });
+  return {
+    tokenToWrite: undefined,
+    tokenForValidation: keepExisting ? existing : undefined,
+  };
+}
+
+function validateAnswers(product: ProductDefinition, answers: PromptResult): string[] {
+  const errors: string[] = [];
+  for (const [label, value, validator] of [
+    ['host', answers.host, SetupValueValidator.host],
+    ['API base path', answers.apiBasePath, SetupValueValidator.apiBasePath],
+    ['API token', answers.tokenForValidation ?? '', SetupValueValidator.token],
+  ] as const) {
+    const result = validator(value);
+    if (result !== true) {
+      errors.push(`${label}: ${result}`);
+    }
+  }
+
+  const pageSize = SetupValueValidator.pageSize(answers.defaultPageSize);
+  if (pageSize !== true) {
+    errors.push(`default page size: ${pageSize}`);
+  }
+
+  if (!answers.tokenForValidation) {
+    errors.push(`API token is required (${product.envVars.token}).`);
+  }
+
+  const hasHost = answers.host.length > 0;
+  const hasFullApiBasePath = /^https?:\/\//i.test(answers.apiBasePath);
+  if (!hasHost && !hasFullApiBasePath) {
+    errors.push(`Enter ${product.envVars.host}, or enter a full URL for ${product.envVars.apiBasePath}.`);
+  }
+
+  return errors;
 }
 
 function writeNonSecretFields(
@@ -208,7 +366,10 @@ async function tryWrite(
         message: 'Fall back to plaintext home file with mode 0600?',
         default: false,
       });
-      return !fallback;
+      if (fallback) {
+        return false;
+      }
+      throw new Error('Token was not saved because keychain write failed and plaintext fallback was declined');
     }
     return false;
   }
@@ -254,7 +415,7 @@ function printSummary(
   log(`  apiBasePath: ${answers.apiBasePath || '(unchanged)'}`);
   log(`  defaultPageSize: ${answers.defaultPageSize || '(unchanged)'}`);
   if (tokenWriter) {
-    log(`  token: ${maskToken(answers.token)} (stored in ${describeWriter(tokenWriter, product)})`);
+    log(`  token: ${maskToken(answers.tokenToWrite)} (stored in ${describeWriter(tokenWriter, product)})`);
   } else {
     log('  token: (unchanged)');
   }

@@ -13,6 +13,7 @@ export const JIRA_PRODUCT: ProductDefinition = {
     defaultPageSize: 'JIRA_DEFAULT_PAGE_SIZE',
   },
   defaultApiBasePath: '/rest',
+  apiBasePathStrippableSuffixes: ['/api/2'],
 };
 
 export function getJiraRuntimeConfig() {

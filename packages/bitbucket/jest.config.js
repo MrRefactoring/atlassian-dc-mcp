@@ -14,6 +14,7 @@ export default {
     'node_modules/(?!(@atlassian-dc-mcp)/)',
   ],
   testEnvironment: 'node',
+  watchman: false,
   testMatch: ['**/__tests__/**/*.test.ts'],
   collectCoverageFrom: [
     'src/**/*.ts',

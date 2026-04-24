@@ -13,6 +13,7 @@ export const CONFLUENCE_PRODUCT: ProductDefinition = {
     defaultPageSize: 'CONFLUENCE_DEFAULT_PAGE_SIZE',
   },
   defaultApiBasePath: '',
+  apiBasePathStrippableSuffixes: ['/rest/api', '/rest'],
 };
 
 export function getConfluenceRuntimeConfig() {

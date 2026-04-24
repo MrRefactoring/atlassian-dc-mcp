@@ -3,7 +3,7 @@ import { OpenAPI, ProjectService, PullRequestsService, RepositoryService } from 
 import { request as __request } from './bitbucket-client/core/request.js';
 import { handleApiOperation, resolveOpenApiBase } from '@atlassian-dc-mcp/common';
 import { simplifyInboxPullRequests } from './inbox-pr-mapper.js';
-import { getDefaultPageSize, getMissingConfig } from './config.js';
+import { BITBUCKET_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import {
   BitbucketMutationOutputMode,
   BitbucketOutputMode,
@@ -35,8 +35,8 @@ export class BitbucketService {
     OpenAPI.BASE = resolveOpenApiBase({
       host,
       apiBasePath,
-      defaultBasePath: '/rest',
-      strippableSuffixes: ['/api/1.0', '/api/latest'],
+      defaultBasePath: BITBUCKET_PRODUCT.defaultApiBasePath ?? '/rest',
+      strippableSuffixes: BITBUCKET_PRODUCT.apiBasePathStrippableSuffixes,
     });
     OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: BITBUCKET_API_TOKEN');
     OpenAPI.VERSION = '1.0';
@@ -727,6 +727,14 @@ export class BitbucketService {
     }
 
     return result;
+  }
+
+  async validateSetup(): Promise<void> {
+    await __request(OpenAPI, {
+      method: 'GET',
+      url: '/api/latest/dashboard/pull-requests',
+      query: { limit: 1 },
+    });
   }
 
   static validateConfig(): string[] {

@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from '@atlassian-dc-mcp/common';
-import { IssueService, OpenAPI, SearchService } from './jira-client/index.js';
+import { IssueService, MyselfService, OpenAPI, SearchService } from './jira-client/index.js';
 import type { StringList } from './jira-client/models/StringList.js';
-import { getDefaultPageSize, getMissingConfig } from './config.js';
+import { getDefaultPageSize, getMissingConfig, JIRA_PRODUCT } from './config.js';
 
 const DEFAULT_SEARCH_FIELDS = ['summary', 'description', 'status', 'assignee', 'reporter', 'priority', 'issuetype', 'labels', 'updated'];
 const DEFAULT_ISSUE_FIELDS = [...DEFAULT_SEARCH_FIELDS, 'parent', 'subtasks'];
@@ -34,8 +34,8 @@ export class JiraService {
     OpenAPI.BASE = resolveOpenApiBase({
       host,
       apiBasePath,
-      defaultBasePath: '/rest',
-      strippableSuffixes: ['/api/2'],
+      defaultBasePath: JIRA_PRODUCT.defaultApiBasePath ?? '/rest',
+      strippableSuffixes: JIRA_PRODUCT.apiBasePathStrippableSuffixes,
     });
     OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: JIRA_API_TOKEN');
     OpenAPI.VERSION = '2';
@@ -143,6 +143,10 @@ export class JiraService {
       }
       return IssueService.doTransition(params.issueKey, requestBody);
     }, 'Error transitioning issue');
+  }
+
+  async validateSetup(): Promise<void> {
+    await MyselfService.getUser();
   }
 
   static validateConfig(): string[] {

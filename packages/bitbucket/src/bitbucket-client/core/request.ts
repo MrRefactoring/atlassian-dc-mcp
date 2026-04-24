@@ -9,6 +9,9 @@ import { CancelablePromise } from './CancelablePromise.js';
 import type { OnCancel } from './CancelablePromise.js';
 import type { OpenAPIConfig } from './OpenAPI.js';
 
+const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
+const REQUEST_TIMEOUT_MS_ENV_VAR = 'ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS';
+
 export const isDefined = <T>(value: T | null | undefined): value is Exclude<T, null | undefined> => {
     return value !== undefined && value !== null;
 };
@@ -129,6 +132,15 @@ export const getFormData = (options: ApiRequestOptions): FormData | undefined =>
 
 type Resolver<T> = (options: ApiRequestOptions) => Promise<T>;
 
+const getRequestTimeoutMs = (): number => {
+    const raw = process.env[REQUEST_TIMEOUT_MS_ENV_VAR];
+    if (!raw) {
+        return DEFAULT_REQUEST_TIMEOUT_MS;
+    }
+    const parsed = Number.parseInt(raw.trim(), 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_REQUEST_TIMEOUT_MS;
+};
+
 export const resolve = async <T>(options: ApiRequestOptions, resolver?: T | Resolver<T>): Promise<T | undefined> => {
     if (typeof resolver === 'function') {
         return (resolver as Resolver<T>)(options);
@@ -201,6 +213,7 @@ export const sendRequest = async (
     onCancel: OnCancel
 ): Promise<Response> => {
     const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), getRequestTimeoutMs());
 
     const request: RequestInit = {
         headers,
@@ -209,9 +222,16 @@ export const sendRequest = async (
         signal: controller.signal as AbortSignal,
     };
 
-    onCancel(() => controller.abort());
+    onCancel(() => {
+        clearTimeout(timeout);
+        controller.abort();
+    });
 
-    return await fetch(url, request);
+    try {
+        return await fetch(url, request);
+    } finally {
+        clearTimeout(timeout);
+    }
 };
 
 export const getResponseHeader = (response: Response, responseHeader?: string): string | undefined => {
@@ -315,4 +335,3 @@ export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions): C
         }
     });
 };
-

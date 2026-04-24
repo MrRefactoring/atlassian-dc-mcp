@@ -4,6 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 export * from './api-error-handler.js'
 export * from './config/index.js';
 export { runSetup } from './setup-cli.js';
+export { describeValidationError } from './setup/describe-error.js';
 
 // Helper function to format tool responses
 export const formatToolResponse = (result: unknown) => ({

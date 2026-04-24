@@ -19,7 +19,9 @@ npx @atlassian-dc-mcp/confluence setup
 npx @atlassian-dc-mcp/bitbucket setup
 ```
 
-The setup CLI prompts for host, API base path, default page size, and API token. Token storage:
+The setup CLI prompts for host, API base path, default page size, and API token. Before saving, it validates obvious input mistakes and performs a timed authenticated request to the selected Atlassian product, so a bad host, base path, or token is caught during setup.
+
+Token storage:
 
 - **macOS** — written to the login Keychain via `/usr/bin/security` (service `atlassian-dc-mcp`, account `<product>-token`).
 - **Linux** — written to `~/.atlassian-dc-mcp/<product>.env` with POSIX mode `0600` (read/write for your user only; other local user accounts cannot read it).
@@ -58,6 +60,7 @@ Notes:
 - `ATLASSIAN_DC_MCP_CONFIG_FILE` must be an absolute path; if set and missing, the server fails fast.
 - Keychain reads are cached at init (one `execFileSync` per product-token), so tool calls never shell out.
 - If a higher-priority source shadows the value setup is about to save, setup prints a warning naming the env var so you can unset it.
+- Atlassian API requests time out after 30 seconds by default. Set `ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS` to a positive millisecond value to override it.
 
 ## Claude Desktop Configuration
 
