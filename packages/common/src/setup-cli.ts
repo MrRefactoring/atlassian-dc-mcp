@@ -1,6 +1,6 @@
 import { confirm as inquirerConfirm, input as inquirerInput, password as inquirerPassword } from '@inquirer/prompts';
 import { buildDefaultRegistry, type ConfigRegistry } from './config/registry.js';
-import { getProductRuntimeConfig } from './config/runtime-config.js';
+import type { ProductRuntimeConfig } from './config/runtime-config.js';
 import type {
   ConfigKey,
   ProductDefinition,
@@ -8,6 +8,7 @@ import type {
 } from './config/source.js';
 import { HomeFileSource, getHomeFilePath } from './config/sources/home-file.js';
 import { MacosKeychainSource } from './config/sources/macos-keychain.js';
+import { parseSetupArgs, printSetupHelp, SetupArgsError, type ParsedSetupArgs } from './setup/args.js';
 import { SetupValueValidator } from './setup/value-validator.js';
 
 const FALLBACK_PAGE_SIZE = 25;
@@ -56,6 +57,7 @@ export type SetupDeps = {
   exit?: (code: number) => void;
   prompts?: SetupPrompts;
   validateCredentials?: ValidateCredentials;
+  args?: ParsedSetupArgs;
 };
 
 const DEFAULT_PROMPTS: SetupPrompts = {
@@ -63,6 +65,36 @@ const DEFAULT_PROMPTS: SetupPrompts = {
   password: (opts) => inquirerPassword(opts as any),
   confirm: (opts) => inquirerConfirm(opts as any),
 };
+
+export async function runSetupCli(
+  product: ProductDefinition,
+  deps: Omit<SetupDeps, 'args'> = {},
+): Promise<void> {
+  const rawArgv = process.argv.slice(2);
+  const argv = rawArgv[0] === 'setup' ? rawArgv.slice(1) : rawArgv;
+  const exit = deps.exit ?? ((code: number) => { process.exit(code); });
+
+  let args: ParsedSetupArgs;
+  try {
+    args = parseSetupArgs(argv);
+  } catch (error) {
+    if (error instanceof SetupArgsError) {
+      process.stderr.write(`${error.message}\n\n`);
+      printSetupHelp(product.id, (m) => process.stderr.write(`${m}\n`));
+      exit(1);
+      return;
+    }
+    throw error;
+  }
+
+  if (args.help) {
+    printSetupHelp(product.id, (m) => process.stdout.write(`${m}\n`));
+    exit(0);
+    return;
+  }
+
+  await runSetup(product, { ...deps, args });
+}
 
 export async function runSetup(product: ProductDefinition, deps: SetupDeps = {}): Promise<void> {
   const registry = deps.registry ?? buildDefaultRegistry();
@@ -75,10 +107,12 @@ export async function runSetup(product: ProductDefinition, deps: SetupDeps = {})
   log(`Atlassian DC MCP setup — ${product.id}`);
   log('');
 
-  const current = getProductRuntimeConfig(product);
+  const current = readCurrentConfig(registry, product);
   printCurrent(log, registry, product, current);
 
-  const answers = await collectAnswersWithValidation(product, deps, prompts, current, log, exit);
+  const answers = deps.args?.nonInteractive
+    ? await runNonInteractive(product, deps, current, log, exit, deps.args)
+    : await collectAnswersWithValidation(product, deps, prompts, current, log, exit, deps.args);
   if (!answers) {
     return;
   }
@@ -93,16 +127,17 @@ async function collectAnswersWithValidation(
   product: ProductDefinition,
   deps: SetupDeps,
   prompts: SetupPrompts,
-  current: ReturnType<typeof getProductRuntimeConfig>,
+  current: ProductRuntimeConfig,
   log: (message: string) => void,
   exit: (code: number) => void,
+  args: ParsedSetupArgs | undefined,
 ): Promise<PromptResult | undefined> {
   let defaults: PromptDefaults = current;
 
   for (let attempt = 1; ; attempt++) {
     let answers: PromptResult;
     try {
-      answers = await promptForValues(prompts, product, defaults);
+      answers = await promptForValues(prompts, product, defaults, args);
     } catch (error) {
       if (isUserCancel(error)) {
         exit(130);
@@ -153,6 +188,57 @@ async function collectAnswersWithValidation(
   }
 }
 
+async function runNonInteractive(
+  product: ProductDefinition,
+  deps: SetupDeps,
+  current: ProductRuntimeConfig,
+  log: (message: string) => void,
+  exit: (code: number) => void,
+  args: ParsedSetupArgs,
+): Promise<PromptResult | undefined> {
+  let tokenToWrite: string | undefined;
+  let tokenForValidation: string | undefined;
+  if (args.token) {
+    tokenToWrite = args.token;
+    tokenForValidation = args.token;
+  } else if (current.token) {
+    tokenForValidation = current.token;
+  }
+
+  const answers: PromptResult = {
+    host: args.host ?? current.host ?? '',
+    apiBasePath: args.apiBasePath ?? current.apiBasePath ?? product.defaultApiBasePath ?? '',
+    defaultPageSize: args.defaultPageSize ?? String(current.defaultPageSize ?? FALLBACK_PAGE_SIZE),
+    tokenToWrite,
+    tokenForValidation,
+  };
+
+  const formatErrors = validateAnswers(product, answers);
+  if (formatErrors.length > 0) {
+    for (const message of formatErrors) {
+      log(`Validation failed: ${message}`);
+    }
+    exit(1);
+    return undefined;
+  }
+
+  if (deps.validateCredentials && answers.tokenForValidation) {
+    const result = await deps.validateCredentials({
+      host: answers.host,
+      apiBasePath: answers.apiBasePath,
+      token: answers.tokenForValidation,
+    });
+    if (!result.ok) {
+      log(`Validation failed: ${result.message}`);
+      exit(1);
+      return undefined;
+    }
+    log(result.detail ? `Validation succeeded: ${result.detail}` : 'Validation succeeded.');
+  }
+
+  return answers;
+}
+
 function answersAsDefaults(answers: PromptResult): PromptDefaults {
   const pageSize = Number.parseInt(answers.defaultPageSize, 10);
   return {
@@ -184,6 +270,32 @@ async function offerRetryAfterFailure(
   return saveAnyway ? 'save-anyway' : 'abort';
 }
 
+function readCurrentConfig(
+  registry: ConfigRegistry,
+  product: ProductDefinition,
+): ProductRuntimeConfig {
+  const pageSizeRaw = registry.resolve(product, 'defaultPageSize').value;
+  const pageSize = parsePositiveInteger(pageSizeRaw) ?? FALLBACK_PAGE_SIZE;
+  return {
+    host: registry.resolve(product, 'host').value,
+    apiBasePath: registry.resolve(product, 'apiBasePath').value,
+    token: registry.resolve(product, 'token').value,
+    defaultPageSize: pageSize,
+  };
+}
+
+function parsePositiveInteger(value: string | undefined): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (!/^\d+$/.test(trimmed)) {
+    return undefined;
+  }
+  const parsed = Number.parseInt(trimmed, 10);
+  return parsed > 0 ? parsed : undefined;
+}
+
 function requireHomeFile(registry: ConfigRegistry): HomeFileSource {
   const homeFile = registry.getWritableSource(
     (s): s is HomeFileSource => s instanceof HomeFileSource,
@@ -198,7 +310,7 @@ function printCurrent(
   log: (message: string) => void,
   registry: ConfigRegistry,
   product: ProductDefinition,
-  current: ReturnType<typeof getProductRuntimeConfig>,
+  current: ProductRuntimeConfig,
 ): void {
   const keys: ConfigKey[] = ['host', 'apiBasePath', 'token', 'defaultPageSize'];
   for (const key of keys) {
@@ -215,23 +327,24 @@ async function promptForValues(
   prompts: SetupPrompts,
   product: ProductDefinition,
   defaults: PromptDefaults,
+  args: ParsedSetupArgs | undefined,
 ): Promise<PromptResult> {
-  const host = await prompts.input({
+  const host = args?.host ?? await prompts.input({
     message: 'Host (e.g. jira.example.com):',
     default: defaults.host ?? '',
     validate: SetupValueValidator.host,
   });
-  const apiBasePath = await prompts.input({
+  const apiBasePath = args?.apiBasePath ?? await prompts.input({
     message: 'API base path:',
     default: defaults.apiBasePath ?? product.defaultApiBasePath ?? '',
     validate: SetupValueValidator.apiBasePath,
   });
-  const defaultPageSize = await prompts.input({
+  const defaultPageSize = args?.defaultPageSize ?? await prompts.input({
     message: 'Default page size:',
     default: String(defaults.defaultPageSize ?? FALLBACK_PAGE_SIZE),
     validate: SetupValueValidator.pageSize,
   });
-  const token = await promptForToken(prompts, defaults.token);
+  const token = await promptForToken(prompts, defaults.token, args?.token);
   return {
     host: host.trim(),
     apiBasePath: apiBasePath.trim(),
@@ -243,7 +356,11 @@ async function promptForValues(
 async function promptForToken(
   prompts: SetupPrompts,
   existing: string | undefined,
+  fromArgs: string | undefined,
 ): Promise<TokenPromptResult> {
+  if (fromArgs) {
+    return { tokenToWrite: fromArgs, tokenForValidation: fromArgs };
+  }
   const entered = await prompts.password({
     message: 'API token:',
     mask: '*',
@@ -268,7 +385,6 @@ function validateAnswers(product: ProductDefinition, answers: PromptResult): str
   for (const [label, value, validator] of [
     ['host', answers.host, SetupValueValidator.host],
     ['API base path', answers.apiBasePath, SetupValueValidator.apiBasePath],
-    ['API token', answers.tokenForValidation ?? '', SetupValueValidator.token],
   ] as const) {
     const result = validator(value);
     if (result !== true) {
@@ -283,6 +399,11 @@ function validateAnswers(product: ProductDefinition, answers: PromptResult): str
 
   if (!answers.tokenForValidation) {
     errors.push(`API token is required (${product.envVars.token}).`);
+  } else {
+    const tokenResult = SetupValueValidator.token(answers.tokenForValidation);
+    if (tokenResult !== true) {
+      errors.push(`API token: ${tokenResult}`);
+    }
   }
 
   const hasHost = answers.host.length > 0;

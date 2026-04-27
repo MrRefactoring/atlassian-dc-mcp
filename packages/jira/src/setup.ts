@@ -1,8 +1,8 @@
-import { describeValidationError, runSetup } from '@atlassian-dc-mcp/common';
+import { describeValidationError, runSetupCli } from '@atlassian-dc-mcp/common';
 import { JIRA_PRODUCT } from './config.js';
 import { JiraService } from './jira-service.js';
 
-await runSetup(JIRA_PRODUCT, {
+await runSetupCli(JIRA_PRODUCT, {
   validateCredentials: async ({ host, apiBasePath, token }) => {
     const service = new JiraService(host || undefined, token, apiBasePath || undefined);
     try {

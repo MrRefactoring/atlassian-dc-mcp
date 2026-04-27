@@ -21,6 +21,33 @@ npx @atlassian-dc-mcp/bitbucket setup
 
 The setup CLI prompts for host, API base path, default page size, and API token. Before saving, it validates obvious input mistakes and performs a timed authenticated request to the selected Atlassian product, so a bad host, base path, or token is caught during setup.
 
+### CLI flags and non-interactive mode
+
+Setup accepts flags so you can prefill values or skip prompts entirely (useful for scripted bootstrap, CI, or remote sessions). Run `npx @atlassian-dc-mcp/<product> setup --help` for the full list.
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--host <value>` | `-H` | Host, e.g. `jira.example.com` |
+| `--api-base-path <value>` | `-b` | API base path or full URL |
+| `--token <value>` | `-t` | API token |
+| `--default-page-size <n>` | `-s` | Default page size (positive integer) |
+| `--non-interactive` | `-n` | Skip prompts; fail if a required value cannot be resolved |
+| `--help` | `-h` | Show usage and exit |
+
+In interactive mode, any flag you pass prefills its prompt (so e.g. `--host` skips the host prompt but still asks for the rest). In `--non-interactive` mode, setup resolves anything missing from existing configuration (process env, `~/.atlassian-dc-mcp/<product>.env`, or macOS Keychain) and exits non-zero if a host (or full-URL `--api-base-path`) and token cannot be found. An existing token is reused when `--token` is omitted.
+
+```bash
+# Scripted, no prompts, write everything from flags
+npx @atlassian-dc-mcp/jira setup --non-interactive \
+  --host jira.example.com \
+  --token "$JIRA_TOKEN"
+
+# Re-validate the existing token without re-entering it
+npx @atlassian-dc-mcp/jira setup --non-interactive --host jira.example.com
+```
+
+Credential validation behaves differently between modes: interactive mode offers retry/save-anyway prompts on failure, while `--non-interactive` exits with code 1 on the first validation failure so it can be used as a CI gate.
+
 Token storage:
 
 - **macOS** — written to the login Keychain via `/usr/bin/security` (service `atlassian-dc-mcp`, account `<product>-token`).

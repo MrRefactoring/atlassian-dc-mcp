@@ -31,6 +31,18 @@ After setup, you can launch the server without any environment variables:
 
 Environment variables still override stored values — see [Configuration sources](#configuration-sources) below.
 
+### Scripted / non-interactive setup
+
+For CI, remote sessions, or shell scripts, pass values as flags and add `--non-interactive` to skip prompts:
+
+```bash
+npx @atlassian-dc-mcp/bitbucket setup --non-interactive \
+  --host bitbucket.example.com \
+  --token "$BITBUCKET_TOKEN"
+```
+
+Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--default-page-size`/`-s`, `--non-interactive`/`-n`, `--help`/`-h`. In `--non-interactive` mode, missing values fall back to existing configuration and the run exits non-zero if a host (or full-URL `--api-base-path`) and token cannot be resolved. An existing token is reused when `--token` is omitted. Run `npx @atlassian-dc-mcp/bitbucket setup --help` for full usage.
+
 ## Claude Desktop Configuration
 
 To use this MCP connector with Claude Desktop, add the following to your Claude Desktop configuration:

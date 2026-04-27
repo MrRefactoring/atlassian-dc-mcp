@@ -9,7 +9,20 @@ import {
   type SetupPrompts,
   type ValidateCredentials,
 } from '../setup-cli.js';
+import type { ParsedSetupArgs } from '../setup/args.js';
 import type { ConfigKey, ProductDefinition } from '../config/source.js';
+
+function makeArgs(overrides: Partial<ParsedSetupArgs> = {}): ParsedSetupArgs {
+  return {
+    host: undefined,
+    apiBasePath: undefined,
+    token: undefined,
+    defaultPageSize: undefined,
+    nonInteractive: false,
+    help: false,
+    ...overrides,
+  };
+}
 
 const JIRA: ProductDefinition = {
   id: 'jira',
@@ -314,5 +327,204 @@ describe('runSetup', () => {
     expect(exitFn).toHaveBeenCalledWith(130);
     expect(keychain.writeCalls).toBe(0);
     expect(home.writes).toHaveLength(0);
+  });
+
+  it('skips the host prompt when --host is passed and still prompts for the rest', async () => {
+    const inputCalls: string[] = [];
+    const passwordCalls = jest.fn(async () => 'secret');
+    const registry = makeRegistry(keychain, home);
+
+    await runSetup(JIRA, {
+      registry,
+      log: (m) => logs.push(m),
+      exit: () => undefined,
+      args: makeArgs({ host: 'cli-host.example.com' }),
+      prompts: {
+        input: async (opts) => {
+          inputCalls.push(opts.message);
+          if (opts.message.startsWith('API base path')) return '/rest/api/2';
+          return '25';
+        },
+        password: passwordCalls,
+        confirm: async (opts) => opts.default ?? false,
+      },
+    });
+
+    expect(inputCalls.some((m) => m.startsWith('Host'))).toBe(false);
+    expect(inputCalls.some((m) => m.startsWith('API base path'))).toBe(true);
+    expect(passwordCalls).toHaveBeenCalledTimes(1);
+    expect(home.values.jira.host).toBe('cli-host.example.com');
+  });
+
+  describe('non-interactive mode', () => {
+    function nonInteractivePrompts(): SetupPrompts & { inputCalls: string[]; passwordCalls: number } {
+      const inputCalls: string[] = [];
+      let passwordCalls = 0;
+      return Object.assign(
+        {
+          input: async (opts: { message: string }) => {
+            inputCalls.push(opts.message);
+            return '';
+          },
+          password: async () => {
+            passwordCalls++;
+            return '';
+          },
+          confirm: async () => false,
+        },
+        {
+          inputCalls,
+          get passwordCalls() {
+            return passwordCalls;
+          },
+        },
+      ) as SetupPrompts & { inputCalls: string[]; passwordCalls: number };
+    }
+
+    it('writes everything without prompts when all required fields come from CLI args', async () => {
+      const validator = new StubCredentialValidator();
+      const exitFn = jest.fn();
+      const registry = makeRegistry(keychain, home);
+      const prompts = nonInteractivePrompts();
+
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: exitFn,
+        prompts,
+        validateCredentials: validator.asFn(),
+        args: makeArgs({
+          host: 'cli-host.example.com',
+          token: 'cli-token',
+          nonInteractive: true,
+        }),
+      });
+
+      expect(prompts.inputCalls).toHaveLength(0);
+      expect(prompts.passwordCalls).toBe(0);
+      expect(exitFn).not.toHaveBeenCalled();
+      expect(validator.calls).toEqual([
+        { host: 'cli-host.example.com', apiBasePath: '/rest/api/2', token: 'cli-token' },
+      ]);
+      expect(home.values.jira.host).toBe('cli-host.example.com');
+      expect(home.values.jira.apiBasePath).toBe('/rest/api/2');
+      expect(keychain.store).toBe('cli-token');
+    });
+
+    it('exits 1 when --token is missing and there is no existing token', async () => {
+      const validator = new StubCredentialValidator();
+      const exitFn = jest.fn();
+      const registry = makeRegistry(keychain, home);
+
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: exitFn,
+        prompts: nonInteractivePrompts(),
+        validateCredentials: validator.asFn(),
+        args: makeArgs({ host: 'cli-host.example.com', nonInteractive: true }),
+      });
+
+      expect(exitFn).toHaveBeenCalledWith(1);
+      expect(validator.calls).toHaveLength(0);
+      expect(keychain.writeCalls).toBe(0);
+      expect(home.writes).toHaveLength(0);
+      expect(logs.some((l) => l.includes('JIRA_API_TOKEN'))).toBe(true);
+    });
+
+    it('reuses an existing keychain token without rewriting it when --token is omitted', async () => {
+      keychain.store = 'kept-token';
+      const validator = new StubCredentialValidator();
+      const exitFn = jest.fn();
+      const registry = makeRegistry(keychain, home);
+
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: exitFn,
+        prompts: nonInteractivePrompts(),
+        validateCredentials: validator.asFn(),
+        args: makeArgs({ host: 'cli-host.example.com', nonInteractive: true }),
+      });
+
+      expect(exitFn).not.toHaveBeenCalled();
+      expect(validator.calls).toEqual([
+        { host: 'cli-host.example.com', apiBasePath: '/rest/api/2', token: 'kept-token' },
+      ]);
+      expect(keychain.writeCalls).toBe(0);
+      expect(keychain.store).toBe('kept-token');
+      const tokenWrites = home.writes.filter(([, k]) => k === 'token');
+      expect(tokenWrites).toHaveLength(0);
+    });
+
+    it('exits 1 with a format error when --default-page-size is not a positive integer', async () => {
+      const exitFn = jest.fn();
+      const registry = makeRegistry(keychain, home);
+
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: exitFn,
+        prompts: nonInteractivePrompts(),
+        args: makeArgs({
+          host: 'cli-host.example.com',
+          token: 'cli-token',
+          defaultPageSize: 'abc',
+          nonInteractive: true,
+        }),
+      });
+
+      expect(exitFn).toHaveBeenCalledWith(1);
+      expect(home.writes).toHaveLength(0);
+      expect(keychain.writeCalls).toBe(0);
+      expect(logs.some((l) => l.includes('default page size'))).toBe(true);
+    });
+
+    it('exits 1 on credential rejection without retrying or asking to save anyway', async () => {
+      const validator = new StubCredentialValidator().reject('401 Unauthorized');
+      const exitFn = jest.fn();
+      const confirmFn = jest.fn(async () => false);
+      const registry = makeRegistry(keychain, home);
+
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: exitFn,
+        prompts: { ...nonInteractivePrompts(), confirm: confirmFn },
+        validateCredentials: validator.asFn(),
+        args: makeArgs({
+          host: 'cli-host.example.com',
+          token: 'cli-token',
+          nonInteractive: true,
+        }),
+      });
+
+      expect(validator.calls).toHaveLength(1);
+      expect(exitFn).toHaveBeenCalledWith(1);
+      expect(confirmFn).not.toHaveBeenCalled();
+      expect(keychain.writeCalls).toBe(0);
+      expect(home.writes).toHaveLength(0);
+    });
+
+    it('falls back to product.defaultApiBasePath and FALLBACK_PAGE_SIZE for unspecified optional fields', async () => {
+      const validator = new StubCredentialValidator();
+      const registry = makeRegistry(keychain, home);
+
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: () => undefined,
+        prompts: nonInteractivePrompts(),
+        validateCredentials: validator.asFn(),
+        args: makeArgs({
+          host: 'cli-host.example.com',
+          token: 'cli-token',
+          nonInteractive: true,
+        }),
+      });
+
+      expect(home.values.jira.apiBasePath).toBe('/rest/api/2');
+      expect(home.values.jira.defaultPageSize).toBe('25');
+    });
   });
 });

@@ -1,8 +1,8 @@
-import { describeValidationError, runSetup } from '@atlassian-dc-mcp/common';
+import { describeValidationError, runSetupCli } from '@atlassian-dc-mcp/common';
 import { BITBUCKET_PRODUCT } from './config.js';
 import { BitbucketService } from './bitbucket-service.js';
 
-await runSetup(BITBUCKET_PRODUCT, {
+await runSetupCli(BITBUCKET_PRODUCT, {
   validateCredentials: async ({ host, apiBasePath, token }) => {
     const service = new BitbucketService(host || undefined, token, apiBasePath || undefined);
     try {
