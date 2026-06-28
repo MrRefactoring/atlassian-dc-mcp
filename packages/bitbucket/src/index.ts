@@ -499,6 +499,16 @@ server.tool(
 );
 
 server.tool(
+  "bitbucket_createRepository",
+  "Create a new repository in a Bitbucket project. Requires REPO_CREATE permission on the project. SCM defaults to 'git'.",
+  bitbucketToolSchemas.createRepository,
+  async ({ projectKey, name, scmId, defaultBranch }) => {
+    const result = await bitbucketService.createRepository(projectKey, name, scmId, defaultBranch);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "bitbucket_createProject",
   "Create a new Bitbucket project. Requires PROJECT_CREATE permission. The key must be unique.",
   bitbucketToolSchemas.createProject,
@@ -509,11 +519,31 @@ server.tool(
 );
 
 server.tool(
+  "bitbucket_updateRepository",
+  "Update a Bitbucket repository: rename it, change its description or default branch, or move it to another project. Requires REPO_ADMIN permission. Only the provided fields are changed.",
+  bitbucketToolSchemas.updateRepository,
+  async ({ projectKey, repositorySlug, name, description, defaultBranch, targetProjectKey }) => {
+    const result = await bitbucketService.updateRepository(projectKey, repositorySlug, name, description, defaultBranch, targetProjectKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "bitbucket_deletePullRequestComment",
   "Delete a comment from a Bitbucket pull request. Requires the current comment 'version' for optimistic locking. A comment that has replies cannot be deleted.",
   bitbucketToolSchemas.deletePullRequestComment,
   async ({ projectKey, repositorySlug, pullRequestId, commentId, version }) => {
     const result = await bitbucketService.deletePullRequestComment(projectKey, repositorySlug, pullRequestId, commentId, version);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_forkRepository",
+  "Fork an existing Bitbucket repository. Requires REPO_READ on the origin and PROJECT_ADMIN on the target project. Without a target project the fork goes to the user's personal project.",
+  bitbucketToolSchemas.forkRepository,
+  async ({ projectKey, repositorySlug, name, targetProjectKey, defaultBranch }) => {
+    const result = await bitbucketService.forkRepository(projectKey, repositorySlug, name, targetProjectKey, defaultBranch);
     return formatToolResponse(result);
   }
 );
@@ -684,6 +714,16 @@ server.tool(
   bitbucketToolSchemas.deleteProject,
   async ({ key }) => {
     const result = await bitbucketService.deleteProject(key);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_deleteRepository",
+  "Schedule a Bitbucket repository for deletion. Requires REPO_ADMIN (or the configured delete policy) permission. This is irreversible — the repository and its contents are removed.",
+  bitbucketToolSchemas.deleteRepository,
+  async ({ projectKey, repositorySlug }) => {
+    const result = await bitbucketService.deleteRepository(projectKey, repositorySlug);
     return formatToolResponse(result);
   }
 );
