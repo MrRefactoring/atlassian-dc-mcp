@@ -45,7 +45,8 @@ jest.mock('../bitbucket-client/index.js', () => ({
     streamCommits: jest.fn(),
     streamChanges: jest.fn(),
     streamRaw: jest.fn(),
-    getContent1: jest.fn()
+    getContent1: jest.fn(),
+    editFile: jest.fn()
   },
   DeprecatedService: {
     getBuildStatus: jest.fn()
@@ -820,6 +821,65 @@ describe('BitbucketService', () => {
     it('should handle API errors gracefully', async () => {
       (RepositoryService.getCommit as jest.Mock).mockRejectedValue(new Error('API Error'));
       const result = await bitbucketService.getCommit(mockProjectKey, mockRepositorySlug, 'abc123');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('editFile', () => {
+    it('should create a new file (no sourceCommitId)', async () => {
+      const mockCommit = { id: 'newsha', message: 'add file' };
+      (RepositoryService.editFile as jest.Mock).mockResolvedValue(mockCommit);
+
+      const result = await bitbucketService.editFile(
+        mockProjectKey,
+        mockRepositorySlug,
+        'docs/new.md',
+        '# Hello',
+        'add file',
+        'master'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCommit);
+      expect(RepositoryService.editFile).toHaveBeenCalledWith(
+        'docs/new.md',
+        mockProjectKey,
+        mockRepositorySlug,
+        { content: '# Hello', message: 'add file', branch: 'master' }
+      );
+    });
+
+    it('should pass sourceCommitId and sourceBranch when editing', async () => {
+      (RepositoryService.editFile as jest.Mock).mockResolvedValue({ id: 'sha2' });
+      await bitbucketService.editFile(
+        mockProjectKey,
+        mockRepositorySlug,
+        'README.md',
+        'updated',
+        'edit readme',
+        'feature/x',
+        'oldsha',
+        'master'
+      );
+      expect(RepositoryService.editFile).toHaveBeenCalledWith(
+        'README.md',
+        mockProjectKey,
+        mockRepositorySlug,
+        { content: 'updated', message: 'edit readme', branch: 'feature/x', sourceCommitId: 'oldsha', sourceBranch: 'master' }
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (RepositoryService.editFile as jest.Mock).mockRejectedValue(new Error('API Error'));
+      const result = await bitbucketService.editFile(
+        mockProjectKey,
+        mockRepositorySlug,
+        'README.md',
+        'x',
+        'msg',
+        'master'
+      );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
     });
