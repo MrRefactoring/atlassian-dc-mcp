@@ -56,7 +56,10 @@ jest.mock('../bitbucket-client/index.js', () => ({
     streamChanges: jest.fn(),
     streamRaw: jest.fn(),
     getContent1: jest.fn(),
-    editFile: jest.fn()
+    editFile: jest.fn(),
+    getTags: jest.fn(),
+    getTag: jest.fn(),
+    createTagForRepository: jest.fn()
   },
   DeprecatedService: {
     getBuildStatus: jest.fn()
@@ -624,6 +627,46 @@ describe('BitbucketService', () => {
     });
   });
 
+  describe('getTags', () => {
+    it('should get tags with default parameters', async () => {
+      const mockTags = { values: [{ id: 'refs/tags/v1', displayId: 'v1' }], isLastPage: true };
+      (RepositoryService.getTags as jest.Mock).mockResolvedValue(mockTags);
+
+      const result = await bitbucketService.getTags(mockProjectKey, mockRepositorySlug);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockTags);
+      expect(RepositoryService.getTags).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug,
+        undefined, // orderBy
+        undefined, // filterText
+        undefined, // start
+        25
+      );
+    });
+
+    it('should pass filterText, orderBy and pagination through', async () => {
+      (RepositoryService.getTags as jest.Mock).mockResolvedValue({ values: [] });
+      await bitbucketService.getTags(mockProjectKey, mockRepositorySlug, 'rel', 'MODIFICATION', 5, 50);
+      expect(RepositoryService.getTags).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug,
+        'MODIFICATION',
+        'rel',
+        5,
+        50
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (RepositoryService.getTags as jest.Mock).mockRejectedValue(new Error('API Error'));
+      const result = await bitbucketService.getTags(mockProjectKey, mockRepositorySlug);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
   describe('getCommitComments', () => {
     it('should get commit comments for a path', async () => {
       const mockComments = { values: [{ id: 1, text: 'looks good' }], isLastPage: true };
@@ -661,6 +704,30 @@ describe('BitbucketService', () => {
     it('should handle API errors gracefully', async () => {
       (RepositoryService.getComments as jest.Mock).mockRejectedValue(new Error('API Error'));
       const result = await bitbucketService.getCommitComments(mockProjectKey, mockRepositorySlug, 'abc123', 'src/app.js');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('getTag', () => {
+    it('should get a single tag by name', async () => {
+      const mockTag = { id: 'refs/tags/v1', displayId: 'v1' };
+      (RepositoryService.getTag as jest.Mock).mockResolvedValue(mockTag);
+
+      const result = await bitbucketService.getTag(mockProjectKey, mockRepositorySlug, 'v1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockTag);
+      expect(RepositoryService.getTag).toHaveBeenCalledWith(
+        mockProjectKey,
+        'v1',
+        mockRepositorySlug
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (RepositoryService.getTag as jest.Mock).mockRejectedValue(new Error('API Error'));
+      const result = await bitbucketService.getTag(mockProjectKey, mockRepositorySlug, 'v1');
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
     });
@@ -1098,6 +1165,56 @@ describe('BitbucketService', () => {
         mockRepositorySlug,
         'a',
         'b'
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('createTag', () => {
+    it('should create a lightweight tag', async () => {
+      const mockTag = { id: 'refs/tags/v2', displayId: 'v2' };
+      (RepositoryService.createTagForRepository as jest.Mock).mockResolvedValue(mockTag);
+
+      const result = await bitbucketService.createTag(
+        mockProjectKey,
+        mockRepositorySlug,
+        'v2',
+        'refs/heads/master'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockTag);
+      expect(RepositoryService.createTagForRepository).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug,
+        { name: 'v2', startPoint: 'refs/heads/master' }
+      );
+    });
+
+    it('should include message for an annotated tag', async () => {
+      (RepositoryService.createTagForRepository as jest.Mock).mockResolvedValue({});
+      await bitbucketService.createTag(
+        mockProjectKey,
+        mockRepositorySlug,
+        'v2',
+        'abc123',
+        'Release 2'
+      );
+      expect(RepositoryService.createTagForRepository).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug,
+        { name: 'v2', startPoint: 'abc123', message: 'Release 2' }
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (RepositoryService.createTagForRepository as jest.Mock).mockRejectedValue(new Error('API Error'));
+      const result = await bitbucketService.createTag(
+        mockProjectKey,
+        mockRepositorySlug,
+        'v2',
+        'refs/heads/master'
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');

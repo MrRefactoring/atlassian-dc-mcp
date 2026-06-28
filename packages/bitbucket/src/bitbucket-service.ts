@@ -681,6 +681,32 @@ export class BitbucketService {
   }
 
   /**
+   * Get tags for a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param filterText Optional text the tag name must contain
+   * @param orderBy Optional ordering: ALPHABETICAL or MODIFICATION
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (defaults to the package page size)
+   * @returns Promise with tags data
+   */
+  async getTags(
+    projectKey: string,
+    repositorySlug: string,
+    filterText?: string,
+    orderBy?: string,
+    start?: number,
+    limit?: number
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.getTags(projectKey, repositorySlug, orderBy, filterText, start, limit ?? this.getPageSize()),
+      'Error fetching tags'
+    );
+  }
+
+  /**
    * Get the default branch of a repository
    * @param projectKey The project key
    * @param repositorySlug The repository slug
@@ -692,6 +718,22 @@ export class BitbucketService {
     return handleApiOperation(
       () => RepositoryService.getDefaultBranch1(projectKey, repositorySlug),
       'Error fetching default branch'
+    );
+  }
+
+  /**
+   * Get a single tag by name
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param name The tag name (e.g. 'release-1.0.0')
+   * @returns Promise with the tag data
+   */
+  async getTag(projectKey: string, repositorySlug: string, name: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.getTag(projectKey, name, repositorySlug),
+      'Error fetching tag'
     );
   }
 
@@ -729,6 +771,31 @@ export class BitbucketService {
     return handleApiOperation(
       () => RepositoryService.editFile(path, projectKey, repositorySlug, formData),
       'Error editing file'
+    );
+  }
+
+  /**
+   * Create a tag in a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param name The name of the new tag
+   * @param startPoint The commit hash or ref the tag should point at
+   * @param message Optional annotated-tag message
+   * @returns Promise with the created tag
+   */
+  async createTag(
+    projectKey: string,
+    repositorySlug: string,
+    name: string,
+    startPoint: string,
+    message?: string
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const requestBody: any = { name, startPoint, ...(message ? { message } : {}) };
+    return handleApiOperation(
+      () => RepositoryService.createTagForRepository(projectKey, repositorySlug, requestBody),
+      'Error creating tag'
     );
   }
 
@@ -2341,6 +2408,26 @@ export const bitbucketToolSchemas = {
     branch: z.string().describe("The branch to commit on (e.g. 'master' or 'refs/heads/master')"),
     sourceCommitId: z.string().optional().describe("The commit id the file was last seen at. Required when editing an existing file (conflict detection); omit when creating a new file."),
     sourceBranch: z.string().optional().describe("When set, the target branch is created from this starting branch before committing.")
+  },
+  getTags: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    filterText: z.string().optional().describe("Optional text that the returned tag names must contain"),
+    orderBy: z.enum(['ALPHABETICAL', 'MODIFICATION']).optional().describe("Ordering of the results: ALPHABETICAL or MODIFICATION (most recently modified first)"),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+  },
+  getTag: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    name: z.string().describe("The tag name (e.g. 'release-1.0.0')")
+  },
+  createTag: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    name: z.string().describe("The name of the new tag"),
+    startPoint: z.string().describe("The commit hash or ref the tag should point at (e.g. 'refs/heads/master' or a commit id)"),
+    message: z.string().optional().describe("Optional message; when provided, an annotated tag is created")
   },
   getCommits: {
     projectKey: z.string().describe("The project key"),
