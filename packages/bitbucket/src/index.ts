@@ -98,6 +98,16 @@ server.tool(
 );
 
 server.tool(
+  "bitbucket_getTags",
+  "Get tags for a Bitbucket repository. Supports filtering by name substring and ordering (ALPHABETICAL or MODIFICATION).",
+  bitbucketToolSchemas.getTags,
+  async ({ projectKey, repositorySlug, filterText, orderBy, start, limit }) => {
+    const result = await bitbucketService.getTags(projectKey, repositorySlug, filterText, orderBy, start, limit);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "bitbucket_getDefaultBranch",
   "Get the default branch of a Bitbucket repository (e.g. main or master). Useful as the target ref when creating a pull request.",
   bitbucketToolSchemas.getDefaultBranch,
@@ -108,11 +118,31 @@ server.tool(
 );
 
 server.tool(
+  "bitbucket_getTag",
+  "Get a single tag by name from a Bitbucket repository.",
+  bitbucketToolSchemas.getTag,
+  async ({ projectKey, repositorySlug, name }) => {
+    const result = await bitbucketService.getTag(projectKey, repositorySlug, name);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "bitbucket_editFile",
   "Create or edit a file in a Bitbucket repository and commit the change in one call (no clone needed). For an existing file, pass sourceCommitId (the commit the file was last seen at) for conflict detection; omit it to create a new file. Returns the created commit.",
   bitbucketToolSchemas.editFile,
   async ({ projectKey, repositorySlug, path, content, message, branch, sourceCommitId, sourceBranch }) => {
     const result = await bitbucketService.editFile(projectKey, repositorySlug, path, content, message, branch, sourceCommitId, sourceBranch);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_createTag",
+  "Create a tag in a Bitbucket repository pointing at a ref or commit. Provide a message to create an annotated tag.",
+  bitbucketToolSchemas.createTag,
+  async ({ projectKey, repositorySlug, name, startPoint, message }) => {
+    const result = await bitbucketService.createTag(projectKey, repositorySlug, name, startPoint, message);
     return formatToolResponse(result);
   }
 );
