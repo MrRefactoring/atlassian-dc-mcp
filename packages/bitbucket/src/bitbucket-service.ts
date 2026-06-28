@@ -2080,6 +2080,26 @@ export class BitbucketService {
   }
 
   /**
+   * Create a new project
+   * @param key The project key
+   * @param name The project name
+   * @param description Optional project description
+   * @returns Promise with the created project
+   */
+  async createProject(key: string, name: string, description?: string) {
+    key = key.toUpperCase();
+    const requestBody: any = {
+      key,
+      name,
+      ...(description !== undefined ? { description } : {}),
+    };
+    return handleApiOperation(
+      () => ProjectService.createProject(requestBody),
+      'Error creating project'
+    );
+  }
+
+  /**
    * Remove a reviewer from a pull request
    * @param projectKey The project key
    * @param repositorySlug The repository slug
@@ -2103,6 +2123,40 @@ export class BitbucketService {
       return { ...result, data: { removed: true, userSlug } };
     }
     return result;
+  }
+
+  /**
+   * Update an existing project (the project key is never changed)
+   * @param key The project key
+   * @param name Optional new project name
+   * @param description Optional new description
+   * @returns Promise with the updated project
+   */
+  async updateProject(key: string, name?: string, description?: string) {
+    key = key.toUpperCase();
+    const requestBody: any = {
+      key,
+      ...(name !== undefined ? { name } : {}),
+      ...(description !== undefined ? { description } : {}),
+    };
+    return handleApiOperation(
+      () => ProjectService.updateProject(key, requestBody),
+      'Error updating project'
+    );
+  }
+
+  /**
+   * Delete a project (must contain no repositories)
+   * @param key The project key
+   * @returns Promise with a deletion acknowledgement
+   */
+  async deleteProject(key: string) {
+    key = key.toUpperCase();
+    const result = await handleApiOperation(
+      () => ProjectService.deleteProject(key),
+      'Error deleting project'
+    );
+    return { ...result, data: { deleted: true, key } };
   }
 
   async validateSetup(): Promise<void> {
@@ -2615,5 +2669,18 @@ export const bitbucketToolSchemas = {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug"),
     pullRequestId: z.string().describe("The pull request ID")
+  },
+  createProject: {
+    key: z.string().describe("The project key (e.g. 'PROJ'). Used in URLs and must be unique."),
+    name: z.string().describe("The project name"),
+    description: z.string().optional().describe("Optional project description")
+  },
+  updateProject: {
+    key: z.string().describe("The project key. The key itself is never changed by this operation."),
+    name: z.string().optional().describe("New project name"),
+    description: z.string().optional().describe("New project description")
+  },
+  deleteProject: {
+    key: z.string().describe("The project key. The project must contain no repositories.")
   }
 };

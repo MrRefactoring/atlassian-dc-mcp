@@ -499,11 +499,31 @@ server.tool(
 );
 
 server.tool(
+  "bitbucket_createProject",
+  "Create a new Bitbucket project. Requires PROJECT_CREATE permission. The key must be unique.",
+  bitbucketToolSchemas.createProject,
+  async ({ key, name, description }) => {
+    const result = await bitbucketService.createProject(key, name, description);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "bitbucket_deletePullRequestComment",
   "Delete a comment from a Bitbucket pull request. Requires the current comment 'version' for optimistic locking. A comment that has replies cannot be deleted.",
   bitbucketToolSchemas.deletePullRequestComment,
   async ({ projectKey, repositorySlug, pullRequestId, commentId, version }) => {
     const result = await bitbucketService.deletePullRequestComment(projectKey, repositorySlug, pullRequestId, commentId, version);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_updateProject",
+  "Update an existing Bitbucket project's name or description. Requires PROJECT_ADMIN permission. The project key is never changed. Only the provided fields are updated.",
+  bitbucketToolSchemas.updateProject,
+  async ({ key, name, description }) => {
+    const result = await bitbucketService.updateProject(key, name, description);
     return formatToolResponse(result);
   }
 );
@@ -654,6 +674,16 @@ server.tool(
   bitbucketToolSchemas.unwatchPullRequest,
   async ({ projectKey, repositorySlug, pullRequestId }) => {
     const result = await bitbucketService.unwatchPullRequest(projectKey, repositorySlug, pullRequestId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_deleteProject",
+  "Delete a Bitbucket project. Requires PROJECT_ADMIN permission. The project must contain no repositories or the call fails with a conflict.",
+  bitbucketToolSchemas.deleteProject,
+  async ({ key }) => {
+    const result = await bitbucketService.deleteProject(key);
     return formatToolResponse(result);
   }
 );
