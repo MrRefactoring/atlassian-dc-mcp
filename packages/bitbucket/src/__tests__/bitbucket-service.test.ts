@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from '@mrrefactoring/atlassian-dc-mcp-core';
 import { BitbucketService } from '../bitbucket-service.js';
-import { BuildsAndDeploymentsService, DeprecatedService, PullRequestsService, RepositoryService } from '../bitbucket-client/index.js';
+import { BuildsAndDeploymentsService, DeprecatedService, ProjectService, PullRequestsService, RepositoryService } from '../bitbucket-client/index.js';
 import { request as mockRequest } from '../bitbucket-client/core/request.js';
 
 // Mock the request function
@@ -74,6 +74,11 @@ jest.mock('../bitbucket-client/index.js', () => ({
     createRequiredBuildsMergeCheck: jest.fn(),
     updateRequiredBuildsMergeCheck: jest.fn(),
     deleteRequiredBuildsMergeCheck: jest.fn()
+  },
+  ProjectService: {
+    createProject: jest.fn(),
+    updateProject: jest.fn(),
+    deleteProject: jest.fn()
   },
   OpenAPI: {
     BASE: '',
@@ -4185,6 +4190,85 @@ describe('BitbucketService', () => {
       (BuildsAndDeploymentsService.deleteRequiredBuildsMergeCheck as jest.Mock).mockRejectedValue(new Error('API Error'));
 
       const result = await bitbucketService.deleteRequiredBuildsMergeCheck('TEST', 'test-repo', '1');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+  });
+
+  describe('project CRUD', () => {
+    it('should create a project', async () => {
+      const mockData = { key: 'PROJ' };
+      (ProjectService.createProject as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.createProject('proj', 'My Project', 'desc');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(ProjectService.createProject).toHaveBeenCalledWith({
+        key: 'PROJ',
+        name: 'My Project',
+        description: 'desc'
+      });
+    });
+
+    it('should omit description when not provided on create', async () => {
+      (ProjectService.createProject as jest.Mock).mockResolvedValue({});
+
+      await bitbucketService.createProject('PROJ', 'My Project');
+
+      expect(ProjectService.createProject).toHaveBeenCalledWith({
+        key: 'PROJ',
+        name: 'My Project'
+      });
+    });
+
+    it('should handle errors when creating a project', async () => {
+      (ProjectService.createProject as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.createProject('PROJ', 'My Project');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should update a project with only the provided fields', async () => {
+      const mockData = { key: 'PROJ' };
+      (ProjectService.updateProject as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.updateProject('proj', 'Renamed', 'new desc');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(ProjectService.updateProject).toHaveBeenCalledWith('PROJ', {
+        key: 'PROJ',
+        name: 'Renamed',
+        description: 'new desc'
+      });
+    });
+
+    it('should update a project sending only the key when nothing else provided', async () => {
+      (ProjectService.updateProject as jest.Mock).mockResolvedValue({});
+
+      await bitbucketService.updateProject('PROJ');
+
+      expect(ProjectService.updateProject).toHaveBeenCalledWith('PROJ', { key: 'PROJ' });
+    });
+
+    it('should delete a project and return an ack', async () => {
+      (ProjectService.deleteProject as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.deleteProject('proj');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, key: 'PROJ' });
+      expect(ProjectService.deleteProject).toHaveBeenCalledWith('PROJ');
+    });
+
+    it('should preserve the error field when delete fails', async () => {
+      (ProjectService.deleteProject as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.deleteProject('PROJ');
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
