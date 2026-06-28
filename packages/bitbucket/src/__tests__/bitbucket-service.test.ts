@@ -31,7 +31,9 @@ jest.mock('../bitbucket-client/index.js', () => ({
     getRestriction1: jest.fn(),
     deleteRestriction1: jest.fn(),
     createBranch: jest.fn(),
-    deleteBranch: jest.fn()
+    deleteBranch: jest.fn(),
+    getBranches: jest.fn(),
+    getDefaultBranch1: jest.fn()
   },
   OpenAPI: {
     BASE: '',
@@ -227,6 +229,112 @@ describe('BitbucketService', () => {
         mockRepositorySlug,
         'refs/heads/feature/login'
       );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('getBranches', () => {
+    it('should successfully get branches with default parameters', async () => {
+      const mockBranchesData = {
+        values: [
+          { id: 'refs/heads/main', displayId: 'main', isDefault: true },
+          { id: 'refs/heads/feature', displayId: 'feature', isDefault: false }
+        ],
+        size: 2,
+        isLastPage: true
+      };
+      (RepositoryService.getBranches as jest.Mock).mockResolvedValue(mockBranchesData);
+
+      const result = await bitbucketService.getBranches(
+        mockProjectKey,
+        mockRepositorySlug
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockBranchesData);
+      expect(RepositoryService.getBranches).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug,
+        undefined, // boostMatches
+        undefined, // context
+        undefined, // orderBy
+        undefined, // details
+        undefined, // filterText
+        undefined, // base
+        undefined, // start
+        25
+      );
+    });
+
+    it('should pass filterText, orderBy and pagination through', async () => {
+      const mockBranchesData = { values: [], size: 0, isLastPage: true };
+      (RepositoryService.getBranches as jest.Mock).mockResolvedValue(mockBranchesData);
+
+      await bitbucketService.getBranches(
+        mockProjectKey,
+        mockRepositorySlug,
+        'feat',
+        'MODIFICATION',
+        10,
+        50
+      );
+
+      expect(RepositoryService.getBranches).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug,
+        undefined,
+        undefined,
+        'MODIFICATION',
+        undefined,
+        'feat',
+        undefined,
+        10,
+        50
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      const mockError = new Error('API Error');
+      (RepositoryService.getBranches as jest.Mock).mockRejectedValue(mockError);
+
+      const result = await bitbucketService.getBranches(
+        mockProjectKey,
+        mockRepositorySlug
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('getDefaultBranch', () => {
+    it('should successfully get the default branch', async () => {
+      const mockBranch = { id: 'refs/heads/main', displayId: 'main', isDefault: true };
+      (RepositoryService.getDefaultBranch1 as jest.Mock).mockResolvedValue(mockBranch);
+
+      const result = await bitbucketService.getDefaultBranch(
+        mockProjectKey,
+        mockRepositorySlug
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockBranch);
+      expect(RepositoryService.getDefaultBranch1).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      const mockError = new Error('API Error');
+      (RepositoryService.getDefaultBranch1 as jest.Mock).mockRejectedValue(mockError);
+
+      const result = await bitbucketService.getDefaultBranch(
+        mockProjectKey,
+        mockRepositorySlug
+      );
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
     });
