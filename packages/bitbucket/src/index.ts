@@ -479,6 +479,16 @@ server.tool(
 );
 
 server.tool(
+  "bitbucket_deletePullRequestComment",
+  "Delete a comment from a Bitbucket pull request. Requires the current comment 'version' for optimistic locking. A comment that has replies cannot be deleted.",
+  bitbucketToolSchemas.deletePullRequestComment,
+  async ({ projectKey, repositorySlug, pullRequestId, commentId, version }) => {
+    const result = await bitbucketService.deletePullRequestComment(projectKey, repositorySlug, pullRequestId, commentId, version);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "bitbucket_createBranchRestriction",
   "Create a branch (ref) restriction (branch permission) on a Bitbucket repository. Requires REPO_ADMIN. The matcher is specified by type (ANY_REF/BRANCH/PATTERN/MODEL_CATEGORY/MODEL_BRANCH) and value; optionally exempt users, groups, or access keys.",
   bitbucketToolSchemas.createBranchRestriction,
@@ -489,11 +499,31 @@ server.tool(
 );
 
 server.tool(
+  "bitbucket_applyPullRequestSuggestion",
+  "Apply a code suggestion contained in a pull request comment directly to the source branch, creating a commit. Requires the current comment version and pull request version. Equivalent to the 'Apply suggestion' button in the Bitbucket UI.",
+  bitbucketToolSchemas.applyPullRequestSuggestion,
+  async ({ projectKey, repositorySlug, pullRequestId, commentId, commentVersion, pullRequestVersion, commitMessage, suggestionIndex }) => {
+    const result = await bitbucketService.applyPullRequestSuggestion(projectKey, repositorySlug, pullRequestId, commentId, commentVersion, pullRequestVersion, commitMessage, suggestionIndex);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "bitbucket_getDefaultReviewerConditions",
   "List the default reviewer conditions configured for a Bitbucket repository. Each condition maps a source/target ref matcher to a set of default reviewers and a required-approvals count.",
   bitbucketToolSchemas.getDefaultReviewerConditions,
   async ({ projectKey, repositorySlug }) => {
     const result = await bitbucketService.getDefaultReviewerConditions(projectKey, repositorySlug);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_watchPullRequest",
+  "Start watching a pull request, subscribing the authenticated user to its notifications.",
+  bitbucketToolSchemas.watchPullRequest,
+  async ({ projectKey, repositorySlug, pullRequestId }) => {
+    const result = await bitbucketService.watchPullRequest(projectKey, repositorySlug, pullRequestId);
     return formatToolResponse(result);
   }
 );
@@ -594,6 +624,16 @@ server.tool(
   bitbucketToolSchemas.deleteRequiredBuildsMergeCheck,
   async ({ projectKey, repositorySlug, id }) => {
     const result = await bitbucketService.deleteRequiredBuildsMergeCheck(projectKey, repositorySlug, id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_unwatchPullRequest",
+  "Stop watching a pull request, unsubscribing the authenticated user from its notifications.",
+  bitbucketToolSchemas.unwatchPullRequest,
+  async ({ projectKey, repositorySlug, pullRequestId }) => {
+    const result = await bitbucketService.unwatchPullRequest(projectKey, repositorySlug, pullRequestId);
     return formatToolResponse(result);
   }
 );
