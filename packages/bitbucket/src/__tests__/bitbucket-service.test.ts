@@ -29,7 +29,9 @@ jest.mock('../bitbucket-client/index.js', () => ({
     getRestrictions1: jest.fn(),
     createRestrictions1: jest.fn(),
     getRestriction1: jest.fn(),
-    deleteRestriction1: jest.fn()
+    deleteRestriction1: jest.fn(),
+    createBranch: jest.fn(),
+    deleteBranch: jest.fn()
   },
   OpenAPI: {
     BASE: '',
@@ -141,6 +143,90 @@ describe('BitbucketService', () => {
         mockPullRequestId
       );
 
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('createBranch', () => {
+    it('should successfully create a branch', async () => {
+      const mockBranch = { id: 'refs/heads/feature/login', displayId: 'feature/login' };
+      (RepositoryService.createBranch as jest.Mock).mockResolvedValue(mockBranch);
+
+      const result = await bitbucketService.createBranch(
+        mockProjectKey,
+        mockRepositorySlug,
+        'feature/login',
+        'refs/heads/master'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockBranch);
+      expect(RepositoryService.createBranch).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug,
+        { name: 'feature/login', startPoint: 'refs/heads/master' }
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (RepositoryService.createBranch as jest.Mock).mockRejectedValue(new Error('API Error'));
+      const result = await bitbucketService.createBranch(
+        mockProjectKey,
+        mockRepositorySlug,
+        'feature/login',
+        'refs/heads/master'
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('deleteBranch', () => {
+    it('should successfully delete a branch', async () => {
+      (RepositoryService.deleteBranch as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.deleteBranch(
+        mockProjectKey,
+        mockRepositorySlug,
+        'refs/heads/feature/login'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, name: 'refs/heads/feature/login' });
+      expect(RepositoryService.deleteBranch).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug,
+        { name: 'refs/heads/feature/login' }
+      );
+    });
+
+    it('should pass dryRun through and report not-deleted', async () => {
+      (RepositoryService.deleteBranch as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.deleteBranch(
+        mockProjectKey,
+        mockRepositorySlug,
+        'refs/heads/feature/login',
+        true
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: false, name: 'refs/heads/feature/login' });
+      expect(RepositoryService.deleteBranch).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug,
+        { name: 'refs/heads/feature/login', dryRun: true }
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (RepositoryService.deleteBranch as jest.Mock).mockRejectedValue(new Error('API Error'));
+      const result = await bitbucketService.deleteBranch(
+        mockProjectKey,
+        mockRepositorySlug,
+        'refs/heads/feature/login'
+      );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
     });
