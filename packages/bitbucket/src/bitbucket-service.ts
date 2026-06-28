@@ -2100,6 +2100,27 @@ export class BitbucketService {
   }
 
   /**
+   * Create a new repository in a project
+   * @param projectKey The project key the repository will be created in
+   * @param name The repository name
+   * @param scmId The SCM type (defaults to 'git')
+   * @param defaultBranch Optional default branch for the new repository
+   * @returns Promise with the created repository
+   */
+  async createRepository(projectKey: string, name: string, scmId: string = 'git', defaultBranch?: string) {
+    projectKey = projectKey.toUpperCase();
+    const requestBody: any = {
+      name,
+      scmId,
+      ...(defaultBranch ? { defaultBranch } : {}),
+    };
+    return handleApiOperation(
+      () => ProjectService.createRepository(projectKey, requestBody),
+      'Error creating repository'
+    );
+  }
+
+  /**
    * Remove a reviewer from a pull request
    * @param projectKey The project key
    * @param repositorySlug The repository slug
@@ -2146,6 +2167,38 @@ export class BitbucketService {
   }
 
   /**
+   * Update an existing repository (rename, change description, default branch, or move project)
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param name Optional new repository name
+   * @param description Optional new description
+   * @param defaultBranch Optional new default branch
+   * @param targetProjectKey Optional project key to move the repository into
+   * @returns Promise with the updated repository
+   */
+  async updateRepository(
+    projectKey: string,
+    repositorySlug: string,
+    name?: string,
+    description?: string,
+    defaultBranch?: string,
+    targetProjectKey?: string
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const requestBody: any = {
+      ...(name !== undefined ? { name } : {}),
+      ...(description !== undefined ? { description } : {}),
+      ...(defaultBranch !== undefined ? { defaultBranch } : {}),
+      ...(targetProjectKey ? { project: { key: targetProjectKey.toUpperCase() } } : {}),
+    };
+    return handleApiOperation(
+      () => ProjectService.updateRepository(projectKey, repositorySlug, requestBody),
+      'Error updating repository'
+    );
+  }
+
+  /**
    * Delete a project (must contain no repositories)
    * @param key The project key
    * @returns Promise with a deletion acknowledgement
@@ -2157,6 +2210,51 @@ export class BitbucketService {
       'Error deleting project'
     );
     return { ...result, data: { deleted: true, key } };
+  }
+
+  /**
+   * Fork an existing repository
+   * @param projectKey The project key of the origin repository
+   * @param repositorySlug The repository slug of the origin repository
+   * @param name Optional name for the fork (defaults to the origin name)
+   * @param targetProjectKey Optional target project key (defaults to the user's personal project)
+   * @param defaultBranch Optional default branch for the fork
+   * @returns Promise with the created fork
+   */
+  async forkRepository(
+    projectKey: string,
+    repositorySlug: string,
+    name?: string,
+    targetProjectKey?: string,
+    defaultBranch?: string
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const requestBody: any = {
+      ...(name ? { name } : {}),
+      ...(targetProjectKey ? { project: { key: targetProjectKey.toUpperCase() } } : {}),
+      ...(defaultBranch ? { defaultBranch } : {}),
+    };
+    return handleApiOperation(
+      () => ProjectService.forkRepository(projectKey, repositorySlug, requestBody),
+      'Error forking repository'
+    );
+  }
+
+  /**
+   * Schedule a repository for deletion
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @returns Promise with a deletion acknowledgement
+   */
+  async deleteRepository(projectKey: string, repositorySlug: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const result = await handleApiOperation(
+      () => ProjectService.deleteRepository(projectKey, repositorySlug),
+      'Error deleting repository'
+    );
+    return { ...result, data: { scheduledForDeletion: true, projectKey, repositorySlug } };
   }
 
   async validateSetup(): Promise<void> {
@@ -2682,5 +2780,30 @@ export const bitbucketToolSchemas = {
   },
   deleteProject: {
     key: z.string().describe("The project key. The project must contain no repositories.")
+  },
+  createRepository: {
+    projectKey: z.string().describe("The project key the repository will be created in"),
+    name: z.string().describe("The repository name"),
+    scmId: z.string().optional().describe("The SCM type. Defaults to 'git'."),
+    defaultBranch: z.string().optional().describe("Optional default branch for the new repository (e.g. 'main')")
+  },
+  updateRepository: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    name: z.string().optional().describe("New repository name. Changing the name may change the slug."),
+    description: z.string().optional().describe("New repository description"),
+    defaultBranch: z.string().optional().describe("New default branch (e.g. 'main')"),
+    targetProjectKey: z.string().optional().describe("Project key to move the repository into")
+  },
+  forkRepository: {
+    projectKey: z.string().describe("The project key of the origin repository"),
+    repositorySlug: z.string().describe("The repository slug of the origin repository"),
+    name: z.string().optional().describe("Name for the fork. Defaults to the origin repository name."),
+    targetProjectKey: z.string().optional().describe("Target project key for the fork. Defaults to the user's personal project."),
+    defaultBranch: z.string().optional().describe("Default branch for the fork. Defaults to the origin's default branch.")
+  },
+  deleteRepository: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug")
   }
 };

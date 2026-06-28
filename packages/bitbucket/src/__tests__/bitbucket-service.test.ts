@@ -78,7 +78,11 @@ jest.mock('../bitbucket-client/index.js', () => ({
   ProjectService: {
     createProject: jest.fn(),
     updateProject: jest.fn(),
-    deleteProject: jest.fn()
+    deleteProject: jest.fn(),
+    createRepository: jest.fn(),
+    updateRepository: jest.fn(),
+    forkRepository: jest.fn(),
+    deleteRepository: jest.fn()
   },
   OpenAPI: {
     BASE: '',
@@ -3869,6 +3873,114 @@ describe('BitbucketService', () => {
       (PullRequestsService.watch1 as jest.Mock).mockRejectedValue(new Error('API Error'));
 
       const result = await bitbucketService.watchPullRequest('TEST', 'test-repo', '123');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+  });
+
+  describe('repository CRUD', () => {
+    it('should create a repository with default scm', async () => {
+      const mockData = { slug: 'new-repo' };
+      (ProjectService.createRepository as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.createRepository('test', 'New Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(ProjectService.createRepository).toHaveBeenCalledWith('TEST', {
+        name: 'New Repo',
+        scmId: 'git'
+      });
+    });
+
+    it('should create a repository with a custom scm and default branch', async () => {
+      (ProjectService.createRepository as jest.Mock).mockResolvedValue({});
+
+      await bitbucketService.createRepository('TEST', 'Repo', 'hg', 'main');
+
+      expect(ProjectService.createRepository).toHaveBeenCalledWith('TEST', {
+        name: 'Repo',
+        scmId: 'hg',
+        defaultBranch: 'main'
+      });
+    });
+
+    it('should handle errors when creating a repository', async () => {
+      (ProjectService.createRepository as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.createRepository('TEST', 'Repo');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should update a repository with only the provided fields', async () => {
+      const mockData = { slug: 'renamed' };
+      (ProjectService.updateRepository as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.updateRepository(
+        'test', 'Test-Repo', 'Renamed', 'desc', 'main', 'dest'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(ProjectService.updateRepository).toHaveBeenCalledWith('TEST', 'test-repo', {
+        name: 'Renamed',
+        description: 'desc',
+        defaultBranch: 'main',
+        project: { key: 'DEST' }
+      });
+    });
+
+    it('should send an empty body when no update fields are provided', async () => {
+      (ProjectService.updateRepository as jest.Mock).mockResolvedValue({});
+
+      await bitbucketService.updateRepository('TEST', 'test-repo');
+
+      expect(ProjectService.updateRepository).toHaveBeenCalledWith('TEST', 'test-repo', {});
+    });
+
+    it('should fork a repository into a target project', async () => {
+      const mockData = { slug: 'fork' };
+      (ProjectService.forkRepository as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.forkRepository('test', 'Test-Repo', 'my-fork', 'dest');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(ProjectService.forkRepository).toHaveBeenCalledWith('TEST', 'test-repo', {
+        name: 'my-fork',
+        project: { key: 'DEST' }
+      });
+    });
+
+    it('should fork a repository with an empty body when no options provided', async () => {
+      (ProjectService.forkRepository as jest.Mock).mockResolvedValue({});
+
+      await bitbucketService.forkRepository('TEST', 'test-repo');
+
+      expect(ProjectService.forkRepository).toHaveBeenCalledWith('TEST', 'test-repo', {});
+    });
+
+    it('should delete a repository and return an ack', async () => {
+      (ProjectService.deleteRepository as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.deleteRepository('test', 'Test-Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({
+        scheduledForDeletion: true,
+        projectKey: 'TEST',
+        repositorySlug: 'test-repo'
+      });
+      expect(ProjectService.deleteRepository).toHaveBeenCalledWith('TEST', 'test-repo');
+    });
+
+    it('should preserve the error field when delete fails', async () => {
+      (ProjectService.deleteRepository as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.deleteRepository('TEST', 'test-repo');
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
