@@ -35,7 +35,11 @@ jest.mock('../bitbucket-client/index.js', () => ({
     getBranches: jest.fn(),
     getDefaultBranch1: jest.fn(),
     getComments: jest.fn(),
-    createComment: jest.fn()
+    createComment: jest.fn(),
+    getCommit: jest.fn(),
+    streamDiff: jest.fn(),
+    streamCommits: jest.fn(),
+    streamChanges: jest.fn()
   },
   DeprecatedService: {
     getBuildStatus: jest.fn()
@@ -654,6 +658,169 @@ describe('BitbucketService', () => {
         mockRepositorySlug,
         'abc123',
         'build-1'
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('getCommit', () => {
+    it('should successfully get a single commit', async () => {
+      const mockCommit = { id: 'abc123', message: 'Initial commit', author: { name: 'dev' } };
+      (RepositoryService.getCommit as jest.Mock).mockResolvedValue(mockCommit);
+
+      const result = await bitbucketService.getCommit(mockProjectKey, mockRepositorySlug, 'abc123');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCommit);
+      expect(RepositoryService.getCommit).toHaveBeenCalledWith(
+        mockProjectKey,
+        'abc123',
+        mockRepositorySlug,
+        undefined
+      );
+    });
+
+    it('should pass the path through', async () => {
+      (RepositoryService.getCommit as jest.Mock).mockResolvedValue({});
+      await bitbucketService.getCommit(mockProjectKey, mockRepositorySlug, 'abc123', 'src/app.js');
+      expect(RepositoryService.getCommit).toHaveBeenCalledWith(
+        mockProjectKey,
+        'abc123',
+        mockRepositorySlug,
+        'src/app.js'
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (RepositoryService.getCommit as jest.Mock).mockRejectedValue(new Error('API Error'));
+      const result = await bitbucketService.getCommit(mockProjectKey, mockRepositorySlug, 'abc123');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('getCommitDiff', () => {
+    it('should get a whole-commit diff by default (empty path)', async () => {
+      const mockDiff = { diffs: [] };
+      (RepositoryService.streamDiff as jest.Mock).mockResolvedValue(mockDiff);
+
+      const result = await bitbucketService.getCommitDiff(mockProjectKey, mockRepositorySlug, 'abc123');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockDiff);
+      expect(RepositoryService.streamDiff).toHaveBeenCalledWith(
+        'abc123',
+        mockRepositorySlug,
+        '',
+        mockProjectKey,
+        undefined, // srcPath
+        undefined, // avatarSize
+        undefined, // filter
+        undefined, // avatarScheme
+        undefined, // contextLines
+        undefined, // autoSrcPath
+        undefined, // whitespace
+        undefined, // withComments
+        undefined  // since
+      );
+    });
+
+    it('should pass path, contextLines, whitespace and srcPath through', async () => {
+      (RepositoryService.streamDiff as jest.Mock).mockResolvedValue({});
+      await bitbucketService.getCommitDiff(
+        mockProjectKey,
+        mockRepositorySlug,
+        'abc123',
+        'src/app.js',
+        '5',
+        'ignore-all',
+        'src/old.js'
+      );
+      expect(RepositoryService.streamDiff).toHaveBeenCalledWith(
+        'abc123',
+        mockRepositorySlug,
+        'src/app.js',
+        mockProjectKey,
+        'src/old.js',
+        undefined,
+        undefined,
+        undefined,
+        '5',
+        undefined,
+        'ignore-all',
+        undefined,
+        undefined
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (RepositoryService.streamDiff as jest.Mock).mockRejectedValue(new Error('API Error'));
+      const result = await bitbucketService.getCommitDiff(mockProjectKey, mockRepositorySlug, 'abc123');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('compareRefs', () => {
+    it('should compare commits by default', async () => {
+      const mockCompare = { values: [{ id: 'c1' }], isLastPage: true };
+      (RepositoryService.streamCommits as jest.Mock).mockResolvedValue(mockCompare);
+
+      const result = await bitbucketService.compareRefs(
+        mockProjectKey,
+        mockRepositorySlug,
+        'refs/heads/feature',
+        'refs/heads/master'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCompare);
+      expect(RepositoryService.streamCommits).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug,
+        undefined, // fromRepo
+        'refs/heads/feature',
+        'refs/heads/master',
+        undefined, // start
+        25
+      );
+      expect(RepositoryService.streamChanges).not.toHaveBeenCalled();
+    });
+
+    it('should compare changes when compareType is changes', async () => {
+      const mockCompare = { values: [], isLastPage: true };
+      (RepositoryService.streamChanges as jest.Mock).mockResolvedValue(mockCompare);
+
+      await bitbucketService.compareRefs(
+        mockProjectKey,
+        mockRepositorySlug,
+        'refs/heads/feature',
+        'refs/heads/master',
+        'OTHER/repo',
+        'changes',
+        10,
+        50
+      );
+
+      expect(RepositoryService.streamChanges).toHaveBeenCalledWith(
+        mockProjectKey,
+        mockRepositorySlug,
+        'OTHER/repo',
+        'refs/heads/feature',
+        'refs/heads/master',
+        10,
+        50
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (RepositoryService.streamCommits as jest.Mock).mockRejectedValue(new Error('API Error'));
+      const result = await bitbucketService.compareRefs(
+        mockProjectKey,
+        mockRepositorySlug,
+        'a',
+        'b'
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');

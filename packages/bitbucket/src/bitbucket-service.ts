@@ -157,6 +157,23 @@ export class BitbucketService {
   }
 
   /**
+   * Get a single commit by id
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param commitId The commit id (hash) to retrieve
+   * @param path Optional path; if given, the commit is only returned if it affects this path
+   * @returns Promise with the commit data
+   */
+  async getCommit(projectKey: string, repositorySlug: string, commitId: string, path?: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.getCommit(projectKey, commitId, repositorySlug, path),
+      'Error fetching commit'
+    );
+  }
+
+  /**
    * List build statuses for a commit
    * @param commitId The commit id (hash) whose build statuses to list
    * @param orderBy Optional ordering of the results
@@ -225,6 +242,48 @@ export class BitbucketService {
   }
 
   /**
+   * Get the diff of a single commit
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param commitId The commit id (hash)
+   * @param path Optional file path to limit the diff to; omit for the whole-commit diff
+   * @param contextLines Optional number of context lines around changes
+   * @param whitespace Optional whitespace flag (e.g. 'ignore-all')
+   * @param srcPath Optional previous path if the file was copied/moved/renamed
+   * @returns Promise with the commit diff
+   */
+  async getCommitDiff(
+    projectKey: string,
+    repositorySlug: string,
+    commitId: string,
+    path: string = '',
+    contextLines?: string,
+    whitespace?: string,
+    srcPath?: string
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.streamDiff(
+        commitId,
+        repositorySlug,
+        path,
+        projectKey,
+        srcPath,
+        undefined, // avatarSize
+        undefined, // filter
+        undefined, // avatarScheme
+        contextLines,
+        undefined, // autoSrcPath
+        whitespace,
+        undefined, // withComments
+        undefined  // since
+      ),
+      'Error fetching commit diff'
+    );
+  }
+
+  /**
    * Get comments on a commit
    * @param projectKey The project key
    * @param repositorySlug The repository slug
@@ -249,6 +308,39 @@ export class BitbucketService {
     return handleApiOperation(
       () => RepositoryService.getComments(projectKey, commitId, repositorySlug, path, since, start, limit ?? this.getPageSize()),
       'Error fetching commit comments'
+    );
+  }
+
+  /**
+   * Compare two refs (commits or changes)
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param from The source ref/commit to compare from
+   * @param to The target ref/commit to compare to
+   * @param fromRepo Optional repository (projectKey/repositorySlug) the 'from' ref lives in, for cross-repo compares
+   * @param compareType 'commits' (default) to list commits between the refs, or 'changes' to list changed files
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (defaults to the package page size)
+   * @returns Promise with the comparison data
+   */
+  async compareRefs(
+    projectKey: string,
+    repositorySlug: string,
+    from: string,
+    to: string,
+    fromRepo?: string,
+    compareType: 'commits' | 'changes' = 'commits',
+    start?: number,
+    limit?: number
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const pageSize = limit ?? this.getPageSize();
+    return handleApiOperation(
+      () => compareType === 'changes'
+        ? RepositoryService.streamChanges(projectKey, repositorySlug, fromRepo, from, to, start, pageSize)
+        : RepositoryService.streamCommits(projectKey, repositorySlug, fromRepo, from, to, start, pageSize),
+      'Error comparing refs'
     );
   }
 
@@ -1549,6 +1641,31 @@ export const bitbucketToolSchemas = {
     path: z.string().optional().describe("Optional file path to anchor the comment to a file"),
     line: z.number().optional().describe("Optional line number within the file to anchor the comment to (requires path)"),
     lineType: z.enum(['ADDED', 'REMOVED', 'CONTEXT']).optional().describe("Line type for the anchored line. Defaults to CONTEXT when a line is given.")
+  },
+  getCommit: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    commitId: z.string().describe("The commit id (hash) to retrieve"),
+    path: z.string().optional().describe("Optional path; the commit is only returned if it affects this path")
+  },
+  getCommitDiff: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    commitId: z.string().describe("The commit id (hash)"),
+    path: z.string().optional().describe("Optional file path to limit the diff to. Omit for the whole-commit diff."),
+    contextLines: z.string().optional().describe("Number of context lines to include around changes"),
+    whitespace: z.string().optional().describe("Optional whitespace flag which can be set to 'ignore-all'"),
+    srcPath: z.string().optional().describe("The previous path to the file, if it has been copied, moved or renamed")
+  },
+  compareRefs: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    from: z.string().describe("The source ref or commit to compare from (e.g. 'refs/heads/feature' or a commit hash)"),
+    to: z.string().describe("The target ref or commit to compare to (e.g. 'refs/heads/master')"),
+    fromRepo: z.string().optional().describe("Optional 'projectKey/repositorySlug' the 'from' ref lives in, for cross-repository comparisons"),
+    compareType: z.enum(['commits', 'changes']).optional().describe("'commits' (default) lists the commits between the refs; 'changes' lists the changed files"),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
   },
   getPullRequestComments: {
     projectKey: z.string().describe("The project key"),
