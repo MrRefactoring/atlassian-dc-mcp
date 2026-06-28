@@ -40,7 +40,13 @@ jest.mock('../bitbucket-client/index.js', () => ({
   },
   BuildsAndDeploymentsService: {
     add: jest.fn(),
-    get: jest.fn()
+    get: jest.fn(),
+    setACodeInsightsReport: jest.fn(),
+    getACodeInsightsReport: jest.fn(),
+    deleteACodeInsightsReport: jest.fn(),
+    addAnnotations: jest.fn(),
+    getAnnotations: jest.fn(),
+    deleteAnnotations: jest.fn()
   },
   OpenAPI: {
     BASE: '',
@@ -186,6 +192,85 @@ describe('BitbucketService', () => {
         'feature/login',
         'refs/heads/master'
       );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('Code Insights', () => {
+    const commitId = 'abc123';
+    const key = 'mycompany.eslint';
+
+    it('setInsightReport should PUT the report', async () => {
+      const mockReport = { key, title: 'ESLint' };
+      (BuildsAndDeploymentsService.setACodeInsightsReport as jest.Mock).mockResolvedValue(mockReport);
+      const report = { title: 'ESLint', result: 'PASS' };
+
+      const result = await bitbucketService.setInsightReport(mockProjectKey, mockRepositorySlug, commitId, key, report);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockReport);
+      expect(BuildsAndDeploymentsService.setACodeInsightsReport).toHaveBeenCalledWith(
+        mockProjectKey,
+        commitId,
+        mockRepositorySlug,
+        key,
+        report
+      );
+    });
+
+    it('getInsightReport should GET the report', async () => {
+      (BuildsAndDeploymentsService.getACodeInsightsReport as jest.Mock).mockResolvedValue({ key });
+      const result = await bitbucketService.getInsightReport(mockProjectKey, mockRepositorySlug, commitId, key);
+      expect(result.success).toBe(true);
+      expect(BuildsAndDeploymentsService.getACodeInsightsReport).toHaveBeenCalledWith(
+        mockProjectKey, commitId, mockRepositorySlug, key
+      );
+    });
+
+    it('deleteInsightReport should DELETE and ack', async () => {
+      (BuildsAndDeploymentsService.deleteACodeInsightsReport as jest.Mock).mockResolvedValue(undefined);
+      const result = await bitbucketService.deleteInsightReport(mockProjectKey, mockRepositorySlug, commitId, key);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, key });
+    });
+
+    it('addInsightAnnotations should POST {annotations} and ack with count', async () => {
+      (BuildsAndDeploymentsService.addAnnotations as jest.Mock).mockResolvedValue(undefined);
+      const annotations = [
+        { externalId: 'a1', path: 'app.js', line: 3, message: 'x', severity: 'HIGH' },
+        { externalId: 'a2', path: 'app.js', line: 9, message: 'y', severity: 'LOW' }
+      ];
+      const result = await bitbucketService.addInsightAnnotations(mockProjectKey, mockRepositorySlug, commitId, key, annotations);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ added: 2, key });
+      expect(BuildsAndDeploymentsService.addAnnotations).toHaveBeenCalledWith(
+        mockProjectKey, commitId, mockRepositorySlug, key, { annotations }
+      );
+    });
+
+    it('getInsightAnnotations should GET annotations', async () => {
+      (BuildsAndDeploymentsService.getAnnotations as jest.Mock).mockResolvedValue({ annotations: [] });
+      const result = await bitbucketService.getInsightAnnotations(mockProjectKey, mockRepositorySlug, commitId, key);
+      expect(result.success).toBe(true);
+      expect(BuildsAndDeploymentsService.getAnnotations).toHaveBeenCalledWith(
+        mockProjectKey, commitId, mockRepositorySlug, key
+      );
+    });
+
+    it('deleteInsightAnnotations should pass externalId and ack', async () => {
+      (BuildsAndDeploymentsService.deleteAnnotations as jest.Mock).mockResolvedValue(undefined);
+      const result = await bitbucketService.deleteInsightAnnotations(mockProjectKey, mockRepositorySlug, commitId, key, 'a1');
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, key, externalId: 'a1' });
+      expect(BuildsAndDeploymentsService.deleteAnnotations).toHaveBeenCalledWith(
+        mockProjectKey, commitId, mockRepositorySlug, key, 'a1'
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (BuildsAndDeploymentsService.getACodeInsightsReport as jest.Mock).mockRejectedValue(new Error('API Error'));
+      const result = await bitbucketService.getInsightReport(mockProjectKey, mockRepositorySlug, commitId, key);
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
     });
