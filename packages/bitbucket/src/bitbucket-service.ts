@@ -2056,6 +2056,55 @@ export class BitbucketService {
     return { ...result, data: { watching: false, pullRequestId } };
   }
 
+  /**
+   * Add a reviewer to a pull request
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param pullRequestId The pull request ID
+   * @param userSlug The username/name of the user to add as a reviewer
+   * @returns Promise with the participant details
+   */
+  async addPullRequestReviewer(
+    projectKey: string,
+    repositorySlug: string,
+    pullRequestId: string,
+    userSlug: string
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const requestBody: any = { user: { name: userSlug }, role: 'REVIEWER' };
+    return handleApiOperation(
+      () => PullRequestsService.assignParticipantRole(projectKey, pullRequestId, repositorySlug, requestBody),
+      'Error adding pull request reviewer'
+    );
+  }
+
+  /**
+   * Remove a reviewer from a pull request
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param pullRequestId The pull request ID
+   * @param userSlug The username/name of the reviewer to remove
+   * @returns Promise resolving to an acknowledgement
+   */
+  async removePullRequestReviewer(
+    projectKey: string,
+    repositorySlug: string,
+    pullRequestId: string,
+    userSlug: string
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const result = await handleApiOperation(
+      () => PullRequestsService.unassignParticipantRole(projectKey, userSlug, pullRequestId, repositorySlug),
+      'Error removing pull request reviewer'
+    );
+    if (result.success) {
+      return { ...result, data: { removed: true, userSlug } };
+    }
+    return result;
+  }
+
   async validateSetup(): Promise<void> {
     await __request(OpenAPI, {
       method: 'GET',
@@ -2404,6 +2453,18 @@ export const bitbucketToolSchemas = {
     pullRequestId: z.string().describe("The pull request ID"),
     version: z.number().describe("The current version of the declined pull request (required for optimistic locking). Obtain it via bitbucket_getPullRequest."),
     output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
+  },
+  addPullRequestReviewer: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    pullRequestId: z.string().describe("The pull request ID"),
+    userSlug: z.string().describe("The username/name of the user to add as a reviewer (use the 'name' field from Bitbucket user objects). Adds a single reviewer without replacing the existing ones, unlike bitbucket_updatePullRequest.")
+  },
+  removePullRequestReviewer: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    pullRequestId: z.string().describe("The pull request ID"),
+    userSlug: z.string().describe("The username/name of the reviewer to remove. The user remains a participant but loses the REVIEWER role.")
   },
   getRequiredReviewers: {
     projectKey: z.string().describe("The project key"),
