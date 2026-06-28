@@ -43,7 +43,9 @@ jest.mock('../bitbucket-client/index.js', () => ({
     getCommit: jest.fn(),
     streamDiff: jest.fn(),
     streamCommits: jest.fn(),
-    streamChanges: jest.fn()
+    streamChanges: jest.fn(),
+    streamRaw: jest.fn(),
+    getContent1: jest.fn()
   },
   DeprecatedService: {
     getBuildStatus: jest.fn()
@@ -202,6 +204,125 @@ describe('BitbucketService', () => {
         'feature/login',
         'refs/heads/master'
       );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('getFileContent', () => {
+    it('should successfully get raw file content', async () => {
+      const mockContent = 'const x = 1;\nconst y = 2;\n';
+      (RepositoryService.streamRaw as jest.Mock).mockResolvedValue(mockContent);
+
+      const result = await bitbucketService.getFileContent(
+        mockProjectKey,
+        mockRepositorySlug,
+        'src/index.ts'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockContent);
+      expect(RepositoryService.streamRaw).toHaveBeenCalledWith(
+        'src/index.ts',
+        mockProjectKey,
+        mockRepositorySlug,
+        undefined
+      );
+    });
+
+    it('should pass the at ref through', async () => {
+      const mockContent = 'file content';
+      (RepositoryService.streamRaw as jest.Mock).mockResolvedValue(mockContent);
+
+      await bitbucketService.getFileContent(
+        mockProjectKey,
+        mockRepositorySlug,
+        'README.md',
+        'refs/heads/main'
+      );
+
+      expect(RepositoryService.streamRaw).toHaveBeenCalledWith(
+        'README.md',
+        mockProjectKey,
+        mockRepositorySlug,
+        'refs/heads/main'
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      const mockError = new Error('The repository does not exist.');
+      (RepositoryService.streamRaw as jest.Mock).mockRejectedValue(mockError);
+
+      const result = await bitbucketService.getFileContent(
+        mockProjectKey,
+        mockRepositorySlug,
+        'missing.txt'
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The repository does not exist.');
+    });
+  });
+
+  describe('browseRepository', () => {
+    it('should browse the repository root by default', async () => {
+      const mockBrowse = { children: { values: [{ path: { toString: 'src' }, type: 'DIRECTORY' }] } };
+      (RepositoryService.getContent1 as jest.Mock).mockResolvedValue(mockBrowse);
+
+      const result = await bitbucketService.browseRepository(
+        mockProjectKey,
+        mockRepositorySlug
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockBrowse);
+      expect(RepositoryService.getContent1).toHaveBeenCalledWith(
+        '',
+        mockProjectKey,
+        mockRepositorySlug,
+        undefined, // noContent
+        undefined, // at
+        undefined, // size
+        undefined, // blame
+        undefined  // type
+      );
+    });
+
+    it('should map path, at, type and blame to the generated client', async () => {
+      const mockBrowse = { type: 'FILE' };
+      (RepositoryService.getContent1 as jest.Mock).mockResolvedValue(mockBrowse);
+
+      await bitbucketService.browseRepository(
+        mockProjectKey,
+        mockRepositorySlug,
+        'src/index.ts',
+        'refs/heads/main',
+        true,
+        true
+      );
+
+      expect(RepositoryService.getContent1).toHaveBeenCalledWith(
+        'src/index.ts',
+        mockProjectKey,
+        mockRepositorySlug,
+        undefined,
+        'refs/heads/main',
+        undefined,
+        'true', // blame
+        'true'  // type
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      const mockError = new Error('API Error');
+      (RepositoryService.getContent1 as jest.Mock).mockRejectedValue(mockError);
+
+      const result = await bitbucketService.browseRepository(
+        mockProjectKey,
+        mockRepositorySlug,
+        'src'
+      );
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
     });
