@@ -225,6 +225,34 @@ export class BitbucketService {
   }
 
   /**
+   * Get comments on a commit
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param commitId The commit id (hash)
+   * @param path The file path to return comments for (required by Bitbucket when retrieving commit comments)
+   * @param since Optional commit id; return comments added since that commit
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (defaults to the package page size)
+   * @returns Promise with the commit comments
+   */
+  async getCommitComments(
+    projectKey: string,
+    repositorySlug: string,
+    commitId: string,
+    path: string,
+    since?: string,
+    start?: number,
+    limit?: number
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.getComments(projectKey, commitId, repositorySlug, path, since, start, limit ?? this.getPageSize()),
+      'Error fetching commit comments'
+    );
+  }
+
+  /**
    * Create or replace a Code Insights report on a commit
    * @param projectKey The project key
    * @param repositorySlug The repository slug
@@ -308,6 +336,41 @@ export class BitbucketService {
     return handleApiOperation(
       () => BuildsAndDeploymentsService.getAnnotations(projectKey, commitId, repositorySlug, key),
       'Error fetching code insights annotations'
+    );
+  }
+
+  /**
+   * Add a comment to a commit
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param commitId The commit id (hash) to comment on
+   * @param text The comment text
+   * @param path Optional file path to anchor the comment to a file
+   * @param line Optional line number within the file to anchor the comment to
+   * @param lineType Optional line type for the anchored line (ADDED, REMOVED, or CONTEXT)
+   * @returns Promise with the created comment
+   */
+  async addCommitComment(
+    projectKey: string,
+    repositorySlug: string,
+    commitId: string,
+    text: string,
+    path?: string,
+    line?: number,
+    lineType?: 'ADDED' | 'REMOVED' | 'CONTEXT'
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const requestBody: any = { text };
+    if (path) {
+      requestBody.anchor = {
+        path,
+        ...(line !== undefined ? { line, lineType: lineType ?? 'CONTEXT', fileType: 'TO' } : {}),
+      };
+    }
+    return handleApiOperation(
+      () => RepositoryService.createComment(projectKey, commitId, repositorySlug, undefined, requestBody),
+      'Error adding commit comment'
     );
   }
 
@@ -1468,6 +1531,24 @@ export const bitbucketToolSchemas = {
     commitId: z.string().describe("The commit id (hash)"),
     key: z.string().describe("The report key"),
     externalId: z.string().optional().describe("If given, delete only this annotation; otherwise delete all annotations of the report")
+  },
+  getCommitComments: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    commitId: z.string().describe("The commit id (hash)"),
+    path: z.string().describe("The file path to return comments for. Required: Bitbucket only returns commit comments scoped to a file path."),
+    since: z.string().optional().describe("Optional commit id; return comments added since that commit"),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+  },
+  addCommitComment: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    commitId: z.string().describe("The commit id (hash) to comment on"),
+    text: z.string().describe("The comment text"),
+    path: z.string().optional().describe("Optional file path to anchor the comment to a file"),
+    line: z.number().optional().describe("Optional line number within the file to anchor the comment to (requires path)"),
+    lineType: z.enum(['ADDED', 'REMOVED', 'CONTEXT']).optional().describe("Line type for the anchored line. Defaults to CONTEXT when a line is given.")
   },
   getPullRequestComments: {
     projectKey: z.string().describe("The project key"),
