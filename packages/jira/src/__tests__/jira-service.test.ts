@@ -32,6 +32,7 @@ jest.mock('../jira-client/index.js', () => ({
     getCreateIssueMetaProjectIssueTypes: jest.fn(),
     getCreateIssueMetaFields: jest.fn(),
     getEditIssueMeta: jest.fn(),
+    deleteIssue: jest.fn(),
   },
   SearchService: {
     searchUsingSearchRequest: jest.fn(),
@@ -552,6 +553,34 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Issue does not exist');
+    });
+  });
+
+  describe('deleteIssue', () => {
+    it('deletes an issue', async () => {
+      (IssueService.deleteIssue as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteIssue(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(IssueService.deleteIssue).toHaveBeenCalledWith(mockIssueKey, undefined);
+    });
+
+    it('forwards deleteSubtasks as a string', async () => {
+      (IssueService.deleteIssue as jest.Mock).mockResolvedValue(undefined);
+
+      await jiraService.deleteIssue(mockIssueKey, true);
+
+      expect(IssueService.deleteIssue).toHaveBeenCalledWith(mockIssueKey, 'true');
+    });
+
+    it('handles permission errors', async () => {
+      (IssueService.deleteIssue as jest.Mock).mockRejectedValue(new Error('User does not have permission to delete this issue'));
+
+      const result = await jiraService.deleteIssue(mockIssueKey);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('User does not have permission to delete this issue');
     });
   });
 

@@ -237,4 +237,14 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_deleteIssue",
+  `Delete a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteIssue,
+  async ({ issueKey, deleteSubtasks }) => {
+    const result = await jiraService.deleteIssue(issueKey, deleteSubtasks);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
