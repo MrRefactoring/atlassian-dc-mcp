@@ -1057,4 +1057,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getEpic",
+  `Get a single epic by id or issue key from the ${jiraInstanceType}`,
+  jiraToolSchemas.getEpic,
+  async ({ epicIdOrKey }) => {
+    const result = await jiraService.getEpic(epicIdOrKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateEpic",
+  `Update an epic (name, summary, done status) in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateEpic,
+  async ({ epicIdOrKey, name, summary, done }) => {
+    const result = await jiraService.updateEpic(epicIdOrKey, name, summary, done);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getEpicIssues",
+  `Get the issues assigned to an epic in the ${jiraInstanceType}`,
+  jiraToolSchemas.getEpicIssues,
+  async ({ epicIdOrKey, jql, maxResults, startAt }) => {
+    const result = await jiraService.getEpicIssues(epicIdOrKey, jql, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_moveIssuesToEpic",
+  `Move issues into an epic in the ${jiraInstanceType}`,
+  jiraToolSchemas.moveIssuesToEpic,
+  async ({ epicIdOrKey, issueKeys }) => {
+    const result = await jiraService.moveIssuesToEpic(epicIdOrKey, issueKeys);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_rankEpic",
+  `Reorder (rank) an epic relative to another epic in the ${jiraInstanceType}`,
+  jiraToolSchemas.rankEpic,
+  async ({ epicIdOrKey, rankBeforeEpic, rankAfterEpic, rankCustomFieldId }) => {
+    const result = await jiraService.rankEpic(epicIdOrKey, rankBeforeEpic, rankAfterEpic, rankCustomFieldId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
