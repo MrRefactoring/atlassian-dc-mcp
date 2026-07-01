@@ -517,4 +517,94 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_createVersion",
+  `Create a version in a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.createVersion,
+  async ({ projectKey, name, description, releaseDate, startDate }) => {
+    const result = await jiraService.createVersion(projectKey, name, description, releaseDate, startDate);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getVersions",
+  `Get a paginated list of versions in the ${jiraInstanceType}, optionally filtered by project or name query`,
+  jiraToolSchemas.getVersions,
+  async ({ projectIds, query, maxResults, startAt }) => {
+    const result = await jiraService.getVersions(projectIds, query, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getVersion",
+  `Get a single version by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getVersion,
+  async ({ versionId, expand }) => {
+    const result = await jiraService.getVersion(versionId, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateVersion",
+  `Update a version in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateVersion,
+  async ({ versionId, name, description, released, archived, releaseDate }) => {
+    const result = await jiraService.updateVersion(versionId, name, description, released, archived, releaseDate);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteAndReplaceVersion",
+  `Delete a version from the ${jiraInstanceType}, moving affected/fix-version issues to replacement versions. This is irreversible.`,
+  jiraToolSchemas.deleteAndReplaceVersion,
+  async ({ versionId, moveFixIssuesTo, moveAffectedIssuesTo }) => {
+    const result = await jiraService.deleteAndReplaceVersion(versionId, moveFixIssuesTo, moveAffectedIssuesTo);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_mergeVersion",
+  `Merge a version into another version in the ${jiraInstanceType}, moving all its issues to the target version. This is irreversible.`,
+  jiraToolSchemas.mergeVersion,
+  async ({ versionId, moveIssuesToVersionId }) => {
+    const result = await jiraService.mergeVersion(versionId, moveIssuesToVersionId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_moveVersion",
+  `Reposition a version within its project's version sequence in the ${jiraInstanceType}`,
+  jiraToolSchemas.moveVersion,
+  async ({ versionId, position, after }) => {
+    const result = await jiraService.moveVersion(versionId, position, after);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getVersionRelatedIssues",
+  `Get counts of issues related to a version in the ${jiraInstanceType}`,
+  jiraToolSchemas.getVersionRelatedIssues,
+  async ({ versionId }) => {
+    const result = await jiraService.getVersionRelatedIssues(versionId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getVersionUnresolvedIssues",
+  `Get the count of unresolved issues for a version in the ${jiraInstanceType}`,
+  jiraToolSchemas.getVersionUnresolvedIssues,
+  async ({ versionId }) => {
+    const result = await jiraService.getVersionUnresolvedIssues(versionId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
