@@ -90,6 +90,11 @@ jest.mock('../jira-client/index.js', () => ({
     getProject: jest.fn(),
     getProjectComponents: jest.fn(),
     getProjectVersions: jest.fn(),
+    getProjectRoles: jest.fn(),
+    getProjectRole: jest.fn(),
+    setActors: jest.fn(),
+    addActorUsers: jest.fn(),
+    deleteActor: jest.fn(),
   },
   ProjectsService: {
     searchForProjects: jest.fn(),
@@ -1145,6 +1150,75 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Version does not exist');
+    });
+  });
+
+  describe('project roles', () => {
+    it('gets project roles', async () => {
+      const mockRoles = { Developers: 'https://jira/rest/api/2/project/TEST/role/10000' };
+      (ProjectService.getProjectRoles as jest.Mock).mockResolvedValue(mockRoles);
+
+      const result = await jiraService.getProjectRoles('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRoles);
+      expect(ProjectService.getProjectRoles).toHaveBeenCalledWith('TEST');
+    });
+
+    it('gets a single project role', async () => {
+      const mockRole = { id: 10000, name: 'Developers', actors: [] };
+      (ProjectService.getProjectRole as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.getProjectRole('TEST', 10000);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(ProjectService.getProjectRole).toHaveBeenCalledWith('TEST', 10000);
+    });
+
+    it('replaces all actors for a role', async () => {
+      const mockRole = { id: 10000, name: 'Developers' };
+      (ProjectService.setActors as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.setProjectRoleActors('TEST', 10000, { 'atlassian-user-role-actor': ['john.doe'] });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(ProjectService.setActors).toHaveBeenCalledWith('TEST', 10000, {
+        categorisedActors: { 'atlassian-user-role-actor': ['john.doe'] },
+        id: 10000,
+      });
+    });
+
+    it('adds actors to a role', async () => {
+      const mockRole = { id: 10000, name: 'Developers' };
+      (ProjectService.addActorUsers as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.addProjectRoleActors('TEST', 10000, ['john.doe'], ['admins']);
+
+      expect(result.success).toBe(true);
+      expect(ProjectService.addActorUsers).toHaveBeenCalledWith('TEST', 10000, {
+        user: ['john.doe'],
+        group: ['admins'],
+      });
+    });
+
+    it('deletes an actor from a role', async () => {
+      (ProjectService.deleteActor as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteProjectRoleActor('TEST', 10000, 'john.doe');
+
+      expect(result.success).toBe(true);
+      expect(ProjectService.deleteActor).toHaveBeenCalledWith('TEST', 10000, 'john.doe', undefined);
+    });
+
+    it('handles errors', async () => {
+      (ProjectService.getProjectRole as jest.Mock).mockRejectedValue(new Error('Project or role not found'));
+
+      const result = await jiraService.getProjectRole('TEST', 99999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Project or role not found');
     });
   });
 

@@ -490,6 +490,41 @@ export class JiraService {
     );
   }
 
+  async getProjectRoles(projectIdOrKey: string) {
+    return handleApiOperation(() => ProjectService.getProjectRoles(projectIdOrKey), 'Error getting project roles');
+  }
+
+  async getProjectRole(projectIdOrKey: string, roleId: number) {
+    return handleApiOperation(
+      () => ProjectService.getProjectRole(projectIdOrKey, roleId),
+      'Error getting project role'
+    );
+  }
+
+  async setProjectRoleActors(projectIdOrKey: string, roleId: number, categorisedActors: Record<string, string[]>) {
+    return handleApiOperation(
+      () => ProjectService.setActors(projectIdOrKey, roleId, { categorisedActors, id: roleId }),
+      'Error setting project role actors'
+    );
+  }
+
+  async addProjectRoleActors(projectIdOrKey: string, roleId: number, users?: string[], groups?: string[]) {
+    return handleApiOperation(
+      () => ProjectService.addActorUsers(projectIdOrKey, roleId, {
+        ...(users ? { user: users } : {}),
+        ...(groups ? { group: groups } : {}),
+      }),
+      'Error adding project role actors'
+    );
+  }
+
+  async deleteProjectRoleActor(projectIdOrKey: string, roleId: number, user?: string, group?: string) {
+    return handleApiOperation(
+      () => ProjectService.deleteActor(projectIdOrKey, roleId, user, group),
+      'Error deleting project role actor'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -745,5 +780,29 @@ export const jiraToolSchemas = {
   },
   getVersionUnresolvedIssues: {
     versionId: z.string().describe("Id of the version")
+  },
+  getProjectRoles: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)")
+  },
+  getProjectRole: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    roleId: z.number().describe("Id of the project role. Use jira_getProjectRoles to find role ids.")
+  },
+  setProjectRoleActors: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    roleId: z.number().describe("Id of the project role. Use jira_getProjectRoles to find role ids."),
+    categorisedActors: z.record(z.array(z.string())).describe("Replaces all actors for the role. Keys are actor categories (e.g., 'atlassian-user-role-actor', 'atlassian-group-role-actor'), values are lists of usernames/group names.")
+  },
+  addProjectRoleActors: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    roleId: z.number().describe("Id of the project role. Use jira_getProjectRoles to find role ids."),
+    users: z.array(z.string()).optional().describe("Usernames to add as actors for this role"),
+    groups: z.array(z.string()).optional().describe("Group names to add as actors for this role")
+  },
+  deleteProjectRoleActor: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    roleId: z.number().describe("Id of the project role. Use jira_getProjectRoles to find role ids."),
+    user: z.string().optional().describe("Username of the actor to remove"),
+    group: z.string().optional().describe("Group name of the actor to remove")
   }
 };
