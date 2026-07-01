@@ -377,4 +377,44 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_addIssueAttachment",
+  `Attach a file to a JIRA issue in the ${jiraInstanceType}. Provide file content as base64.`,
+  jiraToolSchemas.addIssueAttachment,
+  async ({ issueKey, fileName, contentBase64 }) => {
+    const result = await jiraService.addIssueAttachment(issueKey, fileName, contentBase64);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getAttachmentMeta",
+  `Get attachment capabilities (enabled/disabled, max upload size) of the ${jiraInstanceType}`,
+  jiraToolSchemas.getAttachmentMeta,
+  async () => {
+    const result = await jiraService.getAttachmentMeta();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getAttachment",
+  `Get metadata (including download URI) for an attachment in the ${jiraInstanceType}`,
+  jiraToolSchemas.getAttachment,
+  async ({ attachmentId }) => {
+    const result = await jiraService.getAttachment(attachmentId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteAttachment",
+  `Delete an attachment from a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteAttachment,
+  async ({ attachmentId }) => {
+    const result = await jiraService.deleteAttachment(attachmentId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
