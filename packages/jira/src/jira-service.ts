@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/common';
+import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
 import { IssueService, MyselfService, OpenAPI, SearchService } from './jira-client/index.js';
 import { request as __request } from './jira-client/core/request.js';
 import type { StringList } from './jira-client/models/StringList.js';

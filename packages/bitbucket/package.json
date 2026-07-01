@@ -1,5 +1,5 @@
 {
-  "name": "@mrrefactoring/bitbucket",
+  "name": "@mrrefactoring/atlassian-dc-mcp-bitbucket",
   "version": "0.25.0",
   "main": "build/index.js",
   "type": "module",
@@ -31,7 +31,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@mrrefactoring/common": "workspace:^",
+    "@mrrefactoring/atlassian-dc-mcp-core": "workspace:^",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "dotenv": "^16.4.7",
     "zod": "^3.24.2"

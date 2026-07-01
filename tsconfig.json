@@ -13,11 +13,11 @@
     "sourceMap": true,
     "types": ["node", "jest"],
     "paths": {
-      "@mrrefactoring/*": ["./packages/*/src"]
+      "@mrrefactoring/atlassian-dc-mcp-core": ["./packages/core/src"]
     }
   },
   "references": [
-    { "path": "packages/common" },
+    { "path": "packages/core" },
     { "path": "packages/jira" },
     { "path": "packages/confluence" },
     { "path": "packages/bitbucket" }

@@ -1,5 +1,5 @@
 {
-  "name": "@mrrefactoring/common",
+  "name": "@mrrefactoring/atlassian-dc-mcp-core",
   "version": "0.25.0",
   "main": "build/index.js",
   "type": "module",
@@ -14,7 +14,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/MrRefactoring/atlassian-dc-mcp.git",
-    "directory": "packages/common"
+    "directory": "packages/core"
   },
   "homepage": "https://github.com/MrRefactoring/atlassian-dc-mcp#readme",
   "bugs": {

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { OpenAPI, ProjectService, PullRequestsService, RepositoryService } from './bitbucket-client/index.js';
 import { request as __request } from './bitbucket-client/core/request.js';
-import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/common';
+import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
 import { simplifyInboxPullRequests } from './inbox-pr-mapper.js';
 import { BITBUCKET_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import {
