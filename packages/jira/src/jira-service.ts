@@ -308,6 +308,35 @@ export class JiraService {
     return handleApiOperation(() => IssueService.removeVote(issueKey), 'Error removing issue vote');
   }
 
+  async getIssueWorklogs(issueKey: string) {
+    return handleApiOperation(() => IssueService.getIssueWorklog(issueKey), 'Error getting issue worklogs');
+  }
+
+  async addIssueWorklog(issueKey: string, timeSpent: string, comment?: string, started?: string) {
+    return handleApiOperation(
+      () => IssueService.addWorklog(issueKey, undefined, undefined, undefined, { timeSpent, comment, started }),
+      'Error adding issue worklog'
+    );
+  }
+
+  async getIssueWorklog(issueKey: string, worklogId: string) {
+    return handleApiOperation(() => IssueService.getWorklog(issueKey, worklogId), 'Error getting issue worklog');
+  }
+
+  async updateIssueWorklog(issueKey: string, worklogId: string, timeSpent?: string, comment?: string, started?: string) {
+    return handleApiOperation(
+      () => IssueService.updateWorklog(issueKey, worklogId, undefined, undefined, { timeSpent, comment, started }),
+      'Error updating issue worklog'
+    );
+  }
+
+  async deleteIssueWorklog(issueKey: string, worklogId: string) {
+    return handleApiOperation(
+      () => IssueService.deleteWorklog(issueKey, worklogId),
+      'Error deleting issue worklog'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -439,5 +468,29 @@ export const jiraToolSchemas = {
   },
   removeIssueVote: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+  },
+  getIssueWorklogs: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+  },
+  addIssueWorklog: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    timeSpent: z.string().describe("Time spent in JIRA duration format (e.g., '3h', '1d 4h', '30m')"),
+    comment: z.string().optional().describe("Worklog comment text"),
+    started: z.string().optional().describe("When the work was started, ISO-like JIRA datetime format (e.g., '2024-01-15T09:00:00.000+0000'). Defaults to now if omitted.")
+  },
+  getIssueWorklog: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    worklogId: z.string().describe("Id of the worklog entry. Use jira_getIssueWorklogs to find worklog ids.")
+  },
+  updateIssueWorklog: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    worklogId: z.string().describe("Id of the worklog entry to update. Use jira_getIssueWorklogs to find worklog ids."),
+    timeSpent: z.string().optional().describe("New time spent in JIRA duration format (e.g., '3h', '1d 4h', '30m')"),
+    comment: z.string().optional().describe("New worklog comment text"),
+    started: z.string().optional().describe("New start datetime, JIRA datetime format")
+  },
+  deleteIssueWorklog: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    worklogId: z.string().describe("Id of the worklog entry to delete. Use jira_getIssueWorklogs to find worklog ids.")
   }
 };
