@@ -607,4 +607,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getProjectRoles",
+  `Get the project roles defined for a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectRoles,
+  async ({ projectIdOrKey }) => {
+    const result = await jiraService.getProjectRoles(projectIdOrKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getProjectRole",
+  `Get details (including current actors) for a single project role in the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectRole,
+  async ({ projectIdOrKey, roleId }) => {
+    const result = await jiraService.getProjectRole(projectIdOrKey, roleId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setProjectRoleActors",
+  `Replace all actors (users/groups) of a project role in the ${jiraInstanceType}`,
+  jiraToolSchemas.setProjectRoleActors,
+  async ({ projectIdOrKey, roleId, categorisedActors }) => {
+    const result = await jiraService.setProjectRoleActors(projectIdOrKey, roleId, categorisedActors);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addProjectRoleActors",
+  `Add users and/or groups as actors of a project role in the ${jiraInstanceType}, without affecting existing actors`,
+  jiraToolSchemas.addProjectRoleActors,
+  async ({ projectIdOrKey, roleId, users, groups }) => {
+    const result = await jiraService.addProjectRoleActors(projectIdOrKey, roleId, users, groups);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteProjectRoleActor",
+  `Remove a single user or group actor from a project role in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteProjectRoleActor,
+  async ({ projectIdOrKey, roleId, user, group }) => {
+    const result = await jiraService.deleteProjectRoleActor(projectIdOrKey, roleId, user, group);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
