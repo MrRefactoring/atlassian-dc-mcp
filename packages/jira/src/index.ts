@@ -247,4 +247,24 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_updateIssueComment",
+  `Update the text of an existing comment on a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateIssueComment,
+  async ({ issueKey, commentId, comment }) => {
+    const result = await jiraService.updateIssueComment(issueKey, commentId, comment);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteIssueComment",
+  `Delete a comment from a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteIssueComment,
+  async ({ issueKey, commentId }) => {
+    const result = await jiraService.deleteIssueComment(issueKey, commentId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
