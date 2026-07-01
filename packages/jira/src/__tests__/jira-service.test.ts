@@ -35,6 +35,12 @@ jest.mock('../jira-client/index.js', () => ({
     deleteIssue: jest.fn(),
     updateComment: jest.fn(),
     deleteComment: jest.fn(),
+    getIssueWatchers: jest.fn(),
+    addWatcher1: jest.fn(),
+    removeWatcher1: jest.fn(),
+    getVotes: jest.fn(),
+    addVote: jest.fn(),
+    removeVote: jest.fn(),
   },
   SearchService: {
     searchUsingSearchRequest: jest.fn(),
@@ -625,6 +631,76 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('User does not have permission to delete this comment');
+    });
+  });
+
+  describe('watchers', () => {
+    it('gets issue watchers', async () => {
+      const mockWatchers = { watchCount: 1, watchers: [{ name: 'john.doe' }] };
+      (IssueService.getIssueWatchers as jest.Mock).mockResolvedValue(mockWatchers);
+
+      const result = await jiraService.getIssueWatchers(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWatchers);
+      expect(IssueService.getIssueWatchers).toHaveBeenCalledWith(mockIssueKey);
+    });
+
+    it('adds a watcher', async () => {
+      (IssueService.addWatcher1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.addIssueWatcher(mockIssueKey, 'john.doe');
+
+      expect(result.success).toBe(true);
+      expect(IssueService.addWatcher1).toHaveBeenCalledWith(mockIssueKey, undefined, 'john.doe');
+    });
+
+    it('removes a watcher', async () => {
+      (IssueService.removeWatcher1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.removeIssueWatcher(mockIssueKey, 'john.doe');
+
+      expect(result.success).toBe(true);
+      expect(IssueService.removeWatcher1).toHaveBeenCalledWith(mockIssueKey, 'john.doe');
+    });
+  });
+
+  describe('votes', () => {
+    it('gets issue votes', async () => {
+      const mockVotes = { votes: 3, hasVoted: false };
+      (IssueService.getVotes as jest.Mock).mockResolvedValue(mockVotes);
+
+      const result = await jiraService.getIssueVotes(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockVotes);
+    });
+
+    it('adds a vote', async () => {
+      (IssueService.addVote as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.addIssueVote(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(IssueService.addVote).toHaveBeenCalledWith(mockIssueKey);
+    });
+
+    it('removes a vote', async () => {
+      (IssueService.removeVote as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.removeIssueVote(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(IssueService.removeVote).toHaveBeenCalledWith(mockIssueKey);
+    });
+
+    it('handles errors when voting is disabled', async () => {
+      (IssueService.addVote as jest.Mock).mockRejectedValue(new Error('Voting is disabled'));
+
+      const result = await jiraService.addIssueVote(mockIssueKey);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Voting is disabled');
     });
   });
 
