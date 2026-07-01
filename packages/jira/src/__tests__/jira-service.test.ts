@@ -5,6 +5,7 @@ import { initializeRuntimeConfig } from '@mrrefactoring/atlassian-dc-mcp-core';
 import { JiraService } from '../jira-service.js';
 import {
   AttachmentService,
+  BacklogService,
   BoardService,
   ComponentService,
   DashboardService,
@@ -86,6 +87,13 @@ jest.mock('../jira-client/index.js', () => ({
     getIssuesForBoard: jest.fn(),
     getAllSprints: jest.fn(),
     getAllVersions: jest.fn(),
+    getIssuesForBacklog: jest.fn(),
+    getEpics: jest.fn(),
+    getIssuesWithoutEpic: jest.fn(),
+    getIssuesForEpic: jest.fn(),
+  },
+  BacklogService: {
+    moveIssuesToBacklog: jest.fn(),
   },
   ComponentService: {
     createComponent: jest.fn(),
@@ -1667,6 +1675,69 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The board does not exist');
+    });
+  });
+
+  describe('backlog and epics', () => {
+    it('gets board backlog issues', async () => {
+      const mockIssues = { issues: [{ key: 'PROJ-1' }] };
+      (BoardService.getIssuesForBacklog as jest.Mock).mockResolvedValue(mockIssues);
+
+      const result = await jiraService.getBoardBacklogIssues(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockIssues);
+      expect(BoardService.getIssuesForBacklog).toHaveBeenCalledWith(1, undefined, undefined, undefined, undefined, undefined, undefined);
+    });
+
+    it('gets board epics', async () => {
+      const mockEpics = { values: [{ id: 1, name: 'Epic 1' }] };
+      (BoardService.getEpics as jest.Mock).mockResolvedValue(mockEpics);
+
+      const result = await jiraService.getBoardEpics(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockEpics);
+      expect(BoardService.getEpics).toHaveBeenCalledWith(1, undefined, undefined, undefined);
+    });
+
+    it('gets board issues without an epic', async () => {
+      const mockIssues = { issues: [{ key: 'PROJ-2' }] };
+      (BoardService.getIssuesWithoutEpic as jest.Mock).mockResolvedValue(mockIssues);
+
+      const result = await jiraService.getBoardIssuesWithoutEpic(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockIssues);
+    });
+
+    it('gets board epic issues', async () => {
+      const mockIssues = { issues: [{ key: 'PROJ-3' }] };
+      (BoardService.getIssuesForEpic as jest.Mock).mockResolvedValue(mockIssues);
+
+      const result = await jiraService.getBoardEpicIssues(1, 10);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockIssues);
+      expect(BoardService.getIssuesForEpic).toHaveBeenCalledWith(10, 1, undefined, undefined, undefined, undefined, undefined, undefined);
+    });
+
+    it('moves issues to backlog', async () => {
+      (BacklogService.moveIssuesToBacklog as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.moveIssuesToBacklog(['PROJ-1', 'PROJ-2']);
+
+      expect(result.success).toBe(true);
+      expect(BacklogService.moveIssuesToBacklog).toHaveBeenCalledWith({ issues: ['PROJ-1', 'PROJ-2'] });
+    });
+
+    it('handles errors', async () => {
+      (BacklogService.moveIssuesToBacklog as jest.Mock).mockRejectedValue(new Error('Sprint does not exist'));
+
+      const result = await jiraService.moveIssuesToBacklog(['PROJ-1']);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Sprint does not exist');
     });
   });
 

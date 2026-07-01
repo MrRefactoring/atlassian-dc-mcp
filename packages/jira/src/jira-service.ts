@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
 import {
   AttachmentService,
+  BacklogService,
   BoardService,
   ComponentService,
   DashboardService,
@@ -727,6 +728,41 @@ export class JiraService {
     );
   }
 
+  async getBoardBacklogIssues(boardId: number, jql?: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => BoardService.getIssuesForBacklog(boardId, undefined, jql, maxResults, undefined, undefined, startAt),
+      'Error getting board backlog issues'
+    );
+  }
+
+  async getBoardEpics(boardId: number, maxResults?: number, done?: boolean, startAt?: number) {
+    return handleApiOperation(
+      () => BoardService.getEpics(boardId, maxResults, done?.toString(), startAt),
+      'Error getting board epics'
+    );
+  }
+
+  async getBoardIssuesWithoutEpic(boardId: number, jql?: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => BoardService.getIssuesWithoutEpic(boardId, undefined, jql, maxResults, undefined, undefined, startAt),
+      'Error getting board issues without an epic'
+    );
+  }
+
+  async getBoardEpicIssues(boardId: number, epicId: number, jql?: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => BoardService.getIssuesForEpic(epicId, boardId, undefined, jql, maxResults, undefined, undefined, startAt),
+      'Error getting board epic issues'
+    );
+  }
+
+  async moveIssuesToBacklog(issueKeys: string[]) {
+    return handleApiOperation(
+      () => BacklogService.moveIssuesToBacklog({ issues: issueKeys }),
+      'Error moving issues to backlog'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1140,5 +1176,33 @@ export const jiraToolSchemas = {
     boardId: z.number().describe("Id of the Agile board"),
     maxResults: z.number().optional().describe("Maximum number of versions to return"),
     startAt: z.number().optional().describe("Index of the first version to return")
+  },
+  getBoardBacklogIssues: {
+    boardId: z.number().describe("Id of the Agile board"),
+    jql: z.string().optional().describe("JQL query to further filter the backlog"),
+    maxResults: z.number().optional().describe("Maximum number of issues to return"),
+    startAt: z.number().optional().describe("Index of the first issue to return")
+  },
+  getBoardEpics: {
+    boardId: z.number().describe("Id of the Agile board"),
+    maxResults: z.number().optional().describe("Maximum number of epics to return"),
+    done: z.boolean().optional().describe("Filter epics by done status"),
+    startAt: z.number().optional().describe("Index of the first epic to return")
+  },
+  getBoardIssuesWithoutEpic: {
+    boardId: z.number().describe("Id of the Agile board"),
+    jql: z.string().optional().describe("JQL query to further filter results"),
+    maxResults: z.number().optional().describe("Maximum number of issues to return"),
+    startAt: z.number().optional().describe("Index of the first issue to return")
+  },
+  getBoardEpicIssues: {
+    boardId: z.number().describe("Id of the Agile board"),
+    epicId: z.number().describe("Id of the epic. Use jira_getBoardEpics to find epic ids."),
+    jql: z.string().optional().describe("JQL query to further filter results"),
+    maxResults: z.number().optional().describe("Maximum number of issues to return"),
+    startAt: z.number().optional().describe("Index of the first issue to return")
+  },
+  moveIssuesToBacklog: {
+    issueKeys: z.array(z.string()).describe("Issue keys to move to the backlog (removes them from any sprint). At most 50 at a time.")
   }
 };

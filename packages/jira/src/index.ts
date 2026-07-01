@@ -947,4 +947,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getBoardBacklogIssues",
+  `Get the backlog issues of an Agile board in the ${jiraInstanceType}`,
+  jiraToolSchemas.getBoardBacklogIssues,
+  async ({ boardId, jql, maxResults, startAt }) => {
+    const result = await jiraService.getBoardBacklogIssues(boardId, jql, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getBoardEpics",
+  `Get the epics of an Agile board in the ${jiraInstanceType}`,
+  jiraToolSchemas.getBoardEpics,
+  async ({ boardId, maxResults, done, startAt }) => {
+    const result = await jiraService.getBoardEpics(boardId, maxResults, done, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getBoardIssuesWithoutEpic",
+  `Get the issues on an Agile board that are not assigned to any epic, in the ${jiraInstanceType}`,
+  jiraToolSchemas.getBoardIssuesWithoutEpic,
+  async ({ boardId, jql, maxResults, startAt }) => {
+    const result = await jiraService.getBoardIssuesWithoutEpic(boardId, jql, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getBoardEpicIssues",
+  `Get the issues assigned to a specific epic on an Agile board in the ${jiraInstanceType}`,
+  jiraToolSchemas.getBoardEpicIssues,
+  async ({ boardId, epicId, jql, maxResults, startAt }) => {
+    const result = await jiraService.getBoardEpicIssues(boardId, epicId, jql, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_moveIssuesToBacklog",
+  `Move issues to the backlog in the ${jiraInstanceType}, removing them from any sprint`,
+  jiraToolSchemas.moveIssuesToBacklog,
+  async ({ issueKeys }) => {
+    const result = await jiraService.moveIssuesToBacklog(issueKeys);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
