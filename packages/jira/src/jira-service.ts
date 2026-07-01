@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
 import {
+  AttachmentService,
   IssueService,
   IssuetypeService,
   MyselfService,
@@ -337,6 +338,28 @@ export class JiraService {
     );
   }
 
+  async addIssueAttachment(issueKey: string, fileName: string, contentBase64: string) {
+    return handleApiOperation(() => {
+      const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
+      return IssueService.addAttachment(issueKey, { file } as unknown as Blob);
+    }, 'Error adding issue attachment');
+  }
+
+  async getAttachmentMeta() {
+    return handleApiOperation(() => AttachmentService.getAttachmentMeta(), 'Error getting attachment capabilities');
+  }
+
+  async getAttachment(attachmentId: string) {
+    return handleApiOperation(() => AttachmentService.getAttachment(attachmentId), 'Error getting attachment');
+  }
+
+  async deleteAttachment(attachmentId: string) {
+    return handleApiOperation(
+      () => AttachmentService.removeAttachment(attachmentId),
+      'Error deleting attachment'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -492,5 +515,17 @@ export const jiraToolSchemas = {
   deleteIssueWorklog: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
     worklogId: z.string().describe("Id of the worklog entry to delete. Use jira_getIssueWorklogs to find worklog ids.")
+  },
+  addIssueAttachment: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    fileName: z.string().describe("File name to attach, including extension (e.g., 'screenshot.png')"),
+    contentBase64: z.string().describe("File content encoded as base64")
+  },
+  getAttachmentMeta: {},
+  getAttachment: {
+    attachmentId: z.string().describe("Id of the attachment")
+  },
+  deleteAttachment: {
+    attachmentId: z.string().describe("Id of the attachment to delete")
   }
 };

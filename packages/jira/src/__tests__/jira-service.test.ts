@@ -4,6 +4,7 @@ import path from 'node:path';
 import { initializeRuntimeConfig } from '@mrrefactoring/atlassian-dc-mcp-core';
 import { JiraService } from '../jira-service.js';
 import {
+  AttachmentService,
   IssueService,
   IssuetypeService,
   OpenAPI,
@@ -46,6 +47,12 @@ jest.mock('../jira-client/index.js', () => ({
     getWorklog: jest.fn(),
     updateWorklog: jest.fn(),
     deleteWorklog: jest.fn(),
+    addAttachment: jest.fn(),
+  },
+  AttachmentService: {
+    getAttachmentMeta: jest.fn(),
+    getAttachment: jest.fn(),
+    removeAttachment: jest.fn(),
   },
   SearchService: {
     searchUsingSearchRequest: jest.fn(),
@@ -778,6 +785,61 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Time tracking is disabled');
+    });
+  });
+
+  describe('attachments', () => {
+    it('adds an attachment with the file wrapped as a File', async () => {
+      const mockAttachment = [{ id: '10001', filename: 'test.txt' }];
+      (IssueService.addAttachment as jest.Mock).mockResolvedValue(mockAttachment);
+
+      const result = await jiraService.addIssueAttachment(mockIssueKey, 'test.txt', Buffer.from('hello').toString('base64'));
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockAttachment);
+      const [calledIssueKey, calledFormData] = (IssueService.addAttachment as jest.Mock).mock.calls[0];
+      expect(calledIssueKey).toBe(mockIssueKey);
+      expect((calledFormData as { file: File }).file).toBeInstanceOf(File);
+      expect((calledFormData as { file: File }).file.name).toBe('test.txt');
+    });
+
+    it('gets attachment capabilities', async () => {
+      const mockMeta = { enabled: true, uploadLimit: 10485760 };
+      (AttachmentService.getAttachmentMeta as jest.Mock).mockResolvedValue(mockMeta);
+
+      const result = await jiraService.getAttachmentMeta();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockMeta);
+    });
+
+    it('gets attachment metadata by id', async () => {
+      const mockAttachment = { id: '10001', filename: 'test.txt' };
+      (AttachmentService.getAttachment as jest.Mock).mockResolvedValue(mockAttachment);
+
+      const result = await jiraService.getAttachment('10001');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockAttachment);
+      expect(AttachmentService.getAttachment).toHaveBeenCalledWith('10001');
+    });
+
+    it('deletes an attachment', async () => {
+      (AttachmentService.removeAttachment as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteAttachment('10001');
+
+      expect(result.success).toBe(true);
+      expect(AttachmentService.removeAttachment).toHaveBeenCalledWith('10001');
+    });
+
+    it('handles errors when attachments are disabled', async () => {
+      (IssueService.addAttachment as jest.Mock).mockRejectedValue(new Error('Attachments are disabled'));
+
+      const result = await jiraService.addIssueAttachment(mockIssueKey, 'test.txt', 'aGVsbG8=');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Attachments are disabled');
     });
   });
 
