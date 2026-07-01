@@ -5,6 +5,7 @@ import { initializeRuntimeConfig } from '@mrrefactoring/atlassian-dc-mcp-core';
 import { JiraService } from '../jira-service.js';
 import {
   AttachmentService,
+  BoardService,
   ComponentService,
   DashboardService,
   FilterService,
@@ -77,6 +78,14 @@ jest.mock('../jira-client/index.js', () => ({
     createIssueLinkType: jest.fn(),
     updateIssueLinkType: jest.fn(),
     deleteIssueLinkType: jest.fn(),
+  },
+  BoardService: {
+    getAllBoards: jest.fn(),
+    getBoard: jest.fn(),
+    getConfiguration: jest.fn(),
+    getIssuesForBoard: jest.fn(),
+    getAllSprints: jest.fn(),
+    getAllVersions: jest.fn(),
   },
   ComponentService: {
     createComponent: jest.fn(),
@@ -1583,6 +1592,81 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('User does not have permission to rank');
+    });
+  });
+
+  describe('agile boards', () => {
+    it('gets boards', async () => {
+      const mockBoards = { values: [{ id: 1, name: 'Scrum Board' }] };
+      (BoardService.getAllBoards as jest.Mock).mockResolvedValue(mockBoards);
+
+      const result = await jiraService.getBoards();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockBoards);
+      expect(BoardService.getAllBoards).toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined);
+    });
+
+    it('gets a single board', async () => {
+      const mockBoard = { id: 1, name: 'Scrum Board' };
+      (BoardService.getBoard as jest.Mock).mockResolvedValue(mockBoard);
+
+      const result = await jiraService.getBoard(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockBoard);
+      expect(BoardService.getBoard).toHaveBeenCalledWith(1);
+    });
+
+    it('gets board configuration', async () => {
+      const mockConfig = { id: 1, columnConfig: {} };
+      (BoardService.getConfiguration as jest.Mock).mockResolvedValue(mockConfig);
+
+      const result = await jiraService.getBoardConfiguration(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockConfig);
+    });
+
+    it('gets board issues', async () => {
+      const mockIssues = { issues: [{ key: 'PROJ-1' }] };
+      (BoardService.getIssuesForBoard as jest.Mock).mockResolvedValue(mockIssues);
+
+      const result = await jiraService.getBoardIssues(1, 'status = Open');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockIssues);
+      expect(BoardService.getIssuesForBoard).toHaveBeenCalledWith(1, undefined, 'status = Open', undefined, undefined, undefined, undefined);
+    });
+
+    it('gets board sprints', async () => {
+      const mockSprints = { values: [{ id: 1, name: 'Sprint 1' }] };
+      (BoardService.getAllSprints as jest.Mock).mockResolvedValue(mockSprints);
+
+      const result = await jiraService.getBoardSprints(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSprints);
+      expect(BoardService.getAllSprints).toHaveBeenCalledWith(1, undefined, undefined, undefined);
+    });
+
+    it('gets board versions', async () => {
+      const mockVersions = { values: [{ id: 1, name: '1.0' }] };
+      (BoardService.getAllVersions as jest.Mock).mockResolvedValue(mockVersions);
+
+      const result = await jiraService.getBoardVersions(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockVersions);
+    });
+
+    it('handles errors', async () => {
+      (BoardService.getBoard as jest.Mock).mockRejectedValue(new Error('The board does not exist'));
+
+      const result = await jiraService.getBoard(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The board does not exist');
     });
   });
 

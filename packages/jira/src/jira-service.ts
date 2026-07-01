@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
 import {
   AttachmentService,
+  BoardService,
   ComponentService,
   DashboardService,
   FilterService,
@@ -687,6 +688,45 @@ export class JiraService {
     );
   }
 
+  async getBoards(maxResults?: number, name?: string, projectKeyOrId?: string, startAt?: number) {
+    return handleApiOperation(
+      () => BoardService.getAllBoards(maxResults, name, projectKeyOrId, undefined, startAt),
+      'Error getting boards'
+    );
+  }
+
+  async getBoard(boardId: number) {
+    return handleApiOperation(() => BoardService.getBoard(boardId), 'Error getting board');
+  }
+
+  async getBoardConfiguration(boardId: number) {
+    return handleApiOperation(
+      () => BoardService.getConfiguration(boardId),
+      'Error getting board configuration'
+    );
+  }
+
+  async getBoardIssues(boardId: number, jql?: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => BoardService.getIssuesForBoard(boardId, undefined, jql, maxResults, undefined, undefined, startAt),
+      'Error getting board issues'
+    );
+  }
+
+  async getBoardSprints(boardId: number, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => BoardService.getAllSprints(boardId, maxResults, undefined, startAt),
+      'Error getting board sprints'
+    );
+  }
+
+  async getBoardVersions(boardId: number, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => BoardService.getAllVersions(boardId, maxResults, undefined, startAt),
+      'Error getting board versions'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1072,5 +1112,33 @@ export const jiraToolSchemas = {
     rankBeforeIssue: z.string().optional().describe("Rank the issues before this issue key"),
     rankAfterIssue: z.string().optional().describe("Rank the issues after this issue key"),
     rankCustomFieldId: z.number().optional().describe("Id of the custom 'Rank' field, if not the default")
+  },
+  getBoards: {
+    maxResults: z.number().optional().describe("Maximum number of boards to return"),
+    name: z.string().optional().describe("Filter boards by name"),
+    projectKeyOrId: z.string().optional().describe("Filter boards by project key or id"),
+    startAt: z.number().optional().describe("Index of the first board to return")
+  },
+  getBoard: {
+    boardId: z.number().describe("Id of the Agile board")
+  },
+  getBoardConfiguration: {
+    boardId: z.number().describe("Id of the Agile board")
+  },
+  getBoardIssues: {
+    boardId: z.number().describe("Id of the Agile board"),
+    jql: z.string().optional().describe("JQL query to further filter the board's issues"),
+    maxResults: z.number().optional().describe("Maximum number of issues to return"),
+    startAt: z.number().optional().describe("Index of the first issue to return")
+  },
+  getBoardSprints: {
+    boardId: z.number().describe("Id of the Agile board"),
+    maxResults: z.number().optional().describe("Maximum number of sprints to return"),
+    startAt: z.number().optional().describe("Index of the first sprint to return")
+  },
+  getBoardVersions: {
+    boardId: z.number().describe("Id of the Agile board"),
+    maxResults: z.number().optional().describe("Maximum number of versions to return"),
+    startAt: z.number().optional().describe("Index of the first version to return")
   }
 };

@@ -887,4 +887,64 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getBoards",
+  `Get Agile boards visible to the current user in the ${jiraInstanceType}, optionally filtered by name or project`,
+  jiraToolSchemas.getBoards,
+  async ({ maxResults, name, projectKeyOrId, startAt }) => {
+    const result = await jiraService.getBoards(maxResults, name, projectKeyOrId, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getBoard",
+  `Get a single Agile board by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getBoard,
+  async ({ boardId }) => {
+    const result = await jiraService.getBoard(boardId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getBoardConfiguration",
+  `Get the configuration (columns, estimation, ranking) of an Agile board in the ${jiraInstanceType}`,
+  jiraToolSchemas.getBoardConfiguration,
+  async ({ boardId }) => {
+    const result = await jiraService.getBoardConfiguration(boardId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getBoardIssues",
+  `Get the issues on an Agile board in the ${jiraInstanceType}, optionally filtered by JQL`,
+  jiraToolSchemas.getBoardIssues,
+  async ({ boardId, jql, maxResults, startAt }) => {
+    const result = await jiraService.getBoardIssues(boardId, jql, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getBoardSprints",
+  `Get the sprints of an Agile board in the ${jiraInstanceType}`,
+  jiraToolSchemas.getBoardSprints,
+  async ({ boardId, maxResults, startAt }) => {
+    const result = await jiraService.getBoardSprints(boardId, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getBoardVersions",
+  `Get the versions of an Agile board's project in the ${jiraInstanceType}`,
+  jiraToolSchemas.getBoardVersions,
+  async ({ boardId, maxResults, startAt }) => {
+    const result = await jiraService.getBoardVersions(boardId, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
