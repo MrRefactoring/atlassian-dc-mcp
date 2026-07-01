@@ -5,6 +5,7 @@ import { initializeRuntimeConfig } from '@mrrefactoring/atlassian-dc-mcp-core';
 import { JiraService } from '../jira-service.js';
 import {
   AttachmentService,
+  ComponentService,
   IssueLinkService,
   IssueService,
   IssuetypeService,
@@ -60,6 +61,14 @@ jest.mock('../jira-client/index.js', () => ({
     linkIssues: jest.fn(),
     getIssueLink: jest.fn(),
     deleteIssueLink: jest.fn(),
+  },
+  ComponentService: {
+    createComponent: jest.fn(),
+    getPaginatedComponents: jest.fn(),
+    getComponent: jest.fn(),
+    updateComponent: jest.fn(),
+    delete: jest.fn(),
+    getComponentRelatedIssues: jest.fn(),
   },
   SearchService: {
     searchUsingSearchRequest: jest.fn(),
@@ -933,6 +942,80 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('User does not have permission to assign the issue');
+    });
+  });
+
+  describe('components', () => {
+    it('creates a component', async () => {
+      const mockComponent = { id: '10000', name: 'Backend' };
+      (ComponentService.createComponent as jest.Mock).mockResolvedValue(mockComponent);
+
+      const result = await jiraService.createComponent('TEST', 'Backend');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockComponent);
+      expect(ComponentService.createComponent).toHaveBeenCalledWith({
+        project: 'TEST',
+        name: 'Backend',
+        description: undefined,
+        leadUserName: undefined,
+      });
+    });
+
+    it('gets paginated components', async () => {
+      const mockPage = { values: [{ name: 'Backend' }] };
+      (ComponentService.getPaginatedComponents as jest.Mock).mockResolvedValue(mockPage);
+
+      const result = await jiraService.getComponents();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPage);
+      expect(ComponentService.getPaginatedComponents).toHaveBeenCalledWith(undefined, undefined, undefined);
+    });
+
+    it('gets a single component', async () => {
+      const mockComponent = { id: '10000', name: 'Backend' };
+      (ComponentService.getComponent as jest.Mock).mockResolvedValue(mockComponent);
+
+      const result = await jiraService.getComponent('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockComponent);
+      expect(ComponentService.getComponent).toHaveBeenCalledWith('10000');
+    });
+
+    it('updates a component', async () => {
+      const mockComponent = { id: '10000', name: 'Backend v2' };
+      (ComponentService.updateComponent as jest.Mock).mockResolvedValue(mockComponent);
+
+      const result = await jiraService.updateComponent('10000', 'Backend v2');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockComponent);
+      expect(ComponentService.updateComponent).toHaveBeenCalledWith('10000', {
+        name: 'Backend v2',
+        description: undefined,
+        leadUserName: undefined,
+      });
+    });
+
+    it('deletes a component', async () => {
+      (ComponentService.delete as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteComponent('10000');
+
+      expect(result.success).toBe(true);
+      expect(ComponentService.delete).toHaveBeenCalledWith('10000', undefined);
+    });
+
+    it('gets component related issue counts', async () => {
+      const mockCounts = { issueCount: 5 };
+      (ComponentService.getComponentRelatedIssues as jest.Mock).mockResolvedValue(mockCounts);
+
+      const result = await jiraService.getComponentRelatedIssues('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCounts);
     });
   });
 
