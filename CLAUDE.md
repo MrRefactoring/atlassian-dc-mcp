@@ -3,29 +3,36 @@
 ## Build/Test/Lint Commands
 ```bash
 # Build all packages (builds common first, then others)
-npm run build
+pnpm build
 
 # Build specific package
-npm run build --workspace=@atlassian-dc-mcp/jira
+pnpm --filter @mrrefactoring/jira build
 
 # Run all tests
-npm run test
+pnpm test
 
 # Run tests for specific package
-npm run test --workspace=@atlassian-dc-mcp/jira
+pnpm --filter @mrrefactoring/jira test
 
 # Run specific test (using Jest)
-npx jest -t 'test name' --workspace=@atlassian-dc-mcp/jira
+pnpm --filter @mrrefactoring/jira exec jest -t 'test name'
 
 # Development mode
-npm run dev:jira
-npm run dev:confluence
-npm run dev:bitbucket
+pnpm dev:jira
+pnpm dev:confluence
+pnpm dev:bitbucket
 
 # Debugging
-npm run debug
-npm run debug:verbose
+pnpm debug
+pnpm debug:verbose
 ```
+
+## Releasing
+This monorepo uses [Changesets](https://github.com/changesets/changesets) (not lerna) for versioning and publishing, with all 4 packages kept in lockstep via a `fixed` group in `.changeset/config.json`. Any PR that should trigger a release must include a changeset:
+```bash
+pnpm changeset
+```
+Pick the affected packages, bump type, and write a short summary; commit the generated `.changeset/*.md` file alongside the code change. Merging to `master` opens/updates a "Version Packages" PR (via `changesets/action` in CI); merging *that* PR runs the actual `pnpm publish` + MCP Registry publish.
 
 ## Code Style Guidelines
 - **TypeScript**: Use strong typing, avoid `any`

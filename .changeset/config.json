@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
+  "changelog": [
+    "@changesets/changelog-github",
+    { "repo": "MrRefactoring/atlassian-dc-mcp" }
+  ],
+  "commit": false,
+  "fixed": [
+    [
+      "@mrrefactoring/common",
+      "@mrrefactoring/jira",
+      "@mrrefactoring/confluence",
+      "@mrrefactoring/bitbucket"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "master",
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}

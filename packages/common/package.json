@@ -1,10 +1,10 @@
 {
-  "name": "@atlassian-dc-mcp/common",
+  "name": "@mrrefactoring/common",
   "version": "0.25.0",
   "main": "build/index.js",
   "type": "module",
   "private": false,
-  "description": "Shared utilities for @atlassian-dc-mcp MCP servers. Not affiliated with Atlassian.",
+  "description": "Shared utilities for @mrrefactoring MCP servers. Not affiliated with Atlassian.",
   "keywords": [
     "mcp",
     "atlassian",
@@ -13,12 +13,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/b1ff/atlassian-dc-mcp.git",
+    "url": "https://github.com/MrRefactoring/atlassian-dc-mcp.git",
     "directory": "packages/common"
   },
-  "homepage": "https://github.com/b1ff/atlassian-dc-mcp#readme",
+  "homepage": "https://github.com/MrRefactoring/atlassian-dc-mcp#readme",
   "bugs": {
-    "url": "https://github.com/b1ff/atlassian-dc-mcp/issues"
+    "url": "https://github.com/MrRefactoring/atlassian-dc-mcp/issues"
   },
   "scripts": {
     "build": "tsc",
@@ -32,8 +32,8 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^22.13.5",
-    "nodemon": "^3.1.0",
+    "@types/node": "^26.1.0",
+    "nodemon": "^3.1.14",
     "ts-node": "^10.9.2"
   },
   "publishConfig": {

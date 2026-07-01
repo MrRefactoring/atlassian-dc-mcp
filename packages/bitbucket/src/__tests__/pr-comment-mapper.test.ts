@@ -5,7 +5,7 @@ import {
   type BitbucketPRApiResponse,
   type SimplifiedPRResponse
 } from '../pr-comment-mapper.js';
-import { formatToolResponse } from '@atlassian-dc-mcp/common';
+import { formatToolResponse } from '@mrrefactoring/common';
 
 interface TestComment {
   properties: { repositoryId: number };

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { initializeRuntimeConfig } from '@atlassian-dc-mcp/common';
+import { initializeRuntimeConfig } from '@mrrefactoring/common';
 import { BitbucketService } from '../bitbucket-service.js';
 import { PullRequestsService } from '../bitbucket-client/index.js';
 import { request as mockRequest } from '../bitbucket-client/core/request.js';

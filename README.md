@@ -14,16 +14,16 @@ This project provides a Model Context Protocol (MCP) integration for Atlassian D
 Each package ships an interactive `setup` subcommand that stores your credentials in the most secure place available on your OS. Run it once per product:
 
 ```bash
-npx @atlassian-dc-mcp/jira setup
-npx @atlassian-dc-mcp/confluence setup
-npx @atlassian-dc-mcp/bitbucket setup
+npx @mrrefactoring/jira setup
+npx @mrrefactoring/confluence setup
+npx @mrrefactoring/bitbucket setup
 ```
 
 The setup CLI prompts for host, API base path, default page size, and API token. Before saving, it validates obvious input mistakes and performs a timed authenticated request to the selected Atlassian product, so a bad host, base path, or token is caught during setup.
 
 ### CLI flags and non-interactive mode
 
-Setup accepts flags so you can prefill values or skip prompts entirely (useful for scripted bootstrap, CI, or remote sessions). Run `npx @atlassian-dc-mcp/<product> setup --help` for the full list.
+Setup accepts flags so you can prefill values or skip prompts entirely (useful for scripted bootstrap, CI, or remote sessions). Run `npx @mrrefactoring/<product> setup --help` for the full list.
 
 | Flag | Short | Description |
 |------|-------|-------------|
@@ -38,12 +38,12 @@ In interactive mode, any flag you pass prefills its prompt (so e.g. `--host` ski
 
 ```bash
 # Scripted, no prompts, write everything from flags
-npx @atlassian-dc-mcp/jira setup --non-interactive \
+npx @mrrefactoring/jira setup --non-interactive \
   --host jira.example.com \
   --token "$JIRA_TOKEN"
 
 # Re-validate the existing token without re-entering it
-npx @atlassian-dc-mcp/jira setup --non-interactive --host jira.example.com
+npx @mrrefactoring/jira setup --non-interactive --host jira.example.com
 ```
 
 Credential validation behaves differently between modes: interactive mode offers retry/save-anyway prompts on failure, while `--non-interactive` exits with code 1 on the first validation failure so it can be used as a CI gate.
@@ -61,9 +61,9 @@ Once setup has run, the MCP servers can boot with no environment variables at al
 ```json
 {
   "mcpServers": {
-    "atlassian-jira-dc": { "command": "npx", "args": ["-y", "@atlassian-dc-mcp/jira"] },
-    "atlassian-confluence-dc": { "command": "npx", "args": ["-y", "@atlassian-dc-mcp/confluence"] },
-    "atlassian-bitbucket-dc": { "command": "npx", "args": ["-y", "@atlassian-dc-mcp/bitbucket"] }
+    "atlassian-jira-dc": { "command": "npx", "args": ["-y", "@mrrefactoring/jira"] },
+    "atlassian-confluence-dc": { "command": "npx", "args": ["-y", "@mrrefactoring/confluence"] },
+    "atlassian-bitbucket-dc": { "command": "npx", "args": ["-y", "@mrrefactoring/bitbucket"] }
   }
 }
 ```
@@ -117,7 +117,7 @@ Windows:
   "mcpServers": {
     "atlassian-jira-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "args": ["-y", "@mrrefactoring/jira"],
       "env": {
         "JIRA_HOST": "your-jira-host",
         "JIRA_API_TOKEN": "your-token"
@@ -125,7 +125,7 @@ Windows:
     },
     "atlassian-confluence-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/confluence"],
+      "args": ["-y", "@mrrefactoring/confluence"],
       "env": {
         "CONFLUENCE_HOST": "your-confluence-host",
         "CONFLUENCE_API_TOKEN": "your-token"
@@ -133,7 +133,7 @@ Windows:
     },
     "atlassian-bitbucket-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/bitbucket"],
+      "args": ["-y", "@mrrefactoring/bitbucket"],
       "env": {
         "BITBUCKET_HOST": "your-bitbucket-host",
         "BITBUCKET_API_TOKEN": "your-token"
@@ -150,7 +150,7 @@ You can also use the alternative API base path configuration:
   "mcpServers": {
     "atlassian-jira-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "args": ["-y", "@mrrefactoring/jira"],
       "env": {
         "JIRA_API_BASE_PATH": "https://your-jira-host/rest",
         "JIRA_API_TOKEN": "your-token"
@@ -158,7 +158,7 @@ You can also use the alternative API base path configuration:
     },
     "atlassian-confluence-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/confluence"],
+      "args": ["-y", "@mrrefactoring/confluence"],
       "env": {
         "CONFLUENCE_API_BASE_PATH": "https://your-confluence-host/rest",
         "CONFLUENCE_API_TOKEN": "your-token"
@@ -166,7 +166,7 @@ You can also use the alternative API base path configuration:
     },
     "atlassian-bitbucket-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/bitbucket"],
+      "args": ["-y", "@mrrefactoring/bitbucket"],
       "env": {
         "BITBUCKET_API_BASE_PATH": "https://your-bitbucket-host/rest",
         "BITBUCKET_API_TOKEN": "your-token"
@@ -204,21 +204,21 @@ Claude Desktop example using one shared file:
   "mcpServers": {
     "atlassian-jira-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "args": ["-y", "@mrrefactoring/jira"],
       "env": {
         "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
       }
     },
     "atlassian-confluence-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/confluence"],
+      "args": ["-y", "@mrrefactoring/confluence"],
       "env": {
         "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
       }
     },
     "atlassian-bitbucket-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/bitbucket"],
+      "args": ["-y", "@mrrefactoring/bitbucket"],
       "env": {
         "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
       }
@@ -234,7 +234,7 @@ Windows example path:
   "mcpServers": {
     "atlassian-jira-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "args": ["-y", "@mrrefactoring/jira"],
       "env": {
         "ATLASSIAN_DC_MCP_CONFIG_FILE": "C:\\\\Users\\\\your-user\\\\AppData\\\\Roaming\\\\atlassian-dc-mcp.env"
       }
@@ -254,19 +254,19 @@ You can add servers at the project scope (stored in `.mcp.json`) or user scope (
 claude mcp add atlassian-jira-dc \
   -e JIRA_HOST=your-jira-host \
   -e JIRA_API_TOKEN=your-token \
-  -- npx -y @atlassian-dc-mcp/jira
+  -- npx -y @mrrefactoring/jira
 
 # Confluence
 claude mcp add atlassian-confluence-dc \
   -e CONFLUENCE_HOST=your-confluence-host \
   -e CONFLUENCE_API_TOKEN=your-token \
-  -- npx -y @atlassian-dc-mcp/confluence
+  -- npx -y @mrrefactoring/confluence
 
 # Bitbucket
 claude mcp add atlassian-bitbucket-dc \
   -e BITBUCKET_HOST=your-bitbucket-host \
   -e BITBUCKET_API_TOKEN=your-token \
-  -- npx -y @atlassian-dc-mcp/bitbucket
+  -- npx -y @mrrefactoring/bitbucket
 ```
 
 You can also use `*_API_BASE_PATH` instead of `*_HOST` (same as the Claude Desktop examples above):
@@ -275,7 +275,7 @@ You can also use `*_API_BASE_PATH` instead of `*_HOST` (same as the Claude Deskt
 claude mcp add atlassian-jira-dc \
   -e JIRA_API_BASE_PATH=https://your-jira-host/rest \
   -e JIRA_API_TOKEN=your-token \
-  -- npx -y @atlassian-dc-mcp/jira
+  -- npx -y @mrrefactoring/jira
 ```
 
 To add servers at user scope (available across all projects):
@@ -284,7 +284,7 @@ To add servers at user scope (available across all projects):
 claude mcp add -s user atlassian-jira-dc \
   -e JIRA_HOST=your-jira-host \
   -e JIRA_API_TOKEN=your-token \
-  -- npx -y @atlassian-dc-mcp/jira
+  -- npx -y @mrrefactoring/jira
 ```
 
 To use the shared config file instead of passing credentials inline:
@@ -292,7 +292,7 @@ To use the shared config file instead of passing credentials inline:
 ```bash
 claude mcp add atlassian-jira-dc \
   -e ATLASSIAN_DC_MCP_CONFIG_FILE=/Users/your-user/.config/atlassian-dc-mcp.env \
-  -- npx -y @atlassian-dc-mcp/jira
+  -- npx -y @mrrefactoring/jira
 ```
 
 Windows PowerShell example:
@@ -300,7 +300,7 @@ Windows PowerShell example:
 ```powershell
 claude mcp add atlassian-jira-dc `
   -e ATLASSIAN_DC_MCP_CONFIG_FILE=C:\Users\your-user\AppData\Roaming\atlassian-dc-mcp.env `
-  -- npx -y @atlassian-dc-mcp/jira
+  -- npx -y @mrrefactoring/jira
 ```
 
 ### Generating API Tokens
@@ -340,8 +340,8 @@ The Atlassian DC MCP allows AI assistants to interact with Atlassian products th
 
 ## Prerequisites
 
-- Node.js 18 or higher
-- npm 7 or higher (for workspaces support)
+- Node.js 26 or higher
+- pnpm (pinned via the `packageManager` field, currently 11.9.0) — install however's convenient: the [standalone installer](https://pnpm.io/installation), `npm install -g pnpm`, or Corepack if you already have it. CI uses `pnpm/action-setup`, independent of Corepack.
 - Atlassian Data Center instance or Cloud instance
 - API tokens for the Atlassian products you want to use
 
@@ -350,20 +350,20 @@ The Atlassian DC MCP allows AI assistants to interact with Atlassian products th
 Clone the repository:
 
 ```bash
-git clone https://github.com/b1ff/atlassian-dc-mcp.git
+git clone https://github.com/MrRefactoring/atlassian-dc-mcp.git
 cd atlassian-dc-mcp
 ```
 
 ## Development
 
-This project is structured as an npm monorepo using workspaces. The workspaces are organized in the `packages/` directory, with separate packages for each Atlassian product integration.
+This project is structured as a pnpm monorepo using workspaces (see `pnpm-workspace.yaml`). The workspaces are organized in the `packages/` directory, with separate packages for each Atlassian product integration.
 
 ### Installing Dependencies
 
 To install all dependencies for all packages in the monorepo:
 
 ```bash
-npm install
+pnpm install
 ```
 
 This will install:
@@ -373,13 +373,13 @@ This will install:
 To install a dependency for a specific package:
 
 ```bash
-npm install <package-name> --workspace=@atlassian-dc-mcp/jira
+pnpm add <package-name> --filter @mrrefactoring/jira
 ```
 
 To install a dependency at the root level:
 
 ```bash
-npm install <package-name> -W
+pnpm add <package-name> -w
 ```
 
 ### Building the Project
@@ -387,13 +387,13 @@ npm install <package-name> -W
 To build all packages:
 
 ```bash
-npm run build
+pnpm build
 ```
 
 To build a specific package:
 
 ```bash
-npm run build --workspace=@atlassian-dc-mcp/jira
+pnpm --filter @mrrefactoring/jira build
 ```
 
 ### Running in Development Mode
@@ -401,10 +401,20 @@ npm run build --workspace=@atlassian-dc-mcp/jira
 To run a specific package in development mode:
 
 ```bash
-npm run dev:jira     # For Jira
-npm run dev:confluence  # For Confluence
-npm run dev:bitbucket   # For Bitbucket
+pnpm dev:jira     # For Jira
+pnpm dev:confluence  # For Confluence
+pnpm dev:bitbucket   # For Bitbucket
 ```
+
+### Releasing
+
+This project uses [Changesets](https://github.com/changesets/changesets) for versioning and publishing (not lerna); all 4 packages are kept in lockstep via a `fixed` group. Any PR that changes package behavior should include a changeset:
+
+```bash
+pnpm changeset
+```
+
+Pick the affected packages and bump type, write a short summary, and commit the generated `.changeset/*.md` file alongside your code change. Merging to `master` opens/updates a "Version Packages" pull request; merging *that* PR is what actually triggers the npm publish and MCP Registry publish.
 
 ## Configuration
 

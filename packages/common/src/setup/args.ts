@@ -56,7 +56,7 @@ function trimToUndefined(value: string | undefined): string | undefined {
 
 export function printSetupHelp(productId: string, log: (message: string) => void): void {
   const lines = [
-    `Usage: @atlassian-dc-mcp/${productId} setup [options]`,
+    `Usage: @mrrefactoring/${productId} setup [options]`,
     '',
     'Options:',
     '  -H, --host <value>          Host (e.g. jira.example.com)',

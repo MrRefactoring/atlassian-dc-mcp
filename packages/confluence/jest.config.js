@@ -3,7 +3,7 @@ export default {
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
-    '^@atlassian-dc-mcp/common$': '<rootDir>/../common/src/index.ts',
+    '^@mrrefactoring/common$': '<rootDir>/../common/src/index.ts',
   },
   transform: {
     '^.+\\.ts$': ['ts-jest', {
@@ -11,7 +11,7 @@ export default {
     }],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(@atlassian-dc-mcp)/)',
+    'node_modules/(?!(@mrrefactoring)/)',
   ],
   testEnvironment: 'node',
   watchman: false,

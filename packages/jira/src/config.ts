@@ -2,7 +2,7 @@ import {
   getProductRuntimeConfig,
   validateProductRuntimeConfig,
   type ProductDefinition,
-} from '@atlassian-dc-mcp/common';
+} from '@mrrefactoring/common';
 
 export const JIRA_PRODUCT: ProductDefinition = {
   id: 'jira',

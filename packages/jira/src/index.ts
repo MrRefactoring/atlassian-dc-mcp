@@ -1,4 +1,4 @@
-import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from '@atlassian-dc-mcp/common';
+import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from '@mrrefactoring/common';
 import { JiraService, jiraToolSchemas } from './jira-service.js';
 import { getDefaultPageSize, getJiraRuntimeConfig } from './config.js';
 import { createRequire } from 'node:module';

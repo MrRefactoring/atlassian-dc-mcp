@@ -1,4 +1,4 @@
-import { describeValidationError, runSetupCli } from '@atlassian-dc-mcp/common';
+import { describeValidationError, runSetupCli } from '@mrrefactoring/common';
 import { BITBUCKET_PRODUCT } from './config.js';
 import { BitbucketService } from './bitbucket-service.js';
 

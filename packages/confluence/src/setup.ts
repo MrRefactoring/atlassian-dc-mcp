@@ -1,4 +1,4 @@
-import { describeValidationError, runSetupCli } from '@atlassian-dc-mcp/common';
+import { describeValidationError, runSetupCli } from '@mrrefactoring/common';
 import { CONFLUENCE_PRODUCT } from './config.js';
 import { ConfluenceService } from './confluence-service.js';
 

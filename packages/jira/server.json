@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.b1ff/atlassian-dc-mcp-jira",
+  "name": "io.github.MrRefactoring/atlassian-dc-mcp-jira",
   "description": "MCP server for Atlassian Jira Data Center - search, view, and create issues",
   "repository": {
-    "url": "https://github.com/b1ff/atlassian-dc-mcp",
+    "url": "https://github.com/MrRefactoring/atlassian-dc-mcp",
     "source": "github"
   },
   "version": "0.9.0",
@@ -11,7 +11,7 @@
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
-      "identifier": "@atlassian-dc-mcp/jira",
+      "identifier": "@mrrefactoring/jira",
       "version": "0.9.0",
       "transport": {
         "type": "stdio"

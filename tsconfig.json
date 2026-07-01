@@ -11,9 +11,9 @@
     "composite": true,
     "declarationMap": true,
     "sourceMap": true,
-    "baseUrl": ".",
+    "types": ["node", "jest"],
     "paths": {
-      "@atlassian-dc-mcp/*": ["packages/*/src"]
+      "@mrrefactoring/*": ["./packages/*/src"]
     }
   },
   "references": [

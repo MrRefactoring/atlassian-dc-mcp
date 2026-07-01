@@ -7,7 +7,7 @@ This package provides a Machine Comprehension Protocol (MCP) server for interact
 The easiest way to configure this server is the built-in `setup` subcommand:
 
 ```bash
-npx @atlassian-dc-mcp/jira setup
+npx @mrrefactoring/jira setup
 ```
 
 It prompts for host, API base path, default page size, and API token, then stores them in the most secure place available:
@@ -23,7 +23,7 @@ After setup, you can launch the server without any environment variables:
   "mcpServers": {
     "atlassian-jira-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/jira"]
+      "args": ["-y", "@mrrefactoring/jira"]
     }
   }
 }
@@ -36,12 +36,12 @@ Environment variables still override stored values — see [Configuration source
 For CI, remote sessions, or shell scripts, pass values as flags and add `--non-interactive` to skip prompts:
 
 ```bash
-npx @atlassian-dc-mcp/jira setup --non-interactive \
+npx @mrrefactoring/jira setup --non-interactive \
   --host jira.example.com \
   --token "$JIRA_TOKEN"
 ```
 
-Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--default-page-size`/`-s`, `--non-interactive`/`-n`, `--help`/`-h`. In `--non-interactive` mode, missing values fall back to existing configuration and the run exits non-zero if a host (or full-URL `--api-base-path`) and token cannot be resolved. An existing token is reused when `--token` is omitted. Run `npx @atlassian-dc-mcp/jira setup --help` for full usage.
+Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--default-page-size`/`-s`, `--non-interactive`/`-n`, `--help`/`-h`. In `--non-interactive` mode, missing values fall back to existing configuration and the run exits non-zero if a host (or full-URL `--api-base-path`) and token cannot be resolved. An existing token is reused when `--token` is omitted. Run `npx @mrrefactoring/jira setup --help` for full usage.
 
 ## Claude Desktop Configuration
 
@@ -62,7 +62,7 @@ Windows:
   "mcpServers": {
     "atlassian-jira-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "args": ["-y", "@mrrefactoring/jira"],
       "env": {
         "JIRA_HOST": "your-jira-host",
         "JIRA_API_TOKEN": "your-token"
@@ -79,7 +79,7 @@ To reuse one shared dotenv file across multiple tools or MCP hosts, point the se
   "mcpServers": {
     "atlassian-jira-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "args": ["-y", "@mrrefactoring/jira"],
       "env": {
         "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
       }
@@ -95,7 +95,7 @@ Windows example:
   "mcpServers": {
     "atlassian-jira-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/jira"],
+      "args": ["-y", "@mrrefactoring/jira"],
       "env": {
         "ATLASSIAN_DC_MCP_CONFIG_FILE": "C:\\\\Users\\\\your-user\\\\AppData\\\\Roaming\\\\atlassian-dc-mcp.env"
       }
@@ -120,7 +120,7 @@ Alternatively, you can use `JIRA_API_BASE_PATH` instead of `JIRA_HOST` to specif
 
 1. Install dependencies:
    ```
-   npm install
+   pnpm install
    ```
 
 2. Create a `.env` file in the packages/jira directory, or put the same values in a shared dotenv file and set `ATLASSIAN_DC_MCP_CONFIG_FILE` to its absolute path:
@@ -161,13 +161,13 @@ Each key is resolved by walking these sources in priority order and taking the f
 Start the MCP server:
 
 ```
-npm run build
+pnpm build
 ```
 
 Or for development with auto-reload:
 
 ```
-npm run dev
+pnpm dev
 ```
 
 ### Available Tools

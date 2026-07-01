@@ -7,7 +7,7 @@ This package provides a Machine Comprehension Protocol (MCP) server for interact
 The easiest way to configure this server is the built-in `setup` subcommand:
 
 ```bash
-npx @atlassian-dc-mcp/confluence setup
+npx @mrrefactoring/confluence setup
 ```
 
 It prompts for host, API base path, default page size, and API token, then stores them in the most secure place available:
@@ -23,7 +23,7 @@ After setup, you can launch the server without any environment variables:
   "mcpServers": {
     "atlassian-confluence-dc": {
       "command": "npx",
-      "args": ["-y", "@atlassian-dc-mcp/confluence"]
+      "args": ["-y", "@mrrefactoring/confluence"]
     }
   }
 }
@@ -36,12 +36,12 @@ Environment variables still override stored values — see [Configuration source
 For CI, remote sessions, or shell scripts, pass values as flags and add `--non-interactive` to skip prompts:
 
 ```bash
-npx @atlassian-dc-mcp/confluence setup --non-interactive \
+npx @mrrefactoring/confluence setup --non-interactive \
   --host confluence.example.com \
   --token "$CONFLUENCE_TOKEN"
 ```
 
-Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--default-page-size`/`-s`, `--non-interactive`/`-n`, `--help`/`-h`. In `--non-interactive` mode, missing values fall back to existing configuration and the run exits non-zero if a host (or full-URL `--api-base-path`) and token cannot be resolved. An existing token is reused when `--token` is omitted. Run `npx @atlassian-dc-mcp/confluence setup --help` for full usage.
+Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--default-page-size`/`-s`, `--non-interactive`/`-n`, `--help`/`-h`. In `--non-interactive` mode, missing values fall back to existing configuration and the run exits non-zero if a host (or full-URL `--api-base-path`) and token cannot be resolved. An existing token is reused when `--token` is omitted. Run `npx @mrrefactoring/confluence setup --help` for full usage.
 
 ## Features
 
@@ -54,7 +54,7 @@ Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--defau
 
 1. Install dependencies:
    ```
-   npm install
+   pnpm install
    ```
 
 2. Create a `.env` file in the packages/confluence directory, or put the same values in a shared dotenv file and set `ATLASSIAN_DC_MCP_CONFIG_FILE` to its absolute path:
@@ -83,13 +83,13 @@ Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--defau
 
    Start the server with:
    ```
-   ATLASSIAN_DC_MCP_CONFIG_FILE=/absolute/path/to/atlassian-dc-mcp.env npm run dev
+   ATLASSIAN_DC_MCP_CONFIG_FILE=/absolute/path/to/atlassian-dc-mcp.env pnpm dev
    ```
 
    Windows example:
    ```
    set ATLASSIAN_DC_MCP_CONFIG_FILE=C:\Users\your-user\AppData\Roaming\atlassian-dc-mcp.env
-   npm run dev
+   pnpm dev
    ```
 
    Note: You have two options for configuring the API URL:
@@ -127,14 +127,14 @@ Each key is resolved by walking these sources in priority order and taking the f
 Start the MCP server:
 
 ```
-npm run build
-npm start
+pnpm build
+pnpm start
 ```
 
 Or for development with auto-reload:
 
 ```
-npm run dev
+pnpm dev
 ```
 
 ## Testing
@@ -142,13 +142,13 @@ npm run dev
 Run the test suite from the package directory:
 
 ```
-npm run test
+pnpm test
 ```
 
 Or from the repository root:
 
 ```
-npm run test --workspace=@atlassian-dc-mcp/confluence
+pnpm --filter @mrrefactoring/confluence test
 ```
 
 ### Available Tools

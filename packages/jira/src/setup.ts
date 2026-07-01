@@ -1,4 +1,4 @@
-import { describeValidationError, runSetupCli } from '@atlassian-dc-mcp/common';
+import { describeValidationError, runSetupCli } from '@mrrefactoring/common';
 import { JIRA_PRODUCT } from './config.js';
 import { JiraService } from './jira-service.js';
 
