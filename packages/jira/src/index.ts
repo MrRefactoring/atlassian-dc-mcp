@@ -997,4 +997,64 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_createSprint",
+  `Create a sprint on an Agile board in the ${jiraInstanceType}`,
+  jiraToolSchemas.createSprint,
+  async ({ name, originBoardId, startDate, endDate, goal }) => {
+    const result = await jiraService.createSprint(name, originBoardId, startDate, endDate, goal);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getSprint",
+  `Get a single sprint by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getSprint,
+  async ({ sprintId }) => {
+    const result = await jiraService.getSprint(sprintId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateSprint",
+  `Update a sprint in the ${jiraInstanceType}, including starting or closing it via the state field`,
+  jiraToolSchemas.updateSprint,
+  async ({ sprintId, name, startDate, endDate, goal, state }) => {
+    const result = await jiraService.updateSprint(sprintId, name, startDate, endDate, goal, state);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteSprint",
+  `Delete a sprint from the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteSprint,
+  async ({ sprintId }) => {
+    const result = await jiraService.deleteSprint(sprintId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getSprintIssues",
+  `Get the issues in a sprint in the ${jiraInstanceType}`,
+  jiraToolSchemas.getSprintIssues,
+  async ({ sprintId, jql, maxResults, startAt }) => {
+    const result = await jiraService.getSprintIssues(sprintId, jql, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_moveIssuesToSprint",
+  `Move issues into a sprint in the ${jiraInstanceType}`,
+  jiraToolSchemas.moveIssuesToSprint,
+  async ({ sprintId, issueKeys }) => {
+    const result = await jiraService.moveIssuesToSprint(sprintId, issueKeys);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
