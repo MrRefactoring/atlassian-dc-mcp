@@ -41,6 +41,11 @@ jest.mock('../jira-client/index.js', () => ({
     getVotes: jest.fn(),
     addVote: jest.fn(),
     removeVote: jest.fn(),
+    getIssueWorklog: jest.fn(),
+    addWorklog: jest.fn(),
+    getWorklog: jest.fn(),
+    updateWorklog: jest.fn(),
+    deleteWorklog: jest.fn(),
   },
   SearchService: {
     searchUsingSearchRequest: jest.fn(),
@@ -701,6 +706,78 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Voting is disabled');
+    });
+  });
+
+  describe('worklogs', () => {
+    it('gets all worklogs for an issue', async () => {
+      const mockWorklogs = { worklogs: [{ id: '100', timeSpent: '3h' }] };
+      (IssueService.getIssueWorklog as jest.Mock).mockResolvedValue(mockWorklogs);
+
+      const result = await jiraService.getIssueWorklogs(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWorklogs);
+      expect(IssueService.getIssueWorklog).toHaveBeenCalledWith(mockIssueKey);
+    });
+
+    it('adds a worklog entry', async () => {
+      const mockWorklog = { id: '100', timeSpent: '3h' };
+      (IssueService.addWorklog as jest.Mock).mockResolvedValue(mockWorklog);
+
+      const result = await jiraService.addIssueWorklog(mockIssueKey, '3h', 'Fixed the bug');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWorklog);
+      expect(IssueService.addWorklog).toHaveBeenCalledWith(mockIssueKey, undefined, undefined, undefined, {
+        timeSpent: '3h',
+        comment: 'Fixed the bug',
+        started: undefined,
+      });
+    });
+
+    it('gets a single worklog entry', async () => {
+      const mockWorklog = { id: '100', timeSpent: '3h' };
+      (IssueService.getWorklog as jest.Mock).mockResolvedValue(mockWorklog);
+
+      const result = await jiraService.getIssueWorklog(mockIssueKey, '100');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWorklog);
+      expect(IssueService.getWorklog).toHaveBeenCalledWith(mockIssueKey, '100');
+    });
+
+    it('updates a worklog entry', async () => {
+      const mockWorklog = { id: '100', timeSpent: '4h' };
+      (IssueService.updateWorklog as jest.Mock).mockResolvedValue(mockWorklog);
+
+      const result = await jiraService.updateIssueWorklog(mockIssueKey, '100', '4h');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWorklog);
+      expect(IssueService.updateWorklog).toHaveBeenCalledWith(mockIssueKey, '100', undefined, undefined, {
+        timeSpent: '4h',
+        comment: undefined,
+        started: undefined,
+      });
+    });
+
+    it('deletes a worklog entry', async () => {
+      (IssueService.deleteWorklog as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteIssueWorklog(mockIssueKey, '100');
+
+      expect(result.success).toBe(true);
+      expect(IssueService.deleteWorklog).toHaveBeenCalledWith(mockIssueKey, '100');
+    });
+
+    it('handles errors', async () => {
+      (IssueService.addWorklog as jest.Mock).mockRejectedValue(new Error('Time tracking is disabled'));
+
+      const result = await jiraService.addIssueWorklog(mockIssueKey, '3h');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Time tracking is disabled');
     });
   });
 

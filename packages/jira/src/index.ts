@@ -327,4 +327,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getIssueWorklogs",
+  `Get all worklog entries of a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueWorklogs,
+  async ({ issueKey }) => {
+    const result = await jiraService.getIssueWorklogs(issueKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addIssueWorklog",
+  `Add a worklog entry (time tracking) to a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.addIssueWorklog,
+  async ({ issueKey, timeSpent, comment, started }) => {
+    const result = await jiraService.addIssueWorklog(issueKey, timeSpent, comment, started);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueWorklog",
+  `Get a single worklog entry of a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueWorklog,
+  async ({ issueKey, worklogId }) => {
+    const result = await jiraService.getIssueWorklog(issueKey, worklogId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateIssueWorklog",
+  `Update a worklog entry of a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateIssueWorklog,
+  async ({ issueKey, worklogId, timeSpent, comment, started }) => {
+    const result = await jiraService.updateIssueWorklog(issueKey, worklogId, timeSpent, comment, started);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteIssueWorklog",
+  `Delete a worklog entry from a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteIssueWorklog,
+  async ({ issueKey, worklogId }) => {
+    const result = await jiraService.deleteIssueWorklog(issueKey, worklogId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
