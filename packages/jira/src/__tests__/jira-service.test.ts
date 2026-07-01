@@ -6,6 +6,7 @@ import { JiraService } from '../jira-service.js';
 import {
   AttachmentService,
   ComponentService,
+  DashboardService,
   FilterService,
   GroupService,
   IssueLinkService,
@@ -80,6 +81,10 @@ jest.mock('../jira-client/index.js', () => ({
     editFilter: jest.fn(),
     deleteFilter: jest.fn(),
     getFavouriteFilters: jest.fn(),
+  },
+  DashboardService: {
+    list: jest.fn(),
+    getDashboard: jest.fn(),
   },
   UserService: {
     getUser1: jest.fn(),
@@ -1407,6 +1412,39 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Filter name was not provided');
+    });
+  });
+
+  describe('dashboards', () => {
+    it('gets a list of dashboards', async () => {
+      const mockDashboards = { dashboards: [{ id: '10000', name: 'My Dashboard' }] };
+      (DashboardService.list as jest.Mock).mockResolvedValue(mockDashboards);
+
+      const result = await jiraService.getDashboards();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockDashboards);
+      expect(DashboardService.list).toHaveBeenCalledWith(undefined, undefined, undefined);
+    });
+
+    it('gets a single dashboard', async () => {
+      const mockDashboard = { id: '10000', name: 'My Dashboard' };
+      (DashboardService.getDashboard as jest.Mock).mockResolvedValue(mockDashboard);
+
+      const result = await jiraService.getDashboard('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockDashboard);
+      expect(DashboardService.getDashboard).toHaveBeenCalledWith('10000');
+    });
+
+    it('handles errors', async () => {
+      (DashboardService.getDashboard as jest.Mock).mockRejectedValue(new Error('No dashboard with the specified id'));
+
+      const result = await jiraService.getDashboard('missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('No dashboard with the specified id');
     });
   });
 
