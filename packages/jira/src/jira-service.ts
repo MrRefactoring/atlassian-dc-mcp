@@ -3,6 +3,7 @@ import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian
 import {
   AttachmentService,
   ComponentService,
+  FilterService,
   GroupService,
   IssueLinkService,
   IssueService,
@@ -580,6 +581,35 @@ export class JiraService {
     );
   }
 
+  async createFilter(name: string, jql: string, description?: string, favourite?: boolean) {
+    return handleApiOperation(
+      () => FilterService.createFilter(undefined, { name, jql, description, favourite }),
+      'Error creating filter'
+    );
+  }
+
+  async getFilter(filterId: string, expand?: string[]) {
+    return handleApiOperation(() => FilterService.getFilter(filterId, expand), 'Error getting filter');
+  }
+
+  async updateFilter(filterId: string, name?: string, jql?: string, description?: string, favourite?: boolean) {
+    return handleApiOperation(
+      () => FilterService.editFilter(filterId, undefined, { name, jql, description, favourite }),
+      'Error updating filter'
+    );
+  }
+
+  async deleteFilter(filterId: string) {
+    return handleApiOperation(() => FilterService.deleteFilter(filterId), 'Error deleting filter');
+  }
+
+  async getFavouriteFilters() {
+    return handleApiOperation(
+      () => FilterService.getFavouriteFilters(),
+      'Error getting favourite filters'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -898,5 +928,26 @@ export const jiraToolSchemas = {
   removeUserFromGroup: {
     groupname: z.string().describe("Name of the group"),
     username: z.string().describe("Username of the user to remove")
-  }
+  },
+  createFilter: {
+    name: z.string().describe("Filter name"),
+    jql: z.string().describe("JQL query the filter runs"),
+    description: z.string().optional().describe("Filter description"),
+    favourite: z.boolean().optional().describe("Whether to mark the filter as a favourite for the current user")
+  },
+  getFilter: {
+    filterId: z.string().describe("Id of the filter"),
+    expand: z.array(z.string()).optional().describe("Additional sections to expand, such as sharedUsers or subscriptions")
+  },
+  updateFilter: {
+    filterId: z.string().describe("Id of the filter to update"),
+    name: z.string().optional().describe("New filter name"),
+    jql: z.string().optional().describe("New JQL query"),
+    description: z.string().optional().describe("New filter description"),
+    favourite: z.boolean().optional().describe("Whether the filter is a favourite for the current user")
+  },
+  deleteFilter: {
+    filterId: z.string().describe("Id of the filter to delete")
+  },
+  getFavouriteFilters: {}
 };

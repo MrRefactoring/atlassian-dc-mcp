@@ -737,4 +737,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_createFilter",
+  `Create a saved search filter in the ${jiraInstanceType}`,
+  jiraToolSchemas.createFilter,
+  async ({ name, jql, description, favourite }) => {
+    const result = await jiraService.createFilter(name, jql, description, favourite);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getFilter",
+  `Get a saved search filter by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getFilter,
+  async ({ filterId, expand }) => {
+    const result = await jiraService.getFilter(filterId, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateFilter",
+  `Update a saved search filter in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateFilter,
+  async ({ filterId, name, jql, description, favourite }) => {
+    const result = await jiraService.updateFilter(filterId, name, jql, description, favourite);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteFilter",
+  `Delete a saved search filter from the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteFilter,
+  async ({ filterId }) => {
+    const result = await jiraService.deleteFilter(filterId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getFavouriteFilters",
+  `Get the current user's favourite saved search filters in the ${jiraInstanceType}`,
+  jiraToolSchemas.getFavouriteFilters,
+  async () => {
+    const result = await jiraService.getFavouriteFilters();
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

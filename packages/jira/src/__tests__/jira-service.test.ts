@@ -6,6 +6,7 @@ import { JiraService } from '../jira-service.js';
 import {
   AttachmentService,
   ComponentService,
+  FilterService,
   GroupService,
   IssueLinkService,
   IssueService,
@@ -72,6 +73,13 @@ jest.mock('../jira-client/index.js', () => ({
     updateComponent: jest.fn(),
     delete: jest.fn(),
     getComponentRelatedIssues: jest.fn(),
+  },
+  FilterService: {
+    createFilter: jest.fn(),
+    getFilter: jest.fn(),
+    editFilter: jest.fn(),
+    deleteFilter: jest.fn(),
+    getFavouriteFilters: jest.fn(),
   },
   UserService: {
     getUser1: jest.fn(),
@@ -1326,6 +1334,79 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The requested user is not found');
+    });
+  });
+
+  describe('filters', () => {
+    it('creates a filter', async () => {
+      const mockFilter = { id: '10000', name: 'My open issues' };
+      (FilterService.createFilter as jest.Mock).mockResolvedValue(mockFilter);
+
+      const result = await jiraService.createFilter('My open issues', 'assignee = currentUser() AND resolution = Unresolved');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockFilter);
+      expect(FilterService.createFilter).toHaveBeenCalledWith(undefined, {
+        name: 'My open issues',
+        jql: 'assignee = currentUser() AND resolution = Unresolved',
+        description: undefined,
+        favourite: undefined,
+      });
+    });
+
+    it('gets a filter', async () => {
+      const mockFilter = { id: '10000', name: 'My open issues' };
+      (FilterService.getFilter as jest.Mock).mockResolvedValue(mockFilter);
+
+      const result = await jiraService.getFilter('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockFilter);
+      expect(FilterService.getFilter).toHaveBeenCalledWith('10000', undefined);
+    });
+
+    it('updates a filter', async () => {
+      const mockFilter = { id: '10000', name: 'Renamed' };
+      (FilterService.editFilter as jest.Mock).mockResolvedValue(mockFilter);
+
+      const result = await jiraService.updateFilter('10000', 'Renamed');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockFilter);
+      expect(FilterService.editFilter).toHaveBeenCalledWith('10000', undefined, {
+        name: 'Renamed',
+        jql: undefined,
+        description: undefined,
+        favourite: undefined,
+      });
+    });
+
+    it('deletes a filter', async () => {
+      (FilterService.deleteFilter as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteFilter('10000');
+
+      expect(result.success).toBe(true);
+      expect(FilterService.deleteFilter).toHaveBeenCalledWith('10000');
+    });
+
+    it('gets favourite filters', async () => {
+      const mockFilters = [{ id: '10000', name: 'My open issues' }];
+      (FilterService.getFavouriteFilters as jest.Mock).mockResolvedValue(mockFilters);
+
+      const result = await jiraService.getFavouriteFilters();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockFilters);
+    });
+
+    it('handles errors', async () => {
+      (FilterService.createFilter as jest.Mock).mockRejectedValue(new Error('Filter name was not provided'));
+
+      const result = await jiraService.createFilter('', '');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Filter name was not provided');
     });
   });
 
