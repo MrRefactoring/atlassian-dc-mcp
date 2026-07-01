@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
 import {
   AttachmentService,
+  IssueLinkService,
   IssueService,
   IssuetypeService,
   MyselfService,
@@ -360,6 +361,26 @@ export class JiraService {
     );
   }
 
+  async linkIssues(inwardIssueKey: string, outwardIssueKey: string, linkTypeName: string, comment?: string) {
+    return handleApiOperation(
+      () => IssueLinkService.linkIssues({
+        inwardIssue: { key: inwardIssueKey },
+        outwardIssue: { key: outwardIssueKey },
+        type: { name: linkTypeName },
+        ...(comment ? { comment: { body: comment } } : {}),
+      }),
+      'Error linking issues'
+    );
+  }
+
+  async getIssueLink(linkId: string) {
+    return handleApiOperation(() => IssueLinkService.getIssueLink(linkId), 'Error getting issue link');
+  }
+
+  async deleteIssueLink(linkId: string) {
+    return handleApiOperation(() => IssueLinkService.deleteIssueLink(linkId), 'Error deleting issue link');
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -527,5 +548,17 @@ export const jiraToolSchemas = {
   },
   deleteAttachment: {
     attachmentId: z.string().describe("Id of the attachment to delete")
+  },
+  linkIssues: {
+    inwardIssueKey: z.string().describe("Key of the inward issue (e.g., the issue that 'blocks', 'is caused by', etc., depending on linkTypeName direction)"),
+    outwardIssueKey: z.string().describe("Key of the outward issue"),
+    linkTypeName: z.string().describe("Name of the issue link type (e.g., 'Blocks', 'Relates', 'Duplicate'). Use jira_getIssueLinkTypes to find valid names."),
+    comment: z.string().optional().describe("Optional comment added to the inward issue when the link is created")
+  },
+  getIssueLink: {
+    linkId: z.string().describe("Id of the issue link")
+  },
+  deleteIssueLink: {
+    linkId: z.string().describe("Id of the issue link to delete")
   }
 };
