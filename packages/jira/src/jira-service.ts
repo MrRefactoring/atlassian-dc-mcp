@@ -239,6 +239,24 @@ export class JiraService {
     return handleApiOperation(() => StatusService.getStatuses(), 'Error getting statuses');
   }
 
+  async getCreateIssueMetaIssueTypes(projectIdOrKey: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => IssueService.getCreateIssueMetaProjectIssueTypes(projectIdOrKey, maxResults?.toString(), startAt?.toString()),
+      'Error getting create-issue metadata issue types'
+    );
+  }
+
+  async getCreateIssueMetaFields(projectIdOrKey: string, issueTypeId: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => IssueService.getCreateIssueMetaFields(issueTypeId, projectIdOrKey, maxResults?.toString(), startAt?.toString()),
+      'Error getting create-issue metadata fields'
+    );
+  }
+
+  async getEditIssueMeta(issueKey: string) {
+    return handleApiOperation(() => IssueService.getEditIssueMeta(issueKey), 'Error getting edit-issue metadata');
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -323,5 +341,19 @@ export const jiraToolSchemas = {
   getIssueTypes: {},
   getPriorities: {},
   getResolutions: {},
-  getStatuses: {}
+  getStatuses: {},
+  getCreateIssueMetaIssueTypes: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    maxResults: z.number().optional().describe("Maximum number of issue types to return"),
+    startAt: z.number().optional().describe("Index of the first issue type to return")
+  },
+  getCreateIssueMetaFields: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    issueTypeId: z.string().describe("Issue type id. Use jira_getCreateIssueMetaIssueTypes to find valid ids for the project."),
+    maxResults: z.number().optional().describe("Maximum number of fields to return"),
+    startAt: z.number().optional().describe("Index of the first field to return")
+  },
+  getEditIssueMeta: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+  }
 };

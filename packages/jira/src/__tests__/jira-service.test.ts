@@ -29,6 +29,9 @@ jest.mock('../jira-client/index.js', () => ({
     createIssue: jest.fn(),
     getComments: jest.fn(),
     addComment: jest.fn(),
+    getCreateIssueMetaProjectIssueTypes: jest.fn(),
+    getCreateIssueMetaFields: jest.fn(),
+    getEditIssueMeta: jest.fn(),
   },
   SearchService: {
     searchUsingSearchRequest: jest.fn(),
@@ -493,6 +496,62 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockStatuses);
+    });
+  });
+
+  describe('getCreateIssueMetaIssueTypes', () => {
+    it('gets issue types available for creating an issue', async () => {
+      const mockTypes = { values: [{ id: '10001', name: 'Bug' }] };
+      (IssueService.getCreateIssueMetaProjectIssueTypes as jest.Mock).mockResolvedValue(mockTypes);
+
+      const result = await jiraService.getCreateIssueMetaIssueTypes('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockTypes);
+      expect(IssueService.getCreateIssueMetaProjectIssueTypes).toHaveBeenCalledWith('TEST', undefined, undefined);
+    });
+
+    it('forwards pagination as strings', async () => {
+      (IssueService.getCreateIssueMetaProjectIssueTypes as jest.Mock).mockResolvedValue({});
+
+      await jiraService.getCreateIssueMetaIssueTypes('TEST', 10, 5);
+
+      expect(IssueService.getCreateIssueMetaProjectIssueTypes).toHaveBeenCalledWith('TEST', '10', '5');
+    });
+  });
+
+  describe('getCreateIssueMetaFields', () => {
+    it('gets fields available for creating an issue of a given type', async () => {
+      const mockFields = { values: [{ fieldId: 'summary', required: true }] };
+      (IssueService.getCreateIssueMetaFields as jest.Mock).mockResolvedValue(mockFields);
+
+      const result = await jiraService.getCreateIssueMetaFields('TEST', '10001');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockFields);
+      expect(IssueService.getCreateIssueMetaFields).toHaveBeenCalledWith('10001', 'TEST', undefined, undefined);
+    });
+  });
+
+  describe('getEditIssueMeta', () => {
+    it('gets fields available for editing an issue', async () => {
+      const mockMeta = { fields: { summary: { required: true } } };
+      (IssueService.getEditIssueMeta as jest.Mock).mockResolvedValue(mockMeta);
+
+      const result = await jiraService.getEditIssueMeta(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockMeta);
+      expect(IssueService.getEditIssueMeta).toHaveBeenCalledWith(mockIssueKey);
+    });
+
+    it('handles permission errors', async () => {
+      (IssueService.getEditIssueMeta as jest.Mock).mockRejectedValue(new Error('Issue does not exist'));
+
+      const result = await jiraService.getEditIssueMeta('MISSING-1');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Issue does not exist');
     });
   });
 
