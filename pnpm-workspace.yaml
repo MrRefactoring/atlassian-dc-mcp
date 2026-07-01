@@ -1,0 +1,11 @@
+packages:
+  - 'packages/*'
+
+allowBuilds:
+  unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - '@types/node@26.1.0'
+
+overrides:
+  tar: ^7.5.11

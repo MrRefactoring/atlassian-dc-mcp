@@ -2,7 +2,7 @@ import {
   getProductRuntimeConfig,
   validateProductRuntimeConfig,
   type ProductDefinition,
-} from '@atlassian-dc-mcp/common';
+} from '@mrrefactoring/common';
 
 export const BITBUCKET_PRODUCT: ProductDefinition = {
   id: 'bitbucket',

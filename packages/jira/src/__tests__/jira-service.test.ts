@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { initializeRuntimeConfig } from '@atlassian-dc-mcp/common';
+import { initializeRuntimeConfig } from '@mrrefactoring/common';
 import { JiraService } from '../jira-service.js';
 import { IssueService, OpenAPI, SearchService } from '../jira-client/index.js';
 import { request as __request } from '../jira-client/core/request.js';
