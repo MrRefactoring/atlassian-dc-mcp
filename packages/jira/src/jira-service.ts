@@ -7,6 +7,7 @@ import {
   FilterService,
   GroupService,
   IssueLinkService,
+  IssueLinkTypeService,
   IssueService,
   IssuetypeService,
   MyselfService,
@@ -622,6 +623,34 @@ export class JiraService {
     return handleApiOperation(() => DashboardService.getDashboard(dashboardId), 'Error getting dashboard');
   }
 
+  async getIssueLinkTypes() {
+    return handleApiOperation(
+      () => IssueLinkTypeService.getIssueLinkTypes(),
+      'Error getting issue link types'
+    );
+  }
+
+  async createIssueLinkType(name: string, inward: string, outward: string) {
+    return handleApiOperation(
+      () => IssueLinkTypeService.createIssueLinkType({ name, inward, outward }),
+      'Error creating issue link type'
+    );
+  }
+
+  async updateIssueLinkType(issueLinkTypeId: string, name?: string, inward?: string, outward?: string) {
+    return handleApiOperation(
+      () => IssueLinkTypeService.updateIssueLinkType(issueLinkTypeId, { name, inward, outward }),
+      'Error updating issue link type'
+    );
+  }
+
+  async deleteIssueLinkType(issueLinkTypeId: string) {
+    return handleApiOperation(
+      () => IssueLinkTypeService.deleteIssueLinkType(issueLinkTypeId),
+      'Error deleting issue link type'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -969,5 +998,20 @@ export const jiraToolSchemas = {
   },
   getDashboard: {
     dashboardId: z.string().describe("Id of the dashboard")
+  },
+  getIssueLinkTypes: {},
+  createIssueLinkType: {
+    name: z.string().describe("Name of the new issue link type (e.g., 'Blocks')"),
+    inward: z.string().describe("Inward relationship description (e.g., 'is blocked by')"),
+    outward: z.string().describe("Outward relationship description (e.g., 'blocks')")
+  },
+  updateIssueLinkType: {
+    issueLinkTypeId: z.string().describe("Id of the issue link type to update. Use jira_getIssueLinkTypes to find ids."),
+    name: z.string().optional().describe("New name for the link type"),
+    inward: z.string().optional().describe("New inward relationship description"),
+    outward: z.string().optional().describe("New outward relationship description")
+  },
+  deleteIssueLinkType: {
+    issueLinkTypeId: z.string().describe("Id of the issue link type to delete")
   }
 };

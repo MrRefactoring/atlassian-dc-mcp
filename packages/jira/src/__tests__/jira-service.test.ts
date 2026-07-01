@@ -10,6 +10,7 @@ import {
   FilterService,
   GroupService,
   IssueLinkService,
+  IssueLinkTypeService,
   IssueService,
   IssuetypeService,
   OpenAPI,
@@ -66,6 +67,12 @@ jest.mock('../jira-client/index.js', () => ({
     linkIssues: jest.fn(),
     getIssueLink: jest.fn(),
     deleteIssueLink: jest.fn(),
+  },
+  IssueLinkTypeService: {
+    getIssueLinkTypes: jest.fn(),
+    createIssueLinkType: jest.fn(),
+    updateIssueLinkType: jest.fn(),
+    deleteIssueLinkType: jest.fn(),
   },
   ComponentService: {
     createComponent: jest.fn(),
@@ -1445,6 +1452,66 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('No dashboard with the specified id');
+    });
+  });
+
+  describe('issue link types', () => {
+    it('gets issue link types', async () => {
+      const mockTypes = { issueLinkTypes: [{ id: '10000', name: 'Blocks' }] };
+      (IssueLinkTypeService.getIssueLinkTypes as jest.Mock).mockResolvedValue(mockTypes);
+
+      const result = await jiraService.getIssueLinkTypes();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockTypes);
+    });
+
+    it('creates an issue link type', async () => {
+      const mockType = { id: '10000', name: 'Blocks' };
+      (IssueLinkTypeService.createIssueLinkType as jest.Mock).mockResolvedValue(mockType);
+
+      const result = await jiraService.createIssueLinkType('Blocks', 'is blocked by', 'blocks');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockType);
+      expect(IssueLinkTypeService.createIssueLinkType).toHaveBeenCalledWith({
+        name: 'Blocks',
+        inward: 'is blocked by',
+        outward: 'blocks',
+      });
+    });
+
+    it('updates an issue link type', async () => {
+      const mockType = { id: '10000', name: 'Blocks v2' };
+      (IssueLinkTypeService.updateIssueLinkType as jest.Mock).mockResolvedValue(mockType);
+
+      const result = await jiraService.updateIssueLinkType('10000', 'Blocks v2');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockType);
+      expect(IssueLinkTypeService.updateIssueLinkType).toHaveBeenCalledWith('10000', {
+        name: 'Blocks v2',
+        inward: undefined,
+        outward: undefined,
+      });
+    });
+
+    it('deletes an issue link type', async () => {
+      (IssueLinkTypeService.deleteIssueLinkType as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteIssueLinkType('10000');
+
+      expect(result.success).toBe(true);
+      expect(IssueLinkTypeService.deleteIssueLinkType).toHaveBeenCalledWith('10000');
+    });
+
+    it('handles errors', async () => {
+      (IssueLinkTypeService.deleteIssueLinkType as jest.Mock).mockRejectedValue(new Error('No issue link type with the given id exists'));
+
+      const result = await jiraService.deleteIssueLinkType('missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('No issue link type with the given id exists');
     });
   });
 

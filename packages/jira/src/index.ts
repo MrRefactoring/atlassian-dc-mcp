@@ -807,4 +807,44 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getIssueLinkTypes",
+  `Get all issue link types available in the ${jiraInstanceType} (e.g., "Blocks", "Relates", "Duplicate")`,
+  jiraToolSchemas.getIssueLinkTypes,
+  async () => {
+    const result = await jiraService.getIssueLinkTypes();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createIssueLinkType",
+  `Create a new issue link type in the ${jiraInstanceType}`,
+  jiraToolSchemas.createIssueLinkType,
+  async ({ name, inward, outward }) => {
+    const result = await jiraService.createIssueLinkType(name, inward, outward);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateIssueLinkType",
+  `Update an issue link type in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateIssueLinkType,
+  async ({ issueLinkTypeId, name, inward, outward }) => {
+    const result = await jiraService.updateIssueLinkType(issueLinkTypeId, name, inward, outward);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteIssueLinkType",
+  `Delete an issue link type from the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteIssueLinkType,
+  async ({ issueLinkTypeId }) => {
+    const result = await jiraService.deleteIssueLinkType(issueLinkTypeId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
