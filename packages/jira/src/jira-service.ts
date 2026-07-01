@@ -381,6 +381,13 @@ export class JiraService {
     return handleApiOperation(() => IssueLinkService.deleteIssueLink(linkId), 'Error deleting issue link');
   }
 
+  async assignIssue(issueKey: string, username: string | null) {
+    return handleApiOperation(
+      () => IssueService.assign(issueKey, { name: username } as unknown as { name: string }),
+      'Error assigning issue'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -560,5 +567,9 @@ export const jiraToolSchemas = {
   },
   deleteIssueLink: {
     linkId: z.string().describe("Id of the issue link to delete")
+  },
+  assignIssue: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    username: z.string().nullable().describe("Username to assign the issue to, '-1' for automatic assignee, or null to unassign")
   }
 };

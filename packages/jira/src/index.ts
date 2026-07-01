@@ -447,4 +447,14 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_assignIssue",
+  `Assign or unassign a JIRA issue in the ${jiraInstanceType} via the dedicated assignee endpoint. Equivalent to setting the assignee field via jira_updateIssue, but simpler for this one common case.`,
+  jiraToolSchemas.assignIssue,
+  async ({ issueKey, username }) => {
+    const result = await jiraService.assignIssue(issueKey, username);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

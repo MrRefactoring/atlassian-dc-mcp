@@ -49,6 +49,7 @@ jest.mock('../jira-client/index.js', () => ({
     updateWorklog: jest.fn(),
     deleteWorklog: jest.fn(),
     addAttachment: jest.fn(),
+    assign: jest.fn(),
   },
   AttachmentService: {
     getAttachmentMeta: jest.fn(),
@@ -903,6 +904,35 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Could not find issue link type');
+    });
+  });
+
+  describe('assignIssue', () => {
+    it('assigns an issue to a user', async () => {
+      (IssueService.assign as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.assignIssue(mockIssueKey, 'john.doe');
+
+      expect(result.success).toBe(true);
+      expect(IssueService.assign).toHaveBeenCalledWith(mockIssueKey, { name: 'john.doe' });
+    });
+
+    it('unassigns an issue when username is null', async () => {
+      (IssueService.assign as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.assignIssue(mockIssueKey, null);
+
+      expect(result.success).toBe(true);
+      expect(IssueService.assign).toHaveBeenCalledWith(mockIssueKey, { name: null });
+    });
+
+    it('handles permission errors', async () => {
+      (IssueService.assign as jest.Mock).mockRejectedValue(new Error('User does not have permission to assign the issue'));
+
+      const result = await jiraService.assignIssue(mockIssueKey, 'john.doe');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('User does not have permission to assign the issue');
     });
   });
 
