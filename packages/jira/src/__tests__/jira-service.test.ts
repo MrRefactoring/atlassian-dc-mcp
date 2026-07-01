@@ -3,7 +3,17 @@ import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from '@mrrefactoring/atlassian-dc-mcp-core';
 import { JiraService } from '../jira-service.js';
-import { IssueService, OpenAPI, SearchService } from '../jira-client/index.js';
+import {
+  IssueService,
+  IssuetypeService,
+  OpenAPI,
+  PriorityService,
+  ProjectService,
+  ProjectsService,
+  ResolutionService,
+  SearchService,
+  StatusService,
+} from '../jira-client/index.js';
 import { request as __request } from '../jira-client/core/request.js';
 
 jest.mock('../jira-client/core/request.js', () => ({
@@ -22,6 +32,27 @@ jest.mock('../jira-client/index.js', () => ({
   },
   SearchService: {
     searchUsingSearchRequest: jest.fn(),
+  },
+  ProjectService: {
+    getAllProjects: jest.fn(),
+    getProject: jest.fn(),
+    getProjectComponents: jest.fn(),
+    getProjectVersions: jest.fn(),
+  },
+  ProjectsService: {
+    searchForProjects: jest.fn(),
+  },
+  IssuetypeService: {
+    getIssueAllTypes: jest.fn(),
+  },
+  PriorityService: {
+    getPriorities: jest.fn(),
+  },
+  ResolutionService: {
+    getResolutions: jest.fn(),
+  },
+  StatusService: {
+    getStatuses: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -329,6 +360,139 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Issue does not exist');
+    });
+  });
+
+  describe('getProjects', () => {
+    it('gets all visible projects', async () => {
+      const mockProjects = [{ key: 'TEST' }];
+      (ProjectService.getAllProjects as jest.Mock).mockResolvedValue(mockProjects);
+
+      const result = await jiraService.getProjects();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProjects);
+      expect(ProjectService.getAllProjects).toHaveBeenCalledWith(undefined, undefined, undefined);
+    });
+
+    it('forwards includeArchived, expand, and recent', async () => {
+      (ProjectService.getAllProjects as jest.Mock).mockResolvedValue([]);
+
+      await jiraService.getProjects(true, 'lead', 5);
+
+      expect(ProjectService.getAllProjects).toHaveBeenCalledWith(true, 'lead', 5);
+    });
+
+    it('handles API errors', async () => {
+      (ProjectService.getAllProjects as jest.Mock).mockRejectedValue(new Error('Not authenticated'));
+
+      const result = await jiraService.getProjects();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authenticated');
+    });
+  });
+
+  describe('searchProjects', () => {
+    it('searches projects by query', async () => {
+      const mockResult = { total: 1 };
+      (ProjectsService.searchForProjects as jest.Mock).mockResolvedValue(mockResult);
+
+      const result = await jiraService.searchProjects('TES');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockResult);
+      expect(ProjectsService.searchForProjects).toHaveBeenCalledWith(undefined, 'TES', undefined);
+    });
+  });
+
+  describe('getProject', () => {
+    it('gets a single project by id or key', async () => {
+      const mockProject = { key: 'TEST' };
+      (ProjectService.getProject as jest.Mock).mockResolvedValue(mockProject);
+
+      const result = await jiraService.getProject('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProject);
+      expect(ProjectService.getProject).toHaveBeenCalledWith('TEST', undefined);
+    });
+
+    it('handles project not found errors', async () => {
+      (ProjectService.getProject as jest.Mock).mockRejectedValue(new Error('Project not found'));
+
+      const result = await jiraService.getProject('MISSING');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Project not found');
+    });
+  });
+
+  describe('getProjectComponents', () => {
+    it('gets project components', async () => {
+      const mockComponents = [{ name: 'Backend' }];
+      (ProjectService.getProjectComponents as jest.Mock).mockResolvedValue(mockComponents);
+
+      const result = await jiraService.getProjectComponents('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockComponents);
+      expect(ProjectService.getProjectComponents).toHaveBeenCalledWith('TEST');
+    });
+  });
+
+  describe('getProjectVersions', () => {
+    it('gets project versions', async () => {
+      const mockVersions = [{ name: '1.0' }];
+      (ProjectService.getProjectVersions as jest.Mock).mockResolvedValue(mockVersions);
+
+      const result = await jiraService.getProjectVersions('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockVersions);
+      expect(ProjectService.getProjectVersions).toHaveBeenCalledWith('TEST', undefined);
+    });
+  });
+
+  describe('reference data lookups', () => {
+    it('gets issue types', async () => {
+      const mockTypes = [{ name: 'Bug' }];
+      (IssuetypeService.getIssueAllTypes as jest.Mock).mockResolvedValue(mockTypes);
+
+      const result = await jiraService.getIssueTypes();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockTypes);
+    });
+
+    it('gets priorities', async () => {
+      const mockPriorities = [{ name: 'High' }];
+      (PriorityService.getPriorities as jest.Mock).mockResolvedValue(mockPriorities);
+
+      const result = await jiraService.getPriorities();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPriorities);
+    });
+
+    it('gets resolutions', async () => {
+      const mockResolutions = [{ name: 'Fixed' }];
+      (ResolutionService.getResolutions as jest.Mock).mockResolvedValue(mockResolutions);
+
+      const result = await jiraService.getResolutions();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockResolutions);
+    });
+
+    it('gets statuses', async () => {
+      const mockStatuses = [{ name: 'Open' }];
+      (StatusService.getStatuses as jest.Mock).mockResolvedValue(mockStatuses);
+
+      const result = await jiraService.getStatuses();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockStatuses);
     });
   });
 

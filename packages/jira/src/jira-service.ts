@@ -1,6 +1,17 @@
 import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
-import { IssueService, MyselfService, OpenAPI, SearchService } from './jira-client/index.js';
+import {
+  IssueService,
+  IssuetypeService,
+  MyselfService,
+  OpenAPI,
+  PriorityService,
+  ProjectService,
+  ProjectsService,
+  ResolutionService,
+  SearchService,
+  StatusService,
+} from './jira-client/index.js';
 import { request as __request } from './jira-client/core/request.js';
 import type { StringList } from './jira-client/models/StringList.js';
 import { getDefaultPageSize, getMissingConfig, JIRA_PRODUCT } from './config.js';
@@ -177,6 +188,57 @@ export class JiraService {
     }, 'Error transitioning issue');
   }
 
+  async getProjects(includeArchived?: boolean, expand?: string, recent?: number) {
+    return handleApiOperation(
+      () => ProjectService.getAllProjects(includeArchived, expand, recent),
+      'Error getting projects'
+    );
+  }
+
+  async searchProjects(query: string, maxResults?: number, allowEmptyQuery?: boolean) {
+    return handleApiOperation(
+      () => ProjectsService.searchForProjects(maxResults, query, allowEmptyQuery),
+      'Error searching projects'
+    );
+  }
+
+  async getProject(projectIdOrKey: string, expand?: string) {
+    return handleApiOperation(
+      () => ProjectService.getProject(projectIdOrKey, expand),
+      'Error getting project'
+    );
+  }
+
+  async getProjectComponents(projectIdOrKey: string) {
+    return handleApiOperation(
+      () => ProjectService.getProjectComponents(projectIdOrKey),
+      'Error getting project components'
+    );
+  }
+
+  async getProjectVersions(projectIdOrKey: string, expand?: string) {
+    return handleApiOperation(
+      () => ProjectService.getProjectVersions(projectIdOrKey, expand),
+      'Error getting project versions'
+    );
+  }
+
+  async getIssueTypes() {
+    return handleApiOperation(() => IssuetypeService.getIssueAllTypes(), 'Error getting issue types');
+  }
+
+  async getPriorities() {
+    return handleApiOperation(() => PriorityService.getPriorities(), 'Error getting priorities');
+  }
+
+  async getResolutions() {
+    return handleApiOperation(() => ResolutionService.getResolutions(), 'Error getting resolutions');
+  }
+
+  async getStatuses() {
+    return handleApiOperation(() => StatusService.getStatuses(), 'Error getting statuses');
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -236,5 +298,30 @@ export const jiraToolSchemas = {
     transitionId: z.string().describe("The ID of the transition to perform. Use jira_getTransitions to find available transitions and their IDs."),
     fields: z.record(z.any()).optional().describe("Optional fields required by the transition screen. Use jira_getTransitions to see which fields are available for each transition."),
     customFields: z.record(z.any()).optional().describe("Optional fields merged into the JIRA transition payload. Can be used for update operations such as comments. Example: {'update': {'comment': [{'add': {'body': 'text'}}]}}")
-  }
+  },
+  getProjects: {
+    includeArchived: z.boolean().optional().describe("Whether to include archived projects in the response"),
+    expand: z.string().optional().describe("Comma-separated project sections to expand, such as description, lead, or issueTypes"),
+    recent: z.number().optional().describe("Limit results to this many recently viewed projects")
+  },
+  searchProjects: {
+    query: z.string().describe("Free-text query matched against project name and/or key"),
+    maxResults: z.number().optional().describe("Maximum number of matching projects to return (hard limit of 100)"),
+    allowEmptyQuery: z.boolean().optional().describe("Whether an empty query should match all projects instead of none")
+  },
+  getProject: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    expand: z.string().optional().describe("Comma-separated project sections to expand, such as description, lead, or issueTypes")
+  },
+  getProjectComponents: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)")
+  },
+  getProjectVersions: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    expand: z.string().optional().describe("Comma-separated version sections to expand, such as operations")
+  },
+  getIssueTypes: {},
+  getPriorities: {},
+  getResolutions: {},
+  getStatuses: {}
 };

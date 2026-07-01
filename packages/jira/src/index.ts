@@ -117,4 +117,94 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getProjects",
+  `Get all projects visible to the current user in the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjects,
+  async ({ includeArchived, expand, recent }) => {
+    const result = await jiraService.getProjects(includeArchived, expand, recent);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_searchProjects",
+  `Search for projects by name or key using the picker-style search in the ${jiraInstanceType}`,
+  jiraToolSchemas.searchProjects,
+  async ({ query, maxResults, allowEmptyQuery }) => {
+    const result = await jiraService.searchProjects(query, maxResults, allowEmptyQuery);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getProject",
+  `Get details of a single project by id or key from the ${jiraInstanceType}`,
+  jiraToolSchemas.getProject,
+  async ({ projectIdOrKey, expand }) => {
+    const result = await jiraService.getProject(projectIdOrKey, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getProjectComponents",
+  `Get all components of a project from the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectComponents,
+  async ({ projectIdOrKey }) => {
+    const result = await jiraService.getProjectComponents(projectIdOrKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getProjectVersions",
+  `Get all versions of a project from the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectVersions,
+  async ({ projectIdOrKey, expand }) => {
+    const result = await jiraService.getProjectVersions(projectIdOrKey, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueTypes",
+  `Get all issue types available in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueTypes,
+  async () => {
+    const result = await jiraService.getIssueTypes();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getPriorities",
+  `Get all issue priorities available in the ${jiraInstanceType}`,
+  jiraToolSchemas.getPriorities,
+  async () => {
+    const result = await jiraService.getPriorities();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getResolutions",
+  `Get all issue resolutions available in the ${jiraInstanceType}`,
+  jiraToolSchemas.getResolutions,
+  async () => {
+    const result = await jiraService.getResolutions();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getStatuses",
+  `Get all issue statuses available in the ${jiraInstanceType}`,
+  jiraToolSchemas.getStatuses,
+  async () => {
+    const result = await jiraService.getStatuses();
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
