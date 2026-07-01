@@ -3,6 +3,7 @@ import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian
 import {
   AttachmentService,
   ComponentService,
+  GroupService,
   IssueLinkService,
   IssueService,
   IssuetypeService,
@@ -14,6 +15,7 @@ import {
   ResolutionService,
   SearchService,
   StatusService,
+  UserService,
   VersionService,
 } from './jira-client/index.js';
 import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
@@ -525,6 +527,59 @@ export class JiraService {
     );
   }
 
+  async getUser(username?: string, key?: string, includeDeleted?: boolean) {
+    return handleApiOperation(
+      () => UserService.getUser1(includeDeleted, key, username),
+      'Error getting user'
+    );
+  }
+
+  async findUsers(username: string, maxResults?: number, startAt?: number, includeActive?: boolean, includeInactive?: boolean) {
+    return handleApiOperation(
+      () => UserService.findUsers(includeInactive, maxResults, includeActive, startAt, username),
+      'Error finding users'
+    );
+  }
+
+  async findAssignableUsers(project: string, issueKey?: string, username?: string, maxResults?: number) {
+    return handleApiOperation(
+      () => UserService.findAssignableUsers1(issueKey, maxResults ?? 50, project, undefined, username),
+      'Error finding assignable users'
+    );
+  }
+
+  async createGroup(name: string) {
+    return handleApiOperation(() => GroupService.createGroup({ name }), 'Error creating group');
+  }
+
+  async deleteGroup(groupname: string, swapGroup?: string) {
+    return handleApiOperation(
+      () => GroupService.removeGroup(groupname, swapGroup),
+      'Error deleting group'
+    );
+  }
+
+  async getGroupUsers(groupname: string, includeInactiveUsers?: boolean, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => GroupService.getUsersFromGroup(groupname, includeInactiveUsers?.toString(), maxResults?.toString(), startAt?.toString()),
+      'Error getting group users'
+    );
+  }
+
+  async addUserToGroup(groupname: string, username: string) {
+    return handleApiOperation(
+      () => GroupService.addUserToGroup(groupname, { name: username }),
+      'Error adding user to group'
+    );
+  }
+
+  async removeUserFromGroup(groupname: string, username: string) {
+    return handleApiOperation(
+      () => GroupService.removeUserFromGroup(groupname, username),
+      'Error removing user from group'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -804,5 +859,44 @@ export const jiraToolSchemas = {
     roleId: z.number().describe("Id of the project role. Use jira_getProjectRoles to find role ids."),
     user: z.string().optional().describe("Username of the actor to remove"),
     group: z.string().optional().describe("Group name of the actor to remove")
+  },
+  getUser: {
+    username: z.string().optional().describe("Username to look up. Either username or key must be provided."),
+    key: z.string().optional().describe("User key to look up. Either username or key must be provided."),
+    includeDeleted: z.boolean().optional().describe("Whether to include deleted users in the lookup")
+  },
+  findUsers: {
+    username: z.string().describe("Free-text query matched against username, name, and email. Use '.' or '' to match all users."),
+    maxResults: z.number().optional().describe("Maximum number of users to return"),
+    startAt: z.number().optional().describe("Index of the first user to return"),
+    includeActive: z.boolean().optional().describe("Whether to include active users (default true)"),
+    includeInactive: z.boolean().optional().describe("Whether to include inactive users (default false)")
+  },
+  findAssignableUsers: {
+    project: z.string().describe("Project key to search assignable users within"),
+    issueKey: z.string().optional().describe("JIRA issue key to search assignable users for, instead of/in addition to project"),
+    username: z.string().optional().describe("Free-text query to filter candidate usernames"),
+    maxResults: z.number().optional().describe("Maximum number of users to return (default 50)")
+  },
+  createGroup: {
+    name: z.string().describe("Name of the group to create")
+  },
+  deleteGroup: {
+    groupname: z.string().describe("Name of the group to delete"),
+    swapGroup: z.string().optional().describe("Name of another group to transfer this group's permissions/restrictions to")
+  },
+  getGroupUsers: {
+    groupname: z.string().describe("Name of the group"),
+    includeInactiveUsers: z.boolean().optional().describe("Whether to include inactive users"),
+    maxResults: z.number().optional().describe("Maximum number of users to return"),
+    startAt: z.number().optional().describe("Index of the first user to return")
+  },
+  addUserToGroup: {
+    groupname: z.string().describe("Name of the group"),
+    username: z.string().describe("Username of the user to add")
+  },
+  removeUserFromGroup: {
+    groupname: z.string().describe("Name of the group"),
+    username: z.string().describe("Username of the user to remove")
   }
 };
