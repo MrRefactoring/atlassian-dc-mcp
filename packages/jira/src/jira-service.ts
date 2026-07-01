@@ -264,6 +264,20 @@ export class JiraService {
     );
   }
 
+  async updateIssueComment(issueKey: string, commentId: string, comment: string) {
+    return handleApiOperation(
+      () => IssueService.updateComment(issueKey, commentId, undefined, { body: comment }),
+      'Error updating issue comment'
+    );
+  }
+
+  async deleteIssueComment(issueKey: string, commentId: string) {
+    return handleApiOperation(
+      () => IssueService.deleteComment(issueKey, commentId),
+      'Error deleting issue comment'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -366,5 +380,14 @@ export const jiraToolSchemas = {
   deleteIssue: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
     deleteSubtasks: z.boolean().optional().describe("Whether to also delete the issue's subtasks. If false and subtasks exist, the delete fails.")
+  },
+  updateIssueComment: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    commentId: z.string().describe("Id of the comment to update. Use jira_getIssueComments to find comment ids."),
+    comment: z.string().describe("New comment text in the format suitable for JIRA DATA CENTER edition (JIRA Wiki Markup).")
+  },
+  deleteIssueComment: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    commentId: z.string().describe("Id of the comment to delete. Use jira_getIssueComments to find comment ids.")
   }
 };

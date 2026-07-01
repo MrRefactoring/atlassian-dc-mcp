@@ -33,6 +33,8 @@ jest.mock('../jira-client/index.js', () => ({
     getCreateIssueMetaFields: jest.fn(),
     getEditIssueMeta: jest.fn(),
     deleteIssue: jest.fn(),
+    updateComment: jest.fn(),
+    deleteComment: jest.fn(),
   },
   SearchService: {
     searchUsingSearchRequest: jest.fn(),
@@ -581,6 +583,48 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('User does not have permission to delete this issue');
+    });
+  });
+
+  describe('updateIssueComment', () => {
+    it('updates a comment', async () => {
+      const mockComment = { id: '10000', body: 'Updated text' };
+      (IssueService.updateComment as jest.Mock).mockResolvedValue(mockComment);
+
+      const result = await jiraService.updateIssueComment(mockIssueKey, '10000', 'Updated text');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockComment);
+      expect(IssueService.updateComment).toHaveBeenCalledWith(mockIssueKey, '10000', undefined, { body: 'Updated text' });
+    });
+
+    it('handles comment not found errors', async () => {
+      (IssueService.updateComment as jest.Mock).mockRejectedValue(new Error('Comment does not exist'));
+
+      const result = await jiraService.updateIssueComment(mockIssueKey, 'missing', 'text');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Comment does not exist');
+    });
+  });
+
+  describe('deleteIssueComment', () => {
+    it('deletes a comment', async () => {
+      (IssueService.deleteComment as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteIssueComment(mockIssueKey, '10000');
+
+      expect(result.success).toBe(true);
+      expect(IssueService.deleteComment).toHaveBeenCalledWith(mockIssueKey, '10000');
+    });
+
+    it('handles permission errors', async () => {
+      (IssueService.deleteComment as jest.Mock).mockRejectedValue(new Error('User does not have permission to delete this comment'));
+
+      const result = await jiraService.deleteIssueComment(mockIssueKey, '10000');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('User does not have permission to delete this comment');
     });
   });
 
