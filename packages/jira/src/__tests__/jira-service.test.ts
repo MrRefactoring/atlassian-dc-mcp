@@ -16,6 +16,7 @@ import {
   ResolutionService,
   SearchService,
   StatusService,
+  VersionService,
 } from '../jira-client/index.js';
 import { request as __request } from '../jira-client/core/request.js';
 
@@ -69,6 +70,17 @@ jest.mock('../jira-client/index.js', () => ({
     updateComponent: jest.fn(),
     delete: jest.fn(),
     getComponentRelatedIssues: jest.fn(),
+  },
+  VersionService: {
+    createVersion: jest.fn(),
+    getPaginatedVersions: jest.fn(),
+    getVersion: jest.fn(),
+    updateVersion: jest.fn(),
+    delete1: jest.fn(),
+    merge: jest.fn(),
+    moveVersion: jest.fn(),
+    getVersionRelatedIssues: jest.fn(),
+    getVersionUnresolvedIssues: jest.fn(),
   },
   SearchService: {
     searchUsingSearchRequest: jest.fn(),
@@ -1016,6 +1028,123 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockCounts);
+    });
+  });
+
+  describe('versions', () => {
+    it('creates a version', async () => {
+      const mockVersion = { id: '10000', name: '1.0' };
+      (VersionService.createVersion as jest.Mock).mockResolvedValue(mockVersion);
+
+      const result = await jiraService.createVersion('TEST', '1.0');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockVersion);
+      expect(VersionService.createVersion).toHaveBeenCalledWith({
+        project: 'TEST',
+        name: '1.0',
+        description: undefined,
+        releaseDate: undefined,
+        startDate: undefined,
+      });
+    });
+
+    it('gets paginated versions with defaults', async () => {
+      const mockPage = { values: [{ name: '1.0' }] };
+      (VersionService.getPaginatedVersions as jest.Mock).mockResolvedValue(mockPage);
+
+      const result = await jiraService.getVersions();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPage);
+      expect(VersionService.getPaginatedVersions).toHaveBeenCalledWith(100, '', undefined, undefined);
+    });
+
+    it('gets a single version', async () => {
+      const mockVersion = { id: '10000', name: '1.0' };
+      (VersionService.getVersion as jest.Mock).mockResolvedValue(mockVersion);
+
+      const result = await jiraService.getVersion('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockVersion);
+      expect(VersionService.getVersion).toHaveBeenCalledWith('10000', undefined);
+    });
+
+    it('updates a version', async () => {
+      (VersionService.updateVersion as jest.Mock).mockResolvedValue({ id: '10000', released: true });
+
+      const result = await jiraService.updateVersion('10000', undefined, undefined, true);
+
+      expect(result.success).toBe(true);
+      expect(VersionService.updateVersion).toHaveBeenCalledWith('10000', {
+        name: undefined,
+        description: undefined,
+        released: true,
+        archived: undefined,
+        releaseDate: undefined,
+      });
+    });
+
+    it('deletes and replaces a version', async () => {
+      (VersionService.delete1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteAndReplaceVersion('10000', 10001, 10002);
+
+      expect(result.success).toBe(true);
+      expect(VersionService.delete1).toHaveBeenCalledWith('10000', {
+        moveFixIssuesTo: 10001,
+        moveAffectedIssuesTo: 10002,
+      });
+    });
+
+    it('merges a version into another', async () => {
+      (VersionService.merge as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.mergeVersion('10000', '10001');
+
+      expect(result.success).toBe(true);
+      expect(VersionService.merge).toHaveBeenCalledWith('10001', '10000');
+    });
+
+    it('moves a version', async () => {
+      const mockVersion = { id: '10000' };
+      (VersionService.moveVersion as jest.Mock).mockResolvedValue(mockVersion);
+
+      const result = await jiraService.moveVersion('10000', 'First');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockVersion);
+      expect(VersionService.moveVersion).toHaveBeenCalledWith('10000', { position: 'First', after: undefined });
+    });
+
+    it('gets version related issue counts', async () => {
+      const mockCounts = { issuesFixedCount: 3 };
+      (VersionService.getVersionRelatedIssues as jest.Mock).mockResolvedValue(mockCounts);
+
+      const result = await jiraService.getVersionRelatedIssues('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCounts);
+    });
+
+    it('gets version unresolved issue counts', async () => {
+      const mockCounts = { issuesUnresolvedCount: 1 };
+      (VersionService.getVersionUnresolvedIssues as jest.Mock).mockResolvedValue(mockCounts);
+
+      const result = await jiraService.getVersionUnresolvedIssues('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCounts);
+    });
+
+    it('handles errors', async () => {
+      (VersionService.getVersion as jest.Mock).mockRejectedValue(new Error('Version does not exist'));
+
+      const result = await jiraService.getVersion('missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Version does not exist');
     });
   });
 

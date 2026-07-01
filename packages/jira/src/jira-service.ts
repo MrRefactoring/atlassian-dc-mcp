@@ -14,7 +14,9 @@ import {
   ResolutionService,
   SearchService,
   StatusService,
+  VersionService,
 } from './jira-client/index.js';
+import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
 import { request as __request } from './jira-client/core/request.js';
 import type { StringList } from './jira-client/models/StringList.js';
 import { getDefaultPageSize, getMissingConfig, JIRA_PRODUCT } from './config.js';
@@ -428,6 +430,66 @@ export class JiraService {
     );
   }
 
+  async createVersion(projectKey: string, name: string, description?: string, releaseDate?: string, startDate?: string) {
+    return handleApiOperation(
+      () => VersionService.createVersion({ project: projectKey, name, description, releaseDate, startDate }),
+      'Error creating version'
+    );
+  }
+
+  async getVersions(projectIds?: number[], query?: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => VersionService.getPaginatedVersions(maxResults ?? 100, query ?? '', projectIds, startAt),
+      'Error getting versions'
+    );
+  }
+
+  async getVersion(versionId: string, expand?: string) {
+    return handleApiOperation(() => VersionService.getVersion(versionId, expand), 'Error getting version');
+  }
+
+  async updateVersion(versionId: string, name?: string, description?: string, released?: boolean, archived?: boolean, releaseDate?: string) {
+    return handleApiOperation(
+      () => VersionService.updateVersion(versionId, { name, description, released, archived, releaseDate }),
+      'Error updating version'
+    );
+  }
+
+  async deleteAndReplaceVersion(versionId: string, moveFixIssuesTo?: number, moveAffectedIssuesTo?: number) {
+    return handleApiOperation(
+      () => VersionService.delete1(versionId, { moveFixIssuesTo, moveAffectedIssuesTo }),
+      'Error deleting version'
+    );
+  }
+
+  async mergeVersion(versionId: string, moveIssuesToVersionId: string) {
+    return handleApiOperation(
+      () => VersionService.merge(moveIssuesToVersionId, versionId),
+      'Error merging version'
+    );
+  }
+
+  async moveVersion(versionId: string, position?: 'Earlier' | 'Later' | 'First' | 'Last', after?: string) {
+    return handleApiOperation(
+      () => VersionService.moveVersion(versionId, { position: position as VersionMoveBean.position | undefined, after }),
+      'Error moving version'
+    );
+  }
+
+  async getVersionRelatedIssues(versionId: string) {
+    return handleApiOperation(
+      () => VersionService.getVersionRelatedIssues(versionId),
+      'Error getting version related issue counts'
+    );
+  }
+
+  async getVersionUnresolvedIssues(versionId: string) {
+    return handleApiOperation(
+      () => VersionService.getVersionUnresolvedIssues(versionId),
+      'Error getting version unresolved issue counts'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -638,5 +700,50 @@ export const jiraToolSchemas = {
   },
   getComponentRelatedIssues: {
     componentId: z.string().describe("Id of the component")
+  },
+  createVersion: {
+    projectKey: z.string().describe("Project key the version belongs to (e.g., TEST)"),
+    name: z.string().describe("Version name (e.g., '1.0')"),
+    description: z.string().optional().describe("Version description"),
+    releaseDate: z.string().optional().describe("Planned/actual release date (e.g., '2024-01-15')"),
+    startDate: z.string().optional().describe("Planned start date (e.g., '2024-01-01')")
+  },
+  getVersions: {
+    projectIds: z.array(z.number()).optional().describe("Project ids to filter versions by"),
+    query: z.string().optional().describe("Free-text query matched against version names"),
+    maxResults: z.number().optional().describe("Maximum number of versions to return (default 100)"),
+    startAt: z.number().optional().describe("Index of the first version to return")
+  },
+  getVersion: {
+    versionId: z.string().describe("Id of the version"),
+    expand: z.string().optional().describe("Comma-separated version sections to expand, such as operations")
+  },
+  updateVersion: {
+    versionId: z.string().describe("Id of the version to update"),
+    name: z.string().optional().describe("New version name"),
+    description: z.string().optional().describe("New version description"),
+    released: z.boolean().optional().describe("Whether the version is released"),
+    archived: z.boolean().optional().describe("Whether the version is archived"),
+    releaseDate: z.string().optional().describe("New release date")
+  },
+  deleteAndReplaceVersion: {
+    versionId: z.string().describe("Id of the version to delete"),
+    moveFixIssuesTo: z.number().optional().describe("Id of the version to move issues with this fixVersion to. If omitted, the fixVersion is simply removed."),
+    moveAffectedIssuesTo: z.number().optional().describe("Id of the version to move issues with this affectedVersion to. If omitted, the affectedVersion is simply removed.")
+  },
+  mergeVersion: {
+    versionId: z.string().describe("Id of the version to merge away"),
+    moveIssuesToVersionId: z.string().describe("Id of the version that will absorb the merged version's issues")
+  },
+  moveVersion: {
+    versionId: z.string().describe("Id of the version to reposition"),
+    position: z.enum(['Earlier', 'Later', 'First', 'Last']).optional().describe("Relative position to move the version to within its project's version sequence"),
+    after: z.string().describe("URI (self link) of the version to place this version after, from jira_getVersions/jira_getVersion. Required unless position is set.").optional()
+  },
+  getVersionRelatedIssues: {
+    versionId: z.string().describe("Id of the version")
+  },
+  getVersionUnresolvedIssues: {
+    versionId: z.string().describe("Id of the version")
   }
 };
