@@ -267,4 +267,64 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getIssueWatchers",
+  `Get the list of users watching a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueWatchers,
+  async ({ issueKey }) => {
+    const result = await jiraService.getIssueWatchers(issueKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addIssueWatcher",
+  `Add a user as a watcher of a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.addIssueWatcher,
+  async ({ issueKey, username }) => {
+    const result = await jiraService.addIssueWatcher(issueKey, username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_removeIssueWatcher",
+  `Remove a user as a watcher of a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.removeIssueWatcher,
+  async ({ issueKey, username }) => {
+    const result = await jiraService.removeIssueWatcher(issueKey, username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueVotes",
+  `Get vote information for a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueVotes,
+  async ({ issueKey }) => {
+    const result = await jiraService.getIssueVotes(issueKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addIssueVote",
+  `Cast a vote for a JIRA issue in the ${jiraInstanceType} (as the current user)`,
+  jiraToolSchemas.addIssueVote,
+  async ({ issueKey }) => {
+    const result = await jiraService.addIssueVote(issueKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_removeIssueVote",
+  `Remove the current user's vote from a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.removeIssueVote,
+  async ({ issueKey }) => {
+    const result = await jiraService.removeIssueVote(issueKey);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

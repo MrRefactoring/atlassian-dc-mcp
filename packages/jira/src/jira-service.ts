@@ -278,6 +278,36 @@ export class JiraService {
     );
   }
 
+  async getIssueWatchers(issueKey: string) {
+    return handleApiOperation(() => IssueService.getIssueWatchers(issueKey), 'Error getting issue watchers');
+  }
+
+  async addIssueWatcher(issueKey: string, username: string) {
+    return handleApiOperation(
+      () => IssueService.addWatcher1(issueKey, undefined, username),
+      'Error adding issue watcher'
+    );
+  }
+
+  async removeIssueWatcher(issueKey: string, username: string) {
+    return handleApiOperation(
+      () => IssueService.removeWatcher1(issueKey, username),
+      'Error removing issue watcher'
+    );
+  }
+
+  async getIssueVotes(issueKey: string) {
+    return handleApiOperation(() => IssueService.getVotes(issueKey), 'Error getting issue votes');
+  }
+
+  async addIssueVote(issueKey: string) {
+    return handleApiOperation(() => IssueService.addVote(issueKey), 'Error adding issue vote');
+  }
+
+  async removeIssueVote(issueKey: string) {
+    return handleApiOperation(() => IssueService.removeVote(issueKey), 'Error removing issue vote');
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -389,5 +419,25 @@ export const jiraToolSchemas = {
   deleteIssueComment: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
     commentId: z.string().describe("Id of the comment to delete. Use jira_getIssueComments to find comment ids.")
+  },
+  getIssueWatchers: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+  },
+  addIssueWatcher: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    username: z.string().describe("Username of the user to add as a watcher")
+  },
+  removeIssueWatcher: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    username: z.string().describe("Username of the watcher to remove")
+  },
+  getIssueVotes: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+  },
+  addIssueVote: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+  },
+  removeIssueVote: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
   }
 };
