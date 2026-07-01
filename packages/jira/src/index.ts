@@ -417,4 +417,34 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_linkIssues",
+  `Create a link between two JIRA issues in the ${jiraInstanceType} (e.g., "blocks", "relates to")`,
+  jiraToolSchemas.linkIssues,
+  async ({ inwardIssueKey, outwardIssueKey, linkTypeName, comment }) => {
+    const result = await jiraService.linkIssues(inwardIssueKey, outwardIssueKey, linkTypeName, comment);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueLink",
+  `Get details of a link between two JIRA issues in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueLink,
+  async ({ linkId }) => {
+    const result = await jiraService.getIssueLink(linkId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteIssueLink",
+  `Delete a link between two JIRA issues in the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteIssueLink,
+  async ({ linkId }) => {
+    const result = await jiraService.deleteIssueLink(linkId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
