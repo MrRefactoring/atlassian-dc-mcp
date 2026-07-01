@@ -6,6 +6,7 @@ import {
   BoardService,
   ComponentService,
   DashboardService,
+  EpicService,
   FilterService,
   GroupService,
   IssueLinkService,
@@ -800,6 +801,38 @@ export class JiraService {
     );
   }
 
+  async getEpic(epicIdOrKey: string) {
+    return handleApiOperation(() => EpicService.getEpic(epicIdOrKey), 'Error getting epic');
+  }
+
+  async updateEpic(epicIdOrKey: string, name?: string, summary?: string, done?: boolean) {
+    return handleApiOperation(
+      () => EpicService.partiallyUpdateEpic(epicIdOrKey, { name, summary, done }),
+      'Error updating epic'
+    );
+  }
+
+  async getEpicIssues(epicIdOrKey: string, jql?: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => EpicService.getIssuesForEpic1(epicIdOrKey, undefined, jql, maxResults, undefined, undefined, startAt),
+      'Error getting epic issues'
+    );
+  }
+
+  async moveIssuesToEpic(epicIdOrKey: string, issueKeys: string[]) {
+    return handleApiOperation(
+      () => EpicService.moveIssuesToEpic(epicIdOrKey, { issues: issueKeys }),
+      'Error moving issues to epic'
+    );
+  }
+
+  async rankEpic(epicIdOrKey: string, rankBeforeEpic?: string, rankAfterEpic?: string, rankCustomFieldId?: number) {
+    return handleApiOperation(
+      () => EpicService.rankEpics(epicIdOrKey, { rankBeforeEpic, rankAfterEpic, rankCustomFieldId }),
+      'Error ranking epic'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1272,5 +1305,30 @@ export const jiraToolSchemas = {
   moveIssuesToSprint: {
     sprintId: z.number().describe("Id of the target sprint"),
     issueKeys: z.array(z.string()).describe("Issue keys to move into this sprint. At most 50 at a time.")
+  },
+  getEpic: {
+    epicIdOrKey: z.string().describe("Id or issue key of the epic")
+  },
+  updateEpic: {
+    epicIdOrKey: z.string().describe("Id or issue key of the epic to update"),
+    name: z.string().optional().describe("New epic name (the short label shown on boards)"),
+    summary: z.string().optional().describe("New epic summary"),
+    done: z.boolean().optional().describe("Whether the epic is done")
+  },
+  getEpicIssues: {
+    epicIdOrKey: z.string().describe("Id or issue key of the epic"),
+    jql: z.string().optional().describe("JQL query to further filter the epic's issues"),
+    maxResults: z.number().optional().describe("Maximum number of issues to return"),
+    startAt: z.number().optional().describe("Index of the first issue to return")
+  },
+  moveIssuesToEpic: {
+    epicIdOrKey: z.string().describe("Id or issue key of the target epic"),
+    issueKeys: z.array(z.string()).describe("Issue keys to move into this epic")
+  },
+  rankEpic: {
+    epicIdOrKey: z.string().describe("Id or issue key of the epic to rank"),
+    rankBeforeEpic: z.string().optional().describe("Rank this epic before the epic with this id/key"),
+    rankAfterEpic: z.string().optional().describe("Rank this epic after the epic with this id/key"),
+    rankCustomFieldId: z.number().optional().describe("Id of the custom 'Rank' field, if not the default")
   }
 };

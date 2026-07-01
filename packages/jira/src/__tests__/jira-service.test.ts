@@ -9,6 +9,7 @@ import {
   BoardService,
   ComponentService,
   DashboardService,
+  EpicService,
   FilterService,
   GroupService,
   IssueLinkService,
@@ -103,6 +104,13 @@ jest.mock('../jira-client/index.js', () => ({
     deleteSprint: jest.fn(),
     getIssuesForSprint1: jest.fn(),
     moveIssuesToSprint: jest.fn(),
+  },
+  EpicService: {
+    getEpic: jest.fn(),
+    partiallyUpdateEpic: jest.fn(),
+    getIssuesForEpic1: jest.fn(),
+    moveIssuesToEpic: jest.fn(),
+    rankEpics: jest.fn(),
   },
   ComponentService: {
     createComponent: jest.fn(),
@@ -1832,6 +1840,76 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The sprint is active or completed');
+    });
+  });
+
+  describe('epics', () => {
+    it('gets an epic', async () => {
+      const mockEpic = { id: 1, key: 'PROJ-1', name: 'Epic 1' };
+      (EpicService.getEpic as jest.Mock).mockResolvedValue(mockEpic);
+
+      const result = await jiraService.getEpic('PROJ-1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockEpic);
+      expect(EpicService.getEpic).toHaveBeenCalledWith('PROJ-1');
+    });
+
+    it('updates an epic', async () => {
+      const mockEpic = { id: 1, done: true };
+      (EpicService.partiallyUpdateEpic as jest.Mock).mockResolvedValue(mockEpic);
+
+      const result = await jiraService.updateEpic('PROJ-1', undefined, undefined, true);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockEpic);
+      expect(EpicService.partiallyUpdateEpic).toHaveBeenCalledWith('PROJ-1', {
+        name: undefined,
+        summary: undefined,
+        done: true,
+      });
+    });
+
+    it('gets epic issues', async () => {
+      const mockIssues = { issues: [{ key: 'PROJ-2' }] };
+      (EpicService.getIssuesForEpic1 as jest.Mock).mockResolvedValue(mockIssues);
+
+      const result = await jiraService.getEpicIssues('PROJ-1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockIssues);
+      expect(EpicService.getIssuesForEpic1).toHaveBeenCalledWith('PROJ-1', undefined, undefined, undefined, undefined, undefined, undefined);
+    });
+
+    it('moves issues into an epic', async () => {
+      (EpicService.moveIssuesToEpic as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.moveIssuesToEpic('PROJ-1', ['PROJ-2', 'PROJ-3']);
+
+      expect(result.success).toBe(true);
+      expect(EpicService.moveIssuesToEpic).toHaveBeenCalledWith('PROJ-1', { issues: ['PROJ-2', 'PROJ-3'] });
+    });
+
+    it('ranks an epic', async () => {
+      (EpicService.rankEpics as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.rankEpic('PROJ-1', 'PROJ-4');
+
+      expect(result.success).toBe(true);
+      expect(EpicService.rankEpics).toHaveBeenCalledWith('PROJ-1', {
+        rankBeforeEpic: 'PROJ-4',
+        rankAfterEpic: undefined,
+        rankCustomFieldId: undefined,
+      });
+    });
+
+    it('handles errors', async () => {
+      (EpicService.getEpic as jest.Mock).mockRejectedValue(new Error('The epic does not exist'));
+
+      const result = await jiraService.getEpic('missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The epic does not exist');
     });
   });
 
