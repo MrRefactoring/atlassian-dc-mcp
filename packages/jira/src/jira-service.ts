@@ -257,6 +257,13 @@ export class JiraService {
     return handleApiOperation(() => IssueService.getEditIssueMeta(issueKey), 'Error getting edit-issue metadata');
   }
 
+  async deleteIssue(issueKey: string, deleteSubtasks?: boolean) {
+    return handleApiOperation(
+      () => IssueService.deleteIssue(issueKey, deleteSubtasks?.toString()),
+      'Error deleting issue'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -355,5 +362,9 @@ export const jiraToolSchemas = {
   },
   getEditIssueMeta: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+  },
+  deleteIssue: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    deleteSubtasks: z.boolean().optional().describe("Whether to also delete the issue's subtasks. If false and subtasks exist, the delete fails.")
   }
 };
