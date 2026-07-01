@@ -6,6 +6,7 @@ import { JiraService } from '../jira-service.js';
 import {
   AttachmentService,
   ComponentService,
+  GroupService,
   IssueLinkService,
   IssueService,
   IssuetypeService,
@@ -16,6 +17,7 @@ import {
   ResolutionService,
   SearchService,
   StatusService,
+  UserService,
   VersionService,
 } from '../jira-client/index.js';
 import { request as __request } from '../jira-client/core/request.js';
@@ -70,6 +72,18 @@ jest.mock('../jira-client/index.js', () => ({
     updateComponent: jest.fn(),
     delete: jest.fn(),
     getComponentRelatedIssues: jest.fn(),
+  },
+  UserService: {
+    getUser1: jest.fn(),
+    findUsers: jest.fn(),
+    findAssignableUsers1: jest.fn(),
+  },
+  GroupService: {
+    createGroup: jest.fn(),
+    removeGroup: jest.fn(),
+    getUsersFromGroup: jest.fn(),
+    addUserToGroup: jest.fn(),
+    removeUserFromGroup: jest.fn(),
   },
   VersionService: {
     createVersion: jest.fn(),
@@ -1219,6 +1233,99 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Project or role not found');
+    });
+  });
+
+  describe('users and groups', () => {
+    it('gets a user by username', async () => {
+      const mockUser = { name: 'john.doe', displayName: 'John Doe' };
+      (UserService.getUser1 as jest.Mock).mockResolvedValue(mockUser);
+
+      const result = await jiraService.getUser('john.doe');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockUser);
+      expect(UserService.getUser1).toHaveBeenCalledWith(undefined, undefined, 'john.doe');
+    });
+
+    it('finds users by query', async () => {
+      const mockUsers = [{ name: 'john.doe' }];
+      (UserService.findUsers as jest.Mock).mockResolvedValue(mockUsers);
+
+      const result = await jiraService.findUsers('john');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockUsers);
+      expect(UserService.findUsers).toHaveBeenCalledWith(undefined, undefined, undefined, undefined, 'john');
+    });
+
+    it('finds assignable users for a project', async () => {
+      const mockUsers = [{ name: 'john.doe' }];
+      (UserService.findAssignableUsers1 as jest.Mock).mockResolvedValue(mockUsers);
+
+      const result = await jiraService.findAssignableUsers('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockUsers);
+      expect(UserService.findAssignableUsers1).toHaveBeenCalledWith(undefined, 50, 'TEST', undefined, undefined);
+    });
+
+    it('creates a group', async () => {
+      const mockGroup = { name: 'developers' };
+      (GroupService.createGroup as jest.Mock).mockResolvedValue(mockGroup);
+
+      const result = await jiraService.createGroup('developers');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockGroup);
+      expect(GroupService.createGroup).toHaveBeenCalledWith({ name: 'developers' });
+    });
+
+    it('deletes a group', async () => {
+      (GroupService.removeGroup as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteGroup('developers');
+
+      expect(result.success).toBe(true);
+      expect(GroupService.removeGroup).toHaveBeenCalledWith('developers', undefined);
+    });
+
+    it('gets group members', async () => {
+      const mockMembers = { values: [{ name: 'john.doe' }] };
+      (GroupService.getUsersFromGroup as jest.Mock).mockResolvedValue(mockMembers);
+
+      const result = await jiraService.getGroupUsers('developers');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockMembers);
+    });
+
+    it('adds a user to a group', async () => {
+      const mockGroup = { name: 'developers' };
+      (GroupService.addUserToGroup as jest.Mock).mockResolvedValue(mockGroup);
+
+      const result = await jiraService.addUserToGroup('developers', 'john.doe');
+
+      expect(result.success).toBe(true);
+      expect(GroupService.addUserToGroup).toHaveBeenCalledWith('developers', { name: 'john.doe' });
+    });
+
+    it('removes a user from a group', async () => {
+      (GroupService.removeUserFromGroup as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.removeUserFromGroup('developers', 'john.doe');
+
+      expect(result.success).toBe(true);
+      expect(GroupService.removeUserFromGroup).toHaveBeenCalledWith('developers', 'john.doe');
+    });
+
+    it('handles errors', async () => {
+      (UserService.getUser1 as jest.Mock).mockRejectedValue(new Error('The requested user is not found'));
+
+      const result = await jiraService.getUser('missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The requested user is not found');
     });
   });
 

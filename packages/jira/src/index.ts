@@ -657,4 +657,84 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getUser",
+  `Get details of a single user by username or key from the ${jiraInstanceType}`,
+  jiraToolSchemas.getUser,
+  async ({ username, key, includeDeleted }) => {
+    const result = await jiraService.getUser(username, key, includeDeleted);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_findUsers",
+  `Search for users by free-text query in the ${jiraInstanceType}`,
+  jiraToolSchemas.findUsers,
+  async ({ username, maxResults, startAt, includeActive, includeInactive }) => {
+    const result = await jiraService.findUsers(username, maxResults, startAt, includeActive, includeInactive);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_findAssignableUsers",
+  `Search for users assignable to a project or issue in the ${jiraInstanceType}. Use before jira_assignIssue to find valid candidates.`,
+  jiraToolSchemas.findAssignableUsers,
+  async ({ project, issueKey, username, maxResults }) => {
+    const result = await jiraService.findAssignableUsers(project, issueKey, username, maxResults);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createGroup",
+  `Create a group in the ${jiraInstanceType}`,
+  jiraToolSchemas.createGroup,
+  async ({ name }) => {
+    const result = await jiraService.createGroup(name);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteGroup",
+  `Delete a group from the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteGroup,
+  async ({ groupname, swapGroup }) => {
+    const result = await jiraService.deleteGroup(groupname, swapGroup);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getGroupUsers",
+  `Get the members of a group in the ${jiraInstanceType}`,
+  jiraToolSchemas.getGroupUsers,
+  async ({ groupname, includeInactiveUsers, maxResults, startAt }) => {
+    const result = await jiraService.getGroupUsers(groupname, includeInactiveUsers, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addUserToGroup",
+  `Add a user to a group in the ${jiraInstanceType}`,
+  jiraToolSchemas.addUserToGroup,
+  async ({ groupname, username }) => {
+    const result = await jiraService.addUserToGroup(groupname, username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_removeUserFromGroup",
+  `Remove a user from a group in the ${jiraInstanceType}`,
+  jiraToolSchemas.removeUserFromGroup,
+  async ({ groupname, username }) => {
+    const result = await jiraService.removeUserFromGroup(groupname, username);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
