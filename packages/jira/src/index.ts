@@ -847,4 +847,44 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_createIssues",
+  `Create multiple JIRA issues in a single bulk request in the ${jiraInstanceType}`,
+  jiraToolSchemas.createIssues,
+  async ({ issues }) => {
+    const result = await jiraService.createIssues(issues);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_archiveIssues",
+  `Bulk archive JIRA issues (by keys or JQL) in the ${jiraInstanceType}`,
+  jiraToolSchemas.archiveIssues,
+  async ({ issueKeysOrJql, notifyUsers }) => {
+    const result = await jiraService.archiveIssues(issueKeysOrJql, notifyUsers);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_archiveIssue",
+  `Archive a single JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.archiveIssue,
+  async ({ issueKey, notifyUsers }) => {
+    const result = await jiraService.archiveIssue(issueKey, notifyUsers);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_rankIssues",
+  `Reorder (rank) JIRA issues relative to another issue in the ${jiraInstanceType}, as used on Agile boards/backlogs`,
+  jiraToolSchemas.rankIssues,
+  async ({ issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId }) => {
+    const result = await jiraService.rankIssues(issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

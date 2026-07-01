@@ -57,6 +57,10 @@ jest.mock('../jira-client/index.js', () => ({
     deleteWorklog: jest.fn(),
     addAttachment: jest.fn(),
     assign: jest.fn(),
+    createIssues: jest.fn(),
+    archiveIssues: jest.fn(),
+    archiveIssue: jest.fn(),
+    rankIssues: jest.fn(),
   },
   AttachmentService: {
     getAttachmentMeta: jest.fn(),
@@ -1512,6 +1516,73 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('No issue link type with the given id exists');
+    });
+  });
+
+  describe('bulk and rank operations', () => {
+    it('bulk creates issues', async () => {
+      const mockResponse = { issues: [{ id: '10001', key: 'PROJ-1' }] };
+      (IssueService.createIssues as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await jiraService.createIssues([
+        { projectId: 'TEST', summary: 'First', description: 'desc', issueTypeId: '10001' },
+      ]);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockResponse);
+      expect(IssueService.createIssues).toHaveBeenCalledWith({
+        issueUpdates: [
+          {
+            fields: {
+              project: { key: 'TEST' },
+              summary: 'First',
+              description: 'desc',
+              issuetype: { id: '10001' },
+            },
+          },
+        ],
+      });
+    });
+
+    it('bulk archives issues by JQL', async () => {
+      (IssueService.archiveIssues as jest.Mock).mockResolvedValue({ numberOfIssuesUpdated: 3 });
+
+      const result = await jiraService.archiveIssues('project = TEST AND resolution = Fixed');
+
+      expect(result.success).toBe(true);
+      expect(IssueService.archiveIssues).toHaveBeenCalledWith(undefined, 'project = TEST AND resolution = Fixed');
+    });
+
+    it('archives a single issue', async () => {
+      (IssueService.archiveIssue as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.archiveIssue(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(IssueService.archiveIssue).toHaveBeenCalledWith(mockIssueKey, undefined);
+    });
+
+    it('ranks issues', async () => {
+      (IssueService.rankIssues as jest.Mock).mockResolvedValue({ success: true });
+
+      const result = await jiraService.rankIssues(['PROJ-1', 'PROJ-2'], 'PROJ-3');
+
+      expect(result.success).toBe(true);
+      expect(IssueService.rankIssues).toHaveBeenCalledWith({
+        issues: ['PROJ-1', 'PROJ-2'],
+        rankBeforeIssue: 'PROJ-3',
+        rankAfterIssue: undefined,
+        rankCustomFieldId: undefined,
+      });
+    });
+
+    it('handles errors', async () => {
+      (IssueService.rankIssues as jest.Mock).mockRejectedValue(new Error('User does not have permission to rank'));
+
+      const result = await jiraService.rankIssues(['PROJ-1']);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('User does not have permission to rank');
     });
   });
 
