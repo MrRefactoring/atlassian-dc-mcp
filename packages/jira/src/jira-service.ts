@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
 import {
   AttachmentService,
+  ComponentService,
   IssueLinkService,
   IssueService,
   IssuetypeService,
@@ -388,6 +389,45 @@ export class JiraService {
     );
   }
 
+  async createComponent(projectKey: string, name: string, description?: string, leadUserName?: string) {
+    return handleApiOperation(
+      () => ComponentService.createComponent({ project: projectKey, name, description, leadUserName }),
+      'Error creating component'
+    );
+  }
+
+  async getComponents(maxResults?: number, query?: string, projectIds?: string) {
+    return handleApiOperation(
+      () => ComponentService.getPaginatedComponents(maxResults?.toString(), query, projectIds),
+      'Error getting components'
+    );
+  }
+
+  async getComponent(componentId: string) {
+    return handleApiOperation(() => ComponentService.getComponent(componentId), 'Error getting component');
+  }
+
+  async updateComponent(componentId: string, name?: string, description?: string, leadUserName?: string) {
+    return handleApiOperation(
+      () => ComponentService.updateComponent(componentId, { name, description, leadUserName }),
+      'Error updating component'
+    );
+  }
+
+  async deleteComponent(componentId: string, moveIssuesTo?: string) {
+    return handleApiOperation(
+      () => ComponentService.delete(componentId, moveIssuesTo),
+      'Error deleting component'
+    );
+  }
+
+  async getComponentRelatedIssues(componentId: string) {
+    return handleApiOperation(
+      () => ComponentService.getComponentRelatedIssues(componentId),
+      'Error getting component related issue counts'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -571,5 +611,32 @@ export const jiraToolSchemas = {
   assignIssue: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
     username: z.string().nullable().describe("Username to assign the issue to, '-1' for automatic assignee, or null to unassign")
+  },
+  createComponent: {
+    projectKey: z.string().describe("Project key the component belongs to (e.g., TEST)"),
+    name: z.string().describe("Component name"),
+    description: z.string().optional().describe("Component description"),
+    leadUserName: z.string().optional().describe("Username of the component lead")
+  },
+  getComponents: {
+    maxResults: z.number().optional().describe("Maximum number of components to return (default 100)"),
+    query: z.string().optional().describe("Free-text query matched against component names"),
+    projectIds: z.string().optional().describe("Comma-separated project ids to filter components by")
+  },
+  getComponent: {
+    componentId: z.string().describe("Id of the component")
+  },
+  updateComponent: {
+    componentId: z.string().describe("Id of the component to update"),
+    name: z.string().optional().describe("New component name"),
+    description: z.string().optional().describe("New component description"),
+    leadUserName: z.string().optional().describe("New component lead username")
+  },
+  deleteComponent: {
+    componentId: z.string().describe("Id of the component to delete"),
+    moveIssuesTo: z.string().optional().describe("Id of another component to move affected issues to. If omitted, the component is simply removed from issues.")
+  },
+  getComponentRelatedIssues: {
+    componentId: z.string().describe("Id of the component")
   }
 };

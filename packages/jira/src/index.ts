@@ -457,4 +457,64 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_createComponent",
+  `Create a component in a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.createComponent,
+  async ({ projectKey, name, description, leadUserName }) => {
+    const result = await jiraService.createComponent(projectKey, name, description, leadUserName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getComponents",
+  `Get a paginated list of components in the ${jiraInstanceType}, optionally filtered by project or name query`,
+  jiraToolSchemas.getComponents,
+  async ({ maxResults, query, projectIds }) => {
+    const result = await jiraService.getComponents(maxResults, query, projectIds);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getComponent",
+  `Get a single component by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getComponent,
+  async ({ componentId }) => {
+    const result = await jiraService.getComponent(componentId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateComponent",
+  `Update a component in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateComponent,
+  async ({ componentId, name, description, leadUserName }) => {
+    const result = await jiraService.updateComponent(componentId, name, description, leadUserName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteComponent",
+  `Delete a component from the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteComponent,
+  async ({ componentId, moveIssuesTo }) => {
+    const result = await jiraService.deleteComponent(componentId, moveIssuesTo);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getComponentRelatedIssues",
+  `Get counts of issues related to a component in the ${jiraInstanceType}`,
+  jiraToolSchemas.getComponentRelatedIssues,
+  async ({ componentId }) => {
+    const result = await jiraService.getComponentRelatedIssues(componentId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
