@@ -11,7 +11,7 @@
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
-      "identifier": "@mrrefactoring/jira",
+      "identifier": "@mrrefactoring/atlassian-dc-mcp-jira",
       "version": "0.9.0",
       "transport": {
         "type": "stdio"

@@ -6,16 +6,16 @@
 pnpm build
 
 # Build specific package
-pnpm --filter @mrrefactoring/jira build
+pnpm --filter @mrrefactoring/atlassian-dc-mcp-jira build
 
 # Run all tests
 pnpm test
 
 # Run tests for specific package
-pnpm --filter @mrrefactoring/jira test
+pnpm --filter @mrrefactoring/atlassian-dc-mcp-jira test
 
 # Run specific test (using Jest)
-pnpm --filter @mrrefactoring/jira exec jest -t 'test name'
+pnpm --filter @mrrefactoring/atlassian-dc-mcp-jira exec jest -t 'test name'
 
 # Development mode
 pnpm dev:jira

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ContentResourceService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
-import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/common';
+import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
 

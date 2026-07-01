@@ -7,7 +7,7 @@ This package provides a Machine Comprehension Protocol (MCP) server for interact
 The easiest way to configure this server is the built-in `setup` subcommand:
 
 ```bash
-npx @mrrefactoring/bitbucket setup
+npx @mrrefactoring/atlassian-dc-mcp-bitbucket setup
 ```
 
 It prompts for host, API base path, default page size, and API token, then stores them in the most secure place available:
@@ -23,7 +23,7 @@ After setup, you can launch the server without any environment variables:
   "mcpServers": {
     "atlassian-bitbucket-dc": {
       "command": "npx",
-      "args": ["-y", "@mrrefactoring/bitbucket"]
+      "args": ["-y", "@mrrefactoring/atlassian-dc-mcp-bitbucket"]
     }
   }
 }
@@ -36,12 +36,12 @@ Environment variables still override stored values — see [Configuration source
 For CI, remote sessions, or shell scripts, pass values as flags and add `--non-interactive` to skip prompts:
 
 ```bash
-npx @mrrefactoring/bitbucket setup --non-interactive \
+npx @mrrefactoring/atlassian-dc-mcp-bitbucket setup --non-interactive \
   --host bitbucket.example.com \
   --token "$BITBUCKET_TOKEN"
 ```
 
-Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--default-page-size`/`-s`, `--non-interactive`/`-n`, `--help`/`-h`. In `--non-interactive` mode, missing values fall back to existing configuration and the run exits non-zero if a host (or full-URL `--api-base-path`) and token cannot be resolved. An existing token is reused when `--token` is omitted. Run `npx @mrrefactoring/bitbucket setup --help` for full usage.
+Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--default-page-size`/`-s`, `--non-interactive`/`-n`, `--help`/`-h`. In `--non-interactive` mode, missing values fall back to existing configuration and the run exits non-zero if a host (or full-URL `--api-base-path`) and token cannot be resolved. An existing token is reused when `--token` is omitted. Run `npx @mrrefactoring/atlassian-dc-mcp-bitbucket setup --help` for full usage.
 
 ## Claude Desktop Configuration
 
@@ -62,7 +62,7 @@ Windows:
   "mcpServers": {
     "atlassian-bitbucket-dc": {
       "command": "npx",
-      "args": ["-y", "@mrrefactoring/bitbucket"],
+      "args": ["-y", "@mrrefactoring/atlassian-dc-mcp-bitbucket"],
       "env": {
         "BITBUCKET_HOST": "your-bitbucket-host",
         "BITBUCKET_API_TOKEN": "your-token"
@@ -79,7 +79,7 @@ To reuse one shared dotenv file across multiple tools or MCP hosts, point the se
   "mcpServers": {
     "atlassian-bitbucket-dc": {
       "command": "npx",
-      "args": ["-y", "@mrrefactoring/bitbucket"],
+      "args": ["-y", "@mrrefactoring/atlassian-dc-mcp-bitbucket"],
       "env": {
         "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
       }
@@ -95,7 +95,7 @@ Windows example:
   "mcpServers": {
     "atlassian-bitbucket-dc": {
       "command": "npx",
-      "args": ["-y", "@mrrefactoring/bitbucket"],
+      "args": ["-y", "@mrrefactoring/atlassian-dc-mcp-bitbucket"],
       "env": {
         "ATLASSIAN_DC_MCP_CONFIG_FILE": "C:\\\\Users\\\\your-user\\\\AppData\\\\Roaming\\\\atlassian-dc-mcp.env"
       }

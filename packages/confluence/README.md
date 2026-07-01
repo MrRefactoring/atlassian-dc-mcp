@@ -7,7 +7,7 @@ This package provides a Machine Comprehension Protocol (MCP) server for interact
 The easiest way to configure this server is the built-in `setup` subcommand:
 
 ```bash
-npx @mrrefactoring/confluence setup
+npx @mrrefactoring/atlassian-dc-mcp-confluence setup
 ```
 
 It prompts for host, API base path, default page size, and API token, then stores them in the most secure place available:
@@ -23,7 +23,7 @@ After setup, you can launch the server without any environment variables:
   "mcpServers": {
     "atlassian-confluence-dc": {
       "command": "npx",
-      "args": ["-y", "@mrrefactoring/confluence"]
+      "args": ["-y", "@mrrefactoring/atlassian-dc-mcp-confluence"]
     }
   }
 }
@@ -36,12 +36,12 @@ Environment variables still override stored values — see [Configuration source
 For CI, remote sessions, or shell scripts, pass values as flags and add `--non-interactive` to skip prompts:
 
 ```bash
-npx @mrrefactoring/confluence setup --non-interactive \
+npx @mrrefactoring/atlassian-dc-mcp-confluence setup --non-interactive \
   --host confluence.example.com \
   --token "$CONFLUENCE_TOKEN"
 ```
 
-Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--default-page-size`/`-s`, `--non-interactive`/`-n`, `--help`/`-h`. In `--non-interactive` mode, missing values fall back to existing configuration and the run exits non-zero if a host (or full-URL `--api-base-path`) and token cannot be resolved. An existing token is reused when `--token` is omitted. Run `npx @mrrefactoring/confluence setup --help` for full usage.
+Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--default-page-size`/`-s`, `--non-interactive`/`-n`, `--help`/`-h`. In `--non-interactive` mode, missing values fall back to existing configuration and the run exits non-zero if a host (or full-URL `--api-base-path`) and token cannot be resolved. An existing token is reused when `--token` is omitted. Run `npx @mrrefactoring/atlassian-dc-mcp-confluence setup --help` for full usage.
 
 ## Features
 
@@ -148,7 +148,7 @@ pnpm test
 Or from the repository root:
 
 ```
-pnpm --filter @mrrefactoring/confluence test
+pnpm --filter @mrrefactoring/atlassian-dc-mcp-confluence test
 ```
 
 ### Available Tools

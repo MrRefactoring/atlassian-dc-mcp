@@ -7,10 +7,10 @@
   "commit": false,
   "fixed": [
     [
-      "@mrrefactoring/common",
-      "@mrrefactoring/jira",
-      "@mrrefactoring/confluence",
-      "@mrrefactoring/bitbucket"
+      "@mrrefactoring/atlassian-dc-mcp-core",
+      "@mrrefactoring/atlassian-dc-mcp-jira",
+      "@mrrefactoring/atlassian-dc-mcp-confluence",
+      "@mrrefactoring/atlassian-dc-mcp-bitbucket"
     ]
   ],
   "linked": [],
