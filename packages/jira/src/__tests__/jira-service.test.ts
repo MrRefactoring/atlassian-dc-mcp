@@ -21,6 +21,7 @@ import {
   ProjectsService,
   ResolutionService,
   SearchService,
+  SprintService,
   StatusService,
   UserService,
   VersionService,
@@ -94,6 +95,14 @@ jest.mock('../jira-client/index.js', () => ({
   },
   BacklogService: {
     moveIssuesToBacklog: jest.fn(),
+  },
+  SprintService: {
+    createSprint: jest.fn(),
+    getSprint: jest.fn(),
+    updateSprint: jest.fn(),
+    deleteSprint: jest.fn(),
+    getIssuesForSprint1: jest.fn(),
+    moveIssuesToSprint: jest.fn(),
   },
   ComponentService: {
     createComponent: jest.fn(),
@@ -1738,6 +1747,91 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Sprint does not exist');
+    });
+  });
+
+  describe('sprints', () => {
+    it('creates a sprint', async () => {
+      const mockSprint = { id: 1, name: 'Sprint 1' };
+      (SprintService.createSprint as jest.Mock).mockResolvedValue(mockSprint);
+
+      const result = await jiraService.createSprint('Sprint 1', 1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSprint);
+      expect(SprintService.createSprint).toHaveBeenCalledWith({
+        name: 'Sprint 1',
+        originBoardId: 1,
+        startDate: undefined,
+        endDate: undefined,
+        goal: undefined,
+      });
+    });
+
+    it('gets a sprint', async () => {
+      const mockSprint = { id: 1, name: 'Sprint 1' };
+      (SprintService.getSprint as jest.Mock).mockResolvedValue(mockSprint);
+
+      const result = await jiraService.getSprint(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSprint);
+      expect(SprintService.getSprint).toHaveBeenCalledWith(1);
+    });
+
+    it('updates a sprint to start it', async () => {
+      const mockSprint = { id: 1, state: 'active' };
+      (SprintService.updateSprint as jest.Mock).mockResolvedValue(mockSprint);
+
+      const result = await jiraService.updateSprint(1, undefined, undefined, undefined, undefined, 'active');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSprint);
+      expect(SprintService.updateSprint).toHaveBeenCalledWith(1, {
+        name: undefined,
+        startDate: undefined,
+        endDate: undefined,
+        goal: undefined,
+        state: 'active',
+      });
+    });
+
+    it('deletes a sprint', async () => {
+      (SprintService.deleteSprint as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteSprint(1);
+
+      expect(result.success).toBe(true);
+      expect(SprintService.deleteSprint).toHaveBeenCalledWith(1);
+    });
+
+    it('gets sprint issues', async () => {
+      const mockIssues = { issues: [{ key: 'PROJ-1' }] };
+      (SprintService.getIssuesForSprint1 as jest.Mock).mockResolvedValue(mockIssues);
+
+      const result = await jiraService.getSprintIssues(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockIssues);
+      expect(SprintService.getIssuesForSprint1).toHaveBeenCalledWith(1, undefined, undefined, undefined, undefined, undefined, undefined);
+    });
+
+    it('moves issues into a sprint', async () => {
+      (SprintService.moveIssuesToSprint as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.moveIssuesToSprint(1, ['PROJ-1', 'PROJ-2']);
+
+      expect(result.success).toBe(true);
+      expect(SprintService.moveIssuesToSprint).toHaveBeenCalledWith(1, { issues: ['PROJ-1', 'PROJ-2'] });
+    });
+
+    it('handles errors', async () => {
+      (SprintService.deleteSprint as jest.Mock).mockRejectedValue(new Error('The sprint is active or completed'));
+
+      const result = await jiraService.deleteSprint(1);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The sprint is active or completed');
     });
   });
 

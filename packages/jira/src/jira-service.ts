@@ -19,6 +19,7 @@ import {
   ProjectsService,
   ResolutionService,
   SearchService,
+  SprintService,
   StatusService,
   UserService,
   VersionService,
@@ -763,6 +764,42 @@ export class JiraService {
     );
   }
 
+  async createSprint(name: string, originBoardId: number, startDate?: string, endDate?: string, goal?: string) {
+    return handleApiOperation(
+      () => SprintService.createSprint({ name, originBoardId, startDate, endDate, goal }),
+      'Error creating sprint'
+    );
+  }
+
+  async getSprint(sprintId: number) {
+    return handleApiOperation(() => SprintService.getSprint(sprintId), 'Error getting sprint');
+  }
+
+  async updateSprint(sprintId: number, name?: string, startDate?: string, endDate?: string, goal?: string, state?: string) {
+    return handleApiOperation(
+      () => SprintService.updateSprint(sprintId, { name, startDate, endDate, goal, state }),
+      'Error updating sprint'
+    );
+  }
+
+  async deleteSprint(sprintId: number) {
+    return handleApiOperation(() => SprintService.deleteSprint(sprintId), 'Error deleting sprint');
+  }
+
+  async getSprintIssues(sprintId: number, jql?: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => SprintService.getIssuesForSprint1(sprintId, undefined, jql, maxResults, undefined, undefined, startAt),
+      'Error getting sprint issues'
+    );
+  }
+
+  async moveIssuesToSprint(sprintId: number, issueKeys: string[]) {
+    return handleApiOperation(
+      () => SprintService.moveIssuesToSprint(sprintId, { issues: issueKeys }),
+      'Error moving issues to sprint'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1204,5 +1241,36 @@ export const jiraToolSchemas = {
   },
   moveIssuesToBacklog: {
     issueKeys: z.array(z.string()).describe("Issue keys to move to the backlog (removes them from any sprint). At most 50 at a time.")
+  },
+  createSprint: {
+    name: z.string().describe("Sprint name"),
+    originBoardId: z.number().describe("Id of the board this sprint originates from"),
+    startDate: z.string().optional().describe("Sprint start date (ISO datetime)"),
+    endDate: z.string().optional().describe("Sprint end date (ISO datetime)"),
+    goal: z.string().optional().describe("Sprint goal text")
+  },
+  getSprint: {
+    sprintId: z.number().describe("Id of the sprint")
+  },
+  updateSprint: {
+    sprintId: z.number().describe("Id of the sprint to update"),
+    name: z.string().optional().describe("New sprint name"),
+    startDate: z.string().optional().describe("New start date (ISO datetime)"),
+    endDate: z.string().optional().describe("New end date (ISO datetime)"),
+    goal: z.string().optional().describe("New sprint goal text"),
+    state: z.enum(['future', 'active', 'closed']).optional().describe("New sprint state — set to 'active' to start the sprint or 'closed' to complete it")
+  },
+  deleteSprint: {
+    sprintId: z.number().describe("Id of the sprint to delete")
+  },
+  getSprintIssues: {
+    sprintId: z.number().describe("Id of the sprint"),
+    jql: z.string().optional().describe("JQL query to further filter the sprint's issues"),
+    maxResults: z.number().optional().describe("Maximum number of issues to return"),
+    startAt: z.number().optional().describe("Index of the first issue to return")
+  },
+  moveIssuesToSprint: {
+    sprintId: z.number().describe("Id of the target sprint"),
+    issueKeys: z.array(z.string()).describe("Issue keys to move into this sprint. At most 50 at a time.")
   }
 };
