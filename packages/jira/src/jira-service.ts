@@ -651,6 +651,42 @@ export class JiraService {
     );
   }
 
+  async createIssues(issues: Array<{ projectId: string; summary: string; description: string; issueTypeId: string; customFields?: Record<string, any> }>) {
+    return handleApiOperation(() => {
+      const issueUpdates = issues.map((issue) => ({
+        fields: {
+          project: { key: issue.projectId },
+          summary: issue.summary,
+          description: issue.description,
+          issuetype: { id: issue.issueTypeId },
+          ...issue.customFields,
+        },
+      }));
+      return IssueService.createIssues({ issueUpdates });
+    }, 'Error bulk creating issues');
+  }
+
+  async archiveIssues(issueKeysOrJql: string, notifyUsers?: boolean) {
+    return handleApiOperation(
+      () => IssueService.archiveIssues(notifyUsers?.toString(), issueKeysOrJql),
+      'Error bulk archiving issues'
+    );
+  }
+
+  async archiveIssue(issueKey: string, notifyUsers?: boolean) {
+    return handleApiOperation(
+      () => IssueService.archiveIssue(issueKey, notifyUsers?.toString()),
+      'Error archiving issue'
+    );
+  }
+
+  async rankIssues(issueKeys: string[], rankBeforeIssue?: string, rankAfterIssue?: string, rankCustomFieldId?: number) {
+    return handleApiOperation(
+      () => IssueService.rankIssues({ issues: issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId }),
+      'Error ranking issues'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1013,5 +1049,28 @@ export const jiraToolSchemas = {
   },
   deleteIssueLinkType: {
     issueLinkTypeId: z.string().describe("Id of the issue link type to delete")
+  },
+  createIssues: {
+    issues: z.array(z.object({
+      projectId: z.string().describe("Project key (despite the parameter name, e.g. TEST)"),
+      summary: z.string().describe("Issue summary"),
+      description: z.string().describe("Issue description in JIRA Wiki Markup"),
+      issueTypeId: z.string().describe("Issue type id"),
+      customFields: z.record(z.any()).optional().describe("Optional fields merged into this issue's create payload")
+    })).describe("Issues to create in a single bulk request")
+  },
+  archiveIssues: {
+    issueKeysOrJql: z.string().describe("Comma-separated issue keys, or a JQL query, selecting the issues to archive"),
+    notifyUsers: z.boolean().optional().describe("Whether to send notifications for this change")
+  },
+  archiveIssue: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    notifyUsers: z.boolean().optional().describe("Whether to send notifications for this change")
+  },
+  rankIssues: {
+    issueKeys: z.array(z.string()).describe("Issue keys to rank, in the desired order"),
+    rankBeforeIssue: z.string().optional().describe("Rank the issues before this issue key"),
+    rankAfterIssue: z.string().optional().describe("Rank the issues after this issue key"),
+    rankCustomFieldId: z.number().optional().describe("Id of the custom 'Rank' field, if not the default")
   }
 };
