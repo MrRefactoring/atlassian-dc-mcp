@@ -207,4 +207,34 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getCreateIssueMetaIssueTypes",
+  `Get the issue types available for creating an issue in a project, in the ${jiraInstanceType}. Use before jira_createIssue to find a valid issueTypeId.`,
+  jiraToolSchemas.getCreateIssueMetaIssueTypes,
+  async ({ projectIdOrKey, maxResults, startAt }) => {
+    const result = await jiraService.getCreateIssueMetaIssueTypes(projectIdOrKey, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getCreateIssueMetaFields",
+  `Get the fields (required and optional) available for creating an issue of a given type in a project, in the ${jiraInstanceType}. Use before jira_createIssue to discover required fields.`,
+  jiraToolSchemas.getCreateIssueMetaFields,
+  async ({ projectIdOrKey, issueTypeId, maxResults, startAt }) => {
+    const result = await jiraService.getCreateIssueMetaFields(projectIdOrKey, issueTypeId, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getEditIssueMeta",
+  `Get the fields available for editing an existing issue, in the ${jiraInstanceType}. Use before jira_updateIssue to discover which fields can be edited.`,
+  jiraToolSchemas.getEditIssueMeta,
+  async ({ issueKey }) => {
+    const result = await jiraService.getEditIssueMeta(issueKey);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
