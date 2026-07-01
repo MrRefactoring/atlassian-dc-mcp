@@ -3,6 +3,7 @@ import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian
 import {
   AttachmentService,
   ComponentService,
+  DashboardService,
   FilterService,
   GroupService,
   IssueLinkService,
@@ -610,6 +611,17 @@ export class JiraService {
     );
   }
 
+  async getDashboards(filter?: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => DashboardService.list(filter, maxResults?.toString(), startAt?.toString()),
+      'Error getting dashboards'
+    );
+  }
+
+  async getDashboard(dashboardId: string) {
+    return handleApiOperation(() => DashboardService.getDashboard(dashboardId), 'Error getting dashboard');
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -949,5 +961,13 @@ export const jiraToolSchemas = {
   deleteFilter: {
     filterId: z.string().describe("Id of the filter to delete")
   },
-  getFavouriteFilters: {}
+  getFavouriteFilters: {},
+  getDashboards: {
+    filter: z.enum(['favourite', 'my']).optional().describe("Restrict results to 'favourite' or 'my' dashboards. Omit to return all visible dashboards."),
+    maxResults: z.number().optional().describe("Maximum number of dashboards to return"),
+    startAt: z.number().optional().describe("Index of the first dashboard to return")
+  },
+  getDashboard: {
+    dashboardId: z.string().describe("Id of the dashboard")
+  }
 };

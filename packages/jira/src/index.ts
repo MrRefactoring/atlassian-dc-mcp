@@ -787,4 +787,24 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getDashboards",
+  `Get a list of dashboards visible to the current user in the ${jiraInstanceType}`,
+  jiraToolSchemas.getDashboards,
+  async ({ filter, maxResults, startAt }) => {
+    const result = await jiraService.getDashboards(filter, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getDashboard",
+  `Get a single dashboard by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getDashboard,
+  async ({ dashboardId }) => {
+    const result = await jiraService.getDashboard(dashboardId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
