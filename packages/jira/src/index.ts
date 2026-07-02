@@ -1187,4 +1187,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getWorkflows",
+  `Get all workflows (or a workflow by name) in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorkflows,
+  async ({ workflowName }) => {
+    const result = await jiraService.getWorkflows(workflowName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorkflowScheme",
+  `Get a workflow scheme by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorkflowScheme,
+  async ({ schemeId, returnDraftIfExists }) => {
+    const result = await jiraService.getWorkflowScheme(schemeId, returnDraftIfExists);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorkflowSchemeDefault",
+  `Get the default workflow of a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorkflowSchemeDefault,
+  async ({ schemeId, returnDraftIfExists }) => {
+    const result = await jiraService.getWorkflowSchemeDefault(schemeId, returnDraftIfExists);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorkflowSchemeIssueTypeMapping",
+  `Get the workflow mapping for a specific issue type in a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorkflowSchemeIssueTypeMapping,
+  async ({ schemeId, issueType, returnDraftIfExists }) => {
+    const result = await jiraService.getWorkflowSchemeIssueTypeMapping(schemeId, issueType, returnDraftIfExists);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorkflowSchemeWorkflowMapping",
+  `Get the issue type mappings for a workflow (or all workflows) in a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorkflowSchemeWorkflowMapping,
+  async ({ schemeId, workflowName, returnDraftIfExists }) => {
+    const result = await jiraService.getWorkflowSchemeWorkflowMapping(schemeId, workflowName, returnDraftIfExists);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
