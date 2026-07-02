@@ -5,6 +5,7 @@ import { initializeRuntimeConfig } from '@mrrefactoring/atlassian-dc-mcp-core';
 import { JiraService } from '../jira-service.js';
 import {
   AttachmentService,
+  AvatarService,
   BacklogService,
   BoardService,
   ComponentService,
@@ -31,6 +32,7 @@ import {
   SecuritylevelService,
   SprintService,
   StatusService,
+  UniversalAvatarService,
   UserService,
   VersionService,
   WorkflowService,
@@ -238,6 +240,15 @@ jest.mock('../jira-client/index.js', () => ({
   },
   FieldService: {
     createCustomField: jest.fn(),
+  },
+  AvatarService: {
+    getAllSystemAvatars: jest.fn(),
+  },
+  UniversalAvatarService: {
+    getAvatars: jest.fn(),
+    storeTemporaryAvatarUsingMultiPart2: jest.fn(),
+    createAvatarFromTemporary3: jest.fn(),
+    deleteAvatar1: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -2380,6 +2391,80 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('A user with that username already exists');
+    });
+  });
+
+  describe('avatars', () => {
+    it('gets system avatars for a type', async () => {
+      const mockAvatars = { system: [{ id: '1', owner: 'jira' }] };
+      (AvatarService.getAllSystemAvatars as jest.Mock).mockResolvedValue(mockAvatars);
+
+      const result = await jiraService.getSystemAvatars('project');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockAvatars);
+      expect(AvatarService.getAllSystemAvatars).toHaveBeenCalledWith('project');
+    });
+
+    it('gets avatars for a type and owner', async () => {
+      const mockAvatars = { system: [], custom: [{ id: '10001' }] };
+      (UniversalAvatarService.getAvatars as jest.Mock).mockResolvedValue(mockAvatars);
+
+      const result = await jiraService.getAvatars('project', 'TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockAvatars);
+      expect(UniversalAvatarService.getAvatars).toHaveBeenCalledWith('project', 'TEST');
+    });
+
+    it('uploads a temporary avatar', async () => {
+      const mockCropping = { url: 'https://jira.example.com/temp/avatar.png', needsCropping: true };
+      (UniversalAvatarService.storeTemporaryAvatarUsingMultiPart2 as jest.Mock).mockResolvedValue(mockCropping);
+
+      const result = await jiraService.uploadTemporaryAvatar('project', 'TEST', 'avatar.png', Buffer.from('img').toString('base64'));
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCropping);
+      const [calledType, calledOwner, calledFormData] = (UniversalAvatarService.storeTemporaryAvatarUsingMultiPart2 as jest.Mock).mock.calls[0];
+      expect(calledType).toBe('project');
+      expect(calledOwner).toBe('TEST');
+      expect((calledFormData as { file: File }).file).toBeInstanceOf(File);
+      expect((calledFormData as { file: File }).file.name).toBe('avatar.png');
+    });
+
+    it('creates an avatar from a temporary avatar', async () => {
+      const mockAvatar = { id: '10001', owner: 'TEST' };
+      (UniversalAvatarService.createAvatarFromTemporary3 as jest.Mock).mockResolvedValue(mockAvatar);
+
+      const result = await jiraService.createAvatarFromTemporary('project', 'TEST', 0, 0, 48, true, 'https://jira.example.com/temp/avatar.png');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockAvatar);
+      expect(UniversalAvatarService.createAvatarFromTemporary3).toHaveBeenCalledWith('project', 'TEST', {
+        cropperOffsetX: 0,
+        cropperOffsetY: 0,
+        cropperWidth: 48,
+        needsCropping: true,
+        url: 'https://jira.example.com/temp/avatar.png',
+      });
+    });
+
+    it('deletes an avatar', async () => {
+      (UniversalAvatarService.deleteAvatar1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteAvatar(10001, 'project', 'TEST');
+
+      expect(result.success).toBe(true);
+      expect(UniversalAvatarService.deleteAvatar1).toHaveBeenCalledWith(10001, 'project', 'TEST');
+    });
+
+    it('handles errors', async () => {
+      (AvatarService.getAllSystemAvatars as jest.Mock).mockRejectedValue(new Error('Invalid avatar type'));
+
+      const result = await jiraService.getSystemAvatars('not-a-type');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid avatar type');
     });
   });
 
