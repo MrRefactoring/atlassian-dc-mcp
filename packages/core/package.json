@@ -32,7 +32,9 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^26.1.0",
+    "ts-jest": "^29.4.1",
     "tsx": "^4.22.5"
   },
   "publishConfig": {
