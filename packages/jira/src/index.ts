@@ -1107,4 +1107,84 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getPermissionSchemes",
+  `Get all permission schemes in the ${jiraInstanceType}`,
+  jiraToolSchemas.getPermissionSchemes,
+  async ({ expand }) => {
+    const result = await jiraService.getPermissionSchemes(expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getPermissionScheme",
+  `Get a single permission scheme by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getPermissionScheme,
+  async ({ schemeId, expand }) => {
+    const result = await jiraService.getPermissionScheme(schemeId, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createPermissionScheme",
+  `Create a new permission scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.createPermissionScheme,
+  async ({ name, description, permissions }) => {
+    const result = await jiraService.createPermissionScheme(name, description, permissions);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updatePermissionScheme",
+  `Update a permission scheme's name, description, or permission grants in the ${jiraInstanceType}`,
+  jiraToolSchemas.updatePermissionScheme,
+  async ({ schemeId, name, description, permissions }) => {
+    const result = await jiraService.updatePermissionScheme(schemeId, name, description, permissions);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deletePermissionScheme",
+  `Delete a permission scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.deletePermissionScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.deletePermissionScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getPermissionSchemeGrants",
+  `Get all permission grants of a permission scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.getPermissionSchemeGrants,
+  async ({ schemeId, expand }) => {
+    const result = await jiraService.getPermissionSchemeGrants(schemeId, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createPermissionGrant",
+  `Create a permission grant in a permission scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.createPermissionGrant,
+  async ({ schemeId, permission, holderType, holderParameter }) => {
+    const result = await jiraService.createPermissionGrant(schemeId, permission, holderType, holderParameter);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deletePermissionGrant",
+  `Delete a permission grant from a permission scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.deletePermissionGrant,
+  async ({ schemeId, permissionId }) => {
+    const result = await jiraService.deletePermissionGrant(schemeId, permissionId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
