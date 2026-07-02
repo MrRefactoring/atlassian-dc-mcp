@@ -27,6 +27,8 @@ import {
   StatusService,
   UserService,
   VersionService,
+  WorkflowService,
+  WorkflowschemeService,
 } from '../jira-client/index.js';
 import { request as __request } from '../jira-client/core/request.js';
 
@@ -193,6 +195,15 @@ jest.mock('../jira-client/index.js', () => ({
     getPermissionSchemeGrants: jest.fn(),
     createPermissionGrant: jest.fn(),
     deletePermissionSchemeEntity: jest.fn(),
+  },
+  WorkflowService: {
+    getAllWorkflows: jest.fn(),
+  },
+  WorkflowschemeService: {
+    getById: jest.fn(),
+    getDefault: jest.fn(),
+    getIssueType: jest.fn(),
+    getWorkflow: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -2031,6 +2042,72 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The scheme does not exist');
+    });
+  });
+
+  describe('workflows and workflow schemes', () => {
+    it('gets all workflows', async () => {
+      const mockWorkflows = [{ name: 'jira' }];
+      (WorkflowService.getAllWorkflows as jest.Mock).mockResolvedValue(mockWorkflows);
+
+      const result = await jiraService.getWorkflows();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWorkflows);
+      expect(WorkflowService.getAllWorkflows).toHaveBeenCalledWith(undefined);
+    });
+
+    it('gets a workflow scheme by id', async () => {
+      const mockScheme = { id: 1, name: 'Default Workflow Scheme' };
+      (WorkflowschemeService.getById as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getWorkflowScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.getById).toHaveBeenCalledWith(1, undefined);
+    });
+
+    it('gets the default workflow for a scheme', async () => {
+      const mockDefault = { defaultWorkflow: 'jira' };
+      (WorkflowschemeService.getDefault as jest.Mock).mockResolvedValue(mockDefault);
+
+      const result = await jiraService.getWorkflowSchemeDefault(1, true);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockDefault);
+      expect(WorkflowschemeService.getDefault).toHaveBeenCalledWith(1, true);
+    });
+
+    it('gets the issue type mapping for a scheme', async () => {
+      const mockMapping = { issueType: '10001', workflow: 'jira' };
+      (WorkflowschemeService.getIssueType as jest.Mock).mockResolvedValue(mockMapping);
+
+      const result = await jiraService.getWorkflowSchemeIssueTypeMapping(1, '10001');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockMapping);
+      expect(WorkflowschemeService.getIssueType).toHaveBeenCalledWith('10001', 1, undefined);
+    });
+
+    it('gets the workflow mapping for a scheme', async () => {
+      const mockMapping = { issueTypes: ['10001'], workflow: 'jira' };
+      (WorkflowschemeService.getWorkflow as jest.Mock).mockResolvedValue(mockMapping);
+
+      const result = await jiraService.getWorkflowSchemeWorkflowMapping(1, 'jira');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockMapping);
+      expect(WorkflowschemeService.getWorkflow).toHaveBeenCalledWith(1, 'jira', undefined);
+    });
+
+    it('handles errors', async () => {
+      (WorkflowschemeService.getById as jest.Mock).mockRejectedValue(new Error('The workflow scheme does not exist'));
+
+      const result = await jiraService.getWorkflowScheme(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The workflow scheme does not exist');
     });
   });
 

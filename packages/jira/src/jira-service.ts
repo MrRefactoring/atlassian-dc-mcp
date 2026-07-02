@@ -25,6 +25,8 @@ import {
   StatusService,
   UserService,
   VersionService,
+  WorkflowService,
+  WorkflowschemeService,
 } from './jira-client/index.js';
 import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
 import { request as __request } from './jira-client/core/request.js';
@@ -907,6 +909,41 @@ export class JiraService {
     );
   }
 
+  async getWorkflows(workflowName?: string) {
+    return handleApiOperation(
+      () => WorkflowService.getAllWorkflows(workflowName),
+      'Error getting workflows'
+    );
+  }
+
+  async getWorkflowScheme(schemeId: number, returnDraftIfExists?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.getById(schemeId, returnDraftIfExists),
+      'Error getting workflow scheme'
+    );
+  }
+
+  async getWorkflowSchemeDefault(schemeId: number, returnDraftIfExists?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.getDefault(schemeId, returnDraftIfExists),
+      'Error getting workflow scheme default workflow'
+    );
+  }
+
+  async getWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, returnDraftIfExists?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.getIssueType(issueType, schemeId, returnDraftIfExists),
+      'Error getting workflow scheme issue type mapping'
+    );
+  }
+
+  async getWorkflowSchemeWorkflowMapping(schemeId: number, workflowName?: string, returnDraftIfExists?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.getWorkflow(schemeId, workflowName, returnDraftIfExists),
+      'Error getting workflow scheme workflow mapping'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1447,5 +1484,26 @@ export const jiraToolSchemas = {
   deletePermissionGrant: {
     schemeId: z.number().describe("Id of the permission scheme"),
     permissionId: z.number().describe("Id of the permission grant to delete")
+  },
+  getWorkflows: {
+    workflowName: z.string().optional().describe("Name of a specific workflow to return. Omit to return all workflows.")
+  },
+  getWorkflowScheme: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant of the scheme if one exists")
+  },
+  getWorkflowSchemeDefault: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's default workflow if a draft exists")
+  },
+  getWorkflowSchemeIssueTypeMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    issueType: z.string().describe("Id of the issue type to look up in the scheme's mapping"),
+    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's mapping if a draft exists")
+  },
+  getWorkflowSchemeWorkflowMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    workflowName: z.string().optional().describe("Name of a specific workflow to look up. Omit to return all workflow mappings."),
+    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's mapping if a draft exists")
   }
 };
