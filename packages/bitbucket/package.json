@@ -25,7 +25,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
-    "dev": "nodemon --exec 'npx tsx' src/index.ts",
+    "dev": "tsx watch src/index.ts",
     "inspect": "mcp-inspector node build/index.js",
     "inspect:dev": "mcp-inspector ts-node src/index.ts",
     "test": "jest"
@@ -39,9 +39,9 @@
   "devDependencies": {
     "@modelcontextprotocol/inspector": "^0.21.1",
     "@types/jest": "^30.0.0",
-    "nodemon": "^3.1.14",
     "ts-jest": "^29.4.1",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "tsx": "^4.22.5"
   },
   "mcpName": "io.github.MrRefactoring/atlassian-dc-mcp-bitbucket",
   "publishConfig": {

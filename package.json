@@ -23,7 +23,7 @@
     "dev:bitbucket": "pnpm --filter @mrrefactoring/atlassian-dc-mcp-bitbucket dev",
     "debug": "node mcp-live-debug.js",
     "debug:verbose": "node mcp-live-debug.js --verbose",
-    "debug:ts": "nodemon --exec ts-node --esm",
+    "debug:ts": "tsx watch",
     "changeset": "changeset",
     "version": "changeset version && node scripts/sync-versions.js && pnpm install --lockfile-only",
     "release": "pnpm run build && changeset publish"
@@ -33,8 +33,7 @@
     "@changesets/cli": "^2.31.0",
     "@types/node": "^26.1.0",
     "jest": "^30.4.2",
-    "nodemon": "^3.1.14",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.22.5",
     "typescript": "^6.0.3"
   }
 }
