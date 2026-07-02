@@ -15,6 +15,7 @@ import {
   IssuetypeService,
   MyselfService,
   OpenAPI,
+  PermissionschemeService,
   PriorityService,
   ProjectService,
   ProjectsService,
@@ -833,6 +834,79 @@ export class JiraService {
     );
   }
 
+  async getPermissionSchemes(expand?: string) {
+    return handleApiOperation(
+      () => PermissionschemeService.getPermissionSchemes(expand),
+      'Error getting permission schemes'
+    );
+  }
+
+  async getPermissionScheme(schemeId: number, expand?: string) {
+    return handleApiOperation(
+      () => PermissionschemeService.getPermissionScheme(schemeId, expand),
+      'Error getting permission scheme'
+    );
+  }
+
+  async createPermissionScheme(name: string, description?: string, permissions?: Array<{ permission: string; holderType: string; holderParameter?: string }>) {
+    return handleApiOperation(
+      () => PermissionschemeService.createPermissionScheme(undefined, {
+        name,
+        description,
+        permissions: permissions?.map(({ permission, holderType, holderParameter }) => ({
+          permission,
+          holder: { type: holderType, parameter: holderParameter },
+        })),
+      }),
+      'Error creating permission scheme'
+    );
+  }
+
+  async updatePermissionScheme(schemeId: number, name?: string, description?: string, permissions?: Array<{ permission: string; holderType: string; holderParameter?: string }>) {
+    return handleApiOperation(
+      () => PermissionschemeService.updatePermissionScheme(schemeId, undefined, {
+        name,
+        description,
+        permissions: permissions?.map(({ permission, holderType, holderParameter }) => ({
+          permission,
+          holder: { type: holderType, parameter: holderParameter },
+        })),
+      }),
+      'Error updating permission scheme'
+    );
+  }
+
+  async deletePermissionScheme(schemeId: number) {
+    return handleApiOperation(
+      () => PermissionschemeService.deletePermissionScheme(schemeId),
+      'Error deleting permission scheme'
+    );
+  }
+
+  async getPermissionSchemeGrants(schemeId: number, expand?: string) {
+    return handleApiOperation(
+      () => PermissionschemeService.getPermissionSchemeGrants(schemeId, expand),
+      'Error getting permission scheme grants'
+    );
+  }
+
+  async createPermissionGrant(schemeId: number, permission: string, holderType: string, holderParameter?: string) {
+    return handleApiOperation(
+      () => PermissionschemeService.createPermissionGrant(schemeId, undefined, {
+        permission,
+        holder: { type: holderType, parameter: holderParameter },
+      }),
+      'Error creating permission grant'
+    );
+  }
+
+  async deletePermissionGrant(schemeId: number, permissionId: number) {
+    return handleApiOperation(
+      () => PermissionschemeService.deletePermissionSchemeEntity(permissionId, schemeId),
+      'Error deleting permission grant'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1330,5 +1404,48 @@ export const jiraToolSchemas = {
     rankBeforeEpic: z.string().optional().describe("Rank this epic before the epic with this id/key"),
     rankAfterEpic: z.string().optional().describe("Rank this epic after the epic with this id/key"),
     rankCustomFieldId: z.number().optional().describe("Id of the custom 'Rank' field, if not the default")
+  },
+  getPermissionSchemes: {
+    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'permissions' to include each scheme's permission grants")
+  },
+  getPermissionScheme: {
+    schemeId: z.number().describe("Id of the permission scheme"),
+    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'permissions' to include the scheme's permission grants")
+  },
+  createPermissionScheme: {
+    name: z.string().describe("Name of the new permission scheme"),
+    description: z.string().optional().describe("Description of the new permission scheme"),
+    permissions: z.array(z.object({
+      permission: z.string().describe("Permission key, e.g. 'ADMINISTER_PROJECTS' or 'BROWSE_PROJECTS'"),
+      holderType: z.string().describe("Type of the permission holder, e.g. 'group', 'projectRole', 'applicationRole', 'anyone', 'reporter', 'assignee'"),
+      holderParameter: z.string().optional().describe("Holder-specific identifier, e.g. group name or project role id")
+    })).optional().describe("Initial permission grants for the scheme")
+  },
+  updatePermissionScheme: {
+    schemeId: z.number().describe("Id of the permission scheme to update"),
+    name: z.string().optional().describe("New name for the scheme"),
+    description: z.string().optional().describe("New description for the scheme"),
+    permissions: z.array(z.object({
+      permission: z.string().describe("Permission key, e.g. 'ADMINISTER_PROJECTS' or 'BROWSE_PROJECTS'"),
+      holderType: z.string().describe("Type of the permission holder, e.g. 'group', 'projectRole', 'applicationRole', 'anyone', 'reporter', 'assignee'"),
+      holderParameter: z.string().optional().describe("Holder-specific identifier, e.g. group name or project role id")
+    })).optional().describe("Replaces all permission grants for the scheme. Omit to leave grants unchanged.")
+  },
+  deletePermissionScheme: {
+    schemeId: z.number().describe("Id of the permission scheme to delete")
+  },
+  getPermissionSchemeGrants: {
+    schemeId: z.number().describe("Id of the permission scheme"),
+    expand: z.string().optional().describe("Comma-separated expansions for the returned grants")
+  },
+  createPermissionGrant: {
+    schemeId: z.number().describe("Id of the permission scheme to add the grant to"),
+    permission: z.string().describe("Permission key, e.g. 'ADMINISTER_PROJECTS' or 'BROWSE_PROJECTS'"),
+    holderType: z.string().describe("Type of the permission holder, e.g. 'group', 'projectRole', 'applicationRole', 'anyone', 'reporter', 'assignee'"),
+    holderParameter: z.string().optional().describe("Holder-specific identifier, e.g. group name or project role id")
+  },
+  deletePermissionGrant: {
+    schemeId: z.number().describe("Id of the permission scheme"),
+    permissionId: z.number().describe("Id of the permission grant to delete")
   }
 };

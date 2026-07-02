@@ -17,6 +17,7 @@ import {
   IssueService,
   IssuetypeService,
   OpenAPI,
+  PermissionschemeService,
   PriorityService,
   ProjectService,
   ProjectsService,
@@ -182,6 +183,16 @@ jest.mock('../jira-client/index.js', () => ({
   },
   StatusService: {
     getStatuses: jest.fn(),
+  },
+  PermissionschemeService: {
+    getPermissionSchemes: jest.fn(),
+    getPermissionScheme: jest.fn(),
+    createPermissionScheme: jest.fn(),
+    updatePermissionScheme: jest.fn(),
+    deletePermissionScheme: jest.fn(),
+    getPermissionSchemeGrants: jest.fn(),
+    createPermissionGrant: jest.fn(),
+    deletePermissionSchemeEntity: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -1910,6 +1921,116 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The epic does not exist');
+    });
+  });
+
+  describe('permission schemes', () => {
+    it('gets all permission schemes', async () => {
+      const mockSchemes = { permissionSchemes: [{ id: 1, name: 'Default' }] };
+      (PermissionschemeService.getPermissionSchemes as jest.Mock).mockResolvedValue(mockSchemes);
+
+      const result = await jiraService.getPermissionSchemes('permissions');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchemes);
+      expect(PermissionschemeService.getPermissionSchemes).toHaveBeenCalledWith('permissions');
+    });
+
+    it('gets a permission scheme by id', async () => {
+      const mockScheme = { id: 1, name: 'Default' };
+      (PermissionschemeService.getPermissionScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getPermissionScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PermissionschemeService.getPermissionScheme).toHaveBeenCalledWith(1, undefined);
+    });
+
+    it('creates a permission scheme', async () => {
+      const mockScheme = { id: 2, name: 'New Scheme' };
+      (PermissionschemeService.createPermissionScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.createPermissionScheme('New Scheme', 'A scheme', [
+        { permission: 'BROWSE_PROJECTS', holderType: 'group', holderParameter: 'jira-users' },
+      ]);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PermissionschemeService.createPermissionScheme).toHaveBeenCalledWith(undefined, {
+        name: 'New Scheme',
+        description: 'A scheme',
+        permissions: [
+          { permission: 'BROWSE_PROJECTS', holder: { type: 'group', parameter: 'jira-users' } },
+        ],
+      });
+    });
+
+    it('updates a permission scheme', async () => {
+      const mockScheme = { id: 1, name: 'Renamed' };
+      (PermissionschemeService.updatePermissionScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.updatePermissionScheme(1, 'Renamed');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PermissionschemeService.updatePermissionScheme).toHaveBeenCalledWith(1, undefined, {
+        name: 'Renamed',
+        description: undefined,
+        permissions: undefined,
+      });
+    });
+
+    it('deletes a permission scheme', async () => {
+      (PermissionschemeService.deletePermissionScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deletePermissionScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(PermissionschemeService.deletePermissionScheme).toHaveBeenCalledWith(1);
+    });
+
+    it('gets permission scheme grants', async () => {
+      const mockGrants = { permissions: [{ id: 10, permission: 'BROWSE_PROJECTS' }] };
+      (PermissionschemeService.getPermissionSchemeGrants as jest.Mock).mockResolvedValue(mockGrants);
+
+      const result = await jiraService.getPermissionSchemeGrants(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockGrants);
+      expect(PermissionschemeService.getPermissionSchemeGrants).toHaveBeenCalledWith(1, undefined);
+    });
+
+    it('creates a permission grant', async () => {
+      const mockGrant = { id: 10, permission: 'BROWSE_PROJECTS' };
+      (PermissionschemeService.createPermissionGrant as jest.Mock).mockResolvedValue(mockGrant);
+
+      const result = await jiraService.createPermissionGrant(1, 'BROWSE_PROJECTS', 'group', 'jira-users');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockGrant);
+      expect(PermissionschemeService.createPermissionGrant).toHaveBeenCalledWith(1, undefined, {
+        permission: 'BROWSE_PROJECTS',
+        holder: { type: 'group', parameter: 'jira-users' },
+      });
+    });
+
+    it('deletes a permission grant', async () => {
+      (PermissionschemeService.deletePermissionSchemeEntity as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deletePermissionGrant(1, 10);
+
+      expect(result.success).toBe(true);
+      expect(PermissionschemeService.deletePermissionSchemeEntity).toHaveBeenCalledWith(10, 1);
+    });
+
+    it('handles errors', async () => {
+      (PermissionschemeService.getPermissionScheme as jest.Mock).mockRejectedValue(new Error('The scheme does not exist'));
+
+      const result = await jiraService.getPermissionScheme(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The scheme does not exist');
     });
   });
 
