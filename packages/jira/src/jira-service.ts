@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
 import {
   AttachmentService,
+  AvatarService,
   BacklogService,
   BoardService,
   ComponentService,
@@ -29,6 +30,7 @@ import {
   SecuritylevelService,
   SprintService,
   StatusService,
+  UniversalAvatarService,
   UserService,
   VersionService,
   WorkflowService,
@@ -37,6 +39,7 @@ import {
 import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
 import { request as __request } from './jira-client/core/request.js';
 import type { StringList } from './jira-client/models/StringList.js';
+import type { FilePart } from './jira-client/models/FilePart.js';
 import { getDefaultPageSize, getMissingConfig, JIRA_PRODUCT } from './config.js';
 
 const DEFAULT_SEARCH_FIELDS = ['summary', 'description', 'status', 'assignee', 'reporter', 'priority', 'issuetype', 'labels', 'updated'];
@@ -1081,6 +1084,43 @@ export class JiraService {
     );
   }
 
+  async getSystemAvatars(type: string) {
+    return handleApiOperation(
+      () => AvatarService.getAllSystemAvatars(type),
+      'Error getting system avatars'
+    );
+  }
+
+  async getAvatars(type: string, owningObjectId: string) {
+    return handleApiOperation(
+      () => UniversalAvatarService.getAvatars(type, owningObjectId),
+      'Error getting avatars'
+    );
+  }
+
+  async uploadTemporaryAvatar(type: string, owningObjectId: string, fileName: string, contentBase64: string) {
+    return handleApiOperation(() => {
+      const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
+      return UniversalAvatarService.storeTemporaryAvatarUsingMultiPart2(type, owningObjectId, { file } as unknown as FilePart);
+    }, 'Error uploading temporary avatar');
+  }
+
+  async createAvatarFromTemporary(type: string, owningObjectId: string, cropperOffsetX?: number, cropperOffsetY?: number, cropperWidth?: number, needsCropping?: boolean, url?: string) {
+    return handleApiOperation(
+      () => UniversalAvatarService.createAvatarFromTemporary3(type, owningObjectId, {
+        cropperOffsetX, cropperOffsetY, cropperWidth, needsCropping, url,
+      }),
+      'Error creating avatar from temporary'
+    );
+  }
+
+  async deleteAvatar(id: number, type: string, owningObjectId: string) {
+    return handleApiOperation(
+      () => UniversalAvatarService.deleteAvatar1(id, type, owningObjectId),
+      'Error deleting avatar'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1721,5 +1761,32 @@ export const jiraToolSchemas = {
   },
   getUserAnonymizationProgress: {
     taskId: z.number().optional().describe("Id of the anonymization task to check progress for")
+  },
+  getSystemAvatars: {
+    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'")
+  },
+  getAvatars: {
+    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
+    owningObjectId: z.string().describe("Id of the object that owns the avatars, e.g. a project id or username")
+  },
+  uploadTemporaryAvatar: {
+    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
+    owningObjectId: z.string().describe("Id of the object that will own the avatar, e.g. a project id or username"),
+    fileName: z.string().describe("File name of the avatar image, including extension (e.g. 'avatar.png')"),
+    contentBase64: z.string().describe("Avatar image content encoded as base64")
+  },
+  createAvatarFromTemporary: {
+    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
+    owningObjectId: z.string().describe("Id of the object that will own the avatar, e.g. a project id or username"),
+    cropperOffsetX: z.number().optional().describe("Horizontal crop offset returned by jira_uploadTemporaryAvatar"),
+    cropperOffsetY: z.number().optional().describe("Vertical crop offset returned by jira_uploadTemporaryAvatar"),
+    cropperWidth: z.number().optional().describe("Crop width returned by jira_uploadTemporaryAvatar"),
+    needsCropping: z.boolean().optional().describe("Whether the temporary avatar needs cropping"),
+    url: z.string().optional().describe("Url of the temporary avatar returned by jira_uploadTemporaryAvatar")
+  },
+  deleteAvatar: {
+    id: z.number().describe("Id of the avatar to delete"),
+    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
+    owningObjectId: z.string().describe("Id of the object that owns the avatar, e.g. a project id or username")
   }
 };

@@ -1397,4 +1397,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getSystemAvatars",
+  `Get all system avatars of a given type in the ${jiraInstanceType}`,
+  jiraToolSchemas.getSystemAvatars,
+  async ({ type }) => {
+    const result = await jiraService.getSystemAvatars(type);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getAvatars",
+  `Get all avatars (system and custom) for a given type and owner in the ${jiraInstanceType}`,
+  jiraToolSchemas.getAvatars,
+  async ({ type, owningObjectId }) => {
+    const result = await jiraService.getAvatars(type, owningObjectId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_uploadTemporaryAvatar",
+  `Upload a temporary avatar image in the ${jiraInstanceType}. Returns cropping instructions to pass to jira_createAvatarFromTemporary.`,
+  jiraToolSchemas.uploadTemporaryAvatar,
+  async ({ type, owningObjectId, fileName, contentBase64 }) => {
+    const result = await jiraService.uploadTemporaryAvatar(type, owningObjectId, fileName, contentBase64);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createAvatarFromTemporary",
+  `Finalize a temporary avatar into a real avatar in the ${jiraInstanceType}, using the cropping instructions from jira_uploadTemporaryAvatar.`,
+  jiraToolSchemas.createAvatarFromTemporary,
+  async ({ type, owningObjectId, cropperOffsetX, cropperOffsetY, cropperWidth, needsCropping, url }) => {
+    const result = await jiraService.createAvatarFromTemporary(type, owningObjectId, cropperOffsetX, cropperOffsetY, cropperWidth, needsCropping, url);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteAvatar",
+  `Delete an avatar by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteAvatar,
+  async ({ id, type, owningObjectId }) => {
+    const result = await jiraService.deleteAvatar(id, type, owningObjectId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
