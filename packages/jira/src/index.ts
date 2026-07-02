@@ -1287,4 +1287,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getCustomFields",
+  `Get a paginated, filterable list of custom fields in the ${jiraInstanceType}`,
+  jiraToolSchemas.getCustomFields,
+  async ({ sortColumn, types, search, maxResults, sortOrder, screenIds, lastValueUpdate, projectIds, startAt }) => {
+    const result = await jiraService.getCustomFields(sortColumn, types, search, maxResults, sortOrder, screenIds, lastValueUpdate, projectIds, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteCustomFields",
+  `Delete custom fields in bulk in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteCustomFields,
+  async ({ ids }) => {
+    const result = await jiraService.deleteCustomFields(ids);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getCustomFieldOptions",
+  `Get a custom field's options defined in a given context of projects and issue types in the ${jiraInstanceType}`,
+  jiraToolSchemas.getCustomFieldOptions,
+  async ({ customFieldId, maxResults, issueTypeIds, query, sortByOptionName, useAllContexts, page, projectIds }) => {
+    const result = await jiraService.getCustomFieldOptions(customFieldId, maxResults, issueTypeIds, query, sortByOptionName, useAllContexts, page, projectIds);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getCustomFieldOption",
+  `Get a custom field option by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.getCustomFieldOption,
+  async ({ id }) => {
+    const result = await jiraService.getCustomFieldOption(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createCustomField",
+  `Create a new custom field in the ${jiraInstanceType}`,
+  jiraToolSchemas.createCustomField,
+  async ({ name, type, description, searcherKey, issueTypeIds, projectIds }) => {
+    const result = await jiraService.createCustomField(name, type, description, searcherKey, issueTypeIds, projectIds);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

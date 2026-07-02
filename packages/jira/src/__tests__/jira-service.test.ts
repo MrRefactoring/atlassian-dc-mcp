@@ -8,8 +8,11 @@ import {
   BacklogService,
   BoardService,
   ComponentService,
+  CustomFieldOptionService,
+  CustomFieldsService,
   DashboardService,
   EpicService,
+  FieldService,
   FilterService,
   GroupService,
   IssueLinkService,
@@ -218,6 +221,17 @@ jest.mock('../jira-client/index.js', () => ({
   IssuesecurityschemesService: {
     getIssueSecuritySchemes: jest.fn(),
     getIssueSecurityScheme: jest.fn(),
+  },
+  CustomFieldsService: {
+    getCustomFields: jest.fn(),
+    bulkDeleteCustomFields: jest.fn(),
+    getCustomFieldOptions: jest.fn(),
+  },
+  CustomFieldOptionService: {
+    getCustomFieldOption: jest.fn(),
+  },
+  FieldService: {
+    createCustomField: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -2199,6 +2213,84 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The security level does not exist');
+    });
+  });
+
+  describe('custom fields admin', () => {
+    it('gets custom fields with filters', async () => {
+      const mockFields = { values: [{ id: 'customfield_10001', name: 'Story Points' }] };
+      (CustomFieldsService.getCustomFields as jest.Mock).mockResolvedValue(mockFields);
+
+      const result = await jiraService.getCustomFields(undefined, ['textfield'], 'Story', 25, undefined, undefined, undefined, undefined, 0);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockFields);
+      expect(CustomFieldsService.getCustomFields).toHaveBeenCalledWith(
+        undefined, 'textfield', 'Story', '25', undefined, undefined, undefined, undefined, '0'
+      );
+    });
+
+    it('deletes custom fields in bulk', async () => {
+      (CustomFieldsService.bulkDeleteCustomFields as jest.Mock).mockResolvedValue({ deletedCustomFields: ['customfield_10001'] });
+
+      const result = await jiraService.deleteCustomFields(['customfield_10001', 'customfield_10002']);
+
+      expect(result.success).toBe(true);
+      expect(CustomFieldsService.bulkDeleteCustomFields).toHaveBeenCalledWith('customfield_10001,customfield_10002');
+    });
+
+    it('gets custom field options', async () => {
+      const mockOptions = { values: [{ id: '10001', value: 'Option A' }] };
+      (CustomFieldsService.getCustomFieldOptions as jest.Mock).mockResolvedValue(mockOptions);
+
+      const result = await jiraService.getCustomFieldOptions('customfield_10001');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockOptions);
+      expect(CustomFieldsService.getCustomFieldOptions).toHaveBeenCalledWith(
+        'customfield_10001', undefined, undefined, undefined, undefined, undefined, undefined, undefined
+      );
+    });
+
+    it('gets a custom field option by id', async () => {
+      const mockOption = { id: '10001', value: 'Option A' };
+      (CustomFieldOptionService.getCustomFieldOption as jest.Mock).mockResolvedValue(mockOption);
+
+      const result = await jiraService.getCustomFieldOption('10001');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockOption);
+      expect(CustomFieldOptionService.getCustomFieldOption).toHaveBeenCalledWith('10001');
+    });
+
+    it('creates a custom field', async () => {
+      const mockField = { id: 'customfield_10099', name: 'Story Points' };
+      (FieldService.createCustomField as jest.Mock).mockResolvedValue(mockField);
+
+      const result = await jiraService.createCustomField(
+        'Story Points',
+        'com.atlassian.jira.plugin.system.customfieldtypes:float'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockField);
+      expect(FieldService.createCustomField).toHaveBeenCalledWith({
+        name: 'Story Points',
+        type: 'com.atlassian.jira.plugin.system.customfieldtypes:float',
+        description: undefined,
+        searcherKey: undefined,
+        issueTypeIds: undefined,
+        projectIds: undefined,
+      });
+    });
+
+    it('handles errors', async () => {
+      (FieldService.createCustomField as jest.Mock).mockRejectedValue(new Error('Invalid custom field type'));
+
+      const result = await jiraService.createCustomField('Bad Field', 'not-a-real-type');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid custom field type');
     });
   });
 

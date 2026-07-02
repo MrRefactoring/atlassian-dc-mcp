@@ -5,8 +5,11 @@ import {
   BacklogService,
   BoardService,
   ComponentService,
+  CustomFieldOptionService,
+  CustomFieldsService,
   DashboardService,
   EpicService,
+  FieldService,
   FilterService,
   GroupService,
   IssueLinkService,
@@ -982,6 +985,60 @@ export class JiraService {
     );
   }
 
+  async getCustomFields(sortColumn?: string, types?: string[], search?: string, maxResults?: number, sortOrder?: string, screenIds?: string[], lastValueUpdate?: string, projectIds?: string[], startAt?: number) {
+    return handleApiOperation(
+      () => CustomFieldsService.getCustomFields(
+        sortColumn,
+        types?.join(','),
+        search,
+        maxResults !== undefined ? String(maxResults) : undefined,
+        sortOrder,
+        screenIds?.join(','),
+        lastValueUpdate,
+        projectIds?.join(','),
+        startAt !== undefined ? String(startAt) : undefined
+      ),
+      'Error getting custom fields'
+    );
+  }
+
+  async deleteCustomFields(ids: string[]) {
+    return handleApiOperation(
+      () => CustomFieldsService.bulkDeleteCustomFields(ids.join(',')),
+      'Error deleting custom fields'
+    );
+  }
+
+  async getCustomFieldOptions(customFieldId: string, maxResults?: number, issueTypeIds?: string[], query?: string, sortByOptionName?: boolean, useAllContexts?: boolean, page?: number, projectIds?: string[]) {
+    return handleApiOperation(
+      () => CustomFieldsService.getCustomFieldOptions(
+        customFieldId,
+        maxResults !== undefined ? String(maxResults) : undefined,
+        issueTypeIds?.join(','),
+        query,
+        sortByOptionName !== undefined ? String(sortByOptionName) : undefined,
+        useAllContexts !== undefined ? String(useAllContexts) : undefined,
+        page !== undefined ? String(page) : undefined,
+        projectIds?.join(',')
+      ),
+      'Error getting custom field options'
+    );
+  }
+
+  async getCustomFieldOption(id: string) {
+    return handleApiOperation(
+      () => CustomFieldOptionService.getCustomFieldOption(id),
+      'Error getting custom field option'
+    );
+  }
+
+  async createCustomField(name: string, type: string, description?: string, searcherKey?: string, issueTypeIds?: string[], projectIds?: number[]) {
+    return handleApiOperation(
+      () => FieldService.createCustomField({ name, type, description, searcherKey, issueTypeIds, projectIds }),
+      'Error creating custom field'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1559,5 +1616,40 @@ export const jiraToolSchemas = {
   getIssueSecuritySchemes: {},
   getIssueSecurityScheme: {
     id: z.string().describe("Id of the issue security scheme")
+  },
+  getCustomFields: {
+    sortColumn: z.string().optional().describe("Column to sort the returned custom fields by"),
+    types: z.array(z.string()).optional().describe("Custom field type keys to filter by"),
+    search: z.string().optional().describe("Query string used to search custom fields by name"),
+    maxResults: z.number().optional().describe("Maximum number of custom fields to return"),
+    sortOrder: z.string().optional().describe("Sort order, e.g. 'asc' or 'desc'"),
+    screenIds: z.array(z.string()).optional().describe("Screen ids to filter custom fields by"),
+    lastValueUpdate: z.string().optional().describe("Filter by the last value update"),
+    projectIds: z.array(z.string()).optional().describe("Project ids to filter custom fields by"),
+    startAt: z.number().optional().describe("Index of the first custom field to return")
+  },
+  deleteCustomFields: {
+    ids: z.array(z.string()).describe("Ids of the custom fields to delete")
+  },
+  getCustomFieldOptions: {
+    customFieldId: z.string().describe("Id of the custom field"),
+    maxResults: z.number().optional().describe("Maximum number of options to return"),
+    issueTypeIds: z.array(z.string()).optional().describe("Issue type ids to scope the returned options to"),
+    query: z.string().optional().describe("Query string used to filter options"),
+    sortByOptionName: z.boolean().optional().describe("Sort the returned options by their names"),
+    useAllContexts: z.boolean().optional().describe("Return options regardless of context, project ids, or issue type ids"),
+    page: z.number().optional().describe("Page of options to return"),
+    projectIds: z.array(z.string()).optional().describe("Project ids to scope the returned options to")
+  },
+  getCustomFieldOption: {
+    id: z.string().describe("Id of the custom field option")
+  },
+  createCustomField: {
+    name: z.string().describe("Name of the new custom field"),
+    type: z.string().describe("Custom field type key, e.g. 'com.atlassian.jira.plugin.system.customfieldtypes:textfield'"),
+    description: z.string().optional().describe("Description of the new custom field"),
+    searcherKey: z.string().optional().describe("Searcher key for the new custom field, e.g. 'com.atlassian.jira.plugin.system.customfieldtypes:textsearcher'"),
+    issueTypeIds: z.array(z.string()).optional().describe("Issue type ids to scope the field to"),
+    projectIds: z.array(z.number()).optional().describe("Project ids to scope the field to")
   }
 };
