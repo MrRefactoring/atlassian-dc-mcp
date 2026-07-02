@@ -16,6 +16,7 @@ import {
   IssueLinkTypeService,
   IssueService,
   IssuetypeService,
+  NotificationschemeService,
   OpenAPI,
   PermissionschemeService,
   PriorityService,
@@ -204,6 +205,10 @@ jest.mock('../jira-client/index.js', () => ({
     getDefault: jest.fn(),
     getIssueType: jest.fn(),
     getWorkflow: jest.fn(),
+  },
+  NotificationschemeService: {
+    getNotificationSchemes: jest.fn(),
+    getNotificationScheme: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -2108,6 +2113,39 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The workflow scheme does not exist');
+    });
+  });
+
+  describe('notification schemes', () => {
+    it('gets a paginated list of notification schemes', async () => {
+      const mockSchemes = { values: [{ id: 1, name: 'Default Notification Scheme' }] };
+      (NotificationschemeService.getNotificationSchemes as jest.Mock).mockResolvedValue(mockSchemes);
+
+      const result = await jiraService.getNotificationSchemes('all', 50, 0);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchemes);
+      expect(NotificationschemeService.getNotificationSchemes).toHaveBeenCalledWith('all', 50, 0);
+    });
+
+    it('gets a notification scheme by id', async () => {
+      const mockScheme = { id: 1, name: 'Default Notification Scheme' };
+      (NotificationschemeService.getNotificationScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getNotificationScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(NotificationschemeService.getNotificationScheme).toHaveBeenCalledWith(1, undefined);
+    });
+
+    it('handles errors', async () => {
+      (NotificationschemeService.getNotificationScheme as jest.Mock).mockRejectedValue(new Error('The notification scheme does not exist'));
+
+      const result = await jiraService.getNotificationScheme(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The notification scheme does not exist');
     });
   });
 

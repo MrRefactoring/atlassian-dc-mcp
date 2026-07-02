@@ -14,6 +14,7 @@ import {
   IssueService,
   IssuetypeService,
   MyselfService,
+  NotificationschemeService,
   OpenAPI,
   PermissionschemeService,
   PriorityService,
@@ -944,6 +945,20 @@ export class JiraService {
     );
   }
 
+  async getNotificationSchemes(expand?: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => NotificationschemeService.getNotificationSchemes(expand, maxResults, startAt),
+      'Error getting notification schemes'
+    );
+  }
+
+  async getNotificationScheme(id: number, expand?: string) {
+    return handleApiOperation(
+      () => NotificationschemeService.getNotificationScheme(id, expand),
+      'Error getting notification scheme'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1505,5 +1520,14 @@ export const jiraToolSchemas = {
     schemeId: z.number().describe("Id of the workflow scheme"),
     workflowName: z.string().optional().describe("Name of a specific workflow to look up. Omit to return all workflow mappings."),
     returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's mapping if a draft exists")
+  },
+  getNotificationSchemes: {
+    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'all,field,group,user,projectRole,notificationSchemeEvents'"),
+    maxResults: z.number().optional().describe("Maximum number of notification schemes to return"),
+    startAt: z.number().optional().describe("Index of the first notification scheme to return")
+  },
+  getNotificationScheme: {
+    id: z.number().describe("Id of the notification scheme"),
+    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'all,field,group,user,projectRole,notificationSchemeEvents'")
   }
 };
