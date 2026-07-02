@@ -1257,4 +1257,34 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getSecurityLevel",
+  `Get an issue security level by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.getSecurityLevel,
+  async ({ id }) => {
+    const result = await jiraService.getSecurityLevel(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueSecuritySchemes",
+  `Get all issue security schemes in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueSecuritySchemes,
+  async () => {
+    const result = await jiraService.getIssueSecuritySchemes();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueSecurityScheme",
+  `Get an issue security scheme by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueSecurityScheme,
+  async ({ id }) => {
+    const result = await jiraService.getIssueSecurityScheme(id);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

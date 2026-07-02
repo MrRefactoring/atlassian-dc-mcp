@@ -15,6 +15,7 @@ import {
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
+  IssuesecurityschemesService,
   IssuetypeService,
   NotificationschemeService,
   OpenAPI,
@@ -24,6 +25,7 @@ import {
   ProjectsService,
   ResolutionService,
   SearchService,
+  SecuritylevelService,
   SprintService,
   StatusService,
   UserService,
@@ -209,6 +211,13 @@ jest.mock('../jira-client/index.js', () => ({
   NotificationschemeService: {
     getNotificationSchemes: jest.fn(),
     getNotificationScheme: jest.fn(),
+  },
+  SecuritylevelService: {
+    getIssuesecuritylevel: jest.fn(),
+  },
+  IssuesecurityschemesService: {
+    getIssueSecuritySchemes: jest.fn(),
+    getIssueSecurityScheme: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -2146,6 +2155,50 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The notification scheme does not exist');
+    });
+  });
+
+  describe('security levels and schemes', () => {
+    it('gets a security level by id', async () => {
+      const mockLevel = { id: '10000', name: 'Confidential' };
+      (SecuritylevelService.getIssuesecuritylevel as jest.Mock).mockResolvedValue(mockLevel);
+
+      const result = await jiraService.getSecurityLevel('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockLevel);
+      expect(SecuritylevelService.getIssuesecuritylevel).toHaveBeenCalledWith('10000');
+    });
+
+    it('gets all issue security schemes', async () => {
+      const mockSchemes = { issueSecuritySchemes: [{ id: '1', name: 'Default Scheme' }] };
+      (IssuesecurityschemesService.getIssueSecuritySchemes as jest.Mock).mockResolvedValue(mockSchemes);
+
+      const result = await jiraService.getIssueSecuritySchemes();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchemes);
+      expect(IssuesecurityschemesService.getIssueSecuritySchemes).toHaveBeenCalledWith();
+    });
+
+    it('gets an issue security scheme by id', async () => {
+      const mockScheme = { id: '1', name: 'Default Scheme' };
+      (IssuesecurityschemesService.getIssueSecurityScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getIssueSecurityScheme('1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(IssuesecurityschemesService.getIssueSecurityScheme).toHaveBeenCalledWith('1');
+    });
+
+    it('handles errors', async () => {
+      (SecuritylevelService.getIssuesecuritylevel as jest.Mock).mockRejectedValue(new Error('The security level does not exist'));
+
+      const result = await jiraService.getSecurityLevel('missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The security level does not exist');
     });
   });
 

@@ -12,6 +12,7 @@ import {
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
+  IssuesecurityschemesService,
   IssuetypeService,
   MyselfService,
   NotificationschemeService,
@@ -22,6 +23,7 @@ import {
   ProjectsService,
   ResolutionService,
   SearchService,
+  SecuritylevelService,
   SprintService,
   StatusService,
   UserService,
@@ -959,6 +961,27 @@ export class JiraService {
     );
   }
 
+  async getSecurityLevel(id: string) {
+    return handleApiOperation(
+      () => SecuritylevelService.getIssuesecuritylevel(id),
+      'Error getting security level'
+    );
+  }
+
+  async getIssueSecuritySchemes() {
+    return handleApiOperation(
+      () => IssuesecurityschemesService.getIssueSecuritySchemes(),
+      'Error getting issue security schemes'
+    );
+  }
+
+  async getIssueSecurityScheme(id: string) {
+    return handleApiOperation(
+      () => IssuesecurityschemesService.getIssueSecurityScheme(id),
+      'Error getting issue security scheme'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1529,5 +1552,12 @@ export const jiraToolSchemas = {
   getNotificationScheme: {
     id: z.number().describe("Id of the notification scheme"),
     expand: z.string().optional().describe("Comma-separated expansions, e.g. 'all,field,group,user,projectRole,notificationSchemeEvents'")
+  },
+  getSecurityLevel: {
+    id: z.string().describe("Id of the issue security level")
+  },
+  getIssueSecuritySchemes: {},
+  getIssueSecurityScheme: {
+    id: z.string().describe("Id of the issue security scheme")
   }
 };
