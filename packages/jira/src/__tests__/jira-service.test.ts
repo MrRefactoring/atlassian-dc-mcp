@@ -144,6 +144,12 @@ jest.mock('../jira-client/index.js', () => ({
     getUser1: jest.fn(),
     findUsers: jest.fn(),
     findAssignableUsers1: jest.fn(),
+    createUser: jest.fn(),
+    removeUser: jest.fn(),
+    changeUserPassword: jest.fn(),
+    validateUserAnonymization: jest.fn(),
+    scheduleUserAnonymization: jest.fn(),
+    getProgress1: jest.fn(),
   },
   GroupService: {
     createGroup: jest.fn(),
@@ -2291,6 +2297,89 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Invalid custom field type');
+    });
+  });
+
+  describe('user admin', () => {
+    it('creates a user', async () => {
+      const mockUser = { name: 'jdoe', emailAddress: 'jdoe@example.com' };
+      (UserService.createUser as jest.Mock).mockResolvedValue(mockUser);
+
+      const result = await jiraService.createUser('jdoe', 'jdoe@example.com', 'John Doe');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockUser);
+      expect(UserService.createUser).toHaveBeenCalledWith({
+        name: 'jdoe',
+        emailAddress: 'jdoe@example.com',
+        displayName: 'John Doe',
+        password: undefined,
+        notification: undefined,
+      });
+    });
+
+    it('removes a user', async () => {
+      (UserService.removeUser as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.removeUser(undefined, 'jdoe');
+
+      expect(result.success).toBe(true);
+      expect(UserService.removeUser).toHaveBeenCalledWith(undefined, 'jdoe');
+    });
+
+    it('changes a user password', async () => {
+      (UserService.changeUserPassword as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.changeUserPassword('new-pass', undefined, undefined, 'jdoe');
+
+      expect(result.success).toBe(true);
+      expect(UserService.changeUserPassword).toHaveBeenCalledWith(
+        { password: 'new-pass', currentPassword: undefined },
+        undefined,
+        'jdoe'
+      );
+    });
+
+    it('validates user anonymization', async () => {
+      const mockValidation = { username: 'jdoe', errors: {} };
+      (UserService.validateUserAnonymization as jest.Mock).mockResolvedValue(mockValidation);
+
+      const result = await jiraService.validateUserAnonymization('jdoe');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockValidation);
+      expect(UserService.validateUserAnonymization).toHaveBeenCalledWith(undefined, 'jdoe');
+    });
+
+    it('schedules user anonymization', async () => {
+      const mockSchedule = { status: 'IN_PROGRESS' };
+      (UserService.scheduleUserAnonymization as jest.Mock).mockResolvedValue(mockSchedule);
+
+      const result = await jiraService.scheduleUserAnonymization('jdoe', 'admin');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchedule);
+      expect(UserService.scheduleUserAnonymization).toHaveBeenCalledWith({ userKey: 'jdoe', newOwnerKey: 'admin' });
+    });
+
+    it('gets user anonymization progress', async () => {
+      const mockProgress = { status: 'IN_PROGRESS', currentProgress: 50 };
+      (UserService.getProgress1 as jest.Mock).mockResolvedValue(mockProgress);
+
+      const result = await jiraService.getUserAnonymizationProgress(123);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProgress);
+      expect(UserService.getProgress1).toHaveBeenCalledWith(123);
+    });
+
+    it('handles errors', async () => {
+      (UserService.createUser as jest.Mock).mockRejectedValue(new Error('A user with that username already exists'));
+
+      const result = await jiraService.createUser('jdoe', 'jdoe@example.com');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('A user with that username already exists');
     });
   });
 

@@ -1337,4 +1337,64 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_createUser",
+  `Create a new user in the ${jiraInstanceType}`,
+  jiraToolSchemas.createUser,
+  async ({ name, emailAddress, displayName, password, notification }) => {
+    const result = await jiraService.createUser(name, emailAddress, displayName, password, notification);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_removeUser",
+  `Remove a user and its references in the ${jiraInstanceType}`,
+  jiraToolSchemas.removeUser,
+  async ({ key, username }) => {
+    const result = await jiraService.removeUser(key, username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_changeUserPassword",
+  `Change a user's password in the ${jiraInstanceType}`,
+  jiraToolSchemas.changeUserPassword,
+  async ({ password, currentPassword, key, username }) => {
+    const result = await jiraService.changeUserPassword(password, currentPassword, key, username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_validateUserAnonymization",
+  `Validate whether a user can be anonymized in the ${jiraInstanceType}`,
+  jiraToolSchemas.validateUserAnonymization,
+  async ({ userKey, expand }) => {
+    const result = await jiraService.validateUserAnonymization(userKey, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_scheduleUserAnonymization",
+  `Schedule a user anonymization process in the ${jiraInstanceType}. Requires system admin permission.`,
+  jiraToolSchemas.scheduleUserAnonymization,
+  async ({ userKey, newOwnerKey }) => {
+    const result = await jiraService.scheduleUserAnonymization(userKey, newOwnerKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getUserAnonymizationProgress",
+  `Get the progress of a user anonymization task in the ${jiraInstanceType}`,
+  jiraToolSchemas.getUserAnonymizationProgress,
+  async ({ taskId }) => {
+    const result = await jiraService.getUserAnonymizationProgress(taskId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
