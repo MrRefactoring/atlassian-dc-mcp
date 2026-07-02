@@ -1237,4 +1237,24 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getNotificationSchemes",
+  `Get a paginated list of notification schemes in the ${jiraInstanceType}`,
+  jiraToolSchemas.getNotificationSchemes,
+  async ({ expand, maxResults, startAt }) => {
+    const result = await jiraService.getNotificationSchemes(expand, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getNotificationScheme",
+  `Get full details of a notification scheme by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.getNotificationScheme,
+  async ({ id, expand }) => {
+    const result = await jiraService.getNotificationScheme(id, expand);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
