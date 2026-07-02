@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ContentResourceService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
-import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
+import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
 
@@ -33,13 +33,10 @@ export interface ConfluenceContent {
   ancestors?: Array<{ id: string }>;
 }
 
-function resolveToken(token: string | (() => string | undefined), missingTokenMessage: string) {
+function resolveToken(token: string | (() => string | undefined)) {
   return async () => {
     const resolvedToken = typeof token === 'function' ? token() : token;
-    if (!resolvedToken) {
-      throw new Error(missingTokenMessage);
-    }
-    return resolvedToken;
+    return resolvedToken ?? '';
   };
 }
 
@@ -58,7 +55,7 @@ export class ConfluenceService {
       defaultBasePath: CONFLUENCE_PRODUCT.defaultApiBasePath ?? '',
       strippableSuffixes: CONFLUENCE_PRODUCT.apiBasePathStrippableSuffixes,
     });
-    OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: CONFLUENCE_API_TOKEN');
+    OpenAPI.TOKEN = resolveToken(token);
     OpenAPI.VERSION = '1.0';
     this.getPageSize = getPageSize;
   }

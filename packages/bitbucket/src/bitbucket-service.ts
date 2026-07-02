@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { BuildsAndDeploymentsService, DeprecatedService, OpenAPI, ProjectService, PullRequestsService, RepositoryService } from './bitbucket-client/index.js';
 import { request as __request } from './bitbucket-client/core/request.js';
-import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
+import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { simplifyInboxPullRequests } from './inbox-pr-mapper.js';
 import { BITBUCKET_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import {
@@ -13,13 +13,10 @@ import {
   shapePullRequestCommentsResponse,
 } from './bitbucket-response-mapper.js';
 
-function resolveToken(token: string | (() => string | undefined), missingTokenMessage: string) {
+function resolveToken(token: string | (() => string | undefined)) {
   return async () => {
     const resolvedToken = typeof token === 'function' ? token() : token;
-    if (!resolvedToken) {
-      throw new Error(missingTokenMessage);
-    }
-    return resolvedToken;
+    return resolvedToken ?? '';
   };
 }
 
@@ -116,7 +113,7 @@ export class BitbucketService {
       defaultBasePath: BITBUCKET_PRODUCT.defaultApiBasePath ?? '/rest',
       strippableSuffixes: BITBUCKET_PRODUCT.apiBasePathStrippableSuffixes,
     });
-    OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: BITBUCKET_API_TOKEN');
+    OpenAPI.TOKEN = resolveToken(token);
     OpenAPI.VERSION = '1.0';
     this.getPageSize = getPageSize;
   }

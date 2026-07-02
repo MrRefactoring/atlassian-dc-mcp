@@ -48,10 +48,6 @@ export function validateProductRuntimeConfig(product: ProductDefinition): string
   const config = getProductRuntimeConfig(product);
   const missing: string[] = [];
 
-  if (!config.token) {
-    missing.push(product.envVars.token);
-  }
-
   if (!config.host && !config.apiBasePath) {
     missing.push(`${product.envVars.host} or ${product.envVars.apiBasePath}`);
   }

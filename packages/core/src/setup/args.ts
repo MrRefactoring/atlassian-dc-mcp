@@ -56,12 +56,12 @@ function trimToUndefined(value: string | undefined): string | undefined {
 
 export function printSetupHelp(productId: string, log: (message: string) => void): void {
   const lines = [
-    `Usage: @mrrefactoring/atlassian-dc-mcp-${productId} setup [options]`,
+    `Usage: ${productId}-datacenter-mcp setup [options]`,
     '',
     'Options:',
     '  -H, --host <value>          Host (e.g. jira.example.com)',
     '  -b, --api-base-path <value> API base path or full URL',
-    '  -t, --token <value>         API token',
+    '  -t, --token <value>         API token (optional — omit for anonymous access)',
     '  -s, --default-page-size <n> Default page size (positive integer)',
     '  -n, --non-interactive       Skip prompts; fail if a required value is missing',
     '  -h, --help                  Show this help and exit',
@@ -69,8 +69,8 @@ export function printSetupHelp(productId: string, log: (message: string) => void
     'In interactive mode (default), any value not passed as a flag is collected via prompts.',
     'In --non-interactive mode, missing values fall back to existing configuration',
     `(process env, ~/.atlassian-dc-mcp/${productId}.env, or macOS Keychain), and the run`,
-    'fails if a host (or full-URL --api-base-path) and token cannot be resolved.',
-    'An existing token is reused when --token is omitted.',
+    'fails if a host (or full-URL --api-base-path) cannot be resolved.',
+    'An existing token is reused when --token is omitted; omit it entirely for anonymous access.',
   ];
   for (const line of lines) {
     log(line);

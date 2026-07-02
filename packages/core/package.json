@@ -1,10 +1,10 @@
 {
-  "name": "@mrrefactoring/atlassian-dc-mcp-core",
-  "version": "0.25.0",
+  "name": "datacenter-mcp-core",
+  "version": "0.1.0",
   "main": "build/index.js",
   "type": "module",
   "private": false,
-  "description": "Shared utilities for @mrrefactoring MCP servers. Not affiliated with Atlassian.",
+  "description": "Shared utilities for the Atlassian Data Center MCP servers. Not affiliated with Atlassian.",
   "keywords": [
     "mcp",
     "atlassian",

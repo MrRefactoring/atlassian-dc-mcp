@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { handleApiOperation, resolveOpenApiBase } from '@mrrefactoring/atlassian-dc-mcp-core';
+import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import {
   AttachmentService,
   BacklogService,
@@ -41,13 +41,10 @@ function toIssueFieldSelection(fields: string[]): Array<StringList> {
   return fields as unknown as Array<StringList>;
 }
 
-function resolveToken(token: string | (() => string | undefined), missingTokenMessage: string) {
+function resolveToken(token: string | (() => string | undefined)) {
   return async () => {
     const resolvedToken = typeof token === 'function' ? token() : token;
-    if (!resolvedToken) {
-      throw new Error(missingTokenMessage);
-    }
-    return resolvedToken;
+    return resolvedToken ?? '';
   };
 }
 
@@ -66,7 +63,7 @@ export class JiraService {
       defaultBasePath: JIRA_PRODUCT.defaultApiBasePath ?? '/rest',
       strippableSuffixes: JIRA_PRODUCT.apiBasePathStrippableSuffixes,
     });
-    OpenAPI.TOKEN = resolveToken(token, 'Missing required environment variable: JIRA_API_TOKEN');
+    OpenAPI.TOKEN = resolveToken(token);
     OpenAPI.VERSION = '2';
     this.getPageSize = getPageSize;
   }

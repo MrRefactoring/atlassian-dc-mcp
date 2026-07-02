@@ -125,7 +125,7 @@ describe('printSetupHelp', () => {
     const out: string[] = [];
     printSetupHelp('jira', (m) => out.push(m));
     const joined = out.join('\n');
-    expect(joined).toContain('@mrrefactoring/atlassian-dc-mcp-jira setup');
+    expect(joined).toContain('jira-datacenter-mcp setup');
     expect(joined).toContain('--non-interactive');
     expect(joined).toContain('~/.atlassian-dc-mcp/jira.env');
   });

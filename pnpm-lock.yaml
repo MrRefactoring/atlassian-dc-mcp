@@ -35,7 +35,7 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.27.1
         version: 1.29.0(zod@3.25.76)
-      '@mrrefactoring/atlassian-dc-mcp-core':
+      datacenter-mcp-core:
         specifier: workspace:^
         version: link:../core
       dotenv:
@@ -66,7 +66,7 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.27.1
         version: 1.29.0(zod@3.25.76)
-      '@mrrefactoring/atlassian-dc-mcp-core':
+      datacenter-mcp-core:
         specifier: workspace:^
         version: link:../core
       dotenv:
@@ -113,7 +113,7 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.27.1
         version: 1.29.0(zod@3.25.76)
-      '@mrrefactoring/atlassian-dc-mcp-core':
+      datacenter-mcp-core:
         specifier: workspace:^
         version: link:../core
       dotenv:
