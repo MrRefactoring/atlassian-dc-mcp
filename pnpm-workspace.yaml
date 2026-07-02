@@ -2,10 +2,12 @@ packages:
   - 'packages/*'
 
 allowBuilds:
+  esbuild: true
   unrs-resolver: true
 
 minimumReleaseAgeExclude:
   - '@types/node@26.1.0'
+  - tsx@4.22.5
 
 overrides:
   tar: ^7.5.11

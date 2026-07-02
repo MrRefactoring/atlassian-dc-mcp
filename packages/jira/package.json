@@ -27,8 +27,7 @@
     "inspect": "mcp-inspector node build/index.js",
     "inspect:dev": "mcp-inspector ts-node src/index.ts",
     "start": "node build/index.js",
-    "dev": "nodemon",
-    "nodemon": "nodemon",
+    "dev": "tsc --watch",
     "test": "jest"
   },
   "dependencies": {
@@ -39,7 +38,6 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/inspector": "^0.21.1",
-    "nodemon": "^3.1.14",
     "ts-node": "^10.9.2"
   },
   "mcpName": "io.github.MrRefactoring/atlassian-dc-mcp-jira",

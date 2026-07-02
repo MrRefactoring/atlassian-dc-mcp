@@ -1,13 +1,19 @@
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
 import { fileURLToPath } from 'node:url';
-import { dirname, join, resolve } from 'node:path';
-import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { existsSync, watch } from 'node:fs';
 import { platform } from 'node:os';
 
-class NodemonManager {
+const DEBOUNCE_MS = 200;
+
+class WatchManager {
   constructor(packageName, options = {}) {
-    this.nodemonProcess = null;
+    this.runProcess = null;
+    this.watcher = null;
     this.isShuttingDown = false;
+    this.isBuilding = false;
+    this.rebuildQueued = false;
+    this.debounceTimer = null;
     this.packageName = packageName;
     this.verbose = options.verbose || false;
   }
@@ -28,81 +34,113 @@ class NodemonManager {
     } else {
       console.error('No package specified. Please specify a package name.');
       console.log('Usage: node mcp-live-debug.js <package-name>');
-      console.log('Available packages: bitbucket, common, confluence, jira');
+      console.log('Available packages: bitbucket, core, confluence, jira');
       process.exit(1);
     }
+
+    this.packageDir = packageDir;
 
     if (this.verbose) {
       console.log(`Starting debug session for package: ${this.packageName}`);
       console.log(`Working directory: ${packageDir}`);
     }
 
-    // Determine the npm command based on platform
-    const npmCmd = platform() === 'win32' ? 'npm.cmd' : 'npm';
-    
-    // Use npx for nodemon to ensure it's available
-    const command = platform() === 'win32' ? 'npx.cmd' : 'npx';
-    
-    this.nodemonProcess = spawn(command, [
-      'nodemon',
-      '--quiet',
-      '--watch', 'src',
-      '-e', 'ts',
-      '--exec', `npx tsc ${this.verbose ? '' : '--quiet'} && node ./build/index.js`
-    ], {
-      shell: true,
+    const srcDir = join(packageDir, 'src');
+    this.watcher = watch(srcDir, { recursive: true }, () => {
+      this.scheduleRebuild();
+    });
+
+    this.rebuildAndRun();
+  }
+
+  scheduleRebuild() {
+    if (this.isShuttingDown) return;
+
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.rebuildAndRun();
+    }, DEBOUNCE_MS);
+  }
+
+  rebuildAndRun() {
+    if (this.isShuttingDown) return;
+
+    if (this.isBuilding) {
+      this.rebuildQueued = true;
+      return;
+    }
+
+    this.isBuilding = true;
+
+    const npxCmd = platform() === 'win32' ? 'npx.cmd' : 'npx';
+    const tscFlags = this.verbose ? '' : '--quiet';
+
+    exec(`${npxCmd} tsc ${tscFlags}`, { cwd: this.packageDir }, (error, stdout, stderr) => {
+      this.isBuilding = false;
+
+      if (this.isShuttingDown) return;
+
+      if (error) {
+        if (this.verbose || stderr) {
+          console.error(stderr || stdout);
+        }
+        console.error('Build failed, waiting for changes...');
+      } else {
+        this.runBuiltServer();
+      }
+
+      if (this.rebuildQueued) {
+        this.rebuildQueued = false;
+        this.rebuildAndRun();
+      }
+    });
+  }
+
+  runBuiltServer() {
+    this.stopRunProcess();
+
+    if (this.isShuttingDown) return;
+
+    this.runProcess = spawn('node', ['./build/index.js'], {
       stdio: 'inherit',
-      cwd: packageDir,
+      cwd: this.packageDir,
       env: {
         ...process.env,
         PORT: '3098'
       }
     });
 
-    this.nodemonProcess.on('error', (err) => {
+    this.runProcess.on('error', (err) => {
       if (!this.isShuttingDown) {
-        console.error('Failed to start nodemon:', err);
+        console.error('Failed to start server:', err);
       }
     });
 
-    this.nodemonProcess.on('exit', (code, signal) => {
+    this.runProcess.on('exit', (code) => {
       if (!this.isShuttingDown && this.verbose && code !== 0) {
         console.error(`Process exited with code ${code}`);
       }
     });
   }
 
+  stopRunProcess() {
+    if (!this.runProcess) return;
+    this.runProcess.kill('SIGTERM');
+    this.runProcess = null;
+  }
+
   stop() {
     this.isShuttingDown = true;
+    clearTimeout(this.debounceTimer);
 
-    return new Promise((resolve, reject) => {
-      if (!this.nodemonProcess) {
-        resolve();
-        return;
-      }
+    if (this.watcher) {
+      this.watcher.close();
+      this.watcher = null;
+    }
 
-      try {
-        // Kill the process
-        this.nodemonProcess.kill('SIGINT');
+    this.stopRunProcess();
 
-        // Wait for the process to exit
-        this.nodemonProcess.on('exit', () => {
-          this.nodemonProcess = null;
-          resolve();
-        });
-
-        // Set a timeout in case the process doesn't exit
-        setTimeout(() => {
-          if (this.nodemonProcess) {
-            this.nodemonProcess.kill('SIGKILL');
-            this.nodemonProcess = null;
-            resolve();
-          }
-        }, 5000);
-      } catch (error) {
-        reject(error);
-      }
-    });
+    return Promise.resolve();
   }
 }
 
@@ -110,11 +148,11 @@ class NodemonManager {
 const packageName = process.argv[2];
 const verbose = process.argv.includes('--verbose') || process.argv.includes('-v');
 
-// Create nodemon manager with the specified package
-const nodemonManager = new NodemonManager(packageName, { verbose });
+// Create watch manager with the specified package
+const watchManager = new WatchManager(packageName, { verbose });
 
 // Start the process
-nodemonManager.start();
+watchManager.start();
 
 if (verbose) {
   console.log('\nPress Ctrl+C to stop the debug session');
@@ -125,7 +163,7 @@ process.on('SIGINT', async () => {
   if (verbose) {
     console.log('\nReceived SIGINT. Shutting down gracefully...');
   }
-  await nodemonManager.stop();
+  await watchManager.stop();
   process.exit(0);
 });
 
@@ -133,7 +171,7 @@ process.on('SIGTERM', async () => {
   if (verbose) {
     console.log('\nReceived SIGTERM. Shutting down gracefully...');
   }
-  await nodemonManager.stop();
+  await watchManager.stop();
   process.exit(0);
 });
 
