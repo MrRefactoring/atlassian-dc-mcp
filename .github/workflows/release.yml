@@ -1,0 +1,118 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write  # create / update GitHub release, push tags
+  id-token: write  # npm provenance + MCP registry OIDC
+
+jobs:
+  # ── 1. Create a draft release populated from each package's CHANGELOG.md ──
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      release-id: ${{ steps.create.outputs.result }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Create draft release with changelog body
+        id: create
+        uses: actions/github-script@v9
+        with:
+          result-encoding: string
+          script: |
+            const fs = require('fs')
+            const tag = context.ref.replace('refs/tags/', '')
+            const version = tag.replace(/^v/, '')
+            const escaped = version.replace(/\./g, '\\.')
+
+            const packages = [
+              ['core', 'datacenter-mcp-core'],
+              ['jira', 'jira-datacenter-mcp'],
+              ['confluence', 'confluence-datacenter-mcp'],
+              ['bitbucket', 'bitbucket-datacenter-mcp'],
+            ]
+
+            const sections = []
+            for (const [dir, name] of packages) {
+              const path = `packages/${dir}/CHANGELOG.md`
+              if (!fs.existsSync(path)) continue
+              const changelog = fs.readFileSync(path, 'utf8')
+              const re = new RegExp(`^# \\[${escaped}\\][^\\n]*\\n([\\s\\S]*?)(?=\\n# \\[|(?![\\s\\S]))`, 'm')
+              const match = changelog.match(re)
+              const body = match ? match[1].trim() : ''
+              if (body) sections.push(`### ${name}\n\n${body}`)
+            }
+
+            const body = sections.length
+              ? sections.join('\n\n')
+              : '<!-- changelog section not found -->'
+
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: tag,
+              body,
+              draft: true,
+              prerelease: false
+            })
+            return data.id
+
+  # ── 2. Build, test, publish to npm + MCP registry, then make the release public ──
+  publish:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: master
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '26'
+          registry-url: https://registry.npmjs.org/
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Test
+        run: pnpm run test
+
+      - name: Publish to npm
+        run: pnpm run release
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+
+      - name: Push package tags
+        run: git push --follow-tags
+
+      - name: Publish to MCP Registry
+        run: ./scripts/publish-mcp.sh
+
+      - name: Publish GitHub release
+        uses: actions/github-script@v9
+        env:
+          RELEASE_ID: ${{ needs.create-release.outputs.release-id }}
+        with:
+          script: |
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: parseInt(process.env.RELEASE_ID),
+              draft: false
+            })

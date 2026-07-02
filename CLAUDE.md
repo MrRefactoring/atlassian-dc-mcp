@@ -32,7 +32,14 @@ This monorepo uses [Changesets](https://github.com/changesets/changesets) (not l
 ```bash
 pnpm changeset
 ```
-Pick the affected packages, bump type, and write a short summary; commit the generated `.changeset/*.md` file alongside the code change. Merging to `master` opens/updates a "Version Packages" PR (via `changesets/action` in CI); merging *that* PR runs the actual `pnpm publish` + MCP Registry publish.
+Pick the affected packages, bump type, and write a short summary; commit the generated `.changeset/*.md` file alongside the code change. Merging to `master` opens/updates a "Version Packages" PR (via `changesets/action` in CI, `.github/workflows/npm-publish.yml`) that only bumps versions and CHANGELOG.md files — it does not publish.
+
+To actually release, after merging the Version Packages PR, tag the resulting commit on `master` with the new shared version and push the tag:
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+Pushing a `vX.Y.Z` tag triggers `.github/workflows/release.yml`: it creates a draft GitHub release from the matching `# [X.Y.Z]` sections of each package's `CHANGELOG.md`, builds/tests, runs `pnpm run release` (npm publish with provenance) and the MCP Registry publish, then flips the release from draft to published.
 
 ## Code Style Guidelines
 - **TypeScript**: Use strong typing, avoid `any`
