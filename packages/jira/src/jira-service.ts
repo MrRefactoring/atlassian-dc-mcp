@@ -1039,6 +1039,48 @@ export class JiraService {
     );
   }
 
+  async createUser(name: string, emailAddress: string, displayName?: string, password?: string, notification?: string) {
+    return handleApiOperation(
+      () => UserService.createUser({ name, emailAddress, displayName, password, notification }),
+      'Error creating user'
+    );
+  }
+
+  async removeUser(key?: string, username?: string) {
+    return handleApiOperation(
+      () => UserService.removeUser(key, username),
+      'Error removing user'
+    );
+  }
+
+  async changeUserPassword(password: string, currentPassword?: string, key?: string, username?: string) {
+    return handleApiOperation(
+      () => UserService.changeUserPassword({ password, currentPassword }, key, username),
+      'Error changing user password'
+    );
+  }
+
+  async validateUserAnonymization(userKey?: string, expand?: string) {
+    return handleApiOperation(
+      () => UserService.validateUserAnonymization(expand, userKey),
+      'Error validating user anonymization'
+    );
+  }
+
+  async scheduleUserAnonymization(userKey?: string, newOwnerKey?: string) {
+    return handleApiOperation(
+      () => UserService.scheduleUserAnonymization({ userKey, newOwnerKey }),
+      'Error scheduling user anonymization'
+    );
+  }
+
+  async getUserAnonymizationProgress(taskId?: number) {
+    return handleApiOperation(
+      () => UserService.getProgress1(taskId),
+      'Error getting user anonymization progress'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1651,5 +1693,33 @@ export const jiraToolSchemas = {
     searcherKey: z.string().optional().describe("Searcher key for the new custom field, e.g. 'com.atlassian.jira.plugin.system.customfieldtypes:textsearcher'"),
     issueTypeIds: z.array(z.string()).optional().describe("Issue type ids to scope the field to"),
     projectIds: z.array(z.number()).optional().describe("Project ids to scope the field to")
+  },
+  createUser: {
+    name: z.string().describe("Username of the new user"),
+    emailAddress: z.string().describe("Email address of the new user"),
+    displayName: z.string().optional().describe("Display name of the new user"),
+    password: z.string().optional().describe("Password for the new user. If omitted, a random password is generated."),
+    notification: z.string().optional().describe("Whether to notify the new user by email, e.g. 'true' or 'false'")
+  },
+  removeUser: {
+    key: z.string().optional().describe("Key of the user to remove"),
+    username: z.string().optional().describe("Username of the user to remove. Provide either key or username.")
+  },
+  changeUserPassword: {
+    password: z.string().describe("New password for the user"),
+    currentPassword: z.string().optional().describe("Current password, required when changing your own password"),
+    key: z.string().optional().describe("Key of the user whose password is being changed"),
+    username: z.string().optional().describe("Username of the user whose password is being changed. Provide either key or username.")
+  },
+  validateUserAnonymization: {
+    userKey: z.string().optional().describe("Key of the user to validate anonymization for"),
+    expand: z.string().optional().describe("Comma-separated expansions for the validation response")
+  },
+  scheduleUserAnonymization: {
+    userKey: z.string().optional().describe("Key of the user to anonymize"),
+    newOwnerKey: z.string().optional().describe("Key of the user who will own the anonymization audit log entries")
+  },
+  getUserAnonymizationProgress: {
+    taskId: z.number().optional().describe("Id of the anonymization task to check progress for")
   }
 };
