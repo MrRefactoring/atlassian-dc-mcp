@@ -13,7 +13,7 @@
     "sourceMap": true,
     "types": ["node", "jest"],
     "paths": {
-      "@mrrefactoring/atlassian-dc-mcp-core": ["./packages/core/src"]
+      "datacenter-mcp-core": ["./packages/core/src"]
     }
   },
   "references": [

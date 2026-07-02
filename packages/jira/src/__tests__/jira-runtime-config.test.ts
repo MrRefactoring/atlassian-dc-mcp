@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { initializeRuntimeConfig } from '@mrrefactoring/atlassian-dc-mcp-core';
+import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { getJiraRuntimeConfig } from '../config.js';
 import { JiraService } from '../jira-service.js';
 import { OpenAPI } from '../jira-client/core/OpenAPI.js';
@@ -51,5 +51,21 @@ describe('Jira runtime config integration', () => {
     const secondHeaders = await getHeaders(OpenAPI, { method: 'GET', url: '/issue' });
     expect(secondHeaders.get('Authorization')).toBe('Bearer token-b');
     expect(getJiraRuntimeConfig().defaultPageSize).toBe(45);
+  });
+
+  it('omits the Authorization header entirely for anonymous access when no token is configured', async () => {
+    fs.writeFileSync(sharedConfigPath, 'JIRA_HOST=file-host\nJIRA_DEFAULT_PAGE_SIZE=30\n');
+    initializeRuntimeConfig({ cwd: tempDir });
+
+    const startupConfig = getJiraRuntimeConfig();
+    new JiraService(
+      startupConfig.host,
+      () => getJiraRuntimeConfig().token,
+      startupConfig.apiBasePath,
+      () => getJiraRuntimeConfig().defaultPageSize,
+    );
+
+    const headers = await getHeaders(OpenAPI, { method: 'GET', url: '/issue' });
+    expect(headers.get('Authorization')).toBeNull();
   });
 });

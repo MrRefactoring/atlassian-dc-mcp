@@ -411,7 +411,7 @@ describe('runSetup', () => {
       expect(keychain.store).toBe('cli-token');
     });
 
-    it('exits 1 when --token is missing and there is no existing token', async () => {
+    it('succeeds for anonymous access when --token is missing and there is no existing token', async () => {
       const validator = new StubCredentialValidator();
       const exitFn = jest.fn();
       const registry = makeRegistry(keychain, home);
@@ -425,11 +425,12 @@ describe('runSetup', () => {
         args: makeArgs({ host: 'cli-host.example.com', nonInteractive: true }),
       });
 
-      expect(exitFn).toHaveBeenCalledWith(1);
+      expect(exitFn).not.toHaveBeenCalled();
       expect(validator.calls).toHaveLength(0);
       expect(keychain.writeCalls).toBe(0);
-      expect(home.writes).toHaveLength(0);
-      expect(logs.some((l) => l.includes('JIRA_API_TOKEN'))).toBe(true);
+      expect(home.values.jira.host).toBe('cli-host.example.com');
+      const tokenWrites = home.writes.filter(([, k]) => k === 'token');
+      expect(tokenWrites).toHaveLength(0);
     });
 
     it('reuses an existing keychain token without rewriting it when --token is omitted', async () => {

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { initializeRuntimeConfig } from '@mrrefactoring/atlassian-dc-mcp-core';
+import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { BitbucketService } from '../bitbucket-service.js';
 import { BuildsAndDeploymentsService, DeprecatedService, ProjectService, PullRequestsService, RepositoryService } from '../bitbucket-client/index.js';
 import { request as mockRequest } from '../bitbucket-client/core/request.js';
@@ -3415,12 +3415,12 @@ describe('BitbucketService', () => {
       expect(missingVars).toEqual([]);
     });
 
-    it('should return missing vars when BITBUCKET_API_TOKEN is missing', () => {
+    it('should allow anonymous access when BITBUCKET_API_TOKEN is missing', () => {
       delete process.env.BITBUCKET_API_TOKEN;
       process.env.BITBUCKET_HOST = 'test-host';
 
       const missingVars = BitbucketService.validateConfig();
-      expect(missingVars).toContain('BITBUCKET_API_TOKEN');
+      expect(missingVars).toEqual([]);
     });
 
     it('should return missing vars when both host options are missing', () => {

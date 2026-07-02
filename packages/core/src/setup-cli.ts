@@ -362,7 +362,7 @@ async function promptForToken(
     return { tokenToWrite: fromArgs, tokenForValidation: fromArgs };
   }
   const entered = await prompts.password({
-    message: 'API token:',
+    message: 'API token (leave blank for anonymous access):',
     mask: '*',
     validate: SetupValueValidator.token,
   });
@@ -397,9 +397,7 @@ function validateAnswers(product: ProductDefinition, answers: PromptResult): str
     errors.push(`default page size: ${pageSize}`);
   }
 
-  if (!answers.tokenForValidation) {
-    errors.push(`API token is required (${product.envVars.token}).`);
-  } else {
+  if (answers.tokenForValidation) {
     const tokenResult = SetupValueValidator.token(answers.tokenForValidation);
     if (tokenResult !== true) {
       errors.push(`API token: ${tokenResult}`);

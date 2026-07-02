@@ -1,4 +1,4 @@
-import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from '@mrrefactoring/atlassian-dc-mcp-core';
+import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { ConfluenceService, ConfluenceContent, confluenceToolSchemas } from './confluence-service.js';
 import { shapeConfluenceMutationAck } from './confluence-response-mapper.js';
 import { getConfluenceRuntimeConfig, getDefaultPageSize } from './config.js';

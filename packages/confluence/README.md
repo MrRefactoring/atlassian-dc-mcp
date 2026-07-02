@@ -7,7 +7,7 @@ This package provides a Machine Comprehension Protocol (MCP) server for interact
 The easiest way to configure this server is the built-in `setup` subcommand:
 
 ```bash
-npx @mrrefactoring/atlassian-dc-mcp-confluence setup
+npx confluence-datacenter-mcp setup
 ```
 
 It prompts for host, API base path, default page size, and API token, then stores them in the most secure place available:
@@ -23,7 +23,7 @@ After setup, you can launch the server without any environment variables:
   "mcpServers": {
     "atlassian-confluence-dc": {
       "command": "npx",
-      "args": ["-y", "@mrrefactoring/atlassian-dc-mcp-confluence"]
+      "args": ["-y", "confluence-datacenter-mcp"]
     }
   }
 }
@@ -36,12 +36,12 @@ Environment variables still override stored values — see [Configuration source
 For CI, remote sessions, or shell scripts, pass values as flags and add `--non-interactive` to skip prompts:
 
 ```bash
-npx @mrrefactoring/atlassian-dc-mcp-confluence setup --non-interactive \
+npx confluence-datacenter-mcp setup --non-interactive \
   --host confluence.example.com \
   --token "$CONFLUENCE_TOKEN"
 ```
 
-Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--default-page-size`/`-s`, `--non-interactive`/`-n`, `--help`/`-h`. In `--non-interactive` mode, missing values fall back to existing configuration and the run exits non-zero if a host (or full-URL `--api-base-path`) and token cannot be resolved. An existing token is reused when `--token` is omitted. Run `npx @mrrefactoring/atlassian-dc-mcp-confluence setup --help` for full usage.
+Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--default-page-size`/`-s`, `--non-interactive`/`-n`, `--help`/`-h`. In `--non-interactive` mode, missing values fall back to existing configuration and the run exits non-zero only if a host (or full-URL `--api-base-path`) cannot be resolved. The token is optional — omit it for anonymous access; an existing token is reused when `--token` is omitted. Run `npx confluence-datacenter-mcp setup --help` for full usage.
 
 ## Features
 
@@ -61,6 +61,7 @@ Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--defau
    ```
    # Either CONFLUENCE_HOST or CONFLUENCE_API_BASE_PATH must be set
    CONFLUENCE_HOST=your-confluence-instance.atlassian.net
+   # Optional: omit for anonymous access if your instance allows unauthenticated reads
    CONFLUENCE_API_TOKEN=your-personal-access-token
 
    # Optional: Use one of the following approaches:
@@ -148,7 +149,7 @@ pnpm test
 Or from the repository root:
 
 ```
-pnpm --filter @mrrefactoring/atlassian-dc-mcp-confluence test
+pnpm --filter confluence-datacenter-mcp test
 ```
 
 ### Available Tools
