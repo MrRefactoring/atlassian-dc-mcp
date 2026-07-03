@@ -92,6 +92,16 @@ Notes:
 - `datacenter-mcp-core` exports a `paginateAll` helper for auto-paginating naturally small, bounded startAt-paged endpoints (e.g. a project's versions, a page's labels) internally in a service method, so callers get one fully-assembled list instead of hand-rolling a startAt loop. It's not used for open-ended search endpoints (JQL/CQL, repository listings), which stay single-page and agent-driven so a broad query can't flood the conversation with an unbounded amount of data.
 - Each product also accepts `*_USERNAME`/`*_PASSWORD` for Basic auth, as an alternative to `*_API_TOKEN` (useful for older instances without personal access tokens). If both are set, Basic auth takes precedence over the Bearer token.
 
+## Transport
+
+By default, every MCP server speaks stdio — what Claude Desktop and other local MCP hosts expect. Setting `ATLASSIAN_DC_MCP_HTTP_PORT` to a positive integer instead starts the [MCP Streamable HTTP transport](https://modelcontextprotocol.io/docs/concepts/transports#streamable-http) (the current spec's recommendation for remote/multi-client access, superseding the legacy SSE transport) on that port; the two transports are mutually exclusive per process — set the env var only for a standalone, network-reachable instance, not for a Claude Desktop-launched one:
+
+```bash
+ATLASSIAN_DC_MCP_HTTP_PORT=3000 npx jira-datacenter-mcp
+```
+
+The transport is stateful: it demultiplexes many concurrent client sessions by the `Mcp-Session-Id` header over one long-lived process, so exposing it beyond localhost needs your own reverse proxy / TLS termination and network access control — the transport itself does not add authentication on top of the Atlassian credentials already configured for the server.
+
 ## Claude Desktop Configuration
 
 [Official Anthropic quick start guide](https://modelcontextprotocol.io/docs/getting-started/intro)
