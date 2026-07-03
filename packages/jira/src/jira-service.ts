@@ -22,6 +22,7 @@ import {
   MyselfService,
   NotificationschemeService,
   OpenAPI,
+  PermissionsService,
   PermissionschemeService,
   PriorityService,
   ProjectService,
@@ -1126,6 +1127,13 @@ export class JiraService {
     );
   }
 
+  async getAllPermissions() {
+    return handleApiOperation(
+      () => PermissionsService.getAllPermissions(),
+      'Error getting all permissions'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1799,5 +1807,6 @@ export const jiraToolSchemas = {
     projectId: z.string().optional().describe("Id of the project to scope returned permissions for"),
     issueKey: z.string().optional().describe("Key of the issue to scope returned permissions for"),
     issueId: z.string().optional().describe("Id of the issue to scope returned permissions for")
-  }
+  },
+  getAllPermissions: {}
 };
