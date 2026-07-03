@@ -154,59 +154,76 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-#### 1. confluence_getContent
+The server registers 42 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
-Get Confluence Data Center content by ID.
+#### Content — CRUD & search (CQL)
 
-Parameters:
-- `contentId` (string, required): The ID of the content to retrieve
-- `expand` (string, optional): Comma-separated list of properties to expand (e.g., "body.storage,version")
-- `bodyMode` (`storage` | `text` | `none`, optional): Response shape for the content body. Defaults to `storage` for backward compatibility.
-- `maxBodyChars` (number, optional): Maximum number of characters to keep when `bodyMode=text`
-- `bodyStart` (number, optional): Character offset to start the text body slice when `bodyMode=text`. Non-negative values start from the beginning; negative values start from the end, e.g. `-2000` returns the last 2000 characters.
+- `confluence_getContent` — Get Confluence content by ID
+- `confluence_searchContent` — Search for content using CQL
+- `confluence_createContent` — Create new content
+- `confluence_updateContent` — Update existing content
+- `confluence_deleteContent` — Delete (trash or purge) content
 
-#### 2. confluence_searchContent
+#### Content structure — history, children, descendants
 
-Search for content in Confluence Data Center using CQL.
+- `confluence_getContentHistory` — Get the version history of content
+- `confluence_getContentChildren` — Get the direct children of a piece of content
+- `confluence_getContentChildrenByType` — Get the children of a piece of content limited to a single type
+- `confluence_getContentDescendants` — Get the descendants of a piece of content
+- `confluence_getContentDescendantsByType` — Get the descendants of a piece of content limited to a single type
 
-Parameters:
-- `cql` (string, required): Confluence Query Language search string
-- `limit` (number, optional): Maximum number of results to return. Defaults to `CONFLUENCE_DEFAULT_PAGE_SIZE` or `25`.
-- `start` (number, optional): Start index for pagination
-- `expand` (string, optional): Comma-separated list of properties to expand
-- `excerpt` (`none` | `highlight`, optional): Excerpt mode for search results. Defaults to `none`.
+#### Comments (read-only)
 
-#### 3. confluence_createContent
+- `confluence_getContentComments` — Get the comments of a piece of content
 
-Create new content in Confluence Data Center.
+#### Labels
 
-Parameters:
-- `title` (string, required): Title of the content
-- `spaceKey` (string, required): Space key where content will be created
-- `type` (string, default: "page"): Content type (page, blogpost, etc)
-- `content` (string, required): Content body in Confluence Data Center's storage format (XML-based storage format)
-- `parentId` (string, optional): ID of the parent page (if creating a child page)
-- `output` (`ack` | `full`, optional): Return a compact acknowledgement or the full API response. Defaults to `ack`.
+- `confluence_getContentLabels` — Get the labels attached to a piece of content
+- `confluence_addContentLabels` — Add one or more labels to a piece of content
+- `confluence_deleteContentLabel` — Remove a label from a piece of content
 
-#### 4. confluence_updateContent
+#### Content properties
 
-Update existing content in Confluence Data Center.
+- `confluence_getContentProperties` — Get the properties stored on a piece of content
+- `confluence_getContentProperty` — Get a single content property by key
+- `confluence_createContentProperty` — Create a content property
+- `confluence_updateContentProperty` — Update a content property
+- `confluence_deleteContentProperty` — Delete a content property
 
-Parameters:
-- `contentId` (string, required): ID of the content to update
-- `title` (string, optional): New title of the content
-- `content` (string, optional): New content body in Confluence Data Center's storage format (XML-based)
-- `version` (number, required): New version number (must be incremented from current version)
-- `versionComment` (string, optional): Comment for this version
-- `output` (`ack` | `full`, optional): Return a compact acknowledgement or the full API response. Defaults to `ack`.
+#### Restrictions
 
-#### 5. confluence_searchSpace
+- `confluence_getContentRestrictions` — Get all restrictions on a piece of content, grouped by operation
+- `confluence_getContentRestrictionsByOperation` — Get the restrictions on a piece of content for a single operation
+- `confluence_updateContentRestrictions` — Overwrite the restrictions on a piece of content
 
-Search for Confluence spaces by name text.
+#### Watches
 
-Parameters:
-- `searchText` (string, required): Text to search for in space names or descriptions
-- `limit` (number, optional): Maximum number of results to return. Defaults to `CONFLUENCE_DEFAULT_PAGE_SIZE` or `25`.
-- `start` (number, optional): Start index for pagination
-- `expand` (string, optional): Comma-separated list of properties to expand
-- `excerpt` (`none` | `highlight`, optional): Excerpt mode for search results. Defaults to `none`.
+- `confluence_getContentWatchers` — List the users watching a piece of content
+- `confluence_isWatchingContent` — Check whether a user is watching a piece of content
+- `confluence_addContentWatcher` — Add a watcher to a piece of content
+- `confluence_removeContentWatcher` — Remove a watcher from a piece of content
+
+#### Attachments (list/remove only — no upload currently)
+
+- `confluence_getAttachments` — Get the attachments on a piece of content
+- `confluence_removeAttachment` — Remove an attachment from a piece of content
+
+#### Spaces — search, CRUD, archive/restore
+
+- `confluence_searchSpace` — Search for spaces
+- `confluence_getSpace` — Get information about a single space
+- `confluence_getSpaces` — List spaces with optional filters
+- `confluence_createSpace` — Create a new space
+- `confluence_updateSpace` — Update a space's name and description
+- `confluence_deleteSpace` — Delete a space
+- `confluence_getSpaceContent` — Get the content in a space
+- `confluence_archiveSpace` — Archive a space
+- `confluence_restoreSpace` — Restore an archived space
+
+#### Space properties
+
+- `confluence_getSpaceProperties` — Get the properties stored on a space
+- `confluence_getSpaceProperty` — Get a single space property by key
+- `confluence_createSpaceProperty` — Create a space property
+- `confluence_updateSpaceProperty` — Update a space property
+- `confluence_deleteSpaceProperty` — Delete a space property

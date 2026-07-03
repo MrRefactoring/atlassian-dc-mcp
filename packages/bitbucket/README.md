@@ -168,66 +168,112 @@ pnpm dev
 
 ### Available Tools
 
-#### 1. bitbucket_getRepositories
+This server registers 78 tools, grouped below by area.
 
-Get a list of repositories from the Bitbucket Data Center instance.
+#### Projects & Repositories
 
-Parameters:
-- `projectKey` (string, optional): Filter repositories by project key
-- `limit` (number, optional): Maximum number of results to return
-- `start` (number, optional): Starting index for pagination
+- `bitbucket_getProjects` — Get a list of Bitbucket projects.
+- `bitbucket_getProject` — Get a specific Bitbucket project by key.
+- `bitbucket_createProject` — Create a new Bitbucket project (requires `PROJECT_CREATE`).
+- `bitbucket_updateProject` — Update an existing project's name or description (requires `PROJECT_ADMIN`).
+- `bitbucket_deleteProject` — Delete a Bitbucket project (requires `PROJECT_ADMIN`; must have no repositories).
+- `bitbucket_getRepositories` — Get repositories for a Bitbucket project.
+- `bitbucket_getRepository` — Get a specific Bitbucket repository.
+- `bitbucket_createRepository` — Create a new repository in a project (requires `REPO_CREATE`).
+- `bitbucket_updateRepository` — Rename a repository or change its description, default branch, or project (requires `REPO_ADMIN`).
+- `bitbucket_deleteRepository` — Schedule a repository for deletion (requires `REPO_ADMIN`; irreversible).
+- `bitbucket_forkRepository` — Fork an existing repository into another (or the user's personal) project.
+- `bitbucket_browseRepository` — Browse a repository path: list a directory, read a file's content, or fetch blame.
+- `bitbucket_getFileContent` — Get the raw text content of a file at a given ref or commit.
+- `bitbucket_editFile` — Create or edit a file and commit the change in one call, with optimistic conflict detection.
+- `bitbucket_searchCode` — Search code across Bitbucket using `project:`/`repo:`/`ext:` modifiers.
 
-#### 2. bitbucket_getRepository
+#### Branches & Tags
 
-Get details of a specific repository from the Bitbucket Data Center instance.
+- `bitbucket_getBranches` — Get branches for a repository, with filtering and ordering.
+- `bitbucket_createBranch` — Create a branch from a given start point (ref or commit).
+- `bitbucket_deleteBranch` — Delete a branch (supports `dryRun` validation).
+- `bitbucket_getDefaultBranch` — Get the default branch of a repository.
+- `bitbucket_getTags` — Get tags for a repository, with filtering and ordering.
+- `bitbucket_getTag` — Get a single tag by name.
+- `bitbucket_createTag` — Create a (optionally annotated) tag pointing at a ref or commit.
+- `bitbucket_getBranchRestrictions` — List branch (ref) restrictions configured on a repository (requires `REPO_ADMIN`).
+- `bitbucket_getBranchRestriction` — Get a single branch restriction by ID (requires `REPO_ADMIN`).
+- `bitbucket_createBranchRestriction` — Create a branch restriction, with optional user/group/access-key exemptions (requires `REPO_ADMIN`).
+- `bitbucket_deleteBranchRestriction` — Delete a branch restriction by ID (requires `REPO_ADMIN`).
+- `bitbucket_getRequiredBuildsMergeChecks` — List required-builds merge checks configured on a repository.
+- `bitbucket_createRequiredBuildsMergeCheck` — Create a required-builds merge check for a target ref matcher (requires `REPO_ADMIN`).
+- `bitbucket_updateRequiredBuildsMergeCheck` — Replace a required-builds merge check's build keys and matcher (requires `REPO_ADMIN`).
+- `bitbucket_deleteRequiredBuildsMergeCheck` — Delete a required-builds merge check by ID (requires `REPO_ADMIN`).
+- `bitbucket_getDefaultReviewerConditions` — List default reviewer conditions (source/target matcher → reviewers + required approvals).
+- `bitbucket_createDefaultReviewerCondition` — Create a default reviewer condition with source/target matchers and reviewer IDs.
+- `bitbucket_updateDefaultReviewerCondition` — Replace a default reviewer condition's matchers and reviewer set.
+- `bitbucket_deleteDefaultReviewerCondition` — Delete a default reviewer condition by ID.
 
-Parameters:
-- `projectKey` (string, required): The project key (e.g., "PROJECT")
-- `repositorySlug` (string, required): The repository slug (e.g., "repo-name")
+#### Commits & Diffs
 
-#### 3. bitbucket_getBranches
+- `bitbucket_getCommits` — Get commits for a repository.
+- `bitbucket_getCommit` — Get a single commit by ID, with author, message, parents, and timestamps.
+- `bitbucket_getCommitDiff` — Get the diff of a single commit, optionally scoped to one file.
+- `bitbucket_compareRefs` — Compare two refs/commits — list commits between them or the changed files.
+- `bitbucket_getCommitComments` — Get comments on a commit, scoped to a file path.
+- `bitbucket_addCommitComment` — Add a comment to a commit, optionally anchored to a file/line.
 
-Get branches for a repository from the Bitbucket Data Center instance.
+#### Builds & Code Insights
 
-Parameters:
-- `projectKey` (string, required): The project key
-- `repositorySlug` (string, required): The repository slug
-- `filterText` (string, optional): Filter branches by name
-- `limit` (number, optional): Maximum number of results to return
-- `start` (number, optional): Starting index for pagination
+- `bitbucket_listBuildStatuses` — List build statuses (CI results) for a commit (keyed globally, no project/repo needed).
+- `bitbucket_addBuildStatus` — Add or update a build status (`SUCCESSFUL`/`FAILED`/`INPROGRESS`) on a commit.
+- `bitbucket_getBuildStatus` — Get a single build status for a commit by its key.
+- `bitbucket_setInsightReport` — Create or replace a Code Insights report on a commit (e.g. linter/scanner results).
+- `bitbucket_getInsightReport` — Get a Code Insights report on a commit by its key.
+- `bitbucket_deleteInsightReport` — Delete a Code Insights report (and its annotations) on a commit.
+- `bitbucket_addInsightAnnotations` — Add per-file/line annotations to an existing Code Insights report.
+- `bitbucket_getInsightAnnotations` — Get the annotations of a Code Insights report on a commit.
+- `bitbucket_deleteInsightAnnotations` — Delete one or all annotations of a Code Insights report.
 
-#### 4. bitbucket_getFileContent
+#### Pull Requests
 
-Get the content of a file from a repository in the Bitbucket Data Center instance.
+- `bitbucket_getPullRequests` — Get pull requests for a repository.
+- `bitbucket_getPullRequest` — Get a specific pull request by ID, including reviewers, state, and version.
+- `bitbucket_createPullRequest` — Create a new pull request.
+- `bitbucket_updatePullRequest` — Update a PR's title, description, reviewers, target branch, or draft status (requires version).
+- `bitbucket_getPullRequestChanges` — Get the changed files for a pull request.
+- `bitbucket_getPullRequestDiff` — Get the text diff for a specific file in a pull request.
+- `bitbucket_canMergePullRequest` — Check whether a PR can be merged (vetoes, conflicts) as a read-only guard.
+- `bitbucket_mergePullRequest` — Merge a pull request (requires version; optional merge message/strategy).
+- `bitbucket_declinePullRequest` — Decline an open pull request without merging (requires version).
+- `bitbucket_reopenPullRequest` — Reopen a previously declined pull request (requires version).
+- `bitbucket_getRequiredReviewers` — Get required reviewers for pull requests from a given source ref to a target ref.
+- `bitbucket_addPullRequestReviewer` — Add a single reviewer to a pull request without replacing existing reviewers.
+- `bitbucket_removePullRequestReviewer` — Remove a reviewer from a pull request (remains a participant).
+- `bitbucket_submitPullRequestReview` — Publish all pending (draft) comments and set the reviewer's verdict.
+- `bitbucket_watchPullRequest` — Start watching a pull request for notifications.
+- `bitbucket_unwatchPullRequest` — Stop watching a pull request.
 
-Parameters:
-- `projectKey` (string, required): The project key
-- `repositorySlug` (string, required): The repository slug
-- `path` (string, required): Path to the file in the repository
-- `at` (string, optional): Commit or branch to get the file from (defaults to main/master branch)
+#### Pull Request Comments
 
-#### 5. bitbucket_getPullRequests
+- `bitbucket_getPR_CommentsAndAction` — Get comments for a pull request and other actions like approvals.
+- `bitbucket_postPullRequestComment` — Post a comment to a pull request, including pending/draft, multiline anchors, and BLOCKER tasks.
+- `bitbucket_updatePullRequestComment` — Edit a comment's text/severity, or resolve/reopen it (and BLOCKER tasks) via state.
+- `bitbucket_deletePullRequestComment` — Delete a comment from a pull request (requires version; fails if it has replies).
+- `bitbucket_applyPullRequestSuggestion` — Apply a code suggestion from a PR comment directly to the source branch as a commit.
 
-Get pull requests for a repository from the Bitbucket Data Center instance.
+#### Webhooks
 
-Parameters:
-- `projectKey` (string, required): The project key
-- `repositorySlug` (string, required): The repository slug
-- `state` (string, optional): Filter by PR state (OPEN, MERGED, DECLINED)
-- `limit` (number, optional): Maximum number of results to return
-- `start` (number, optional): Starting index for pagination
+- `bitbucket_getWebhooks` — List webhooks configured on a repository (requires `REPO_ADMIN`).
+- `bitbucket_getWebhook` — Get a single webhook by ID (requires `REPO_ADMIN`).
+- `bitbucket_createWebhook` — Create a webhook subscribed to one or more events (requires `REPO_ADMIN`).
+- `bitbucket_updateWebhook` — Replace an existing webhook's configuration (requires `REPO_ADMIN`).
+- `bitbucket_deleteWebhook` — Delete a webhook by ID (requires `REPO_ADMIN`).
 
-#### 6. bitbucket_getDashboardPullRequests
+#### Dashboard & Inbox
 
-Get pull requests from the Bitbucket dashboard across all repositories. Useful for finding all PRs where you are the author, reviewer, or participant without specifying a project or repository.
+- `bitbucket_getInboxPullRequests` — Get pull requests from the authenticated user's inbox needing review.
+- `bitbucket_getDashboardPullRequests` — Get pull requests from the dashboard across all repositories (by role/state).
 
-Parameters:
-- `role` (string, optional): Filter by user's role — AUTHOR (default), REVIEWER, or PARTICIPANT
-- `state` (string, optional): Filter by PR state — OPEN (default), DECLINED, or MERGED
-- `closedSince` (number, optional): Timestamp in milliseconds. If state is not OPEN, return only PRs closed after this date
-- `order` (string, optional): Order of results — NEWEST (default), OLDEST, or PARTICIPANT
-- `limit` (number, optional): Maximum number of results to return. Defaults to `BITBUCKET_DEFAULT_PAGE_SIZE` or `25`.
-- `start` (number, optional): Starting index for pagination
+#### Users
+
+- `bitbucket_getUser` — Get a user by slug, or search users by name/email to resolve their slug.
 
 ## Response Shaping
 
