@@ -30,7 +30,7 @@ type AccessTokenScope = 'user' | 'project' | 'repo';
  * For a multiline range, Bitbucket DC (>= 9.3.0) requires `multilineMarker` + `multilineSpan`.
  * The legacy `multilineStartLine`/`multilineStartLineType`/`multilineAnchor`/`multilineDestinationRange`
  * fields are silently ignored by the server, which then stores a single-line anchor — so a multiline
- * `​```suggestion` only replaces its first line on Apply. Field names verified against BB DC 9.3.2.
+ * suggestion block only replaces its first line on Apply. Field names verified against BB DC 9.3.2.
  */
 function buildCommentAnchor(params: {
   filePath: string;
@@ -77,7 +77,7 @@ function buildCommentAnchor(params: {
 const SUGGESTION_BLOCK_RE = /```suggestion\b[^\n]*\n([\s\S]*?)```/;
 
 /**
- * Warn when a multi-line `​```suggestion` block is anchored to a single line: Bitbucket only replaces
+ * Warn when a multi-line suggestion block is anchored to a single line: Bitbucket only replaces
  * the anchored line on Apply, leaving the rest (duplicated code). Returns undefined when there is no
  * concern. Heuristic — a 1-line anchor with a multi-line suggestion is the common failure shape.
  */

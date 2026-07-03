@@ -29,7 +29,7 @@ function getActiveProfile(): string | undefined {
   return getNonEmptyValue(process.env[ATLASSIAN_DC_MCP_PROFILE_ENV_VAR]);
 }
 
-let registry: ConfigRegistry = buildDefaultRegistry({ profile: getActiveProfile() });
+const registry: ConfigRegistry = buildDefaultRegistry({ profile: getActiveProfile() });
 
 export function initializeRuntimeConfig(options?: { cwd?: string }): void {
   registry.initialize(options);

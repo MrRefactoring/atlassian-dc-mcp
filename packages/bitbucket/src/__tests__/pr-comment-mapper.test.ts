@@ -167,6 +167,35 @@ describe('PR Comment Mapper', () => {
       expect(result).toEqual(expectedResult);
     });
 
+    it('drops a comment whose anchor is malformed instead of simplifying garbage anchor data', () => {
+      const malformedAnchorResponse: BitbucketPRApiResponse = {
+        ...validPRResponse,
+        values: [
+          {
+            id: 1001,
+            createdDate: 1600000000000,
+            user: createUser('testuser1', 101, 'User A'),
+            action: "COMMENTED",
+            commentAction: "ADDED",
+            comment: createComment({
+              anchor: { line: 'not-a-number' } as unknown as TestComment['anchor'],
+            }),
+          },
+        ],
+      };
+
+      const result = simplifyBitbucketPRComments(malformedAnchorResponse) as SimplifiedPRResponse;
+
+      expect(result.activities[0]).toEqual({
+        id: 1001,
+        createdDate: 1600000000000,
+        user: { name: "testuser1", displayName: "User A" },
+        action: "COMMENTED",
+        commentAction: "ADDED",
+        // no `comment` key: isComment() rejects the malformed anchor
+      });
+    });
+
     it('should preserve nested replies recursively', () => {
       const threadedResponse: BitbucketPRApiResponse = {
         ...validPRResponse,

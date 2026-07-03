@@ -4,12 +4,14 @@ import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { BitbucketService } from '../bitbucket-service.js';
 import { AuthenticationService, BuildsAndDeploymentsService, DeprecatedService, OpenAPI, PermissionManagementService, ProjectService, PullRequestsService, RepositoryService, SecurityService } from '../bitbucket-client/index.js';
-import { request as mockRequest } from '../bitbucket-client/core/request.js';
+import { request } from '../bitbucket-client/core/request.js';
 
 // Mock the request function
 jest.mock('../bitbucket-client/core/request.js', () => ({
   request: jest.fn()
 }));
+
+const mockRequest = jest.mocked(request);
 
 // Mock the PullRequestsService
 jest.mock('../bitbucket-client/index.js', () => ({
@@ -2268,8 +2270,6 @@ describe('BitbucketService', () => {
   });
 
   describe('getPullRequestDiff', () => {
-    const { request: mockRequest } = require('../bitbucket-client/core/request.js');
-
     it('should successfully get raw diff with minimal parameters', async () => {
       const mockRawDiff = 'diff --git a/file.txt b/file.txt\nindex 1234567..abcdefg 100644\n--- a/file.txt\n+++ b/file.txt\n@@ -1,3 +1,4 @@\n line1\n line2\n+new line\n line3';
       mockRequest.mockResolvedValue(mockRawDiff);
@@ -3251,8 +3251,6 @@ describe('BitbucketService', () => {
   });
 
   describe('getDashboardPullRequests', () => {
-    const { request: mockRequest } = require('../bitbucket-client/core/request.js');
-
     it('should default to AUTHOR role and the package page size', async () => {
       const mockData = {
         values: [
@@ -3376,8 +3374,6 @@ describe('BitbucketService', () => {
   });
 
   describe('getInboxPullRequests', () => {
-    const { request: mockRequest } = require('../bitbucket-client/core/request.js');
-
     it('should successfully get inbox pull requests with default parameters', async () => {
       const mockInboxData = {
         values: [
@@ -4729,8 +4725,6 @@ describe('BitbucketService', () => {
   });
 
   describe('branch model configuration', () => {
-    const { request: mockRequest } = require('../bitbucket-client/core/request.js');
-
     it('should get the branch model configuration', async () => {
       const mockData = {
         development: { refId: 'refs/heads/master', useDefault: true },
@@ -4858,8 +4852,6 @@ describe('BitbucketService', () => {
   });
 
   describe('searchCode', () => {
-    const { request: mockRequest } = require('../bitbucket-client/core/request.js');
-
     it('should search code with the default page size', async () => {
       const mockData = { code: { count: 1, values: [{ repository: { slug: 'demo' } }] } };
       mockRequest.mockResolvedValue(mockData);

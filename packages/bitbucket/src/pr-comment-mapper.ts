@@ -220,7 +220,8 @@ function isComment(obj: unknown): obj is Comment {
     typeof (obj as any).severity === 'string' &&
     typeof (obj as any).state === 'string' &&
     typeof (obj as any).properties === 'object' &&
-    typeof (obj as any).permittedOperations === 'object'
+    typeof (obj as any).permittedOperations === 'object' &&
+    ((obj as any).anchor === undefined || isCommentAnchor((obj as any).anchor))
   );
 }
 
