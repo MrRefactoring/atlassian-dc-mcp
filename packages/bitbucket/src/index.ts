@@ -729,6 +729,36 @@ server.tool(
 );
 
 server.tool(
+  "bitbucket_getBranchModel",
+  "Get the branch model configuration for a Bitbucket repository: the development and production branches, and the prefix/enabled settings for bugfix, feature, hotfix and release branch types.",
+  bitbucketToolSchemas.getBranchModel,
+  async ({ projectKey, repositorySlug }) => {
+    const result = await bitbucketService.getBranchModel(projectKey, repositorySlug);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_setBranchModel",
+  "Set (replace) the branch model configuration for a Bitbucket repository. Requires REPO_ADMIN. 'development' is required; 'production' and 'types' (branch prefixes) are optional and fall back to the server defaults when omitted.",
+  bitbucketToolSchemas.setBranchModel,
+  async ({ projectKey, repositorySlug, development, production, types }) => {
+    const result = await bitbucketService.setBranchModel(projectKey, repositorySlug, development, production, types);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_deleteBranchModel",
+  "Delete (reset to server defaults) the branch model configuration for a Bitbucket repository. Requires REPO_ADMIN.",
+  bitbucketToolSchemas.deleteBranchModel,
+  async ({ projectKey, repositorySlug }) => {
+    const result = await bitbucketService.deleteBranchModel(projectKey, repositorySlug);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "bitbucket_searchCode",
   "Search code across Bitbucket. The query supports search modifiers like 'project:<key>', 'repo:<key>/<slug>', and 'ext:<extension>' to scope or filter results (e.g. 'project:TEST authenticate', 'repo:TEST/demo ext:js TODO'). NOTE: the 'repo:' modifier requires the project key — 'repo:projectkey/repositoryslug', not a bare slug. Returns matching files with hit contexts (snippets).",
   bitbucketToolSchemas.searchCode,

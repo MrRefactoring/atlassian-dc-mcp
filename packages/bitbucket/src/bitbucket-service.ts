@@ -2000,6 +2000,100 @@ export class BitbucketService {
   }
 
   /**
+   * Get the branch model configuration for a repository (development/production branches and branch type prefixes).
+   *
+   * Note: the branch-utils REST module is not part of the generated client, so this is issued via
+   * the low-level request helper (same approach as the dashboard/inbox/search endpoints).
+   *
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @returns Promise with the branch model configuration
+   */
+  async getBranchModel(projectKey: string, repositorySlug: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => __request(OpenAPI, {
+        method: 'GET',
+        url: '/branch-utils/1.0/projects/{projectKey}/repos/{repositorySlug}/branchmodel/configuration',
+        path: { projectKey, repositorySlug },
+        errors: {
+          401: 'The currently authenticated user has insufficient permissions to view the branch model configuration.',
+          404: 'The specified repository does not exist.',
+        },
+      }),
+      'Error fetching branch model configuration'
+    );
+  }
+
+  /**
+   * Set (replace) the branch model configuration for a repository.
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param development Development branch config: { refId, useDefault? }
+   * @param production Optional production branch config: { refId, useDefault? }
+   * @param types Optional branch type config: [{ id (BUGFIX/FEATURE/HOTFIX/RELEASE), prefix?, enabled? }]
+   * @returns Promise with the updated branch model configuration
+   */
+  async setBranchModel(
+    projectKey: string,
+    repositorySlug: string,
+    development: { refId: string; useDefault?: boolean },
+    production?: { refId: string; useDefault?: boolean },
+    types?: Array<{ id: string; prefix?: string; enabled?: boolean }>
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const body: Record<string, any> = {
+      development,
+      ...(production ? { production } : {}),
+      ...(types ? { types } : {}),
+    };
+    return handleApiOperation(
+      () => __request(OpenAPI, {
+        method: 'PUT',
+        url: '/branch-utils/1.0/projects/{projectKey}/repos/{repositorySlug}/branchmodel/configuration',
+        path: { projectKey, repositorySlug },
+        body,
+        mediaType: 'application/json',
+        errors: {
+          400: 'The branch model configuration was invalid.',
+          401: 'The currently authenticated user has insufficient permissions to configure the branch model.',
+          404: 'The specified repository does not exist.',
+        },
+      }),
+      'Error setting branch model configuration'
+    );
+  }
+
+  /**
+   * Delete (reset to default) the branch model configuration for a repository.
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @returns Promise with a reset acknowledgement
+   */
+  async deleteBranchModel(projectKey: string, repositorySlug: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const result = await handleApiOperation(
+      () => __request(OpenAPI, {
+        method: 'DELETE',
+        url: '/branch-utils/1.0/projects/{projectKey}/repos/{repositorySlug}/branchmodel/configuration',
+        path: { projectKey, repositorySlug },
+        errors: {
+          401: 'The currently authenticated user has insufficient permissions to reset the branch model configuration.',
+          404: 'The specified repository does not exist.',
+        },
+      }),
+      'Error deleting branch model configuration'
+    );
+    if (result.success) {
+      return { ...result, data: { reset: true, projectKey, repositorySlug } };
+    }
+    return result;
+  }
+
+  /**
    * Delete a required-builds merge check by ID
    * @param projectKey The project key
    * @param repositorySlug The repository slug
@@ -3278,6 +3372,31 @@ export const bitbucketToolSchemas = {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug"),
     id: z.string().describe("The restriction ID")
+  },
+  getBranchModel: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug")
+  },
+  setBranchModel: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    development: z.object({
+      refId: z.string().describe("Ref id for the development branch, e.g. 'refs/heads/develop'"),
+      useDefault: z.boolean().optional().describe("If true, use the repository's default branch as development instead of refId")
+    }).describe("Development branch configuration"),
+    production: z.object({
+      refId: z.string().describe("Ref id for the production branch, e.g. 'refs/heads/master'"),
+      useDefault: z.boolean().optional().describe("If true, use the repository's default branch as production instead of refId")
+    }).optional().describe("Optional production branch configuration"),
+    types: z.array(z.object({
+      id: z.enum(['BUGFIX', 'FEATURE', 'HOTFIX', 'RELEASE']).describe("Branch type identifier"),
+      prefix: z.string().optional().describe("Branch name prefix for this type, e.g. 'feature/'"),
+      enabled: z.boolean().optional().describe("Whether this branch type is enabled")
+    })).optional().describe("Optional branch type configuration (prefixes for bugfix/feature/hotfix/release branches)")
+  },
+  deleteBranchModel: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug")
   },
   searchCode: {
     query: z.string().describe("The search query. Supports Bitbucket search modifiers, e.g. 'project:TEST authenticate', 'repo:TEST/demo TODO' (the repo modifier must be 'repo:projectkey/repositoryslug'), 'ext:ts useState'. Scope to a project or repository inside the query text."),
