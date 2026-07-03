@@ -168,7 +168,7 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-The server registers 48 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
+The server registers 59 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
 #### Content — CRUD & search (CQL)
 
@@ -247,3 +247,17 @@ The server registers 48 tools, grouped below by area. All tools operate against 
 - `confluence_createSpaceProperty` — Create a space property
 - `confluence_updateSpaceProperty` — Update a space property
 - `confluence_deleteSpaceProperty` — Delete a space property
+
+#### Space permissions
+
+- `confluence_getAllSpacePermissions` — Get all permissions granted to users, groups and the anonymous user in a space
+- `confluence_setSpacePermissions` — Set the full permission set for up to 40 users/groups/anonymous user in a space
+- `confluence_getAnonymousSpacePermissions` — Get the permissions granted to the anonymous user in a space
+- `confluence_getGroupSpacePermissions` — Get the permissions granted to a group in a space
+- `confluence_getUserSpacePermissions` — Get the permissions granted to a user in a space
+- `confluence_grantAnonymousSpacePermissions` — Grant permissions to the anonymous user in a space
+- `confluence_grantGroupSpacePermissions` — Grant permissions to a group in a space
+- `confluence_grantUserSpacePermissions` — Grant permissions to a user in a space
+- `confluence_revokeAnonymousSpacePermissions` — Revoke permissions from the anonymous user in a space
+- `confluence_revokeGroupSpacePermissions` — Revoke permissions from a group in a space
+- `confluence_revokeUserSpacePermissions` — Revoke permissions from a user in a space

@@ -10,6 +10,7 @@ import {
   ContentWatchersService,
   OpenAPI,
   SearchService,
+  SpacePermissionsService,
   SpaceService,
   SpacePropertyService,
   UserWatchService,
@@ -26,6 +27,7 @@ const USER_WATCH = UserWatchService as unknown as Record<string, jest.Mock>;
 const ATTACHMENTS = AttachmentsService as unknown as Record<string, jest.Mock>;
 const SPACE = SpaceService as unknown as Record<string, jest.Mock>;
 const SPACE_PROPERTY = SpacePropertyService as unknown as Record<string, jest.Mock>;
+const SPACE_PERMISSIONS = SpacePermissionsService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -99,6 +101,19 @@ jest.mock('../confluence-client/index.js', () => ({
     create3: jest.fn(),
     update3: jest.fn(),
     delete4: jest.fn(),
+  },
+  SpacePermissionsService: {
+    getAllSpacePermissions: jest.fn(),
+    setPermissions1: jest.fn(),
+    getPermissionsGrantedToAnonymousUsers1: jest.fn(),
+    getPermissionsGrantedToGroup1: jest.fn(),
+    getPermissionsGrantedToUser1: jest.fn(),
+    grantPermissionsToAnonymousUsers1: jest.fn(),
+    grantPermissionsToGroup1: jest.fn(),
+    grantPermissionsToUser1: jest.fn(),
+    revokePermissionsFromAnonymousUser: jest.fn(),
+    revokePermissionsFromGroup1: jest.fn(),
+    revokePermissionsFromUser1: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -1075,5 +1090,211 @@ describe('ConfluenceService space properties', () => {
 
     expect(SPACE_PROPERTY.delete4).toHaveBeenCalledWith('DEV', 'my-key');
     expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService space permissions', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets all space permissions', async () => {
+    SPACE_PERMISSIONS.getAllSpacePermissions.mockResolvedValue([{ spaceKey: 'DEV' }]);
+
+    const result = await service.getAllSpacePermissions('DEV');
+
+    expect(SPACE_PERMISSIONS.getAllSpacePermissions).toHaveBeenCalledWith('DEV');
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual([{ spaceKey: 'DEV' }]);
+  });
+
+  it('forwards API errors when getting all space permissions', async () => {
+    SPACE_PERMISSIONS.getAllSpacePermissions.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getAllSpacePermissions('DEV');
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+  });
+
+  it('sets space permissions for multiple subjects', async () => {
+    SPACE_PERMISSIONS.setPermissions1.mockResolvedValue({});
+    const permissions = [{ userKey: 'u1', operations: [{ targetType: 'space', operationKey: 'read' }] }];
+
+    const result = await service.setSpacePermissions('DEV', permissions);
+
+    expect(SPACE_PERMISSIONS.setPermissions1).toHaveBeenCalledWith('DEV', permissions);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when setting space permissions', async () => {
+    SPACE_PERMISSIONS.setPermissions1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.setSpacePermissions('DEV', []);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+  });
+
+  it('gets anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToAnonymousUsers1.mockResolvedValue([]);
+
+    const result = await service.getAnonymousSpacePermissions('DEV');
+
+    expect(SPACE_PERMISSIONS.getPermissionsGrantedToAnonymousUsers1).toHaveBeenCalledWith('DEV');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToAnonymousUsers1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getAnonymousSpacePermissions('DEV');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets group space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToGroup1.mockResolvedValue([]);
+
+    const result = await service.getGroupSpacePermissions('DEV', 'developers');
+
+    expect(SPACE_PERMISSIONS.getPermissionsGrantedToGroup1).toHaveBeenCalledWith('DEV', 'developers');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting group space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToGroup1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getGroupSpacePermissions('DEV', 'developers');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets user space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToUser1.mockResolvedValue([]);
+
+    const result = await service.getUserSpacePermissions('DEV', 'user-key-1');
+
+    expect(SPACE_PERMISSIONS.getPermissionsGrantedToUser1).toHaveBeenCalledWith('DEV', 'user-key-1');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting user space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToUser1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getUserSpacePermissions('DEV', 'user-key-1');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('grants anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToAnonymousUsers1.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.grantAnonymousSpacePermissions('DEV', operations);
+
+    expect(SPACE_PERMISSIONS.grantPermissionsToAnonymousUsers1).toHaveBeenCalledWith('DEV', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when granting anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToAnonymousUsers1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.grantAnonymousSpacePermissions('DEV', []);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('grants group space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToGroup1.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.grantGroupSpacePermissions('DEV', 'developers', operations);
+
+    expect(SPACE_PERMISSIONS.grantPermissionsToGroup1).toHaveBeenCalledWith('DEV', 'developers', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when granting group space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToGroup1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.grantGroupSpacePermissions('DEV', 'developers', []);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('grants user space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToUser1.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.grantUserSpacePermissions('DEV', 'user-key-1', operations);
+
+    expect(SPACE_PERMISSIONS.grantPermissionsToUser1).toHaveBeenCalledWith('DEV', 'user-key-1', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when granting user space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToUser1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.grantUserSpacePermissions('DEV', 'user-key-1', []);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('revokes anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromAnonymousUser.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.revokeAnonymousSpacePermissions('DEV', operations);
+
+    expect(SPACE_PERMISSIONS.revokePermissionsFromAnonymousUser).toHaveBeenCalledWith('DEV', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when revoking anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromAnonymousUser.mockRejectedValue(new Error('boom'));
+
+    const result = await service.revokeAnonymousSpacePermissions('DEV', []);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('revokes group space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromGroup1.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.revokeGroupSpacePermissions('DEV', 'developers', operations);
+
+    expect(SPACE_PERMISSIONS.revokePermissionsFromGroup1).toHaveBeenCalledWith('DEV', 'developers', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when revoking group space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromGroup1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.revokeGroupSpacePermissions('DEV', 'developers', []);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('revokes user space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromUser1.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.revokeUserSpacePermissions('DEV', 'user-key-1', operations);
+
+    expect(SPACE_PERMISSIONS.revokePermissionsFromUser1).toHaveBeenCalledWith('DEV', 'user-key-1', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when revoking user space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromUser1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.revokeUserSpacePermissions('DEV', 'user-key-1', []);
+
+    expect(result.success).toBe(false);
   });
 });

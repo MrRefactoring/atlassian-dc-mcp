@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, SpaceService, SpacePropertyService, UserService, UserWatchService } from './confluence-client/index.js';
+import { AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, SpacePermissionsService, SpaceService, SpacePropertyService, UserService, UserWatchService } from './confluence-client/index.js';
 import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -43,6 +43,17 @@ export interface ConfluenceSpace {
       representation: 'plain';
     };
   };
+}
+
+export interface OperationDescriptionInput {
+  targetType: string;
+  operationKey: string;
+}
+
+export interface SpacePermissionsForSubjectInput {
+  userKey?: string;
+  groupName?: string;
+  operations?: OperationDescriptionInput[];
 }
 
 function resolveCredential(value: string | (() => string | undefined) | undefined) {
@@ -763,6 +774,141 @@ export class ConfluenceService {
     );
   }
 
+  /**
+   * Get all space permissions granted to users, groups and the anonymous user in a space.
+   * @param spaceKey The key of the space
+   */
+  async getAllSpacePermissions(spaceKey: string) {
+    return handleApiOperation(
+      () => SpacePermissionsService.getAllSpacePermissions(spaceKey),
+      'Error getting space permissions'
+    );
+  }
+
+  /**
+   * Set the full permission set for multiple users/groups/anonymous user in a space.
+   * Replaces each listed subject's existing permissions; subjects not mentioned are left untouched.
+   * @param spaceKey The key of the space
+   * @param permissions Up to 40 subjects, each with the full set of operations they should have
+   */
+  async setSpacePermissions(spaceKey: string, permissions: SpacePermissionsForSubjectInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.setPermissions1(spaceKey, permissions),
+      'Error setting space permissions'
+    );
+  }
+
+  /**
+   * Get the permissions granted to the anonymous user in a space.
+   * @param spaceKey The key of the space
+   */
+  async getAnonymousSpacePermissions(spaceKey: string) {
+    return handleApiOperation(
+      () => SpacePermissionsService.getPermissionsGrantedToAnonymousUsers1(spaceKey),
+      'Error getting anonymous space permissions'
+    );
+  }
+
+  /**
+   * Get the permissions granted to a group in a space.
+   * @param spaceKey The key of the space
+   * @param groupName The name of the group
+   */
+  async getGroupSpacePermissions(spaceKey: string, groupName: string) {
+    return handleApiOperation(
+      () => SpacePermissionsService.getPermissionsGrantedToGroup1(spaceKey, groupName),
+      'Error getting group space permissions'
+    );
+  }
+
+  /**
+   * Get the permissions granted to a user in a space.
+   * @param spaceKey The key of the space
+   * @param userKey The key of the user
+   */
+  async getUserSpacePermissions(spaceKey: string, userKey: string) {
+    return handleApiOperation(
+      () => SpacePermissionsService.getPermissionsGrantedToUser1(spaceKey, userKey),
+      'Error getting user space permissions'
+    );
+  }
+
+  /**
+   * Grant space permissions to the anonymous user. Adds to existing permissions, does not override them.
+   * @param spaceKey The key of the space
+   * @param operations Operations to grant, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async grantAnonymousSpacePermissions(spaceKey: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.grantPermissionsToAnonymousUsers1(spaceKey, operations),
+      'Error granting anonymous space permissions'
+    );
+  }
+
+  /**
+   * Grant space permissions to a group. Adds to existing permissions, does not override them.
+   * @param spaceKey The key of the space
+   * @param groupName The name of the group
+   * @param operations Operations to grant, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async grantGroupSpacePermissions(spaceKey: string, groupName: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.grantPermissionsToGroup1(spaceKey, groupName, operations),
+      'Error granting group space permissions'
+    );
+  }
+
+  /**
+   * Grant space permissions to a user. Adds to existing permissions, does not override them.
+   * @param spaceKey The key of the space
+   * @param userKey The key of the user
+   * @param operations Operations to grant, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async grantUserSpacePermissions(spaceKey: string, userKey: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.grantPermissionsToUser1(spaceKey, userKey, operations),
+      'Error granting user space permissions'
+    );
+  }
+
+  /**
+   * Revoke space permissions from the anonymous user. Permissions not currently held are silently skipped.
+   * @param spaceKey The key of the space
+   * @param operations Operations to revoke, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async revokeAnonymousSpacePermissions(spaceKey: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.revokePermissionsFromAnonymousUser(spaceKey, operations),
+      'Error revoking anonymous space permissions'
+    );
+  }
+
+  /**
+   * Revoke space permissions from a group. Permissions not currently held are silently skipped.
+   * @param spaceKey The key of the space
+   * @param groupName The name of the group
+   * @param operations Operations to revoke, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async revokeGroupSpacePermissions(spaceKey: string, groupName: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.revokePermissionsFromGroup1(spaceKey, groupName, operations),
+      'Error revoking group space permissions'
+    );
+  }
+
+  /**
+   * Revoke space permissions from a user. Permissions not currently held are silently skipped.
+   * @param spaceKey The key of the space
+   * @param userKey The key of the user
+   * @param operations Operations to revoke, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async revokeUserSpacePermissions(spaceKey: string, userKey: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.revokePermissionsFromUser1(spaceKey, userKey, operations),
+      'Error revoking user space permissions'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -1065,5 +1211,76 @@ export const confluenceToolSchemas = {
     contentId: z.string().describe("The ID of the content the attachment is on"),
     attachmentId: z.string().describe("The ID of the attachment"),
     version: z.number().describe("The version number to delete")
+  },
+  getAllSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to fetch permissions for")
+  },
+  setSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to set permissions on"),
+    permissions: z.array(z.object({
+      userKey: z.string().optional().describe("User key to set permissions for (mutually exclusive with groupName)"),
+      groupName: z.string().optional().describe("Group name to set permissions for (mutually exclusive with userKey)"),
+      operations: z.array(z.object({
+        targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+        operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+      })).optional().describe("Full set of operations this subject should have. Omit or pass an empty array to revoke all of the subject's existing permissions.")
+    })).min(1).max(40).describe("Up to 40 subjects (user/group/anonymous). Each entry replaces that subject's entire permission set in the space; subjects not listed are left unchanged.")
+  },
+  getAnonymousSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to fetch anonymous permissions for")
+  },
+  getGroupSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to fetch permissions for"),
+    groupName: z.string().describe("Name of the group to fetch permissions for")
+  },
+  getUserSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to fetch permissions for"),
+    userKey: z.string().describe("Key of the user to fetch permissions for")
+  },
+  grantAnonymousSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to grant permissions in"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to grant. Adds to existing permissions; does not override them.")
+  },
+  grantGroupSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to grant permissions in"),
+    groupName: z.string().describe("Name of the group to grant permissions to"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to grant. Adds to existing permissions; does not override them.")
+  },
+  grantUserSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to grant permissions in"),
+    userKey: z.string().describe("Key of the user to grant permissions to"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to grant. Adds to existing permissions; does not override them.")
+  },
+  revokeAnonymousSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to revoke permissions from"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to revoke. Permissions not currently held are silently skipped.")
+  },
+  revokeGroupSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to revoke permissions from"),
+    groupName: z.string().describe("Name of the group to revoke permissions from"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to revoke. Permissions not currently held are silently skipped.")
+  },
+  revokeUserSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to revoke permissions from"),
+    userKey: z.string().describe("Key of the user to revoke permissions from"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to revoke. Permissions not currently held are silently skipped.")
   }
 };

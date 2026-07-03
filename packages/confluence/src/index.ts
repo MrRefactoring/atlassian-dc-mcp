@@ -620,6 +620,117 @@ server.tool(
   }
 );
 
+// Add Confluence space permissions tools
+server.tool(
+  "confluence_getAllSpacePermissions",
+  `Get all permissions granted to users, groups and the anonymous user in a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getAllSpacePermissions,
+  async ({ spaceKey }) => {
+    const result = await confluenceService.getAllSpacePermissions(spaceKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_setSpacePermissions",
+  `Set the full permission set for up to 40 users/groups/anonymous user in a space in ${confluenceInstanceType}. Replaces each listed subject's existing permissions.`,
+  confluenceToolSchemas.setSpacePermissions,
+  async ({ spaceKey, permissions }) => {
+    const result = await confluenceService.setSpacePermissions(spaceKey, permissions);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getAnonymousSpacePermissions",
+  `Get the permissions granted to the anonymous user in a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getAnonymousSpacePermissions,
+  async ({ spaceKey }) => {
+    const result = await confluenceService.getAnonymousSpacePermissions(spaceKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getGroupSpacePermissions",
+  `Get the permissions granted to a group in a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getGroupSpacePermissions,
+  async ({ spaceKey, groupName }) => {
+    const result = await confluenceService.getGroupSpacePermissions(spaceKey, groupName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getUserSpacePermissions",
+  `Get the permissions granted to a user in a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getUserSpacePermissions,
+  async ({ spaceKey, userKey }) => {
+    const result = await confluenceService.getUserSpacePermissions(spaceKey, userKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_grantAnonymousSpacePermissions",
+  `Grant space permissions to the anonymous user in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
+  confluenceToolSchemas.grantAnonymousSpacePermissions,
+  async ({ spaceKey, operations }) => {
+    const result = await confluenceService.grantAnonymousSpacePermissions(spaceKey, operations);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_grantGroupSpacePermissions",
+  `Grant space permissions to a group in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
+  confluenceToolSchemas.grantGroupSpacePermissions,
+  async ({ spaceKey, groupName, operations }) => {
+    const result = await confluenceService.grantGroupSpacePermissions(spaceKey, groupName, operations);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_grantUserSpacePermissions",
+  `Grant space permissions to a user in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
+  confluenceToolSchemas.grantUserSpacePermissions,
+  async ({ spaceKey, userKey, operations }) => {
+    const result = await confluenceService.grantUserSpacePermissions(spaceKey, userKey, operations);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_revokeAnonymousSpacePermissions",
+  `Revoke space permissions from the anonymous user in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
+  confluenceToolSchemas.revokeAnonymousSpacePermissions,
+  async ({ spaceKey, operations }) => {
+    const result = await confluenceService.revokeAnonymousSpacePermissions(spaceKey, operations);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_revokeGroupSpacePermissions",
+  `Revoke space permissions from a group in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
+  confluenceToolSchemas.revokeGroupSpacePermissions,
+  async ({ spaceKey, groupName, operations }) => {
+    const result = await confluenceService.revokeGroupSpacePermissions(spaceKey, groupName, operations);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_revokeUserSpacePermissions",
+  `Revoke space permissions from a user in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
+  confluenceToolSchemas.revokeUserSpacePermissions,
+  async ({ spaceKey, userKey, operations }) => {
+    const result = await confluenceService.revokeUserSpacePermissions(spaceKey, userKey, operations);
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "confluence-page",
   new ResourceTemplate("confluence://page/{pageId}", { list: undefined }),
