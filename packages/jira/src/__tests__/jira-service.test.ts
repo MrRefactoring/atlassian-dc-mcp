@@ -25,6 +25,7 @@ import {
   NotificationschemeService,
   OpenAPI,
   PermissionschemeService,
+  PriorityschemesService,
   PriorityService,
   ProjectService,
   ProjectsService,
@@ -212,6 +213,13 @@ jest.mock('../jira-client/index.js', () => ({
     addProjectAssociationsToScheme: jest.fn(),
     removeAllProjectAssociations: jest.fn(),
     removeProjectAssociation: jest.fn(),
+  },
+  PriorityschemesService: {
+    getPrioritySchemes: jest.fn(),
+    createPriorityScheme: jest.fn(),
+    getPriorityScheme: jest.fn(),
+    updatePriorityScheme: jest.fn(),
+    deletePriorityScheme: jest.fn(),
   },
   PermissionschemeService: {
     getPermissionSchemes: jest.fn(),
@@ -2108,6 +2116,80 @@ describe('JiraService', () => {
       (IssuetypeschemeService.getIssueTypeScheme as jest.Mock).mockRejectedValue(new Error('The scheme does not exist'));
 
       const result = await jiraService.getIssueTypeScheme('999');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The scheme does not exist');
+    });
+  });
+
+  describe('priority schemes', () => {
+    it('gets all priority schemes', async () => {
+      const mockSchemes = { schemes: [{ id: 1, name: 'Default' }] };
+      (PriorityschemesService.getPrioritySchemes as jest.Mock).mockResolvedValue(mockSchemes);
+
+      const result = await jiraService.getPrioritySchemes();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchemes);
+      expect(PriorityschemesService.getPrioritySchemes).toHaveBeenCalledWith(undefined, undefined);
+    });
+
+    it('creates a priority scheme', async () => {
+      const mockScheme = { id: 2, name: 'New Scheme' };
+      (PriorityschemesService.createPriorityScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.createPriorityScheme('New Scheme', 'A scheme', '1', ['1', '2']);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PriorityschemesService.createPriorityScheme).toHaveBeenCalledWith({
+        name: 'New Scheme',
+        description: 'A scheme',
+        defaultOptionId: '1',
+        optionIds: ['1', '2'],
+      });
+    });
+
+    it('gets a priority scheme by id', async () => {
+      const mockScheme = { id: 1, name: 'Default' };
+      (PriorityschemesService.getPriorityScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getPriorityScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PriorityschemesService.getPriorityScheme).toHaveBeenCalledWith(1);
+    });
+
+    it('updates a priority scheme', async () => {
+      const mockScheme = { id: 1, name: 'Renamed' };
+      (PriorityschemesService.updatePriorityScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.updatePriorityScheme(1, 'Renamed');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PriorityschemesService.updatePriorityScheme).toHaveBeenCalledWith(1, {
+        name: 'Renamed',
+        description: undefined,
+        defaultOptionId: undefined,
+        optionIds: undefined,
+      });
+    });
+
+    it('deletes a priority scheme', async () => {
+      (PriorityschemesService.deletePriorityScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deletePriorityScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(PriorityschemesService.deletePriorityScheme).toHaveBeenCalledWith(1);
+    });
+
+    it('handles errors', async () => {
+      (PriorityschemesService.getPriorityScheme as jest.Mock).mockRejectedValue(new Error('The scheme does not exist'));
+
+      const result = await jiraService.getPriorityScheme(999);
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The scheme does not exist');

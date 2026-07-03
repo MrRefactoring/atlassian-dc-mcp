@@ -1208,6 +1208,56 @@ server.tool(
 );
 
 server.tool(
+  "jira_getPrioritySchemes",
+  `Get all priority schemes in the ${jiraInstanceType}`,
+  jiraToolSchemas.getPrioritySchemes,
+  async ({ maxResults, startAt }) => {
+    const result = await jiraService.getPrioritySchemes(maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createPriorityScheme",
+  `Create a new priority scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.createPriorityScheme,
+  async ({ name, description, defaultOptionId, optionIds }) => {
+    const result = await jiraService.createPriorityScheme(name, description, defaultOptionId, optionIds);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getPriorityScheme",
+  `Get a single priority scheme by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getPriorityScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.getPriorityScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updatePriorityScheme",
+  `Update a priority scheme's name, description, or priorities in the ${jiraInstanceType}`,
+  jiraToolSchemas.updatePriorityScheme,
+  async ({ schemeId, name, description, defaultOptionId, optionIds }) => {
+    const result = await jiraService.updatePriorityScheme(schemeId, name, description, defaultOptionId, optionIds);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deletePriorityScheme",
+  `Delete a priority scheme in the ${jiraInstanceType}. Projects using it fall back to the default priority scheme.`,
+  jiraToolSchemas.deletePriorityScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.deletePriorityScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_getPermissionSchemes",
   `Get all permission schemes in the ${jiraInstanceType}`,
   jiraToolSchemas.getPermissionSchemes,

@@ -23,6 +23,7 @@ import {
   NotificationschemeService,
   OpenAPI,
   PermissionschemeService,
+  PriorityschemesService,
   PriorityService,
   ProjectService,
   ProjectsService,
@@ -986,6 +987,41 @@ export class JiraService {
     );
   }
 
+  async getPrioritySchemes(maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => PriorityschemesService.getPrioritySchemes(maxResults, startAt),
+      'Error getting priority schemes'
+    );
+  }
+
+  async createPriorityScheme(name: string, description?: string, defaultOptionId?: string, optionIds?: string[]) {
+    return handleApiOperation(
+      () => PriorityschemesService.createPriorityScheme({ name, description, defaultOptionId, optionIds }),
+      'Error creating priority scheme'
+    );
+  }
+
+  async getPriorityScheme(schemeId: number) {
+    return handleApiOperation(
+      () => PriorityschemesService.getPriorityScheme(schemeId),
+      'Error getting priority scheme'
+    );
+  }
+
+  async updatePriorityScheme(schemeId: number, name?: string, description?: string, defaultOptionId?: string, optionIds?: string[]) {
+    return handleApiOperation(
+      () => PriorityschemesService.updatePriorityScheme(schemeId, { name, description, defaultOptionId, optionIds }),
+      'Error updating priority scheme'
+    );
+  }
+
+  async deletePriorityScheme(schemeId: number) {
+    return handleApiOperation(
+      () => PriorityschemesService.deletePriorityScheme(schemeId),
+      'Error deleting priority scheme'
+    );
+  }
+
   async getWorkflows(workflowName?: string) {
     return handleApiOperation(
       () => WorkflowService.getAllWorkflows(workflowName),
@@ -1725,6 +1761,29 @@ export const jiraToolSchemas = {
   removeIssueTypeSchemeProject: {
     schemeId: z.string().describe("Id of the issue type scheme"),
     projIdOrKey: z.string().describe("Id or key of the project to un-associate from the scheme")
+  },
+  getPrioritySchemes: {
+    maxResults: z.number().optional().describe("Maximum number of priority schemes to return"),
+    startAt: z.number().optional().describe("Index of the first priority scheme to return")
+  },
+  createPriorityScheme: {
+    name: z.string().describe("Name of the new priority scheme"),
+    description: z.string().optional().describe("Description of the new priority scheme"),
+    defaultOptionId: z.string().optional().describe("Id of the priority to use as the scheme's default"),
+    optionIds: z.array(z.string()).optional().describe("Ids of the priorities included in the scheme")
+  },
+  getPriorityScheme: {
+    schemeId: z.number().describe("Id of the priority scheme")
+  },
+  updatePriorityScheme: {
+    schemeId: z.number().describe("Id of the priority scheme to update"),
+    name: z.string().optional().describe("New name for the scheme"),
+    description: z.string().optional().describe("New description for the scheme"),
+    defaultOptionId: z.string().optional().describe("Id of the priority to use as the scheme's default"),
+    optionIds: z.array(z.string()).optional().describe("Replaces the priorities included in the scheme")
+  },
+  deletePriorityScheme: {
+    schemeId: z.number().describe("Id of the priority scheme to delete")
   },
   getPermissionSchemes: {
     expand: z.string().optional().describe("Comma-separated expansions, e.g. 'permissions' to include each scheme's permission grants")
