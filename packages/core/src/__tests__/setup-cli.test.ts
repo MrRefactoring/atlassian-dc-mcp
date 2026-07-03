@@ -383,6 +383,37 @@ describe('runSetup', () => {
     expect(home.values.jira.host).toBe('cli-host.example.com');
   });
 
+  describe('profiles', () => {
+    it('shows the profile in the setup header and in the stored-account summary line', async () => {
+      const registry = makeRegistry(keychain, home);
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: () => undefined,
+        args: makeArgs({ profile: 'work' }),
+        prompts: makePrompts(),
+      });
+
+      expect(logs[0]).toBe('Atlassian DC MCP setup — jira (profile: work)');
+      // FakeKeychain extends MacosKeychainSource, so describeWriter's real
+      // profile-aware account-name string is exercised even against the fake.
+      expect(logs.some((l) => l.startsWith('  token:') && l.includes('account jira-work-token'))).toBe(true);
+    });
+
+    it('omits the profile suffix from the header and account name when no profile is passed', async () => {
+      const registry = makeRegistry(keychain, home);
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: () => undefined,
+        prompts: makePrompts(),
+      });
+
+      expect(logs[0]).toBe('Atlassian DC MCP setup — jira');
+      expect(logs.some((l) => l.startsWith('  token:') && l.includes('account jira-token'))).toBe(true);
+    });
+  });
+
   describe('Basic auth (username/password)', () => {
     it('writes username to home file (non-secret) and password to keychain first on darwin', async () => {
       const registry = makeRegistry(keychain, home);

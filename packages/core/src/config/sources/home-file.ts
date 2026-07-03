@@ -12,9 +12,10 @@ import {
 
 const HOME_DIR_NAME = '.atlassian-dc-mcp';
 
-function getHomeFilePath(product: ProductDefinition | string): string {
+function getHomeFilePath(product: ProductDefinition | string, profile?: string): string {
   const id = typeof product === 'string' ? product : product.id;
-  return path.join(os.homedir(), HOME_DIR_NAME, `${id}.env`);
+  const suffix = profile ? `.${profile}` : '';
+  return path.join(os.homedir(), HOME_DIR_NAME, `${id}${suffix}.env`);
 }
 
 function needsQuoting(value: string): boolean {
@@ -41,6 +42,11 @@ export class HomeFileSource implements WritableSource {
   readonly priority = 60;
 
   private cache = new DotenvFileCache();
+  private readonly profile: string | undefined;
+
+  constructor(options: { profile?: string } = {}) {
+    this.profile = options.profile;
+  }
 
   isAvailable(): boolean {
     return true;
@@ -56,7 +62,7 @@ export class HomeFileSource implements WritableSource {
   }
 
   describeForProduct(product: ProductDefinition): string {
-    return `home-file (${getHomeFilePath(product)})`;
+    return `home-file (${getHomeFilePath(product, this.profile)})`;
   }
 
   write(product: ProductDefinition, key: ConfigKey, value: string): void {
@@ -77,7 +83,7 @@ export class HomeFileSource implements WritableSource {
   }
 
   private loadFile(product: ProductDefinition): ParsedEnvironment {
-    const filePath = getHomeFilePath(product);
+    const filePath = getHomeFilePath(product, this.profile);
     try {
       return this.cache.load(filePath);
     } catch (error) {
@@ -97,7 +103,7 @@ export class HomeFileSource implements WritableSource {
   }
 
   private persist(product: ProductDefinition, values: ParsedEnvironment): void {
-    const filePath = getHomeFilePath(product);
+    const filePath = getHomeFilePath(product, this.profile);
     const dir = path.dirname(filePath);
     fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
 

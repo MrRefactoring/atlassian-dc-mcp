@@ -1,5 +1,5 @@
 import { buildDefaultRegistry, type ConfigRegistry } from './registry.js';
-import type { ConfigKey, ProductDefinition } from './source.js';
+import { getNonEmptyValue, type ConfigKey, type ProductDefinition } from './source.js';
 
 const FALLBACK_PAGE_SIZE = 25;
 
@@ -14,7 +14,22 @@ export type ProductRuntimeConfig = {
 
 export { ATLASSIAN_DC_MCP_CONFIG_FILE_ENV_VAR } from './sources/env-file.js';
 
-let registry: ConfigRegistry = buildDefaultRegistry();
+/**
+ * Selects a named profile for the persisted-storage layer (home file + macOS
+ * Keychain), so `setup` can save more than one instance's credentials per
+ * product without them colliding — e.g. `ATLASSIAN_DC_MCP_PROFILE=work` reads
+ * from/writes to `~/.atlassian-dc-mcp/jira.work.env` and the `jira-work-token`
+ * Keychain account instead of the unsuffixed defaults. process.env and
+ * `ATLASSIAN_DC_MCP_CONFIG_FILE` are unaffected — point separate processes at
+ * separate explicit files/env vars for those, as already supported.
+ */
+export const ATLASSIAN_DC_MCP_PROFILE_ENV_VAR = 'ATLASSIAN_DC_MCP_PROFILE';
+
+function getActiveProfile(): string | undefined {
+  return getNonEmptyValue(process.env[ATLASSIAN_DC_MCP_PROFILE_ENV_VAR]);
+}
+
+let registry: ConfigRegistry = buildDefaultRegistry({ profile: getActiveProfile() });
 
 export function initializeRuntimeConfig(options?: { cwd?: string }): void {
   registry.initialize(options);

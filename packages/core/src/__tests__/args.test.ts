@@ -10,6 +10,7 @@ describe('parseSetupArgs', () => {
       username: undefined,
       password: undefined,
       defaultPageSize: undefined,
+      profile: undefined,
       nonInteractive: false,
       help: false,
     });
@@ -24,6 +25,7 @@ describe('parseSetupArgs', () => {
       '--username=jdoe',
       '--password=hunter2',
       '--default-page-size=50',
+      '--profile=work',
       '--non-interactive',
     ]);
     expect(args).toEqual({
@@ -33,17 +35,19 @@ describe('parseSetupArgs', () => {
       username: 'jdoe',
       password: 'hunter2',
       defaultPageSize: '50',
+      profile: 'work',
       nonInteractive: true,
       help: false,
     });
   });
 
   it('treats whitespace-only and empty values as not provided', () => {
-    const args = parseSetupArgs(['--host=', '--token=   ', '--username=', '--password=   ']);
+    const args = parseSetupArgs(['--host=', '--token=   ', '--username=', '--password=   ', '--profile=   ']);
     expect(args.host).toBeUndefined();
     expect(args.token).toBeUndefined();
     expect(args.username).toBeUndefined();
     expect(args.password).toBeUndefined();
+    expect(args.profile).toBeUndefined();
   });
 
   it('supports -h as short alias for --help', () => {
@@ -59,6 +63,7 @@ describe('parseSetupArgs', () => {
       '-u', 'jdoe',
       '-p', 'hunter2',
       '-s', '50',
+      '-P', 'work',
       '-n',
     ]);
     expect(args).toEqual({
@@ -68,6 +73,7 @@ describe('parseSetupArgs', () => {
       username: 'jdoe',
       password: 'hunter2',
       defaultPageSize: '50',
+      profile: 'work',
       nonInteractive: true,
       help: false,
     });
@@ -98,6 +104,10 @@ describe('parseSetupArgs', () => {
       expect(parseSetupArgs(['-s', '100']).defaultPageSize).toBe('100');
     });
 
+    it('-P sets profile', () => {
+      expect(parseSetupArgs(['-P', 'work']).profile).toBe('work');
+    });
+
     it('-n sets non-interactive', () => {
       expect(parseSetupArgs(['-n']).nonInteractive).toBe(true);
     });
@@ -110,6 +120,7 @@ describe('parseSetupArgs', () => {
         '-u', 'jdoe',
         '-p', 'hunter2',
         '-s', '25',
+        '-P', 'work',
         '-n',
       ]);
       const long = parseSetupArgs([
@@ -119,6 +130,7 @@ describe('parseSetupArgs', () => {
         '--username', 'jdoe',
         '--password', 'hunter2',
         '--default-page-size', '25',
+        '--profile', 'work',
         '--non-interactive',
       ]);
       expect(short).toEqual(long);

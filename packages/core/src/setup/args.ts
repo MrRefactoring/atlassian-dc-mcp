@@ -7,6 +7,7 @@ export type ParsedSetupArgs = {
   username?: string;
   password?: string;
   defaultPageSize?: string;
+  profile?: string;
   nonInteractive: boolean;
   help: boolean;
 };
@@ -30,6 +31,7 @@ export function parseSetupArgs(argv: readonly string[]): ParsedSetupArgs {
         username: { type: 'string', short: 'u' },
         password: { type: 'string', short: 'p' },
         'default-page-size': { type: 'string', short: 's' },
+        profile: { type: 'string', short: 'P' },
         'non-interactive': { type: 'boolean', short: 'n', default: false },
         help: { type: 'boolean', short: 'h', default: false },
       },
@@ -47,6 +49,7 @@ export function parseSetupArgs(argv: readonly string[]): ParsedSetupArgs {
     username: trimToUndefined(values.username),
     password: trimToUndefined(values.password),
     defaultPageSize: trimToUndefined(values['default-page-size']),
+    profile: trimToUndefined(values.profile),
     nonInteractive: values['non-interactive'] === true,
     help: values.help === true,
   };
@@ -71,6 +74,7 @@ export function printSetupHelp(productId: string, log: (message: string) => void
     '  -u, --username <value>      Username for Basic auth (optional — use instead of, or alongside, a token)',
     '  -p, --password <value>      Password for Basic auth (optional — paired with --username)',
     '  -s, --default-page-size <n> Default page size (positive integer)',
+    '  -P, --profile <name>        Named profile to read/write (separate home file and Keychain entry, e.g. "work")',
     '  -n, --non-interactive       Skip prompts; fail if a required value is missing',
     '  -h, --help                  Show this help and exit',
     '',
@@ -80,6 +84,8 @@ export function printSetupHelp(productId: string, log: (message: string) => void
     'fails if a host (or full-URL --api-base-path) cannot be resolved.',
     'An existing token is reused when --token is omitted; omit it entirely for anonymous access.',
     'An existing password is reused when --password is omitted, following the same rule as --token.',
+    'Without --profile, the default (unsuffixed) home file and Keychain entry are used; set',
+    `ATLASSIAN_DC_MCP_PROFILE=<name> when running the server so it reads back the same profile.`,
   ];
   for (const line of lines) {
     log(line);

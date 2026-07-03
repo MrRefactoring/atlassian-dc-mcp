@@ -104,14 +104,15 @@ export async function runSetupCli(
 }
 
 export async function runSetup(product: ProductDefinition, deps: SetupDeps = {}): Promise<void> {
-  const registry = deps.registry ?? buildDefaultRegistry();
+  const profile = deps.args?.profile;
+  const registry = deps.registry ?? buildDefaultRegistry({ profile });
   const log = deps.log ?? ((message: string) => process.stdout.write(`${message}\n`));
   const exit = deps.exit ?? ((code: number) => { process.exit(code); });
   const prompts = deps.prompts ?? DEFAULT_PROMPTS;
 
   registry.initialize();
 
-  log(`Atlassian DC MCP setup — ${product.id}`);
+  log(`Atlassian DC MCP setup — ${product.id}${profile ? ` (profile: ${profile})` : ''}`);
   log('');
 
   const current = readCurrentConfig(registry, product);
@@ -128,7 +129,7 @@ export async function runSetup(product: ProductDefinition, deps: SetupDeps = {})
   writeNonSecretFields(registry, product, answers, homeFile, log);
   const tokenWriter = await writeSecret(registry, product, 'token', answers.tokenToWrite, homeFile, log, prompts);
   const passwordWriter = await writeSecret(registry, product, 'password', answers.passwordToWrite, homeFile, log, prompts);
-  printSummary(log, product, answers, tokenWriter, passwordWriter);
+  printSummary(log, product, answers, tokenWriter, passwordWriter, profile);
 }
 
 async function collectAnswersWithValidation(
@@ -591,6 +592,7 @@ function printSummary(
   answers: PromptResult,
   tokenWriter: WritableSource | undefined,
   passwordWriter: WritableSource | undefined,
+  profile: string | undefined,
 ): void {
   log('');
   log('Saved configuration:');
@@ -599,21 +601,27 @@ function printSummary(
   log(`  username: ${answers.username || '(unchanged)'}`);
   log(`  defaultPageSize: ${answers.defaultPageSize || '(unchanged)'}`);
   if (tokenWriter) {
-    log(`  token: ${maskSecret(answers.tokenToWrite)} (stored in ${describeWriter(tokenWriter, product, 'token')})`);
+    log(`  token: ${maskSecret(answers.tokenToWrite)} (stored in ${describeWriter(tokenWriter, product, 'token', profile)})`);
   } else {
     log('  token: (unchanged)');
   }
   if (passwordWriter) {
-    log(`  password: ${maskSecret(answers.passwordToWrite)} (stored in ${describeWriter(passwordWriter, product, 'password')})`);
+    log(`  password: ${maskSecret(answers.passwordToWrite)} (stored in ${describeWriter(passwordWriter, product, 'password', profile)})`);
   } else {
     log('  password: (unchanged)');
   }
-  log(`Home file: ${getHomeFilePath(product)}`);
+  log(`Home file: ${getHomeFilePath(product, profile)}`);
 }
 
-function describeWriter(writer: WritableSource, product: ProductDefinition, key: 'token' | 'password'): string {
+function describeWriter(
+  writer: WritableSource,
+  product: ProductDefinition,
+  key: 'token' | 'password',
+  profile: string | undefined,
+): string {
   if (writer instanceof MacosKeychainSource) {
-    return `macOS Keychain (service atlassian-dc-mcp, account ${product.id}-${key})`;
+    const account = profile ? `${product.id}-${profile}-${key}` : `${product.id}-${key}`;
+    return `macOS Keychain (service atlassian-dc-mcp, account ${account})`;
   }
   if (writer instanceof HomeFileSource) {
     return writer.describeForProduct(product);
