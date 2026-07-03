@@ -1724,6 +1724,76 @@ server.tool(
 );
 
 server.tool(
+  "jira_createWorkflowScheme",
+  `Create a new workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.createWorkflowScheme,
+  async ({ name, description, defaultWorkflow, issueTypeMappings }) => {
+    const result = await jiraService.createWorkflowScheme(name, description, defaultWorkflow, issueTypeMappings);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateWorkflowScheme",
+  `Update a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateWorkflowScheme,
+  async ({ schemeId, name, description, defaultWorkflow, issueTypeMappings, updateDraftIfNeeded }) => {
+    const result = await jiraService.updateWorkflowScheme(schemeId, name, description, defaultWorkflow, issueTypeMappings, updateDraftIfNeeded);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteWorkflowScheme",
+  `Delete a workflow scheme in the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteWorkflowScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.deleteWorkflowScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setWorkflowSchemeIssueTypeMapping",
+  `Set the workflow mapping for a specific issue type in a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.setWorkflowSchemeIssueTypeMapping,
+  async ({ schemeId, issueType, workflow, updateDraftIfNeeded }) => {
+    const result = await jiraService.setWorkflowSchemeIssueTypeMapping(schemeId, issueType, workflow, updateDraftIfNeeded);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteWorkflowSchemeIssueTypeMapping",
+  `Remove an issue type's workflow mapping from a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteWorkflowSchemeIssueTypeMapping,
+  async ({ schemeId, issueType, updateDraftIfNeeded }) => {
+    const result = await jiraService.deleteWorkflowSchemeIssueTypeMapping(schemeId, issueType, updateDraftIfNeeded);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setWorkflowSchemeWorkflowMapping",
+  `Set (add or replace) a workflow's issue type mapping in a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.setWorkflowSchemeWorkflowMapping,
+  async ({ schemeId, workflow, issueTypes, defaultMapping, workflowName, updateDraftIfNeeded }) => {
+    const result = await jiraService.setWorkflowSchemeWorkflowMapping(schemeId, workflow, issueTypes, defaultMapping, updateDraftIfNeeded, workflowName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteWorkflowSchemeWorkflowMapping",
+  `Remove a workflow's mapping from a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteWorkflowSchemeWorkflowMapping,
+  async ({ schemeId, workflowName, updateDraftIfNeeded }) => {
+    const result = await jiraService.deleteWorkflowSchemeWorkflowMapping(schemeId, workflowName, updateDraftIfNeeded);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_getNotificationSchemes",
   `Get a paginated list of notification schemes in the ${jiraInstanceType}`,
   jiraToolSchemas.getNotificationSchemes,

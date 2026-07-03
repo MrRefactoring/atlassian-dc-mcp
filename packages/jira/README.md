@@ -189,7 +189,7 @@ Besides tools, this server exposes one MCP resource template so an issue can be 
 
 ### Available Tools
 
-This server exposes 208 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 215 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -421,13 +421,20 @@ This server exposes 208 tools, grouped below by area. Every tool name is prefixe
 - `jira_getApplicationRoles` — Get all application roles (e.g. jira-software, jira-servicedesk). Read-only catalog of licensed applications.
 - `jira_getApplicationRole` — Get a single application role by key.
 
-#### Workflows & workflow schemes (read-only)
+#### Workflows & workflow schemes
 
 - `jira_getWorkflows` — Get all workflows, or a workflow by name.
 - `jira_getWorkflowScheme` — Get a workflow scheme by id.
 - `jira_getWorkflowSchemeDefault` — Get the default workflow of a workflow scheme.
 - `jira_getWorkflowSchemeIssueTypeMapping` — Get the workflow mapping for a specific issue type in a workflow scheme.
 - `jira_getWorkflowSchemeWorkflowMapping` — Get the issue type mappings for a workflow (or all workflows) in a workflow scheme.
+- `jira_createWorkflowScheme` — Create a new workflow scheme.
+- `jira_updateWorkflowScheme` — Update a workflow scheme's name, description, default workflow, or issue type mappings.
+- `jira_deleteWorkflowScheme` — Delete a workflow scheme. This is irreversible.
+- `jira_setWorkflowSchemeIssueTypeMapping` — Set the workflow mapping for a specific issue type in a workflow scheme.
+- `jira_deleteWorkflowSchemeIssueTypeMapping` — Remove an issue type's workflow mapping from a workflow scheme.
+- `jira_setWorkflowSchemeWorkflowMapping` — Add or replace a workflow's issue type mapping in a workflow scheme.
+- `jira_deleteWorkflowSchemeWorkflowMapping` — Remove a workflow's mapping from a workflow scheme.
 
 #### Notification schemes
 

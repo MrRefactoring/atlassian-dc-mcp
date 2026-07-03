@@ -1359,6 +1359,55 @@ export class JiraService {
     );
   }
 
+  async createWorkflowScheme(name?: string, description?: string, defaultWorkflow?: string, issueTypeMappings?: Record<string, string>) {
+    return handleApiOperation(
+      () => WorkflowschemeService.createScheme({ name, description, defaultWorkflow, issueTypeMappings }),
+      'Error creating workflow scheme'
+    );
+  }
+
+  async updateWorkflowScheme(schemeId: number, name?: string, description?: string, defaultWorkflow?: string, issueTypeMappings?: Record<string, string>, updateDraftIfNeeded?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.update(schemeId, { name, description, defaultWorkflow, issueTypeMappings, updateDraftIfNeeded }),
+      'Error updating workflow scheme'
+    );
+  }
+
+  async deleteWorkflowScheme(schemeId: number) {
+    return handleApiOperation(
+      () => WorkflowschemeService.deleteScheme(schemeId),
+      'Error deleting workflow scheme'
+    );
+  }
+
+  async setWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, workflow: string, updateDraftIfNeeded?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.setIssueType(issueType, schemeId, { issueType, workflow, updateDraftIfNeeded }),
+      'Error setting workflow scheme issue type mapping'
+    );
+  }
+
+  async deleteWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, updateDraftIfNeeded?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.deleteIssueType(issueType, schemeId, updateDraftIfNeeded),
+      'Error deleting workflow scheme issue type mapping'
+    );
+  }
+
+  async setWorkflowSchemeWorkflowMapping(schemeId: number, workflow: string, issueTypes?: string[], defaultMapping?: boolean, updateDraftIfNeeded?: boolean, workflowName?: string) {
+    return handleApiOperation(
+      () => WorkflowschemeService.updateWorkflowMapping(schemeId, { workflow, issueTypes, defaultMapping, updateDraftIfNeeded }, workflowName),
+      'Error setting workflow scheme workflow mapping'
+    );
+  }
+
+  async deleteWorkflowSchemeWorkflowMapping(schemeId: number, workflowName?: string, updateDraftIfNeeded?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.deleteWorkflowMapping(schemeId, updateDraftIfNeeded, workflowName),
+      'Error deleting workflow scheme workflow mapping'
+    );
+  }
+
   async getNotificationSchemes(expand?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => NotificationschemeService.getNotificationSchemes(expand, maxResults, startAt),
@@ -2449,6 +2498,47 @@ export const jiraToolSchemas = {
     schemeId: z.number().describe("Id of the workflow scheme"),
     workflowName: z.string().optional().describe("Name of a specific workflow to look up. Omit to return all workflow mappings."),
     returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's mapping if a draft exists")
+  },
+  createWorkflowScheme: {
+    name: z.string().optional().describe("Name of the new workflow scheme"),
+    description: z.string().optional().describe("Description of the workflow scheme"),
+    defaultWorkflow: z.string().optional().describe("Name of the workflow to use as the scheme's default"),
+    issueTypeMappings: z.record(z.string(), z.string()).optional().describe("Map of issue type id to workflow name for issue types that should use a workflow other than the default")
+  },
+  updateWorkflowScheme: {
+    schemeId: z.number().describe("Id of the workflow scheme to update"),
+    name: z.string().optional().describe("New name for the workflow scheme"),
+    description: z.string().optional().describe("New description for the workflow scheme"),
+    defaultWorkflow: z.string().optional().describe("New default workflow name"),
+    issueTypeMappings: z.record(z.string(), z.string()).optional().describe("Replacement map of issue type id to workflow name"),
+    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+  },
+  deleteWorkflowScheme: {
+    schemeId: z.number().describe("Id of the workflow scheme to delete. The scheme must not be active (in use by a project).")
+  },
+  setWorkflowSchemeIssueTypeMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    issueType: z.string().describe("Id of the issue type to map"),
+    workflow: z.string().describe("Name of the workflow to map the issue type to"),
+    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+  },
+  deleteWorkflowSchemeIssueTypeMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    issueType: z.string().describe("Id of the issue type mapping to remove"),
+    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+  },
+  setWorkflowSchemeWorkflowMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    workflow: z.string().describe("Name of the workflow for this mapping"),
+    issueTypes: z.array(z.string()).optional().describe("Issue type ids to associate with this workflow"),
+    defaultMapping: z.boolean().optional().describe("Whether this mapping should become the scheme's default"),
+    workflowName: z.string().optional().describe("Name of the existing workflow mapping to replace. Omit when adding a brand new mapping."),
+    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+  },
+  deleteWorkflowSchemeWorkflowMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    workflowName: z.string().optional().describe("Name of the workflow mapping to remove. Omit to remove the default workflow's mapping."),
+    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
   },
   getNotificationSchemes: {
     expand: z.string().optional().describe("Comma-separated expansions, e.g. 'all,field,group,user,projectRole,notificationSchemeEvents'"),
