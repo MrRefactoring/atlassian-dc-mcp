@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
+import { ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
@@ -311,6 +311,48 @@ export class ConfluenceService {
   }
 
   /**
+   * Get all restrictions on a piece of content, grouped by operation.
+   * @param contentId The ID of the content
+   */
+  async getContentRestrictions(contentId: string, expand?: string) {
+    return handleApiOperation(
+      () => ContentRestrictionsService.byOperation(contentId, expand),
+      'Error getting content restrictions'
+    );
+  }
+
+  /**
+   * Get the restrictions on a piece of content for a single operation (read or update).
+   * @param operationKey read or update
+   * @param contentId The ID of the content
+   */
+  async getContentRestrictionsByOperation(operationKey: string, contentId: string, expand?: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => ContentRestrictionsService.forOperation(operationKey, contentId, expand, limit?.toString(), start?.toString()),
+      'Error getting content restrictions by operation'
+    );
+  }
+
+  /**
+   * Overwrite the restrictions on a piece of content. Each entry replaces the existing
+   * restrictions for its operation; an empty user/group array clears that restriction.
+   * @param contentId The ID of the content
+   * @param restrictions The per-operation restrictions to set
+   */
+  async updateContentRestrictions(
+    contentId: string,
+    restrictions: Array<{ operation: string; restrictions: unknown }>,
+    expand?: string,
+    limit?: number,
+    start?: number,
+  ) {
+    return handleApiOperation(
+      () => ContentRestrictionsService.updateRestrictions(contentId, expand, limit?.toString(), start?.toString(), restrictions),
+      'Error updating content restrictions'
+    );
+  }
+
+  /**
    * Search for spaces by text
    * @param searchText Text to search for in space names or descriptions
    * @param limit Maximum number of results to return
@@ -462,6 +504,35 @@ export const confluenceToolSchemas = {
   deleteContentProperty: {
     contentId: z.string().describe("ID of the content"),
     key: z.string().describe("Key of the content property to delete")
+  },
+  getContentRestrictions: {
+    contentId: z.string().describe("ID of the content to fetch restrictions for"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. restrictions.user,restrictions.group). Defaults to group.")
+  },
+  getContentRestrictionsByOperation: {
+    operationKey: z.string().describe("The operation to fetch restrictions for: read or update"),
+    contentId: z.string().describe("ID of the content"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand. Defaults to group."),
+    limit: z.number().optional().describe("Maximum number of restriction entries to return"),
+    start: z.number().optional().describe("Start index for pagination")
+  },
+  updateContentRestrictions: {
+    contentId: z.string().describe("ID of the content (pages and blog posts only)"),
+    restrictions: z.array(z.object({
+      operation: z.enum(['read', 'update']).describe("The operation the restriction applies to"),
+      restrictions: z.object({
+        user: z.array(z.object({
+          type: z.string().optional().describe("User type, e.g. 'known'"),
+          username: z.string().optional().describe("Username of the user"),
+          userKey: z.string().optional().describe("User key of the user")
+        })).optional().describe("Users allowed to perform the operation. An empty array clears the user restriction."),
+        group: z.array(z.object({
+          type: z.string().optional().describe("Group type, e.g. 'group'"),
+          name: z.string().optional().describe("Group name")
+        })).optional().describe("Groups allowed to perform the operation. An empty array clears the group restriction.")
+      }).describe("The users and groups the operation is restricted to")
+    })).min(1).describe("Per-operation restrictions to set. Each entry overwrites the existing restrictions for that operation."),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand in the response. Defaults to restrictions.user,restrictions.group.")
   },
   searchSpaces: {
     searchText: z.string().describe("Text to search for in Confluence Data Center space names or descriptions. Quotes and backslashes are escaped for CQL; pass the literal search phrase only (do not pre-escape)."),
