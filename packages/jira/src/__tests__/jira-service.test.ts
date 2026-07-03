@@ -21,6 +21,7 @@ import {
   IssueService,
   IssuesecurityschemesService,
   IssuetypeService,
+  JqlService,
   MypermissionsService,
   NotificationschemeService,
   OpenAPI,
@@ -251,6 +252,10 @@ jest.mock('../jira-client/index.js', () => ({
   },
   PermissionsService: {
     getAllPermissions: jest.fn(),
+  },
+  JqlService: {
+    getAutoComplete: jest.fn(),
+    getFieldAutoCompleteForQueryString: jest.fn(),
   },
   UniversalAvatarService: {
     getAvatars: jest.fn(),
@@ -2532,6 +2537,54 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Not authenticated');
+    });
+  });
+
+  describe('getJqlAutocompleteData', () => {
+    it('gets JQL reserved words and function names', async () => {
+      const mockAutoComplete = {
+        jqlReservedWords: ['AND', 'OR', 'NOT'],
+        visibleFieldNames: ['assignee', 'status'],
+        visibleFunctionNames: ['currentUser()', 'now()'],
+      };
+      (JqlService.getAutoComplete as jest.Mock).mockResolvedValue(mockAutoComplete);
+
+      const result = await jiraService.getJqlAutocompleteData();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockAutoComplete);
+      expect(JqlService.getAutoComplete).toHaveBeenCalledWith();
+    });
+
+    it('handles errors', async () => {
+      (JqlService.getAutoComplete as jest.Mock).mockRejectedValue(new Error('Not authenticated'));
+
+      const result = await jiraService.getJqlAutocompleteData();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authenticated');
+    });
+  });
+
+  describe('getJqlFieldAutocomplete', () => {
+    it('gets value suggestions for a JQL field', async () => {
+      const mockSuggestions = { results: [{ value: 'In Progress', displayName: 'In Progress' }] };
+      (JqlService.getFieldAutoCompleteForQueryString as jest.Mock).mockResolvedValue(mockSuggestions);
+
+      const result = await jiraService.getJqlFieldAutocomplete('status', 'In', 'in', undefined);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSuggestions);
+      expect(JqlService.getFieldAutoCompleteForQueryString).toHaveBeenCalledWith(undefined, 'in', 'status', 'In');
+    });
+
+    it('handles errors', async () => {
+      (JqlService.getFieldAutoCompleteForQueryString as jest.Mock).mockRejectedValue(new Error('Bad request'));
+
+      const result = await jiraService.getJqlFieldAutocomplete('status');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Bad request');
     });
   });
 
