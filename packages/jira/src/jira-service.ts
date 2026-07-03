@@ -18,6 +18,7 @@ import {
   IssueService,
   IssuesecurityschemesService,
   IssuetypeService,
+  JqlService,
   MypermissionsService,
   MyselfService,
   NotificationschemeService,
@@ -1134,6 +1135,20 @@ export class JiraService {
     );
   }
 
+  async getJqlAutocompleteData() {
+    return handleApiOperation(
+      () => JqlService.getAutoComplete(),
+      'Error getting JQL autocomplete data'
+    );
+  }
+
+  async getJqlFieldAutocomplete(fieldName?: string, fieldValue?: string, predicateName?: string, predicateValue?: string) {
+    return handleApiOperation(
+      () => JqlService.getFieldAutoCompleteForQueryString(predicateValue, predicateName, fieldName, fieldValue),
+      'Error getting JQL field autocomplete suggestions'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1808,5 +1823,12 @@ export const jiraToolSchemas = {
     issueKey: z.string().optional().describe("Key of the issue to scope returned permissions for"),
     issueId: z.string().optional().describe("Id of the issue to scope returned permissions for")
   },
-  getAllPermissions: {}
+  getAllPermissions: {},
+  getJqlAutocompleteData: {},
+  getJqlFieldAutocomplete: {
+    fieldName: z.string().optional().describe("JQL field name to get value suggestions for, e.g. 'assignee' or 'status'"),
+    fieldValue: z.string().optional().describe("Partial value typed so far, used to filter the returned suggestions"),
+    predicateName: z.string().optional().describe("Name of the JQL predicate being completed, e.g. 'in' or 'was'"),
+    predicateValue: z.string().optional().describe("Partial predicate value typed so far, used to filter the returned suggestions")
+  }
 };

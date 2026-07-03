@@ -1467,4 +1467,24 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getJqlAutocompleteData",
+  `Get the reserved words, visible field names, and function names available for building JQL queries in the ${jiraInstanceType}`,
+  jiraToolSchemas.getJqlAutocompleteData,
+  async () => {
+    const result = await jiraService.getJqlAutocompleteData();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getJqlFieldAutocomplete",
+  `Get value autocomplete suggestions for a JQL field while building a query in the ${jiraInstanceType}. Useful before calling jira_searchIssues to discover valid field values.`,
+  jiraToolSchemas.getJqlFieldAutocomplete,
+  async ({ fieldName, fieldValue, predicateName, predicateValue }) => {
+    const result = await jiraService.getJqlFieldAutocomplete(fieldName, fieldValue, predicateName, predicateValue);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
