@@ -2575,6 +2575,78 @@ export class BitbucketService {
   }
 
   /**
+   * Update the default branch of a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param branchId The full ref ID of the branch to set as default (e.g. 'refs/heads/main')
+   * @returns Promise with an update acknowledgement
+   */
+  async setDefaultBranch(projectKey: string, repositorySlug: string, branchId: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const result = await handleApiOperation(
+      () => ProjectService.setDefaultBranch2(projectKey, repositorySlug, { id: branchId }),
+      'Error setting default branch'
+    );
+    return { ...result, data: { updated: true, projectKey, repositorySlug, branchId } };
+  }
+
+  /**
+   * Get the pull request settings for a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @returns Promise with the pull request settings
+   */
+  async getPullRequestSettings(projectKey: string, repositorySlug: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.getPullRequestSettings1(projectKey, repositorySlug),
+      'Error fetching pull request settings'
+    );
+  }
+
+  /**
+   * Update the pull request settings for a repository. Only the provided keys are changed.
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param settings The settings to update (e.g. mergeConfig, requiredApprovers, requiredAllApprovers, requiredAllTasksComplete, requiredSuccessfulBuilds)
+   * @returns Promise with the updated pull request settings
+   */
+  async updatePullRequestSettings(projectKey: string, repositorySlug: string, settings: Record<string, any>) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.updatePullRequestSettings1(projectKey, repositorySlug, settings),
+      'Error updating pull request settings'
+    );
+  }
+
+  /**
+   * Get the repository hooks configured for a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param type Optional hook type to filter by (PRE_RECEIVE or POST_RECEIVE)
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (defaults to the package page size)
+   * @returns Promise with the page of repository hooks
+   */
+  async getRepoHooks(
+    projectKey: string,
+    repositorySlug: string,
+    type?: 'PRE_RECEIVE' | 'POST_RECEIVE',
+    start?: number,
+    limit?: number
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.getRepositoryHooks1(projectKey, repositorySlug, type, start, limit ?? this.getPageSize()),
+      'Error fetching repository hooks'
+    );
+  }
+
+  /**
    * Create an HTTP access token (PAT) for a user, project, or repository
    * @param scope The token scope: 'user' for personal access tokens, 'project' for project-scoped tokens, 'repo' for repository-scoped tokens
    * @param name The name of the new access token
@@ -2619,6 +2691,22 @@ export class BitbucketService {
   }
 
   /**
+   * Enable a repository hook
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param hookKey The hook key (e.g. 'com.atlassian.bitbucket.server.bundled-hooks:requiredApproversMergeHook')
+   * @returns Promise with the enabled hook
+   */
+  async enableRepoHook(projectKey: string, repositorySlug: string, hookKey: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.enableHook1(projectKey, hookKey, repositorySlug),
+      'Error enabling repository hook'
+    );
+  }
+
+  /**
    * Delete an HTTP access token (PAT) from a user, project, or repository
    * @param scope The token scope: 'user' for personal access tokens, 'project' for project-scoped tokens, 'repo' for repository-scoped tokens
    * @param tokenId The ID of the token to delete
@@ -2655,6 +2743,55 @@ export class BitbucketService {
       return { ...result, data: { deleted: true, tokenId } };
     }
     return result;
+  }
+
+  /**
+   * Disable a repository hook
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param hookKey The hook key
+   * @returns Promise with the disabled hook
+   */
+  async disableRepoHook(projectKey: string, repositorySlug: string, hookKey: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.disableHook1(projectKey, hookKey, repositorySlug),
+      'Error disabling repository hook'
+    );
+  }
+
+  /**
+   * Get the settings for a repository hook
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param hookKey The hook key
+   * @returns Promise with the hook settings
+   */
+  async getRepoHookSettings(projectKey: string, repositorySlug: string, hookKey: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.getSettings1(projectKey, hookKey, repositorySlug),
+      'Error fetching repository hook settings'
+    );
+  }
+
+  /**
+   * Update the settings for a repository hook
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param hookKey The hook key
+   * @param settings The raw settings document for the hook (structure is decided by the hook's plugin)
+   * @returns Promise with the updated hook settings
+   */
+  async setRepoHookSettings(projectKey: string, repositorySlug: string, hookKey: string, settings: Record<string, any>) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.setSettings1(projectKey, hookKey, repositorySlug, settings),
+      'Error updating repository hook settings'
+    );
   }
 
   private buildWebhookBody(
@@ -3667,5 +3804,47 @@ export const bitbucketToolSchemas = {
   },
   deleteGpgKey: {
     fingerprintOrId: z.string().describe("The GPG key ID or fingerprint to delete")
+  },
+  setDefaultBranch: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    branchId: z.string().describe("The full ref ID of the branch to set as default (e.g. 'refs/heads/main')")
+  },
+  getPullRequestSettings: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug")
+  },
+  updatePullRequestSettings: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    settings: z.record(z.any()).describe("Settings to update; only the provided keys are changed. Known keys: mergeConfig, requiredApprovers, requiredAllApprovers, requiredAllTasksComplete, requiredSuccessfulBuilds, 'com.atlassian.bitbucket.server.bundled-hooks.requiredApproversMergeHook', 'com.atlassian.bitbucket.server.bitbucket-build.requiredBuildsMergeCheck'")
+  },
+  getRepoHooks: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    type: z.enum(['PRE_RECEIVE', 'POST_RECEIVE']).optional().describe("Optional hook type to filter by"),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+  },
+  enableRepoHook: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    hookKey: z.string().describe("The hook key (e.g. 'com.atlassian.bitbucket.server.bundled-hooks:requiredApproversMergeHook')")
+  },
+  disableRepoHook: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    hookKey: z.string().describe("The hook key")
+  },
+  getRepoHookSettings: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    hookKey: z.string().describe("The hook key")
+  },
+  setRepoHookSettings: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    hookKey: z.string().describe("The hook key"),
+    settings: z.record(z.any()).describe("The raw settings document for the hook. Structure is decided by the hook's plugin.")
   }
 };
