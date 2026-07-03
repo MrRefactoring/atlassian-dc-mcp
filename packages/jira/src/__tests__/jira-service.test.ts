@@ -93,6 +93,7 @@ jest.mock('../jira-client/index.js', () => ({
     createIssues: jest.fn(),
     archiveIssues: jest.fn(),
     archiveIssue: jest.fn(),
+    restoreIssue: jest.fn(),
     rankIssues: jest.fn(),
     getRemoteIssueLinks: jest.fn(),
     getRemoteIssueLinkById: jest.fn(),
@@ -104,6 +105,9 @@ jest.mock('../jira-client/index.js', () => ({
     getProperty3: jest.fn(),
     setProperty2: jest.fn(),
     deleteProperty3: jest.fn(),
+    notify: jest.fn(),
+    setPinComment: jest.fn(),
+    getPinnedComments: jest.fn(),
   },
   CommentService: {
     getPropertiesKeys1: jest.fn(),
@@ -2330,6 +2334,24 @@ describe('JiraService', () => {
       expect(IssueService.archiveIssue).toHaveBeenCalledWith(mockIssueKey, undefined);
     });
 
+    it('restores an archived issue', async () => {
+      (IssueService.restoreIssue as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.restoreIssue(mockIssueKey, true);
+
+      expect(result.success).toBe(true);
+      expect(IssueService.restoreIssue).toHaveBeenCalledWith(mockIssueKey, 'true');
+    });
+
+    it('handles errors restoring an archived issue', async () => {
+      (IssueService.restoreIssue as jest.Mock).mockRejectedValue(new Error('The issue is not archived'));
+
+      const result = await jiraService.restoreIssue(mockIssueKey);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The issue is not archived');
+    });
+
     it('ranks issues', async () => {
       (IssueService.rankIssues as jest.Mock).mockResolvedValue({ success: true });
 
@@ -2429,6 +2451,77 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The property with given key is not found');
+    });
+  });
+
+  describe('issue lifecycle extras', () => {
+    it('sends a manual notification', async () => {
+      (IssueService.notify as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.notifyIssue(mockIssueKey, 'Heads up', 'Please review', undefined, true, false, true, false, ['john.doe'], ['jira-admins'], ['jira-admins']);
+
+      expect(result.success).toBe(true);
+      expect(IssueService.notify).toHaveBeenCalledWith(mockIssueKey, {
+        subject: 'Heads up',
+        textBody: 'Please review',
+        htmlBody: undefined,
+        to: {
+          reporter: true,
+          assignee: false,
+          watchers: true,
+          voters: false,
+          users: [{ name: 'john.doe' }],
+          groups: [{ name: 'jira-admins' }],
+        },
+        restrict: { groups: [{ name: 'jira-admins' }] },
+      });
+    });
+
+    it('handles errors sending a manual notification', async () => {
+      (IssueService.notify as jest.Mock).mockRejectedValue(new Error('Outgoing emails are disabled'));
+
+      const result = await jiraService.notifyIssue(mockIssueKey);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Outgoing emails are disabled');
+    });
+
+    it('pins a comment', async () => {
+      (IssueService.setPinComment as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setCommentPinned(mockIssueKey, '10000', true);
+
+      expect(result.success).toBe(true);
+      expect(IssueService.setPinComment).toHaveBeenCalledWith(mockIssueKey, '10000', true);
+    });
+
+    it('handles errors pinning a comment', async () => {
+      (IssueService.setPinComment as jest.Mock).mockRejectedValue(new Error('The comment with the given id does not exist'));
+
+      const result = await jiraService.setCommentPinned(mockIssueKey, '99999', true);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The comment with the given id does not exist');
+    });
+
+    it('gets pinned comments', async () => {
+      const mockPinned = { comment: { id: '10000', body: 'Important' }, pinnedBy: 'john.doe' };
+      (IssueService.getPinnedComments as jest.Mock).mockResolvedValue(mockPinned);
+
+      const result = await jiraService.getPinnedComments(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPinned);
+      expect(IssueService.getPinnedComments).toHaveBeenCalledWith(mockIssueKey);
+    });
+
+    it('handles errors getting pinned comments', async () => {
+      (IssueService.getPinnedComments as jest.Mock).mockRejectedValue(new Error('The issue does not exist'));
+
+      const result = await jiraService.getPinnedComments(mockIssueKey);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The issue does not exist');
     });
   });
 

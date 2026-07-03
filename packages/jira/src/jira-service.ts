@@ -967,6 +967,13 @@ export class JiraService {
     );
   }
 
+  async restoreIssue(issueKey: string, notifyUsers?: boolean) {
+    return handleApiOperation(
+      () => IssueService.restoreIssue(issueKey, notifyUsers?.toString()),
+      'Error restoring issue'
+    );
+  }
+
   async rankIssues(issueKeys: string[], rankBeforeIssue?: string, rankAfterIssue?: string, rankCustomFieldId?: number) {
     return handleApiOperation(
       () => IssueService.rankIssues({ issues: issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId }),
@@ -999,6 +1006,52 @@ export class JiraService {
     return handleApiOperation(
       () => IssueService.deleteProperty3(propertyKey, issueKey),
       'Error deleting issue property'
+    );
+  }
+
+  async notifyIssue(
+    issueKey: string,
+    subject?: string,
+    textBody?: string,
+    htmlBody?: string,
+    toReporter?: boolean,
+    toAssignee?: boolean,
+    toWatchers?: boolean,
+    toVoters?: boolean,
+    toUsernames?: string[],
+    toGroupNames?: string[],
+    restrictToGroupNames?: string[]
+  ) {
+    return handleApiOperation(
+      () => IssueService.notify(issueKey, {
+        subject,
+        textBody,
+        htmlBody,
+        to: {
+          reporter: toReporter,
+          assignee: toAssignee,
+          watchers: toWatchers,
+          voters: toVoters,
+          users: toUsernames?.map((name) => ({ name })),
+          groups: toGroupNames?.map((name) => ({ name })),
+        },
+        restrict: restrictToGroupNames ? { groups: restrictToGroupNames.map((name) => ({ name })) } : undefined,
+      }),
+      'Error sending issue notification'
+    );
+  }
+
+  async setCommentPinned(issueKey: string, commentId: string, pinned: boolean) {
+    return handleApiOperation(
+      () => IssueService.setPinComment(issueKey, commentId, pinned),
+      'Error setting comment pinned state'
+    );
+  }
+
+  async getPinnedComments(issueKey: string) {
+    return handleApiOperation(
+      () => IssueService.getPinnedComments(issueKey),
+      'Error getting pinned comments'
     );
   }
 
@@ -2348,6 +2401,10 @@ export const jiraToolSchemas = {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
     notifyUsers: z.boolean().optional().describe("Whether to send notifications for this change")
   },
+  restoreIssue: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123) of a previously archived issue"),
+    notifyUsers: z.boolean().optional().describe("Whether to send notifications for this change. Admin or project admin permission is required to disable notifications.")
+  },
   rankIssues: {
     issueKeys: z.array(z.string()).describe("Issue keys to rank, in the desired order"),
     rankBeforeIssue: z.string().optional().describe("Rank the issues before this issue key"),
@@ -2369,6 +2426,27 @@ export const jiraToolSchemas = {
   deleteIssueProperty: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
     propertyKey: z.string().describe("Key of the property to remove")
+  },
+  notifyIssue: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    subject: z.string().optional().describe("Email subject. Defaults to the issue summary if omitted."),
+    textBody: z.string().optional().describe("Plain-text email body"),
+    htmlBody: z.string().optional().describe("HTML email body"),
+    toReporter: z.boolean().optional().describe("Send to the issue's reporter"),
+    toAssignee: z.boolean().optional().describe("Send to the issue's assignee"),
+    toWatchers: z.boolean().optional().describe("Send to all watchers of the issue"),
+    toVoters: z.boolean().optional().describe("Send to all voters of the issue"),
+    toUsernames: z.array(z.string()).optional().describe("Usernames of additional recipients"),
+    toGroupNames: z.array(z.string()).optional().describe("Names of groups whose members should receive the notification"),
+    restrictToGroupNames: z.array(z.string()).optional().describe("Restrict the notification to only recipients who are members of these groups")
+  },
+  setCommentPinned: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    commentId: z.string().describe("Id of the comment to pin or unpin. Use jira_getIssueComments to find comment ids."),
+    pinned: z.boolean().describe("true to pin the comment to the top of the comment list, false to unpin it")
+  },
+  getPinnedComments: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
   },
   getBoards: {
     maxResults: z.number().optional().describe("Maximum number of boards to return"),

@@ -1164,6 +1164,16 @@ server.tool(
 );
 
 server.tool(
+  "jira_restoreIssue",
+  `Restore a previously archived JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.restoreIssue,
+  async ({ issueKey, notifyUsers }) => {
+    const result = await jiraService.restoreIssue(issueKey, notifyUsers);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_rankIssues",
   `Reorder (rank) JIRA issues relative to another issue in the ${jiraInstanceType}, as used on Agile boards/backlogs`,
   jiraToolSchemas.rankIssues,
@@ -1209,6 +1219,36 @@ server.tool(
   jiraToolSchemas.deleteIssueProperty,
   async ({ issueKey, propertyKey }) => {
     const result = await jiraService.deleteIssueProperty(issueKey, propertyKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_notifyIssue",
+  `Send a manual email notification about a JIRA issue in the ${jiraInstanceType} to specific users, groups, or roles (reporter/assignee/watchers/voters)`,
+  jiraToolSchemas.notifyIssue,
+  async ({ issueKey, subject, textBody, htmlBody, toReporter, toAssignee, toWatchers, toVoters, toUsernames, toGroupNames, restrictToGroupNames }) => {
+    const result = await jiraService.notifyIssue(issueKey, subject, textBody, htmlBody, toReporter, toAssignee, toWatchers, toVoters, toUsernames, toGroupNames, restrictToGroupNames);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setCommentPinned",
+  `Pin or unpin a comment on a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.setCommentPinned,
+  async ({ issueKey, commentId, pinned }) => {
+    const result = await jiraService.setCommentPinned(issueKey, commentId, pinned);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getPinnedComments",
+  `Get all pinned comments for a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.getPinnedComments,
+  async ({ issueKey }) => {
+    const result = await jiraService.getPinnedComments(issueKey);
     return formatToolResponse(result);
   }
 );
