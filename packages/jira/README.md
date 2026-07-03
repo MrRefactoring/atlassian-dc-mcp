@@ -189,7 +189,7 @@ Besides tools, this server exposes one MCP resource template so an issue can be 
 
 ### Available Tools
 
-This server exposes 215 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 227 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -257,6 +257,23 @@ This server exposes 215 tools, grouped below by area. Every tool name is prefixe
 - `jira_createIssueLinkType` — Create a new issue link type.
 - `jira_updateIssueLinkType` — Update an issue link type.
 - `jira_deleteIssueLinkType` — Delete an issue link type. This is irreversible.
+
+#### Entity properties
+
+Arbitrary JSON key/value metadata attachable to issues, projects, and comments.
+
+- `jira_getIssuePropertyKeys` — Get the keys of all entity properties stored on an issue.
+- `jira_getIssueProperty` — Get a single entity property value from an issue.
+- `jira_setIssueProperty` — Set an entity property on an issue.
+- `jira_deleteIssueProperty` — Delete an entity property from an issue.
+- `jira_getProjectPropertyKeys` — Get the keys of all entity properties stored on a project.
+- `jira_getProjectProperty` — Get a single entity property value from a project.
+- `jira_setProjectProperty` — Set an entity property on a project.
+- `jira_deleteProjectProperty` — Delete an entity property from a project.
+- `jira_getCommentPropertyKeys` — Get the keys of all entity properties stored on a comment.
+- `jira_getCommentProperty` — Get a single entity property value from a comment.
+- `jira_setCommentProperty` — Set an entity property on a comment.
+- `jira_deleteCommentProperty` — Delete an entity property from a comment.
 
 #### Projects
 

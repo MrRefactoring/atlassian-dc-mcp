@@ -9,6 +9,7 @@ import {
   AvatarService,
   BacklogService,
   BoardService,
+  CommentService,
   ComponentService,
   CustomFieldOptionService,
   CustomFieldsService,
@@ -98,6 +99,16 @@ jest.mock('../jira-client/index.js', () => ({
     updateRemoteIssueLink: jest.fn(),
     deleteRemoteIssueLinkById: jest.fn(),
     deleteRemoteIssueLinkByGlobalId: jest.fn(),
+    getPropertiesKeys2: jest.fn(),
+    getProperty3: jest.fn(),
+    setProperty2: jest.fn(),
+    deleteProperty3: jest.fn(),
+  },
+  CommentService: {
+    getPropertiesKeys1: jest.fn(),
+    getProperty2: jest.fn(),
+    setProperty1: jest.fn(),
+    deleteProperty2: jest.fn(),
   },
   AttachmentService: {
     getAttachmentMeta: jest.fn(),
@@ -212,6 +223,10 @@ jest.mock('../jira-client/index.js', () => ({
     deleteProject: jest.fn(),
     archiveProject: jest.fn(),
     restoreProject: jest.fn(),
+    getPropertiesKeys3: jest.fn(),
+    getProperty5: jest.fn(),
+    setProperty4: jest.fn(),
+    deleteProperty5: jest.fn(),
     getProjectRoles: jest.fn(),
     getProjectRole: jest.fn(),
     setActors: jest.fn(),
@@ -880,6 +895,84 @@ describe('JiraService', () => {
     });
   });
 
+  describe('project entity properties', () => {
+    it('gets project property keys', async () => {
+      const mockKeys = { keys: [{ key: 'my-property', self: 'https://example.com' }] };
+      (ProjectService.getPropertiesKeys3 as jest.Mock).mockResolvedValue(mockKeys);
+
+      const result = await jiraService.getProjectPropertyKeys('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockKeys);
+      expect(ProjectService.getPropertiesKeys3).toHaveBeenCalledWith('TEST');
+    });
+
+    it('handles errors getting project property keys', async () => {
+      (ProjectService.getPropertiesKeys3 as jest.Mock).mockRejectedValue(new Error('The project does not exist'));
+
+      const result = await jiraService.getProjectPropertyKeys('MISSING');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The project does not exist');
+    });
+
+    it('gets a project property', async () => {
+      const mockProperty = { key: 'my-property', value: '{"a":1}' };
+      (ProjectService.getProperty5 as jest.Mock).mockResolvedValue(mockProperty);
+
+      const result = await jiraService.getProjectProperty('TEST', 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProperty);
+      expect(ProjectService.getProperty5).toHaveBeenCalledWith('my-property', 'TEST');
+    });
+
+    it('handles errors getting a project property', async () => {
+      (ProjectService.getProperty5 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.getProjectProperty('TEST', 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
+    });
+
+    it('sets a project property', async () => {
+      (ProjectService.setProperty4 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setProjectProperty('TEST', 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(true);
+      expect(ProjectService.setProperty4).toHaveBeenCalledWith('my-property', 'TEST', { key: 'my-property', value: '{"a":1}' });
+    });
+
+    it('handles errors setting a project property', async () => {
+      (ProjectService.setProperty4 as jest.Mock).mockRejectedValue(new Error('The calling user does not have permission to administer the project'));
+
+      const result = await jiraService.setProjectProperty('TEST', 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The calling user does not have permission to administer the project');
+    });
+
+    it('deletes a project property', async () => {
+      (ProjectService.deleteProperty5 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteProjectProperty('TEST', 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(ProjectService.deleteProperty5).toHaveBeenCalledWith('my-property', 'TEST');
+    });
+
+    it('handles errors deleting a project property', async () => {
+      (ProjectService.deleteProperty5 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.deleteProjectProperty('TEST', 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
+    });
+  });
+
   describe('reference data lookups', () => {
     it('gets issue types', async () => {
       const mockTypes = [{ name: 'Bug' }];
@@ -1045,6 +1138,84 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('User does not have permission to delete this comment');
+    });
+  });
+
+  describe('comment entity properties', () => {
+    it('gets comment property keys', async () => {
+      const mockKeys = { keys: [{ key: 'my-property', self: 'https://example.com' }] };
+      (CommentService.getPropertiesKeys1 as jest.Mock).mockResolvedValue(mockKeys);
+
+      const result = await jiraService.getCommentPropertyKeys('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockKeys);
+      expect(CommentService.getPropertiesKeys1).toHaveBeenCalledWith('10000');
+    });
+
+    it('handles errors getting comment property keys', async () => {
+      (CommentService.getPropertiesKeys1 as jest.Mock).mockRejectedValue(new Error('The comment with given key or id does not exist'));
+
+      const result = await jiraService.getCommentPropertyKeys('99999');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The comment with given key or id does not exist');
+    });
+
+    it('gets a comment property', async () => {
+      const mockProperty = { key: 'my-property', value: '{"a":1}' };
+      (CommentService.getProperty2 as jest.Mock).mockResolvedValue(mockProperty);
+
+      const result = await jiraService.getCommentProperty('10000', 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProperty);
+      expect(CommentService.getProperty2).toHaveBeenCalledWith('my-property', '10000');
+    });
+
+    it('handles errors getting a comment property', async () => {
+      (CommentService.getProperty2 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.getCommentProperty('10000', 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
+    });
+
+    it('sets a comment property', async () => {
+      (CommentService.setProperty1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setCommentProperty('10000', 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(true);
+      expect(CommentService.setProperty1).toHaveBeenCalledWith('my-property', '10000', '{"a":1}');
+    });
+
+    it('handles errors setting a comment property', async () => {
+      (CommentService.setProperty1 as jest.Mock).mockRejectedValue(new Error('The calling user does not have permission to administer the comment'));
+
+      const result = await jiraService.setCommentProperty('10000', 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The calling user does not have permission to administer the comment');
+    });
+
+    it('deletes a comment property', async () => {
+      (CommentService.deleteProperty2 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteCommentProperty('10000', 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(CommentService.deleteProperty2).toHaveBeenCalledWith('my-property', '10000');
+    });
+
+    it('handles errors deleting a comment property', async () => {
+      (CommentService.deleteProperty2 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.deleteCommentProperty('10000', 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
     });
   });
 
@@ -2112,6 +2283,84 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('User does not have permission to rank');
+    });
+  });
+
+  describe('issue entity properties', () => {
+    it('gets issue property keys', async () => {
+      const mockKeys = { keys: [{ key: 'my-property', self: 'https://example.com' }] };
+      (IssueService.getPropertiesKeys2 as jest.Mock).mockResolvedValue(mockKeys);
+
+      const result = await jiraService.getIssuePropertyKeys(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockKeys);
+      expect(IssueService.getPropertiesKeys2).toHaveBeenCalledWith(mockIssueKey);
+    });
+
+    it('handles errors getting issue property keys', async () => {
+      (IssueService.getPropertiesKeys2 as jest.Mock).mockRejectedValue(new Error('The issue with given key or id does not exist'));
+
+      const result = await jiraService.getIssuePropertyKeys('PROJ-999');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The issue with given key or id does not exist');
+    });
+
+    it('gets an issue property', async () => {
+      const mockProperty = { key: 'my-property', value: '{"a":1}' };
+      (IssueService.getProperty3 as jest.Mock).mockResolvedValue(mockProperty);
+
+      const result = await jiraService.getIssueProperty(mockIssueKey, 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProperty);
+      expect(IssueService.getProperty3).toHaveBeenCalledWith('my-property', mockIssueKey);
+    });
+
+    it('handles errors getting an issue property', async () => {
+      (IssueService.getProperty3 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.getIssueProperty(mockIssueKey, 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
+    });
+
+    it('sets an issue property', async () => {
+      (IssueService.setProperty2 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setIssueProperty(mockIssueKey, 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(true);
+      expect(IssueService.setProperty2).toHaveBeenCalledWith('my-property', mockIssueKey, '{"a":1}');
+    });
+
+    it('handles errors setting an issue property', async () => {
+      (IssueService.setProperty2 as jest.Mock).mockRejectedValue(new Error('The calling user does not have permission to edit the issue'));
+
+      const result = await jiraService.setIssueProperty(mockIssueKey, 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The calling user does not have permission to edit the issue');
+    });
+
+    it('deletes an issue property', async () => {
+      (IssueService.deleteProperty3 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteIssueProperty(mockIssueKey, 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(IssueService.deleteProperty3).toHaveBeenCalledWith('my-property', mockIssueKey);
+    });
+
+    it('handles errors deleting an issue property', async () => {
+      (IssueService.deleteProperty3 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.deleteIssueProperty(mockIssueKey, 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
     });
   });
 

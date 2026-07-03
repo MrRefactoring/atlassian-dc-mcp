@@ -6,6 +6,7 @@ import {
   AvatarService,
   BacklogService,
   BoardService,
+  CommentService,
   ComponentService,
   CustomFieldOptionService,
   CustomFieldsService,
@@ -310,6 +311,34 @@ export class JiraService {
     );
   }
 
+  async getProjectPropertyKeys(projectIdOrKey: string) {
+    return handleApiOperation(
+      () => ProjectService.getPropertiesKeys3(projectIdOrKey),
+      'Error getting project property keys'
+    );
+  }
+
+  async getProjectProperty(projectIdOrKey: string, propertyKey: string) {
+    return handleApiOperation(
+      () => ProjectService.getProperty5(propertyKey, projectIdOrKey),
+      'Error getting project property'
+    );
+  }
+
+  async setProjectProperty(projectIdOrKey: string, propertyKey: string, value: string) {
+    return handleApiOperation(
+      () => ProjectService.setProperty4(propertyKey, projectIdOrKey, { key: propertyKey, value }),
+      'Error setting project property'
+    );
+  }
+
+  async deleteProjectProperty(projectIdOrKey: string, propertyKey: string) {
+    return handleApiOperation(
+      () => ProjectService.deleteProperty5(propertyKey, projectIdOrKey),
+      'Error deleting project property'
+    );
+  }
+
   async getIssueTypes() {
     return handleApiOperation(() => IssuetypeService.getIssueAllTypes(), 'Error getting issue types');
   }
@@ -362,6 +391,34 @@ export class JiraService {
     return handleApiOperation(
       () => IssueService.deleteComment(issueKey, commentId),
       'Error deleting issue comment'
+    );
+  }
+
+  async getCommentPropertyKeys(commentId: string) {
+    return handleApiOperation(
+      () => CommentService.getPropertiesKeys1(commentId),
+      'Error getting comment property keys'
+    );
+  }
+
+  async getCommentProperty(commentId: string, propertyKey: string) {
+    return handleApiOperation(
+      () => CommentService.getProperty2(propertyKey, commentId),
+      'Error getting comment property'
+    );
+  }
+
+  async setCommentProperty(commentId: string, propertyKey: string, value: string) {
+    return handleApiOperation(
+      () => CommentService.setProperty1(propertyKey, commentId, value),
+      'Error setting comment property'
+    );
+  }
+
+  async deleteCommentProperty(commentId: string, propertyKey: string) {
+    return handleApiOperation(
+      () => CommentService.deleteProperty2(propertyKey, commentId),
+      'Error deleting comment property'
     );
   }
 
@@ -892,6 +949,34 @@ export class JiraService {
     return handleApiOperation(
       () => IssueService.rankIssues({ issues: issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId }),
       'Error ranking issues'
+    );
+  }
+
+  async getIssuePropertyKeys(issueKey: string) {
+    return handleApiOperation(
+      () => IssueService.getPropertiesKeys2(issueKey),
+      'Error getting issue property keys'
+    );
+  }
+
+  async getIssueProperty(issueKey: string, propertyKey: string) {
+    return handleApiOperation(
+      () => IssueService.getProperty3(propertyKey, issueKey),
+      'Error getting issue property'
+    );
+  }
+
+  async setIssueProperty(issueKey: string, propertyKey: string, value: string) {
+    return handleApiOperation(
+      () => IssueService.setProperty2(propertyKey, issueKey, value),
+      'Error setting issue property'
+    );
+  }
+
+  async deleteIssueProperty(issueKey: string, propertyKey: string) {
+    return handleApiOperation(
+      () => IssueService.deleteProperty3(propertyKey, issueKey),
+      'Error deleting issue property'
     );
   }
 
@@ -1847,6 +1932,22 @@ export const jiraToolSchemas = {
   restoreProject: {
     projectIdOrKey: z.string().describe("Project id or key (e.g., TEST) of a previously archived project")
   },
+  getProjectPropertyKeys: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)")
+  },
+  getProjectProperty: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    propertyKey: z.string().describe("Key of the property to look up. Use jira_getProjectPropertyKeys to find valid keys.")
+  },
+  setProjectProperty: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    propertyKey: z.string().describe("Key of the property to set. The maximum length of the key is 255 bytes."),
+    value: z.string().describe("New property value as a JSON-encoded string, e.g. '{\"foo\":\"bar\"}' or '\"a plain string\"'. Maximum length 32768 bytes.")
+  },
+  deleteProjectProperty: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    propertyKey: z.string().describe("Key of the property to remove")
+  },
   getIssueTypes: {},
   getPriorities: {},
   getResolutions: {},
@@ -1877,6 +1978,22 @@ export const jiraToolSchemas = {
   deleteIssueComment: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
     commentId: z.string().describe("Id of the comment to delete. Use jira_getIssueComments to find comment ids.")
+  },
+  getCommentPropertyKeys: {
+    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids.")
+  },
+  getCommentProperty: {
+    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids."),
+    propertyKey: z.string().describe("Key of the property to look up. Use jira_getCommentPropertyKeys to find valid keys.")
+  },
+  setCommentProperty: {
+    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids."),
+    propertyKey: z.string().describe("Key of the property to set. The maximum length of the key is 255 bytes."),
+    value: z.string().describe("New property value as a JSON-encoded string, e.g. '{\"foo\":\"bar\"}' or '\"a plain string\"'. Maximum length 32768 bytes.")
+  },
+  deleteCommentProperty: {
+    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids."),
+    propertyKey: z.string().describe("Key of the property to remove")
   },
   getIssueWatchers: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
@@ -2205,6 +2322,22 @@ export const jiraToolSchemas = {
     rankBeforeIssue: z.string().optional().describe("Rank the issues before this issue key"),
     rankAfterIssue: z.string().optional().describe("Rank the issues after this issue key"),
     rankCustomFieldId: z.number().optional().describe("Id of the custom 'Rank' field, if not the default")
+  },
+  getIssuePropertyKeys: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+  },
+  getIssueProperty: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    propertyKey: z.string().describe("Key of the property to look up. Use jira_getIssuePropertyKeys to find valid keys.")
+  },
+  setIssueProperty: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    propertyKey: z.string().describe("Key of the property to set"),
+    value: z.string().describe("New property value as a JSON-encoded string, e.g. '{\"foo\":\"bar\"}' or '\"a plain string\"'")
+  },
+  deleteIssueProperty: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    propertyKey: z.string().describe("Key of the property to remove")
   },
   getBoards: {
     maxResults: z.number().optional().describe("Maximum number of boards to return"),
