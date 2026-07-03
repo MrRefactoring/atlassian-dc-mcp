@@ -64,7 +64,14 @@ jest.mock('../bitbucket-client/index.js', () => ({
     getWebhook1: jest.fn(),
     createWebhook1: jest.fn(),
     updateWebhook1: jest.fn(),
-    deleteWebhook1: jest.fn()
+    deleteWebhook1: jest.fn(),
+    getPullRequestSettings1: jest.fn(),
+    updatePullRequestSettings1: jest.fn(),
+    getRepositoryHooks1: jest.fn(),
+    enableHook1: jest.fn(),
+    disableHook1: jest.fn(),
+    getSettings1: jest.fn(),
+    setSettings1: jest.fn()
   },
   DeprecatedService: {
     getBuildStatus: jest.fn()
@@ -90,7 +97,8 @@ jest.mock('../bitbucket-client/index.js', () => ({
     createRepository: jest.fn(),
     updateRepository: jest.fn(),
     forkRepository: jest.fn(),
-    deleteRepository: jest.fn()
+    deleteRepository: jest.fn(),
+    setDefaultBranch2: jest.fn()
   },
   OpenAPI: {
     BASE: '',
@@ -4218,6 +4226,172 @@ describe('BitbucketService', () => {
       (RepositoryService.deleteWebhook1 as jest.Mock).mockRejectedValue(new Error('API Error'));
 
       const result = await bitbucketService.deleteWebhook('TEST', 'test-repo', '5');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+  });
+
+  describe('repo settings: default branch, pull request settings, hooks', () => {
+    it('should set the default branch', async () => {
+      (ProjectService.setDefaultBranch2 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.setDefaultBranch('test', 'Test-Repo', 'refs/heads/main');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({
+        updated: true,
+        projectKey: 'TEST',
+        repositorySlug: 'test-repo',
+        branchId: 'refs/heads/main'
+      });
+      expect(ProjectService.setDefaultBranch2).toHaveBeenCalledWith('TEST', 'test-repo', { id: 'refs/heads/main' });
+    });
+
+    it('should handle errors when setting the default branch', async () => {
+      (ProjectService.setDefaultBranch2 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.setDefaultBranch('TEST', 'test-repo', 'refs/heads/main');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should get pull request settings', async () => {
+      const mockData = { mergeConfig: { defaultStrategy: { id: 'no-ff' } } };
+      (RepositoryService.getPullRequestSettings1 as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.getPullRequestSettings('test', 'Test-Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(RepositoryService.getPullRequestSettings1).toHaveBeenCalledWith('TEST', 'test-repo');
+    });
+
+    it('should handle errors when getting pull request settings', async () => {
+      (RepositoryService.getPullRequestSettings1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.getPullRequestSettings('TEST', 'test-repo');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should update pull request settings with the provided settings object', async () => {
+      const mockData = { requiredAllApprovers: true };
+      (RepositoryService.updatePullRequestSettings1 as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.updatePullRequestSettings('test', 'Test-Repo', { requiredAllApprovers: true });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(RepositoryService.updatePullRequestSettings1).toHaveBeenCalledWith('TEST', 'test-repo', { requiredAllApprovers: true });
+    });
+
+    it('should handle errors when updating pull request settings', async () => {
+      (RepositoryService.updatePullRequestSettings1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.updatePullRequestSettings('TEST', 'test-repo', { requiredAllApprovers: true });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should get repository hooks with a type filter and default limit', async () => {
+      const mockData = { values: [{ details: { key: 'hook-key' }, enabled: true } ], isLastPage: true };
+      (RepositoryService.getRepositoryHooks1 as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.getRepoHooks('test', 'Test-Repo', 'PRE_RECEIVE');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(RepositoryService.getRepositoryHooks1).toHaveBeenCalledWith('TEST', 'test-repo', 'PRE_RECEIVE', undefined, 25);
+    });
+
+    it('should handle errors when getting repository hooks', async () => {
+      (RepositoryService.getRepositoryHooks1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.getRepoHooks('TEST', 'test-repo');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should enable a repository hook', async () => {
+      const mockData = { enabled: true };
+      (RepositoryService.enableHook1 as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.enableRepoHook('test', 'Test-Repo', 'hook-key');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(RepositoryService.enableHook1).toHaveBeenCalledWith('TEST', 'hook-key', 'test-repo');
+    });
+
+    it('should handle errors when enabling a repository hook', async () => {
+      (RepositoryService.enableHook1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.enableRepoHook('TEST', 'test-repo', 'hook-key');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should disable a repository hook', async () => {
+      const mockData = { enabled: false };
+      (RepositoryService.disableHook1 as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.disableRepoHook('test', 'Test-Repo', 'hook-key');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(RepositoryService.disableHook1).toHaveBeenCalledWith('TEST', 'hook-key', 'test-repo');
+    });
+
+    it('should handle errors when disabling a repository hook', async () => {
+      (RepositoryService.disableHook1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.disableRepoHook('TEST', 'test-repo', 'hook-key');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should get repository hook settings', async () => {
+      const mockData = { branchesToExclude: [] };
+      (RepositoryService.getSettings1 as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.getRepoHookSettings('test', 'Test-Repo', 'hook-key');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(RepositoryService.getSettings1).toHaveBeenCalledWith('TEST', 'hook-key', 'test-repo');
+    });
+
+    it('should handle errors when getting repository hook settings', async () => {
+      (RepositoryService.getSettings1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.getRepoHookSettings('TEST', 'test-repo', 'hook-key');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should set repository hook settings with the provided settings object', async () => {
+      const mockData = { branchesToExclude: ['refs/heads/main'] };
+      (RepositoryService.setSettings1 as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.setRepoHookSettings('test', 'Test-Repo', 'hook-key', { branchesToExclude: ['refs/heads/main'] });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(RepositoryService.setSettings1).toHaveBeenCalledWith('TEST', 'hook-key', 'test-repo', { branchesToExclude: ['refs/heads/main'] });
+    });
+
+    it('should handle errors when setting repository hook settings', async () => {
+      (RepositoryService.setSettings1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.setRepoHookSettings('TEST', 'test-repo', 'hook-key', { branchesToExclude: [] });
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
