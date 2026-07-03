@@ -16,6 +16,7 @@ import {
   FieldService,
   FilterService,
   GroupService,
+  GroupsService,
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
@@ -159,6 +160,9 @@ jest.mock('../jira-client/index.js', () => ({
     getUsersFromGroup: jest.fn(),
     addUserToGroup: jest.fn(),
     removeUserFromGroup: jest.fn(),
+  },
+  GroupsService: {
+    findGroups: jest.fn(),
   },
   VersionService: {
     createVersion: jest.fn(),
@@ -1442,6 +1446,17 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(true);
       expect(GroupService.removeUserFromGroup).toHaveBeenCalledWith('developers', 'john.doe');
+    });
+
+    it('finds groups matching a query', async () => {
+      const mockSuggestions = { groups: [{ name: 'developers', html: '<b>dev</b>elopers' }] };
+      (GroupsService.findGroups as jest.Mock).mockResolvedValue(mockSuggestions);
+
+      const result = await jiraService.findGroups('dev', 10);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSuggestions);
+      expect(GroupsService.findGroups).toHaveBeenCalledWith('10', 'dev', undefined, undefined);
     });
 
     it('handles errors', async () => {

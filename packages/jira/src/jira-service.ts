@@ -13,6 +13,7 @@ import {
   FieldService,
   FilterService,
   GroupService,
+  GroupsService,
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
@@ -593,6 +594,13 @@ export class JiraService {
     return handleApiOperation(
       () => GroupService.removeUserFromGroup(groupname, username),
       'Error removing user from group'
+    );
+  }
+
+  async findGroups(query?: string, maxResults?: number, exclude?: string, userName?: string) {
+    return handleApiOperation(
+      () => GroupsService.findGroups(maxResults?.toString(), query, exclude, userName),
+      'Error finding groups'
     );
   }
 
@@ -1436,6 +1444,12 @@ export const jiraToolSchemas = {
   removeUserFromGroup: {
     groupname: z.string().describe("Name of the group"),
     username: z.string().describe("Username of the user to remove")
+  },
+  findGroups: {
+    query: z.string().optional().describe("Substring to match group names against"),
+    maxResults: z.number().optional().describe("Maximum number of matching groups to return"),
+    exclude: z.string().optional().describe("Comma-separated group names to exclude from the results"),
+    userName: z.string().optional().describe("Restrict results to groups containing this username, for context")
   },
   createFilter: {
     name: z.string().describe("Filter name"),
