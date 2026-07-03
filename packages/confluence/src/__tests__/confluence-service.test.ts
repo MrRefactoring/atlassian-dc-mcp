@@ -6,6 +6,7 @@ import {
   AttachmentsService,
   ChildContentService,
   ContentBlueprintService,
+  ContentBodyService,
   ContentDescendantService,
   ContentLabelsService,
   ContentPropertyService,
@@ -42,6 +43,7 @@ const ADMIN_USER = AdminUserService as unknown as Record<string, jest.Mock>;
 const ADMIN_GROUP = AdminGroupService as unknown as Record<string, jest.Mock>;
 const ADMIN_USERS = AdminUsersService as unknown as Record<string, jest.Mock>;
 const CONTENT_BLUEPRINT = ContentBlueprintService as unknown as Record<string, jest.Mock>;
+const CONTENT_BODY = ContentBodyService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -166,6 +168,9 @@ jest.mock('../confluence-client/index.js', () => ({
   ContentBlueprintService: {
     publishSharedDraft: jest.fn(),
     publishLegacyDraft: jest.fn(),
+  },
+  ContentBodyService: {
+    convert: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -1780,6 +1785,33 @@ describe('ConfluenceService blueprint draft publishing', () => {
     CONTENT_BLUEPRINT.publishLegacyDraft.mockRejectedValue(new Error('boom'));
 
     const result = await service.publishBlueprintLegacyDraft('draft-1', draftContent);
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ConfluenceService.convertContentBody', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('converts a content body between representations', async () => {
+    CONTENT_BODY.convert.mockResolvedValue({ value: '<p>Hello</p>', representation: 'view' });
+
+    const result = await service.convertContentBody('view', '<p>Hello</p>', 'storage');
+
+    expect(CONTENT_BODY.convert).toHaveBeenCalledWith('view', undefined, { value: '<p>Hello</p>', representation: 'storage' });
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual({ value: '<p>Hello</p>', representation: 'view' });
+  });
+
+  it('forwards API errors when converting a content body', async () => {
+    CONTENT_BODY.convert.mockRejectedValue(new Error('boom'));
+
+    const result = await service.convertContentBody('view', '<p>Hello</p>', 'storage');
 
     expect(result.success).toBe(false);
   });

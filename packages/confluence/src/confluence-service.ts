@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ContentBlueprintService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService } from './confluence-client/index.js';
+import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService } from './confluence-client/index.js';
 import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -1130,6 +1130,21 @@ export class ConfluenceService {
     );
   }
 
+  /**
+   * Convert a content body between representations. Supported conversions:
+   * storage -> view,export_view,styled_view,editor; editor -> storage.
+   * @param to The representation to convert to
+   * @param value The body content to convert
+   * @param representation The representation of the supplied value (e.g. storage, editor)
+   * @param expand Optional comma-separated list of properties to expand on the response
+   */
+  async convertContentBody(to: string, value: string, representation: string, expand?: string) {
+    return handleApiOperation(
+      () => ContentBodyService.convert(to, expand, { value, representation }),
+      'Error converting content body'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -1615,6 +1630,12 @@ export const confluenceToolSchemas = {
     spaceKey: z.string().describe("Space key where the content will be published"),
     content: z.string().describe("Content body in Confluence Data Center \"storage\" format (confluence XML)"),
     parentId: z.string().optional().describe("ID of the parent page (if publishing as a child page)"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the response")
+  },
+  convertContentBody: {
+    to: z.enum(['view', 'export_view', 'styled_view', 'editor', 'storage']).describe("The representation to convert to. Supported conversions: storage -> view/export_view/styled_view/editor; editor -> storage."),
+    value: z.string().describe("The body content to convert"),
+    representation: z.enum(['storage', 'editor', 'view', 'export_view', 'styled_view']).describe("The representation of the supplied value"),
     expand: z.string().optional().describe("Comma-separated list of properties to expand on the response")
   }
 };

@@ -1005,6 +1005,17 @@ server.tool(
   }
 );
 
+// Add Confluence content body conversion tool
+server.tool(
+  "confluence_convertContentBody",
+  `Convert a content body between representations (e.g. storage to view) in ${confluenceInstanceType}`,
+  confluenceToolSchemas.convertContentBody,
+  async ({ to, value, representation, expand }) => {
+    const result = await confluenceService.convertContentBody(to, value, representation, expand);
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "confluence-page",
   new ResourceTemplate("confluence://page/{pageId}", { list: undefined }),
