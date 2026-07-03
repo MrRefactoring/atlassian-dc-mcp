@@ -464,6 +464,75 @@ server.tool(
 );
 
 server.tool(
+  "confluence_createAttachment",
+  `Upload a new attachment to a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.createAttachment,
+  async ({ contentId, fileName, contentBase64, comment, minorEdit, hidden, allowDuplicated, status, expand }) => {
+    const result = await confluenceService.createAttachment(
+      contentId,
+      fileName,
+      contentBase64,
+      comment,
+      minorEdit,
+      hidden,
+      allowDuplicated,
+      status,
+      expand
+    );
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_updateAttachmentMeta",
+  `Update an attachment's metadata (filename, media type, comment) in ${confluenceInstanceType}`,
+  confluenceToolSchemas.updateAttachmentMeta,
+  async ({ contentId, attachmentId, version, title, versionComment, mediaType, comment, minorEdit }) => {
+    const result = await confluenceService.updateAttachmentMeta(
+      contentId,
+      attachmentId,
+      version,
+      title,
+      versionComment,
+      mediaType,
+      comment,
+      minorEdit
+    );
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_updateAttachmentData",
+  `Replace the binary data of an attachment in ${confluenceInstanceType}, adding a new version`,
+  confluenceToolSchemas.updateAttachmentData,
+  async ({ contentId, attachmentId, fileName, contentBase64, comment, minorEdit }) => {
+    const result = await confluenceService.updateAttachmentData(contentId, attachmentId, fileName, contentBase64, comment, minorEdit);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_moveAttachment",
+  `Move an attachment to a different content entity in ${confluenceInstanceType}, optionally renaming it`,
+  confluenceToolSchemas.moveAttachment,
+  async ({ contentId, attachmentId, newContentId, newName }) => {
+    const result = await confluenceService.moveAttachment(contentId, attachmentId, newContentId, newName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_deleteAttachment",
+  `Delete an attachment from ${confluenceInstanceType}`,
+  confluenceToolSchemas.deleteAttachment,
+  async ({ contentId, attachmentId }) => {
+    const result = await confluenceService.deleteAttachment(contentId, attachmentId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "confluence_archiveSpace",
   `Archive a space in ${confluenceInstanceType}`,
   confluenceToolSchemas.archiveSpace,
@@ -529,6 +598,16 @@ server.tool(
   confluenceToolSchemas.deleteSpaceProperty,
   async ({ spaceKey, key }) => {
     const result = await confluenceService.deleteSpaceProperty(spaceKey, key);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_deleteAttachmentVersion",
+  `Delete a specific version of an attachment in ${confluenceInstanceType}`,
+  confluenceToolSchemas.deleteAttachmentVersion,
+  async ({ contentId, attachmentId, version }) => {
+    const result = await confluenceService.deleteAttachmentVersion(contentId, attachmentId, version);
     return formatToolResponse(result);
   }
 );

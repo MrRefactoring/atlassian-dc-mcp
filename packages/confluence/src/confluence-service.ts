@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, SpaceService, SpacePropertyService, UserService, UserWatchService } from './confluence-client/index.js';
+import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
@@ -68,6 +69,8 @@ export class ConfluenceService {
     });
     OpenAPI.TOKEN = resolveToken(token);
     OpenAPI.VERSION = '1.0';
+    // Attachment endpoints (create/update/move) enforce XSRF protection and require this header on every request.
+    OpenAPI.HEADERS = { 'X-Atlassian-Token': 'no-check' };
     this.getPageSize = getPageSize;
   }
   /**
@@ -527,6 +530,66 @@ export class ConfluenceService {
   }
 
   /**
+   * Upload a new attachment to a piece of content
+   * @param contentId The ID of the content the attachment is on
+   * @param fileName Name of the file being uploaded
+   * @param contentBase64 Base64-encoded file content
+   */
+  async createAttachment(
+    contentId: string,
+    fileName: string,
+    contentBase64: string,
+    comment?: string,
+    minorEdit?: boolean,
+    hidden?: boolean,
+    allowDuplicated?: boolean,
+    status?: string,
+    expand?: string
+  ) {
+    return handleApiOperation(() => {
+      const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
+      const formData = { file, comment, minorEdit, hidden } as unknown as MockAttachmentRequest;
+      return AttachmentsService.createAttachments(
+        contentId,
+        expand,
+        allowDuplicated ? 'true' : undefined,
+        status,
+        formData
+      );
+    }, 'Error creating attachment');
+  }
+
+  /**
+   * Update the non-binary metadata of an attachment (filename, media type, comment)
+   * @param contentId The ID of the content the attachment is on
+   * @param attachmentId The ID of the attachment to update
+   * @param version New version number (must be incremented from the current one)
+   */
+  async updateAttachmentMeta(
+    contentId: string,
+    attachmentId: string,
+    version: number,
+    title?: string,
+    versionComment?: string,
+    mediaType?: string,
+    comment?: string,
+    minorEdit?: boolean
+  ) {
+    const body: Content = {
+      id: attachmentId,
+      type: 'attachment',
+      version: { number: version, message: versionComment, minorEdit },
+      ...(title ? { title } : {}),
+      ...(mediaType || comment ? { metadata: { mediaType, comment } } : {}),
+    };
+
+    return handleApiOperation(
+      () => AttachmentsService.update(attachmentId, contentId, body),
+      'Error updating attachment metadata'
+    );
+  }
+
+  /**
    * Update a space's name and/or description.
    * @param spaceKey The key of the space to update
    * @param space The space body ({ name, description? })
@@ -560,6 +623,40 @@ export class ConfluenceService {
   }
 
   /**
+   * Replace the binary data of an attachment, adding a new version
+   * @param contentId The ID of the content the attachment is on
+   * @param attachmentId The ID of the attachment to update
+   * @param fileName Name of the new file being uploaded
+   * @param contentBase64 Base64-encoded new file content
+   */
+  async updateAttachmentData(
+    contentId: string,
+    attachmentId: string,
+    fileName: string,
+    contentBase64: string,
+    comment?: string,
+    minorEdit?: boolean
+  ) {
+    return handleApiOperation(() => {
+      const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
+      const formData = { file, comment, minorEdit } as unknown as MockAttachmentRequest;
+      return AttachmentsService.updateData(attachmentId, contentId, formData);
+    }, 'Error updating attachment data');
+  }
+
+  /**
+   * Move an attachment to a different content entity, optionally renaming it
+   * @param contentId The ID of the content the attachment is currently on
+   * @param attachmentId The ID of the attachment to move
+   */
+  async moveAttachment(contentId: string, attachmentId: string, newContentId?: string, newName?: string) {
+    return handleApiOperation(
+      () => AttachmentsService.move(attachmentId, contentId, newName, newContentId),
+      'Error moving attachment'
+    );
+  }
+
+  /**
    * Archive a space. Idempotent: archiving an already-archived space is a no-op.
    * @param spaceKey The key of the space to archive
    */
@@ -583,6 +680,18 @@ export class ConfluenceService {
     return handleApiOperation(
       () => SpacePropertyService.get1(spaceKey, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
       'Error getting space properties'
+    );
+  }
+
+  /**
+   * Delete an attachment
+   * @param contentId The ID of the content the attachment is on
+   * @param attachmentId The ID of the attachment to delete
+   */
+  async deleteAttachment(contentId: string, attachmentId: string) {
+    return handleApiOperation(
+      () => AttachmentsService.removeAttachment(attachmentId, contentId),
+      'Error deleting attachment'
     );
   }
 
@@ -634,6 +743,19 @@ export class ConfluenceService {
     return handleApiOperation(
       () => SpacePropertyService.delete4(spaceKey, key),
       'Error deleting space property'
+    );
+  }
+
+  /**
+   * Delete a specific version of an attachment
+   * @param contentId The ID of the content the attachment is on
+   * @param attachmentId The ID of the attachment
+   * @param version The version number to delete
+   */
+  async deleteAttachmentVersion(contentId: string, attachmentId: string, version: number) {
+    return handleApiOperation(
+      () => AttachmentsService.removeAttachmentVersion(attachmentId, contentId, version),
+      'Error deleting attachment version'
     );
   }
 
@@ -895,5 +1017,49 @@ export const confluenceToolSchemas = {
   deleteSpaceProperty: {
     spaceKey: z.string().describe("Key of the space"),
     key: z.string().describe("Key of the space property to delete")
+  },
+  createAttachment: {
+    contentId: z.string().describe("The ID of the content to attach the file to"),
+    fileName: z.string().describe("Name of the file being uploaded"),
+    contentBase64: z.string().describe("Base64-encoded file content"),
+    comment: z.string().optional().describe("Comment to attach to the uploaded file"),
+    minorEdit: z.boolean().optional().describe("If true, no notification email will be generated for this attachment"),
+    hidden: z.boolean().optional().describe("If true, no notification email or activity stream entry will be generated"),
+    allowDuplicated: z.boolean().optional().describe("Allow uploading an attachment with an already-existing filename"),
+    status: z.string().optional().describe("Status of the attachment's content container, e.g. current or draft"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the attachment returned")
+  },
+  updateAttachmentMeta: {
+    contentId: z.string().describe("The ID of the content the attachment is on"),
+    attachmentId: z.string().describe("The ID of the attachment to update"),
+    version: z.number().describe("New version number (must be incremented from the attachment's current version)"),
+    title: z.string().optional().describe("New filename for the attachment"),
+    versionComment: z.string().optional().describe("Comment for this version"),
+    mediaType: z.string().optional().describe("New media type for the attachment"),
+    comment: z.string().optional().describe("New comment metadata for the attachment"),
+    minorEdit: z.boolean().optional().describe("If true, no notification email will be generated for this update")
+  },
+  updateAttachmentData: {
+    contentId: z.string().describe("The ID of the content the attachment is on"),
+    attachmentId: z.string().describe("The ID of the attachment to upload a new file for"),
+    fileName: z.string().describe("Name of the new file being uploaded"),
+    contentBase64: z.string().describe("Base64-encoded new file content"),
+    comment: z.string().optional().describe("Comment to attach to the new version"),
+    minorEdit: z.boolean().optional().describe("If true, no notification email will be generated for this update")
+  },
+  moveAttachment: {
+    contentId: z.string().describe("The ID of the content the attachment is currently on"),
+    attachmentId: z.string().describe("The ID of the attachment to move"),
+    newContentId: z.string().optional().describe("The ID of the content to move the attachment to"),
+    newName: z.string().optional().describe("New name for the attachment while moving it")
+  },
+  deleteAttachment: {
+    contentId: z.string().describe("The ID of the content the attachment is on"),
+    attachmentId: z.string().describe("The ID of the attachment to delete")
+  },
+  deleteAttachmentVersion: {
+    contentId: z.string().describe("The ID of the content the attachment is on"),
+    attachmentId: z.string().describe("The ID of the attachment"),
+    version: z.number().describe("The version number to delete")
   }
 };
