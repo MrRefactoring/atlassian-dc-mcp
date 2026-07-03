@@ -21,6 +21,7 @@ import {
   IssueService,
   IssuesecurityschemesService,
   IssuetypeService,
+  MypermissionsService,
   NotificationschemeService,
   OpenAPI,
   PermissionschemeService,
@@ -243,6 +244,9 @@ jest.mock('../jira-client/index.js', () => ({
   },
   AvatarService: {
     getAllSystemAvatars: jest.fn(),
+  },
+  MypermissionsService: {
+    getPermissions: jest.fn(),
   },
   UniversalAvatarService: {
     getAvatars: jest.fn(),
@@ -2465,6 +2469,38 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Invalid avatar type');
+    });
+  });
+
+  describe('getMyPermissions', () => {
+    it('gets permissions for the logged in user with no context', async () => {
+      const mockPermissions = { permissions: { ADMINISTER: { id: '0', key: 'ADMINISTER', name: 'Administer', havePermission: true } } };
+      (MypermissionsService.getPermissions as jest.Mock).mockResolvedValue(mockPermissions);
+
+      const result = await jiraService.getMyPermissions();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPermissions);
+      expect(MypermissionsService.getPermissions).toHaveBeenCalledWith(undefined, undefined, undefined, undefined);
+    });
+
+    it('gets permissions scoped to a project and issue', async () => {
+      const mockPermissions = { permissions: {} };
+      (MypermissionsService.getPermissions as jest.Mock).mockResolvedValue(mockPermissions);
+
+      const result = await jiraService.getMyPermissions('TEST', '10000', 'TEST-1', '10001');
+
+      expect(result.success).toBe(true);
+      expect(MypermissionsService.getPermissions).toHaveBeenCalledWith('10001', 'TEST', 'TEST-1', '10000');
+    });
+
+    it('handles errors', async () => {
+      (MypermissionsService.getPermissions as jest.Mock).mockRejectedValue(new Error('Not authenticated'));
+
+      const result = await jiraService.getMyPermissions();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authenticated');
     });
   });
 
