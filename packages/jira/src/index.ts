@@ -544,6 +544,36 @@ server.tool(
 );
 
 server.tool(
+  "jira_getWorklogsDeletedSince",
+  `Get the ids of worklogs deleted since a given time across the whole ${jiraInstanceType}, for bulk sync`,
+  jiraToolSchemas.getWorklogsDeletedSince,
+  async ({ since }) => {
+    const result = await jiraService.getWorklogsDeletedSince(since);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorklogsModifiedSince",
+  `Get the ids of worklogs modified since a given time across the whole ${jiraInstanceType}, for bulk sync`,
+  jiraToolSchemas.getWorklogsModifiedSince,
+  async ({ since }) => {
+    const result = await jiraService.getWorklogsModifiedSince(since);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorklogsForIds",
+  `Get worklog details for a batch of worklog ids in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorklogsForIds,
+  async ({ worklogIds }) => {
+    const result = await jiraService.getWorklogsForIds(worklogIds);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_addIssueAttachment",
   `Attach a file to a JIRA issue in the ${jiraInstanceType}. Provide file content as base64.`,
   jiraToolSchemas.addIssueAttachment,

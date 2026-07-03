@@ -49,6 +49,7 @@ import {
   VersionService,
   WorkflowService,
   WorkflowschemeService,
+  WorklogService,
 } from './jira-client/index.js';
 import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
 import type { MoveFieldBean } from './jira-client/models/MoveFieldBean.js';
@@ -478,6 +479,27 @@ export class JiraService {
     return handleApiOperation(
       () => IssueService.deleteWorklog(issueKey, worklogId),
       'Error deleting issue worklog'
+    );
+  }
+
+  async getWorklogsDeletedSince(since?: number) {
+    return handleApiOperation(
+      () => WorklogService.getIdsOfWorklogsDeletedSince(since),
+      'Error getting worklogs deleted since given time'
+    );
+  }
+
+  async getWorklogsModifiedSince(since?: number) {
+    return handleApiOperation(
+      () => WorklogService.getIdsOfWorklogsModifiedSince(since),
+      'Error getting worklogs modified since given time'
+    );
+  }
+
+  async getWorklogsForIds(worklogIds: number[]) {
+    return handleApiOperation(
+      () => WorklogService.getWorklogsForIds({ ids: worklogIds }),
+      'Error getting worklogs for ids'
     );
   }
 
@@ -2038,6 +2060,15 @@ export const jiraToolSchemas = {
   deleteIssueWorklog: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
     worklogId: z.string().describe("Id of the worklog entry to delete. Use jira_getIssueWorklogs to find worklog ids.")
+  },
+  getWorklogsDeletedSince: {
+    since: z.number().optional().describe("Unix epoch millisecond timestamp; only worklogs deleted after this time are returned. Omit to get the full (up to 1000) result set. Excludes worklogs deleted in the last minute.")
+  },
+  getWorklogsModifiedSince: {
+    since: z.number().optional().describe("Unix epoch millisecond timestamp; only worklogs updated after this time are returned. Omit to get the full (up to 1000) result set. Excludes worklogs updated in the last minute.")
+  },
+  getWorklogsForIds: {
+    worklogIds: z.array(z.number()).describe("Worklog ids to fetch, e.g. from jira_getWorklogsDeletedSince or jira_getWorklogsModifiedSince. Maximum 1000 ids per request.")
   },
   addIssueAttachment: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
