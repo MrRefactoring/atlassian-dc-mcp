@@ -51,6 +51,7 @@ import {
   VersionService,
   WorkflowService,
   WorkflowschemeService,
+  WorklogService,
 } from '../jira-client/index.js';
 import { request as __request } from '../jira-client/core/request.js';
 
@@ -322,6 +323,11 @@ jest.mock('../jira-client/index.js', () => ({
     deleteIssueType: jest.fn(),
     updateWorkflowMapping: jest.fn(),
     deleteWorkflowMapping: jest.fn(),
+  },
+  WorklogService: {
+    getIdsOfWorklogsDeletedSince: jest.fn(),
+    getIdsOfWorklogsModifiedSince: jest.fn(),
+    getWorklogsForIds: jest.fn(),
   },
   NotificationschemeService: {
     getNotificationSchemes: jest.fn(),
@@ -1358,6 +1364,68 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Time tracking is disabled');
+    });
+  });
+
+  describe('bulk worklog sync', () => {
+    it('gets ids of worklogs deleted since a given time', async () => {
+      const mockChanges = { values: [{ worklogId: 100, updatedTime: 123 }], lastPage: true };
+      (WorklogService.getIdsOfWorklogsDeletedSince as jest.Mock).mockResolvedValue(mockChanges);
+
+      const result = await jiraService.getWorklogsDeletedSince(1000);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockChanges);
+      expect(WorklogService.getIdsOfWorklogsDeletedSince).toHaveBeenCalledWith(1000);
+    });
+
+    it('handles errors getting ids of worklogs deleted since a given time', async () => {
+      (WorklogService.getIdsOfWorklogsDeletedSince as jest.Mock).mockRejectedValue(new Error('Invalid since parameter'));
+
+      const result = await jiraService.getWorklogsDeletedSince(-1);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid since parameter');
+    });
+
+    it('gets ids of worklogs modified since a given time', async () => {
+      const mockChanges = { values: [{ worklogId: 100, updatedTime: 123 }], lastPage: true };
+      (WorklogService.getIdsOfWorklogsModifiedSince as jest.Mock).mockResolvedValue(mockChanges);
+
+      const result = await jiraService.getWorklogsModifiedSince(1000);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockChanges);
+      expect(WorklogService.getIdsOfWorklogsModifiedSince).toHaveBeenCalledWith(1000);
+    });
+
+    it('handles errors getting ids of worklogs modified since a given time', async () => {
+      (WorklogService.getIdsOfWorklogsModifiedSince as jest.Mock).mockRejectedValue(new Error('Invalid since parameter'));
+
+      const result = await jiraService.getWorklogsModifiedSince(-1);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid since parameter');
+    });
+
+    it('gets worklogs for a batch of ids', async () => {
+      const mockWorklogs = [{ id: '100', timeSpent: '3h' }];
+      (WorklogService.getWorklogsForIds as jest.Mock).mockResolvedValue(mockWorklogs);
+
+      const result = await jiraService.getWorklogsForIds([100, 101]);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWorklogs);
+      expect(WorklogService.getWorklogsForIds).toHaveBeenCalledWith({ ids: [100, 101] });
+    });
+
+    it('handles errors getting worklogs for a batch of ids', async () => {
+      (WorklogService.getWorklogsForIds as jest.Mock).mockRejectedValue(new Error('The request contains more than 1000 ids'));
+
+      const result = await jiraService.getWorklogsForIds([100]);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The request contains more than 1000 ids');
     });
   });
 

@@ -189,7 +189,7 @@ Besides tools, this server exposes one MCP resource template so an issue can be 
 
 ### Available Tools
 
-This server exposes 227 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 230 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -233,6 +233,9 @@ This server exposes 227 tools, grouped below by area. Every tool name is prefixe
 - `jira_getIssueWorklog` — Get a single worklog entry of an issue.
 - `jira_updateIssueWorklog` — Update a worklog entry of an issue.
 - `jira_deleteIssueWorklog` — Delete a worklog entry. This is irreversible.
+- `jira_getWorklogsDeletedSince` — Get the ids of worklogs deleted since a given time across the whole instance, for bulk sync.
+- `jira_getWorklogsModifiedSince` — Get the ids of worklogs modified since a given time across the whole instance, for bulk sync.
+- `jira_getWorklogsForIds` — Get worklog details for a batch of worklog ids.
 
 #### Issue attachments
 
