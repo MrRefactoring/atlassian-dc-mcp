@@ -30,11 +30,42 @@ Setup accepts flags so you can prefill values or skip prompts entirely (useful f
 | `--host <value>` | `-H` | Host, e.g. `jira.example.com` |
 | `--api-base-path <value>` | `-b` | API base path or full URL |
 | `--token <value>` | `-t` | API token |
+| `--username <value>` | `-u` | Username for Basic auth (alternative to `--token`) |
+| `--password <value>` | `-p` | Password for Basic auth (paired with `--username`) |
 | `--default-page-size <n>` | `-s` | Default page size (positive integer) |
+| `--profile <name>` | `-P` | Named profile — separate home file and Keychain entry, for managing more than one instance per product |
 | `--non-interactive` | `-n` | Skip prompts; fail if a required value cannot be resolved |
 | `--help` | `-h` | Show usage and exit |
 
-In interactive mode, any flag you pass prefills its prompt (so e.g. `--host` skips the host prompt but still asks for the rest). In `--non-interactive` mode, setup resolves anything missing from existing configuration (process env, `~/.atlassian-dc-mcp/<product>.env`, or macOS Keychain) and exits non-zero only if a host (or full-URL `--api-base-path`) cannot be found. The token is optional — omit it (and don't keep an existing one) to configure anonymous access. An existing token is reused when `--token` is omitted.
+In interactive mode, any flag you pass prefills its prompt (so e.g. `--host` skips the host prompt but still asks for the rest). In `--non-interactive` mode, setup resolves anything missing from existing configuration (process env, `~/.atlassian-dc-mcp/<product>.env`, or macOS Keychain) and exits non-zero only if a host (or full-URL `--api-base-path`) cannot be found. The token is optional — omit it (and don't keep an existing one) to configure anonymous access. An existing token is reused when `--token` is omitted; an existing password is reused the same way when `--password` is omitted. Basic auth (`--username`/`--password`) takes precedence over the token when both are configured.
+
+### Multiple instances per product (profiles)
+
+By default, `setup` reads and writes one unsuffixed home file / Keychain entry per product. To manage more than one instance of the same product (e.g. two separate Jira Data Center sites), give each one a distinct `--profile` name at setup time, then set `ATLASSIAN_DC_MCP_PROFILE` to the same name when launching the server so it reads that profile back:
+
+```bash
+npx jira-datacenter-mcp setup --profile work --host jira-work.example.com --token "$WORK_TOKEN"
+npx jira-datacenter-mcp setup --profile personal --host jira-personal.example.com --token "$PERSONAL_TOKEN"
+```
+
+```json
+{
+  "mcpServers": {
+    "atlassian-jira-work": {
+      "command": "npx",
+      "args": ["-y", "jira-datacenter-mcp"],
+      "env": { "ATLASSIAN_DC_MCP_PROFILE": "work" }
+    },
+    "atlassian-jira-personal": {
+      "command": "npx",
+      "args": ["-y", "jira-datacenter-mcp"],
+      "env": { "ATLASSIAN_DC_MCP_PROFILE": "personal" }
+    }
+  }
+}
+```
+
+A profile only changes which home file (`~/.atlassian-dc-mcp/<product>.<profile>.env`) and Keychain account (`<product>-<profile>-token` / `<product>-<profile>-password`) are used — it has no effect on `process.env` or `ATLASSIAN_DC_MCP_CONFIG_FILE`, which already let you point separate processes at fully separate configuration and take priority over both regardless of profile.
 
 ```bash
 # Scripted, no prompts, write everything from flags

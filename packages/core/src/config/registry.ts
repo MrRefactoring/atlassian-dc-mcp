@@ -69,11 +69,12 @@ export class DefaultConfigRegistry implements ConfigRegistry {
   }
 }
 
-export function buildDefaultRegistry(): DefaultConfigRegistry {
+export function buildDefaultRegistry(options: { profile?: string } = {}): DefaultConfigRegistry {
+  const { profile } = options;
   return new DefaultConfigRegistry([
     new ProcessEnvSource(),
     new EnvFileSource(),
-    new HomeFileSource(),
-    new MacosKeychainSource(),
+    new HomeFileSource({ profile }),
+    new MacosKeychainSource({}, { profile }),
   ]);
 }

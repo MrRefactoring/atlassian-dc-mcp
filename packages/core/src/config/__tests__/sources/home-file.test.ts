@@ -130,4 +130,41 @@ describe('HomeFileSource', () => {
       renameSpy.mockRestore();
     }
   });
+
+  describe('profiles', () => {
+    it('getHomeFilePath suffixes the file name with the profile', () => {
+      const withProfile = getHomeFilePath(JIRA, 'work');
+      const withoutProfile = getHomeFilePath(JIRA);
+      expect(withProfile).toBe(withoutProfile.replace(/jira\.env$/, 'jira.work.env'));
+    });
+
+    it('a profiled source and the default source do not share storage', () => {
+      const defaultSource = new HomeFileSource();
+      const workSource = new HomeFileSource({ profile: 'work' });
+
+      defaultSource.write(JIRA, 'host', 'default-host');
+      workSource.write(JIRA, 'host', 'work-host');
+
+      expect(defaultSource.read(JIRA, 'host')).toBe('default-host');
+      expect(workSource.read(JIRA, 'host')).toBe('work-host');
+      expect(fs.existsSync(getHomeFilePath(JIRA))).toBe(true);
+      expect(fs.existsSync(getHomeFilePath(JIRA, 'work'))).toBe(true);
+    });
+
+    it('two different profiles do not share storage', () => {
+      const workSource = new HomeFileSource({ profile: 'work' });
+      const personalSource = new HomeFileSource({ profile: 'personal' });
+
+      workSource.write(JIRA, 'host', 'work-host');
+      personalSource.write(JIRA, 'host', 'personal-host');
+
+      expect(workSource.read(JIRA, 'host')).toBe('work-host');
+      expect(personalSource.read(JIRA, 'host')).toBe('personal-host');
+    });
+
+    it('describeForProduct includes the profile in the path', () => {
+      const workSource = new HomeFileSource({ profile: 'work' });
+      expect(workSource.describeForProduct(JIRA)).toContain('jira.work.env');
+    });
+  });
 });

@@ -1,4 +1,9 @@
-import { DefaultConfigRegistry } from '../registry.js';
+import os from 'node:os';
+import fs from 'node:fs';
+import path from 'node:path';
+import { buildDefaultRegistry, DefaultConfigRegistry } from '../registry.js';
+import { HomeFileSource, getHomeFilePath } from '../sources/home-file.js';
+import { MacosKeychainSource } from '../sources/macos-keychain.js';
 import type {
   ConfigKey,
   ProductDefinition,
@@ -116,5 +121,44 @@ describe('DefaultConfigRegistry', () => {
     const registry = new DefaultConfigRegistry([makeSource('env-file', 80), makeSource('process-env', 100)]);
     registry.initialize({ cwd: '/tmp' });
     expect(calls.sort()).toEqual(['env-file:/tmp', 'process-env:/tmp']);
+  });
+});
+
+describe('buildDefaultRegistry', () => {
+  let tempHome: string;
+  let homedirSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'build-default-registry-'));
+    homedirSpy = jest.spyOn(os, 'homedir').mockReturnValue(tempHome);
+  });
+
+  afterEach(() => {
+    homedirSpy.mockRestore();
+    fs.rmSync(tempHome, { recursive: true, force: true });
+  });
+
+  it('threads the profile option into HomeFileSource and MacosKeychainSource', () => {
+    const registry = buildDefaultRegistry({ profile: 'work' });
+
+    const homeFile = registry.getWritableSource(
+      (s): s is HomeFileSource => s instanceof HomeFileSource,
+    );
+    expect(homeFile?.describeForProduct(PRODUCT)).toBe(
+      `home-file (${getHomeFilePath(PRODUCT, 'work')})`,
+    );
+
+    const keychain = registry.getWritableSource(
+      (s): s is MacosKeychainSource => s instanceof MacosKeychainSource,
+    );
+    expect(keychain).toBeInstanceOf(MacosKeychainSource);
+  });
+
+  it('defaults to no profile (unsuffixed storage) when omitted', () => {
+    const registry = buildDefaultRegistry();
+    const homeFile = registry.getWritableSource(
+      (s): s is HomeFileSource => s instanceof HomeFileSource,
+    );
+    expect(homeFile?.describeForProduct(PRODUCT)).toBe(`home-file (${getHomeFilePath(PRODUCT)})`);
   });
 });

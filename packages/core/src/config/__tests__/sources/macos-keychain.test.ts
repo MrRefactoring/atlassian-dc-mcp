@@ -174,4 +174,49 @@ describe('MacosKeychainSource', () => {
     const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }));
     expect(() => source.clear(JIRA, 'token')).not.toThrow();
   });
+
+  describe('profiles', () => {
+    it('write uses a profile-suffixed account name', () => {
+      const execFileSync = jest.fn().mockReturnValueOnce('');
+      const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }), { profile: 'work' });
+      source.write(JIRA, 'token', 'abc');
+      expect(execFileSync).toHaveBeenCalledWith(
+        SECURITY_BINARY,
+        ['add-generic-password', '-U', '-s', 'atlassian-dc-mcp', '-a', 'jira-work-token', '-w', 'abc'],
+        expect.objectContaining({ encoding: 'utf8' }),
+      );
+    });
+
+    it('a profiled source and the default source use different accounts and do not share storage', () => {
+      const store = new Map<string, string>();
+      const execFileSync = jest.fn((_bin: string, args: string[]) => {
+        const accountIndex = args.indexOf('-a') + 1;
+        const account = args[accountIndex];
+        if (args[0] === 'add-generic-password') {
+          store.set(account, args[args.indexOf('-w') + 1]);
+          return '';
+        }
+        if (args[0] === 'find-generic-password') {
+          if (!store.has(account)) {
+            const err: NodeJS.ErrnoException & { status?: number } = new Error('not found');
+            err.status = 44;
+            throw err;
+          }
+          return `${store.get(account)}\n`;
+        }
+        return '';
+      });
+      const deps = makeDeps({ execFileSync: execFileSync as any });
+      const defaultSource = new MacosKeychainSource(deps);
+      const workSource = new MacosKeychainSource(deps, { profile: 'work' });
+
+      defaultSource.write(JIRA, 'token', 'default-token');
+      workSource.write(JIRA, 'token', 'work-token');
+
+      expect(defaultSource.read(JIRA, 'token')).toBe('default-token');
+      expect(workSource.read(JIRA, 'token')).toBe('work-token');
+      expect(store.get('jira-token')).toBe('default-token');
+      expect(store.get('jira-work-token')).toBe('work-token');
+    });
+  });
 });

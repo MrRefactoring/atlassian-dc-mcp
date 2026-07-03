@@ -27,8 +27,9 @@ function isKeychainSecretKey(key: ConfigKey): key is KeychainSecretKey {
   return key === 'token' || key === 'password';
 }
 
-function accountFor(product: ProductDefinition, key: KeychainSecretKey): string {
-  return `${product.id}-${key}`;
+function accountFor(product: ProductDefinition, key: KeychainSecretKey, profile?: string): string {
+  const infix = profile ? `-${profile}` : '';
+  return `${product.id}${infix}-${key}`;
 }
 
 function cacheKeyFor(product: ProductDefinition, key: KeychainSecretKey): string {
@@ -48,9 +49,11 @@ export class MacosKeychainSource implements WritableSource {
   private cache = new Map<string, string | undefined>();
   private cacheWarmed = new Set<string>();
   private readonly deps: KeychainDeps;
+  private readonly profile: string | undefined;
 
-  constructor(deps: Partial<KeychainDeps> = {}) {
+  constructor(deps: Partial<KeychainDeps> = {}, options: { profile?: string } = {}) {
     this.deps = { ...DEFAULT_DEPS, ...deps };
+    this.profile = options.profile;
   }
 
   isAvailable(): boolean {
@@ -88,7 +91,7 @@ export class MacosKeychainSource implements WritableSource {
         'add-generic-password',
         '-U',
         '-s', KEYCHAIN_SERVICE,
-        '-a', accountFor(product, key),
+        '-a', accountFor(product, key, this.profile),
         '-w', value,
       ],
       { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', timeout: KEYCHAIN_TIMEOUT_MS },
@@ -105,7 +108,7 @@ export class MacosKeychainSource implements WritableSource {
     try {
       this.deps.execFileSync(
         SECURITY_BINARY,
-        ['delete-generic-password', '-s', KEYCHAIN_SERVICE, '-a', accountFor(product, key)],
+        ['delete-generic-password', '-s', KEYCHAIN_SERVICE, '-a', accountFor(product, key, this.profile)],
         { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', timeout: KEYCHAIN_TIMEOUT_MS },
       );
     } catch {
@@ -120,7 +123,7 @@ export class MacosKeychainSource implements WritableSource {
     try {
       const stdout = this.deps.execFileSync(
         SECURITY_BINARY,
-        ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-a', accountFor(product, key), '-w'],
+        ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-a', accountFor(product, key, this.profile), '-w'],
         { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', timeout: KEYCHAIN_TIMEOUT_MS },
       );
       return String(stdout).replace(/\n$/, '');
