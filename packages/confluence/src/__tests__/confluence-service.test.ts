@@ -9,6 +9,7 @@ import {
   ContentRestrictionsService,
   ContentWatchersService,
   SearchService,
+  SpaceService,
   UserWatchService,
 } from '../confluence-client/index.js';
 
@@ -21,6 +22,7 @@ const CONTENT_RESTRICTIONS = ContentRestrictionsService as unknown as Record<str
 const CONTENT_WATCHERS = ContentWatchersService as unknown as Record<string, jest.Mock>;
 const USER_WATCH = UserWatchService as unknown as Record<string, jest.Mock>;
 const ATTACHMENTS = AttachmentsService as unknown as Record<string, jest.Mock>;
+const SPACE = SpaceService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -70,6 +72,14 @@ jest.mock('../confluence-client/index.js', () => ({
   AttachmentsService: {
     getAttachments: jest.fn(),
     removeAttachment: jest.fn(),
+  },
+  SpaceService: {
+    space: jest.fn(),
+    spaces: jest.fn(),
+    createSpace: jest.fn(),
+    createPrivateSpace: jest.fn(),
+    update4: jest.fn(),
+    delete5: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -704,6 +714,107 @@ describe('ConfluenceService attachments', () => {
     const result = await service.removeAttachment('att-1', '123');
 
     expect(ATTACHMENTS.removeAttachment).toHaveBeenCalledWith('att-1', '123');
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService space CRUD', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets a single space by key', async () => {
+    SPACE.space.mockResolvedValue({ key: 'DEV' });
+
+    await service.getSpace('DEV', 'description.plain');
+
+    expect(SPACE.space).toHaveBeenCalledWith('DEV', 'description.plain');
+  });
+
+  it('lists spaces mapping filters onto the generated positional params', async () => {
+    SPACE.spaces.mockResolvedValue({ results: [] });
+
+    await service.getSpaces('DEV', 'global', 'current', 'team', true, 'description.plain', 10, 5);
+
+    expect(SPACE.spaces).toHaveBeenCalledWith(
+      undefined,
+      '5',
+      'team',
+      'true',
+      'global',
+      'DEV',
+      undefined,
+      'description.plain',
+      undefined,
+      '10',
+      undefined,
+      undefined,
+      undefined,
+      'current'
+    );
+  });
+
+  it('defaults the limit to the package page size when listing spaces', async () => {
+    SPACE.spaces.mockResolvedValue({ results: [] });
+
+    await service.getSpaces();
+
+    expect(SPACE.spaces).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      '25',
+      undefined,
+      undefined,
+      undefined,
+      undefined
+    );
+  });
+
+  it('creates a public space via createSpace', async () => {
+    SPACE.createSpace.mockResolvedValue({ key: 'DEV' });
+    const body = { key: 'DEV', name: 'Dev' };
+
+    await service.createSpace(body);
+
+    expect(SPACE.createSpace).toHaveBeenCalledWith(body);
+    expect(SPACE.createPrivateSpace).not.toHaveBeenCalled();
+  });
+
+  it('creates a private space when isPrivate is true', async () => {
+    SPACE.createPrivateSpace.mockResolvedValue({ key: 'DEV' });
+    const body = { key: 'DEV', name: 'Dev' };
+
+    await service.createSpace(body, true);
+
+    expect(SPACE.createPrivateSpace).toHaveBeenCalledWith(body);
+    expect(SPACE.createSpace).not.toHaveBeenCalled();
+  });
+
+  it('updates a space', async () => {
+    SPACE.update4.mockResolvedValue({ key: 'DEV' });
+    const body = { key: 'DEV', name: 'Dev renamed' };
+
+    await service.updateSpace('DEV', body);
+
+    expect(SPACE.update4).toHaveBeenCalledWith('DEV', body);
+  });
+
+  it('deletes a space', async () => {
+    SPACE.delete5.mockResolvedValue({ id: 'task-1' });
+
+    const result = await service.deleteSpace('DEV');
+
+    expect(SPACE.delete5).toHaveBeenCalledWith('DEV');
     expect(result.success).toBe(true);
   });
 });
