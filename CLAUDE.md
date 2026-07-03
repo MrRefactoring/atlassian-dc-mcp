@@ -30,6 +30,9 @@ pnpm --filter jira-datacenter-mcp exec jest -t 'test name'
 pnpm lint
 pnpm lint:fix
 
+# Opt-in E2E smoke test against a real Jira DC instance (skips itself with no config; see packages/jira/.env.live.example)
+pnpm --filter jira-datacenter-mcp test -- jira-service.live
+
 # Dev mode (tsc --watch) per product
 pnpm dev:jira
 pnpm dev:confluence

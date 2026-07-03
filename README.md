@@ -458,6 +458,24 @@ pnpm dev:confluence  # For Confluence
 pnpm dev:bitbucket   # For Bitbucket
 ```
 
+### Testing
+
+```bash
+pnpm test                                    # unit tests, all packages (mocked API client — no network)
+pnpm --filter jira-datacenter-mcp test       # unit tests, one package
+pnpm lint                                    # ESLint across the whole repo
+```
+
+Every existing test mocks the generated API client, so none of them can catch a real auth/network/API-shape regression against an actual Data Center instance. `packages/jira/src/__tests__/live/jira-service.live.test.ts` is a reference template for that: an opt-in, read-only smoke test that skips itself entirely (not a failure) when unconfigured, so `pnpm test` stays green with zero setup. To run it against a real instance:
+
+```bash
+cp packages/jira/.env.live.example packages/jira/.env.live
+# edit packages/jira/.env.live with a real host + token (or username/password)
+pnpm --filter jira-datacenter-mcp test -- jira-service.live
+```
+
+`.env.live` is gitignored — never commit real credentials.
+
 ### Releasing
 
 This project uses [Changesets](https://github.com/changesets/changesets) for versioning and publishing (not lerna); all 4 packages are kept in lockstep via a `fixed` group. Any PR that changes package behavior should include a changeset:
