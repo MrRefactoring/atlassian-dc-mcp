@@ -1,7 +1,14 @@
 import { ConfluenceService, escapeSearchTextForCql } from '../confluence-service.js';
-import { ContentResourceService, SearchService } from '../confluence-client/index.js';
+import {
+  ChildContentService,
+  ContentDescendantService,
+  ContentResourceService,
+  SearchService,
+} from '../confluence-client/index.js';
 
 const CONTENT_RESOURCE = ContentResourceService as unknown as Record<string, jest.Mock>;
+const CHILD_CONTENT = ChildContentService as unknown as Record<string, jest.Mock>;
+const CONTENT_DESCENDANT = ContentDescendantService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -13,6 +20,15 @@ jest.mock('../confluence-client/index.js', () => ({
   },
   SearchService: {
     search1: jest.fn(),
+  },
+  ChildContentService: {
+    children: jest.fn(),
+    childrenOfType: jest.fn(),
+    commentsOfContent: jest.fn(),
+  },
+  ContentDescendantService: {
+    descendants: jest.fn(),
+    descendantsOfType: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -391,5 +407,62 @@ describe('ConfluenceService content lifecycle (delete + history)', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
+  });
+});
+
+describe('ConfluenceService children & descendants', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets children with the default page-size limit', async () => {
+    CHILD_CONTENT.children.mockResolvedValue({ results: [] });
+
+    await service.getContentChildren('123', 'page');
+
+    expect(CHILD_CONTENT.children).toHaveBeenCalledWith('123', 'page', '25', undefined);
+  });
+
+  it('passes an explicit limit and start as strings for children', async () => {
+    CHILD_CONTENT.children.mockResolvedValue({ results: [] });
+
+    await service.getContentChildren('123', undefined, 10, 5);
+
+    expect(CHILD_CONTENT.children).toHaveBeenCalledWith('123', undefined, '10', '5');
+  });
+
+  it('gets children filtered by type', async () => {
+    CHILD_CONTENT.childrenOfType.mockResolvedValue({ results: [] });
+
+    await service.getContentChildrenByType('123', 'comment', 'body.view', 3, 0);
+
+    expect(CHILD_CONTENT.childrenOfType).toHaveBeenCalledWith('123', 'comment', 'body.view', '3', '0');
+  });
+
+  it('gets comments forwarding depth and location', async () => {
+    CHILD_CONTENT.commentsOfContent.mockResolvedValue({ results: [] });
+
+    await service.getContentComments('123', 'body.view', 'all', 7, 2, 'inline');
+
+    expect(CHILD_CONTENT.commentsOfContent).toHaveBeenCalledWith('123', 'body.view', 'all', '7', '2', 'inline');
+  });
+
+  it('gets descendants (no pagination params)', async () => {
+    CONTENT_DESCENDANT.descendants.mockResolvedValue({ results: [] });
+
+    await service.getContentDescendants('123', 'comment');
+
+    expect(CONTENT_DESCENDANT.descendants).toHaveBeenCalledWith('123', 'comment');
+  });
+
+  it('gets descendants filtered by type with pagination', async () => {
+    CONTENT_DESCENDANT.descendantsOfType.mockResolvedValue({ results: [] });
+
+    await service.getContentDescendantsByType('123', 'comment', undefined, 50, 10);
+
+    expect(CONTENT_DESCENDANT.descendantsOfType).toHaveBeenCalledWith('123', 'comment', undefined, '50', '10');
   });
 });
