@@ -158,6 +158,14 @@ Or from the repository root:
 pnpm --filter confluence-datacenter-mcp test
 ```
 
+### Resources
+
+- `confluence://page/{pageId}` — a content item (page, blog post, ...) addressable by its content ID, the same data as `confluence_getContent` (e.g. `confluence://page/123456`).
+
+### Prompts
+
+- `confluence_buildCqlQuery` (`request`) — turns a natural-language content request into a valid CQL query for `confluence_searchContent`.
+
 ### Available Tools
 
 The server registers 48 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.

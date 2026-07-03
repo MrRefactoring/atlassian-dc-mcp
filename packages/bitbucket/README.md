@@ -172,6 +172,15 @@ Or for development with auto-reload:
 pnpm dev
 ```
 
+### Resources
+
+- `bitbucket://repo/{projectKey}/{repositorySlug}` — a repository, the same data as `bitbucket_getRepository` (e.g. `bitbucket://repo/PROJ/my-repo`).
+- `bitbucket://pr/{projectKey}/{repositorySlug}/{pullRequestId}` — a pull request, the same data as `bitbucket_getPullRequest` (e.g. `bitbucket://pr/PROJ/my-repo/42`).
+
+### Prompts
+
+- `bitbucket_reviewPullRequest` (`projectKey`, `repositorySlug`, `pullRequestId`) — guides a structured code review of a pull request: read the diff and existing comments, then produce a review with actionable, anchored comments.
+
 ### Available Tools
 
 This server registers 106 tools, grouped below by area.

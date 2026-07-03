@@ -2,6 +2,12 @@ import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeCo
 import { JiraService, jiraToolSchemas } from './jira-service.js';
 import { getDefaultPageSize, getJiraRuntimeConfig } from './config.js';
 import { createRequire } from 'node:module';
+import { z } from 'zod';
+import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
+
+function firstValue(value: string | string[]): string {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json');
@@ -2135,6 +2141,58 @@ server.tool(
     const result = await jiraService.updateScreenTabFieldShowWhenEmpty(screenId, tabId, fieldId, showWhenEmpty);
     return formatToolResponse(result);
   }
+);
+
+server.registerResource(
+  "jira-issue",
+  new ResourceTemplate("jira://issue/{issueKey}", { list: undefined }),
+  {
+    title: "Jira issue",
+    description: `An issue in the ${jiraInstanceType}, addressable by its key (e.g. jira://issue/PROJ-123).`,
+    mimeType: "application/json",
+  },
+  async (uri, { issueKey }) => {
+    const result = await jiraService.getIssue(firstValue(issueKey));
+    return {
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: 'application/json',
+          text: JSON.stringify(result),
+        },
+      ],
+    };
+  }
+);
+
+server.registerPrompt(
+  "jira_triageIssue",
+  {
+    title: "Triage a Jira issue",
+    description: `Guides triaging a single issue in the ${jiraInstanceType}: gather its details, comments, and available transitions, then recommend a priority, assignee, and next status.`,
+    argsSchema: {
+      issueKey: z.string().describe("The issue key to triage, e.g. PROJ-123"),
+    },
+  },
+  ({ issueKey }) => ({
+    messages: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `Triage Jira issue ${issueKey}.
+
+1. Call jira_getIssue for ${issueKey} to read its summary, description, status, priority, and assignee.
+2. Call jira_getIssueComments for ${issueKey} to check for prior discussion or blockers.
+3. Call jira_getTransitions for ${issueKey} to see what statuses it can move to next.
+4. Summarize what the issue is about, its current state, and anything blocking it.
+5. Recommend a priority (with reasoning), whether it needs reassignment, and which transition (if any) it should move to next.
+
+This is a read-only triage — do not call jira_transitionIssue, jira_updateIssue, or jira_assignIssue until the recommendation has been confirmed.`,
+        },
+      },
+    ],
+  })
 );
 
 await connectServer(server);
