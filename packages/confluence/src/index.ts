@@ -483,4 +483,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "confluence_getSpaceProperties",
+  `Get the properties stored on a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getSpaceProperties,
+  async ({ spaceKey, expand, limit, start }) => {
+    const result = await confluenceService.getSpaceProperties(spaceKey, expand, limit, start);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getSpaceProperty",
+  `Get a single space property by key in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getSpaceProperty,
+  async ({ spaceKey, key, expand }) => {
+    const result = await confluenceService.getSpaceProperty(spaceKey, key, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_createSpaceProperty",
+  `Create a space property in ${confluenceInstanceType}`,
+  confluenceToolSchemas.createSpaceProperty,
+  async ({ spaceKey, key, value }) => {
+    const result = await confluenceService.createSpaceProperty(spaceKey, key, value);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_updateSpaceProperty",
+  `Update a space property in ${confluenceInstanceType}`,
+  confluenceToolSchemas.updateSpaceProperty,
+  async ({ spaceKey, key, value, version }) => {
+    const result = await confluenceService.updateSpaceProperty(spaceKey, key, value, version);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_deleteSpaceProperty",
+  `Delete a space property in ${confluenceInstanceType}`,
+  confluenceToolSchemas.deleteSpaceProperty,
+  async ({ spaceKey, key }) => {
+    const result = await confluenceService.deleteSpaceProperty(spaceKey, key);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

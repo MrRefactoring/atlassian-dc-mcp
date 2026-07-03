@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, SpaceService, UserService, UserWatchService } from './confluence-client/index.js';
+import { AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, SpaceService, SpacePropertyService, UserService, UserWatchService } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
@@ -575,6 +575,68 @@ export class ConfluenceService {
     return handleApiOperation(() => SpaceService.restore(spaceKey), 'Error restoring space');
   }
 
+  /**
+   * Get the paginated list of properties stored on a space.
+   * @param spaceKey The key of the space
+   */
+  async getSpaceProperties(spaceKey: string, expand?: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => SpacePropertyService.get1(spaceKey, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting space properties'
+    );
+  }
+
+  /**
+   * Get a single space property by key.
+   * @param spaceKey The key of the space
+   * @param key The property key
+   */
+  async getSpaceProperty(spaceKey: string, key: string, expand?: string) {
+    return handleApiOperation(
+      () => SpacePropertyService.get(spaceKey, key, expand),
+      'Error getting space property'
+    );
+  }
+
+  /**
+   * Create a new space property.
+   * @param spaceKey The key of the space
+   * @param key The property key
+   * @param value The JSON value to store
+   */
+  async createSpaceProperty(spaceKey: string, key: string, value: unknown) {
+    return handleApiOperation(
+      () => SpacePropertyService.create3(spaceKey, { key, value }),
+      'Error creating space property'
+    );
+  }
+
+  /**
+   * Update an existing space property. The version number must be the current version + 1.
+   * @param spaceKey The key of the space
+   * @param key The property key
+   * @param value The new JSON value
+   * @param version The new version number
+   */
+  async updateSpaceProperty(spaceKey: string, key: string, value: unknown, version: number) {
+    return handleApiOperation(
+      () => SpacePropertyService.update3(spaceKey, key, { key, value, version: { number: version } }),
+      'Error updating space property'
+    );
+  }
+
+  /**
+   * Delete a space property by key.
+   * @param spaceKey The key of the space
+   * @param key The property key
+   */
+  async deleteSpaceProperty(spaceKey: string, key: string) {
+    return handleApiOperation(
+      () => SpacePropertyService.delete4(spaceKey, key),
+      'Error deleting space property'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -807,5 +869,31 @@ export const confluenceToolSchemas = {
   },
   restoreSpace: {
     spaceKey: z.string().describe("Key of the archived space to restore")
+  },
+  getSpaceProperties: {
+    spaceKey: z.string().describe("Key of the space to fetch properties for"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. space,version). Defaults to version."),
+    limit: z.number().optional().describe("Maximum number of properties to return"),
+    start: z.number().optional().describe("Start index for pagination")
+  },
+  getSpaceProperty: {
+    spaceKey: z.string().describe("Key of the space"),
+    key: z.string().describe("Key of the space property to fetch"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. space,version). Defaults to version.")
+  },
+  createSpaceProperty: {
+    spaceKey: z.string().describe("Key of the space to store the property on"),
+    key: z.string().describe("Key of the space property to create"),
+    value: z.any().describe("JSON value to store for the property (object, array, string, number or boolean)")
+  },
+  updateSpaceProperty: {
+    spaceKey: z.string().describe("Key of the space"),
+    key: z.string().describe("Key of the space property to update"),
+    value: z.any().describe("New JSON value for the property"),
+    version: z.number().describe("New version number (must be the current version + 1)")
+  },
+  deleteSpaceProperty: {
+    spaceKey: z.string().describe("Key of the space"),
+    key: z.string().describe("Key of the space property to delete")
   }
 };
