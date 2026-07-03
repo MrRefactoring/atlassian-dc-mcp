@@ -10,6 +10,7 @@ import {
   ContentWatchersService,
   SearchService,
   SpaceService,
+  SpacePropertyService,
   UserWatchService,
 } from '../confluence-client/index.js';
 
@@ -23,6 +24,7 @@ const CONTENT_WATCHERS = ContentWatchersService as unknown as Record<string, jes
 const USER_WATCH = UserWatchService as unknown as Record<string, jest.Mock>;
 const ATTACHMENTS = AttachmentsService as unknown as Record<string, jest.Mock>;
 const SPACE = SpaceService as unknown as Record<string, jest.Mock>;
+const SPACE_PROPERTY = SpacePropertyService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -84,6 +86,13 @@ jest.mock('../confluence-client/index.js', () => ({
     contentsWithType1: jest.fn(),
     archive: jest.fn(),
     restore: jest.fn(),
+  },
+  SpacePropertyService: {
+    get1: jest.fn(),
+    get: jest.fn(),
+    create3: jest.fn(),
+    update3: jest.fn(),
+    delete4: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -864,6 +873,60 @@ describe('ConfluenceService space content & archival lifecycle', () => {
     const result = await service.restoreSpace('DEV');
 
     expect(SPACE.restore).toHaveBeenCalledWith('DEV');
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService space properties', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('lists space properties with the default page-size limit', async () => {
+    SPACE_PROPERTY.get1.mockResolvedValue({ results: [] });
+
+    await service.getSpaceProperties('DEV', 'version');
+
+    expect(SPACE_PROPERTY.get1).toHaveBeenCalledWith('DEV', 'version', '25', undefined);
+  });
+
+  it('gets a single space property by key', async () => {
+    SPACE_PROPERTY.get.mockResolvedValue({ key: 'k' });
+
+    await service.getSpaceProperty('DEV', 'my-key', 'space');
+
+    expect(SPACE_PROPERTY.get).toHaveBeenCalledWith('DEV', 'my-key', 'space');
+  });
+
+  it('creates a space property wrapping key and value into the body', async () => {
+    SPACE_PROPERTY.create3.mockResolvedValue({ key: 'k' });
+
+    await service.createSpaceProperty('DEV', 'my-key', { enabled: true });
+
+    expect(SPACE_PROPERTY.create3).toHaveBeenCalledWith('DEV', { key: 'my-key', value: { enabled: true } });
+  });
+
+  it('updates a space property with the new version number', async () => {
+    SPACE_PROPERTY.update3.mockResolvedValue({ key: 'k' });
+
+    await service.updateSpaceProperty('DEV', 'my-key', 'new-value', 2);
+
+    expect(SPACE_PROPERTY.update3).toHaveBeenCalledWith(
+      'DEV',
+      'my-key',
+      { key: 'my-key', value: 'new-value', version: { number: 2 } }
+    );
+  });
+
+  it('deletes a space property by key', async () => {
+    SPACE_PROPERTY.delete4.mockResolvedValue(undefined);
+
+    const result = await service.deleteSpaceProperty('DEV', 'my-key');
+
+    expect(SPACE_PROPERTY.delete4).toHaveBeenCalledWith('DEV', 'my-key');
     expect(result.success).toBe(true);
   });
 });
