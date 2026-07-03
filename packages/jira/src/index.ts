@@ -1258,6 +1258,56 @@ server.tool(
 );
 
 server.tool(
+  "jira_getProjectCategories",
+  `Get all project categories in the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectCategories,
+  async () => {
+    const result = await jiraService.getProjectCategories();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createProjectCategory",
+  `Create a new project category in the ${jiraInstanceType}`,
+  jiraToolSchemas.createProjectCategory,
+  async ({ name, description }) => {
+    const result = await jiraService.createProjectCategory(name, description);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getProjectCategory",
+  `Get a single project category by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectCategory,
+  async ({ id }) => {
+    const result = await jiraService.getProjectCategory(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateProjectCategory",
+  `Update a project category's name or description in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateProjectCategory,
+  async ({ id, name, description }) => {
+    const result = await jiraService.updateProjectCategory(id, name, description);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteProjectCategory",
+  `Delete a project category in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteProjectCategory,
+  async ({ id }) => {
+    const result = await jiraService.deleteProjectCategory(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_getPermissionSchemes",
   `Get all permission schemes in the ${jiraInstanceType}`,
   jiraToolSchemas.getPermissionSchemes,

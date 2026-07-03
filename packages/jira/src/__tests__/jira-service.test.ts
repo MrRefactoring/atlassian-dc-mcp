@@ -27,6 +27,7 @@ import {
   PermissionschemeService,
   PriorityschemesService,
   PriorityService,
+  ProjectCategoryService,
   ProjectService,
   ProjectsService,
   ResolutionService,
@@ -189,6 +190,13 @@ jest.mock('../jira-client/index.js', () => ({
   },
   ProjectsService: {
     searchForProjects: jest.fn(),
+  },
+  ProjectCategoryService: {
+    getAllProjectCategories: jest.fn(),
+    createProjectCategory: jest.fn(),
+    getProjectCategoryById: jest.fn(),
+    updateProjectCategory: jest.fn(),
+    removeProjectCategory: jest.fn(),
   },
   IssuetypeService: {
     getIssueAllTypes: jest.fn(),
@@ -2193,6 +2201,76 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The scheme does not exist');
+    });
+  });
+
+  describe('project categories', () => {
+    it('gets all project categories', async () => {
+      const mockCategories = [{ id: '1', name: 'Category 1' }];
+      (ProjectCategoryService.getAllProjectCategories as jest.Mock).mockResolvedValue(mockCategories);
+
+      const result = await jiraService.getProjectCategories();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCategories);
+      expect(ProjectCategoryService.getAllProjectCategories).toHaveBeenCalledWith();
+    });
+
+    it('creates a project category', async () => {
+      const mockCategory = { id: '2', name: 'New Category' };
+      (ProjectCategoryService.createProjectCategory as jest.Mock).mockResolvedValue(mockCategory);
+
+      const result = await jiraService.createProjectCategory('New Category', 'A category');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCategory);
+      expect(ProjectCategoryService.createProjectCategory).toHaveBeenCalledWith({
+        name: 'New Category',
+        description: 'A category',
+      });
+    });
+
+    it('gets a project category by id', async () => {
+      const mockCategory = { id: '1', name: 'Category 1' };
+      (ProjectCategoryService.getProjectCategoryById as jest.Mock).mockResolvedValue(mockCategory);
+
+      const result = await jiraService.getProjectCategory(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCategory);
+      expect(ProjectCategoryService.getProjectCategoryById).toHaveBeenCalledWith(1);
+    });
+
+    it('updates a project category', async () => {
+      const mockCategory = { id: '1', name: 'Renamed' };
+      (ProjectCategoryService.updateProjectCategory as jest.Mock).mockResolvedValue(mockCategory);
+
+      const result = await jiraService.updateProjectCategory(1, 'Renamed');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCategory);
+      expect(ProjectCategoryService.updateProjectCategory).toHaveBeenCalledWith(1, {
+        name: 'Renamed',
+        description: undefined,
+      });
+    });
+
+    it('deletes a project category', async () => {
+      (ProjectCategoryService.removeProjectCategory as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteProjectCategory(1);
+
+      expect(result.success).toBe(true);
+      expect(ProjectCategoryService.removeProjectCategory).toHaveBeenCalledWith(1);
+    });
+
+    it('handles errors', async () => {
+      (ProjectCategoryService.getProjectCategoryById as jest.Mock).mockRejectedValue(new Error('The category does not exist'));
+
+      const result = await jiraService.getProjectCategory(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The category does not exist');
     });
   });
 
