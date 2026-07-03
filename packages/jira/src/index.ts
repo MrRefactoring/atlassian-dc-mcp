@@ -1487,4 +1487,14 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_validateProjectKey",
+  `Validate a candidate project key in the ${jiraInstanceType} before creating a new project. Returns any validation errors; an empty result means the key is valid.`,
+  jiraToolSchemas.validateProjectKey,
+  async ({ key }) => {
+    const result = await jiraService.validateProjectKey(key);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

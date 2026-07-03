@@ -30,6 +30,7 @@ import {
   PriorityService,
   ProjectService,
   ProjectsService,
+  ProjectvalidateService,
   ResolutionService,
   SearchService,
   SecuritylevelService,
@@ -190,6 +191,9 @@ jest.mock('../jira-client/index.js', () => ({
   },
   ProjectsService: {
     searchForProjects: jest.fn(),
+  },
+  ProjectvalidateService: {
+    getProject1: jest.fn(),
   },
   IssuetypeService: {
     getIssueAllTypes: jest.fn(),
@@ -2585,6 +2589,38 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Bad request');
+    });
+  });
+
+  describe('validateProjectKey', () => {
+    it('returns an empty error collection for a valid key', async () => {
+      const mockValidation = { errorMessages: [], errors: {} };
+      (ProjectvalidateService.getProject1 as jest.Mock).mockResolvedValue(mockValidation);
+
+      const result = await jiraService.validateProjectKey('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockValidation);
+      expect(ProjectvalidateService.getProject1).toHaveBeenCalledWith('TEST');
+    });
+
+    it('returns validation errors for an invalid key', async () => {
+      const mockValidation = { errorMessages: [], errors: { projectKey: 'A project with that key already exists.' } };
+      (ProjectvalidateService.getProject1 as jest.Mock).mockResolvedValue(mockValidation);
+
+      const result = await jiraService.validateProjectKey('EXIST');
+
+      expect(result.success).toBe(true);
+      expect(result.data?.errors).toEqual({ projectKey: 'A project with that key already exists.' });
+    });
+
+    it('handles errors', async () => {
+      (ProjectvalidateService.getProject1 as jest.Mock).mockRejectedValue(new Error('Not authenticated'));
+
+      const result = await jiraService.validateProjectKey('TEST');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authenticated');
     });
   });
 

@@ -28,6 +28,7 @@ import {
   PriorityService,
   ProjectService,
   ProjectsService,
+  ProjectvalidateService,
   ResolutionService,
   SearchService,
   SecuritylevelService,
@@ -1149,6 +1150,13 @@ export class JiraService {
     );
   }
 
+  async validateProjectKey(key?: string) {
+    return handleApiOperation(
+      () => ProjectvalidateService.getProject1(key),
+      'Error validating project key'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1830,5 +1838,8 @@ export const jiraToolSchemas = {
     fieldValue: z.string().optional().describe("Partial value typed so far, used to filter the returned suggestions"),
     predicateName: z.string().optional().describe("Name of the JQL predicate being completed, e.g. 'in' or 'was'"),
     predicateValue: z.string().optional().describe("Partial predicate value typed so far, used to filter the returned suggestions")
+  },
+  validateProjectKey: {
+    key: z.string().optional().describe("Candidate project key to validate before creating a new project, e.g. 'TEST'. Returns validation errors, if any; an empty result means the key is valid.")
   }
 };
