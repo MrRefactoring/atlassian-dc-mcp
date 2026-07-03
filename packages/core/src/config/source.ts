@@ -1,4 +1,4 @@
-export type ConfigKey = 'host' | 'apiBasePath' | 'token' | 'defaultPageSize';
+export type ConfigKey = 'host' | 'apiBasePath' | 'token' | 'username' | 'password' | 'defaultPageSize';
 
 export type SourceId = 'process-env' | 'env-file' | 'home-file' | 'macos-keychain';
 

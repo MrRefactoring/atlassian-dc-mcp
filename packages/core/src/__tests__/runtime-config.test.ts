@@ -9,6 +9,8 @@ const JIRA: ProductDefinition = {
     host: 'JIRA_HOST',
     apiBasePath: 'JIRA_API_BASE_PATH',
     token: 'JIRA_API_TOKEN',
+    username: 'JIRA_USERNAME',
+    password: 'JIRA_PASSWORD',
     defaultPageSize: 'JIRA_DEFAULT_PAGE_SIZE',
   },
 };
@@ -19,6 +21,8 @@ const CONFLUENCE: ProductDefinition = {
     host: 'CONFLUENCE_HOST',
     apiBasePath: 'CONFLUENCE_API_BASE_PATH',
     token: 'CONFLUENCE_API_TOKEN',
+    username: 'CONFLUENCE_USERNAME',
+    password: 'CONFLUENCE_PASSWORD',
     defaultPageSize: 'CONFLUENCE_DEFAULT_PAGE_SIZE',
   },
 };
@@ -29,6 +33,8 @@ const BITBUCKET: ProductDefinition = {
     host: 'BITBUCKET_HOST',
     apiBasePath: 'BITBUCKET_API_BASE_PATH',
     token: 'BITBUCKET_API_TOKEN',
+    username: 'BITBUCKET_USERNAME',
+    password: 'BITBUCKET_PASSWORD',
     defaultPageSize: 'BITBUCKET_DEFAULT_PAGE_SIZE',
   },
 };

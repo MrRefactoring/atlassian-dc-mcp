@@ -3,8 +3,15 @@ import { JIRA_PRODUCT } from './config.js';
 import { JiraService } from './jira-service.js';
 
 await runSetupCli(JIRA_PRODUCT, {
-  validateCredentials: async ({ host, apiBasePath, token }) => {
-    const service = new JiraService(host || undefined, token, apiBasePath || undefined);
+  validateCredentials: async ({ host, apiBasePath, token, username, password }) => {
+    const service = new JiraService(
+      host || undefined,
+      token,
+      apiBasePath || undefined,
+      undefined,
+      username,
+      password,
+    );
     try {
       await service.validateSetup();
       return { ok: true };

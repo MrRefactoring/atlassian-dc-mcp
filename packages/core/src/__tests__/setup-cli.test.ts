@@ -17,6 +17,8 @@ function makeArgs(overrides: Partial<ParsedSetupArgs> = {}): ParsedSetupArgs {
     host: undefined,
     apiBasePath: undefined,
     token: undefined,
+    username: undefined,
+    password: undefined,
     defaultPageSize: undefined,
     nonInteractive: false,
     help: false,
@@ -30,6 +32,8 @@ const JIRA: ProductDefinition = {
     host: 'JIRA_HOST',
     apiBasePath: 'JIRA_API_BASE_PATH',
     token: 'JIRA_API_TOKEN',
+    username: 'JIRA_USERNAME',
+    password: 'JIRA_PASSWORD',
     defaultPageSize: 'JIRA_DEFAULT_PAGE_SIZE',
   },
   defaultApiBasePath: '/rest/api/2',
@@ -38,8 +42,11 @@ const JIRA: ProductDefinition = {
 class FakeKeychain extends MacosKeychainSource {
   available = true;
   store: string | undefined;
+  passwordStore: string | undefined;
   writeCalls = 0;
   clearCalls = 0;
+  passwordWriteCalls = 0;
+  passwordClearCalls = 0;
   constructor() {
     const deps: Partial<KeychainDeps> = {
       execFileSync: (() => '') as unknown as KeychainDeps['execFileSync'],
@@ -52,13 +59,24 @@ class FakeKeychain extends MacosKeychainSource {
     return this.available;
   }
   override read(_p: ProductDefinition, key: ConfigKey): string | undefined {
+    if (key === 'password') return this.passwordStore;
     return key === 'token' ? this.store : undefined;
   }
-  override write(_p: ProductDefinition, _k: ConfigKey, v: string): void {
+  override write(_p: ProductDefinition, key: ConfigKey, v: string): void {
+    if (key === 'password') {
+      this.passwordWriteCalls++;
+      this.passwordStore = v;
+      return;
+    }
     this.writeCalls++;
     this.store = v;
   }
-  override clear(_p: ProductDefinition, _k: ConfigKey): void {
+  override clear(_p: ProductDefinition, key: ConfigKey): void {
+    if (key === 'password') {
+      this.passwordClearCalls++;
+      this.passwordStore = undefined;
+      return;
+    }
     this.clearCalls++;
     this.store = undefined;
   }
@@ -138,6 +156,8 @@ const standardAnswers = {
   apiBasePath: '/rest/api/2',
   pageSize: '25',
   token: 'secret',
+  username: '',
+  password: '',
 };
 
 function makePrompts(
@@ -150,9 +170,13 @@ function makePrompts(
     input: async (opts) => {
       if (opts.message.startsWith('Host')) return filled.host;
       if (opts.message.startsWith('API base path')) return filled.apiBasePath;
+      if (opts.message.startsWith('Username')) return filled.username;
       return filled.pageSize;
     },
-    password: async () => filled.token,
+    password: async (opts) => {
+      if (opts.message.startsWith('API token')) return filled.token;
+      return filled.password;
+    },
     confirm: async (opts) => (confirms ?? ((_m, d) => d ?? false))(opts.message, opts.default),
     ...overrides,
   };
@@ -331,7 +355,9 @@ describe('runSetup', () => {
 
   it('skips the host prompt when --host is passed and still prompts for the rest', async () => {
     const inputCalls: string[] = [];
-    const passwordCalls = jest.fn(async () => 'secret');
+    const passwordCalls = jest.fn(async (opts: { message: string }) =>
+      opts.message.startsWith('API token') ? 'secret' : '',
+    );
     const registry = makeRegistry(keychain, home);
 
     await runSetup(JIRA, {
@@ -343,6 +369,7 @@ describe('runSetup', () => {
         input: async (opts) => {
           inputCalls.push(opts.message);
           if (opts.message.startsWith('API base path')) return '/rest/api/2';
+          if (opts.message.startsWith('Username')) return '';
           return '25';
         },
         password: passwordCalls,
@@ -352,8 +379,102 @@ describe('runSetup', () => {
 
     expect(inputCalls.some((m) => m.startsWith('Host'))).toBe(false);
     expect(inputCalls.some((m) => m.startsWith('API base path'))).toBe(true);
-    expect(passwordCalls).toHaveBeenCalledTimes(1);
+    expect(passwordCalls).toHaveBeenCalledTimes(2);
     expect(home.values.jira.host).toBe('cli-host.example.com');
+  });
+
+  describe('Basic auth (username/password)', () => {
+    it('writes username to home file (non-secret) and password to keychain first on darwin', async () => {
+      const registry = makeRegistry(keychain, home);
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: () => undefined,
+        prompts: makePrompts({}, { username: 'jdoe', password: 'hunter2' }),
+      });
+
+      expect(home.values.jira.username).toBe('jdoe');
+      expect(keychain.passwordWriteCalls).toBe(1);
+      expect(keychain.passwordStore).toBe('hunter2');
+      expect(home.clears).toContainEqual(['jira', 'password']);
+      // token keychain account is independent from the password account
+      expect(keychain.writeCalls).toBe(1);
+      expect(keychain.store).toBe('secret');
+    });
+
+    it('falls back to home file for password when keychain is unavailable', async () => {
+      keychain.available = false;
+      const registry = makeRegistry(keychain, home);
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: () => undefined,
+        prompts: makePrompts({}, { password: 'hunter2' }),
+      });
+
+      expect(keychain.passwordWriteCalls).toBe(0);
+      const passwordWrites = home.writes.filter(([, k]) => k === 'password');
+      expect(passwordWrites).toHaveLength(1);
+      expect(passwordWrites[0][2]).toBe('hunter2');
+    });
+
+    it('keeps existing password when left blank and confirmed to keep', async () => {
+      keychain.passwordStore = 'kept-password';
+      const registry = makeRegistry(keychain, home);
+      const validator = new StubCredentialValidator();
+
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: () => undefined,
+        prompts: makePrompts({}, {}, scriptedConfirms({ 'Keep existing password': true })),
+        validateCredentials: validator.asFn(),
+      });
+
+      expect(keychain.passwordWriteCalls).toBe(0);
+      expect(keychain.passwordStore).toBe('kept-password');
+      expect(validator.calls[0]).toEqual(
+        expect.objectContaining({ password: 'kept-password' }),
+      );
+    });
+
+    it('passes username and password to validateCredentials alongside the token', async () => {
+      const validator = new StubCredentialValidator();
+      const registry = makeRegistry(keychain, home);
+
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: () => undefined,
+        prompts: makePrompts({}, { username: 'jdoe', password: 'hunter2' }),
+        validateCredentials: validator.asFn(),
+      });
+
+      expect(validator.calls).toEqual([
+        {
+          host: 'j-host',
+          apiBasePath: '/rest/api/2',
+          token: 'secret',
+          username: 'jdoe',
+          password: 'hunter2',
+        },
+      ]);
+    });
+
+    it('omits token from write when only Basic auth is provided, and vice versa', async () => {
+      const registry = makeRegistry(keychain, home);
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: () => undefined,
+        prompts: makePrompts({}, { token: '', username: 'jdoe', password: 'hunter2' }),
+      });
+
+      expect(keychain.writeCalls).toBe(0);
+      expect(keychain.store).toBeUndefined();
+      expect(keychain.passwordWriteCalls).toBe(1);
+      expect(keychain.passwordStore).toBe('hunter2');
+    });
   });
 
   describe('non-interactive mode', () => {
@@ -526,6 +647,65 @@ describe('runSetup', () => {
 
       expect(home.values.jira.apiBasePath).toBe('/rest/api/2');
       expect(home.values.jira.defaultPageSize).toBe('25');
+    });
+
+    it('writes username and password from CLI args without prompting', async () => {
+      const validator = new StubCredentialValidator();
+      const registry = makeRegistry(keychain, home);
+
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: () => undefined,
+        prompts: nonInteractivePrompts(),
+        validateCredentials: validator.asFn(),
+        args: makeArgs({
+          host: 'cli-host.example.com',
+          username: 'jdoe',
+          password: 'hunter2',
+          nonInteractive: true,
+        }),
+      });
+
+      expect(home.values.jira.username).toBe('jdoe');
+      expect(keychain.passwordWriteCalls).toBe(1);
+      expect(keychain.passwordStore).toBe('hunter2');
+      expect(validator.calls).toEqual([
+        {
+          host: 'cli-host.example.com',
+          apiBasePath: '/rest/api/2',
+          token: '',
+          username: 'jdoe',
+          password: 'hunter2',
+        },
+      ]);
+    });
+
+    it('reuses an existing keychain password without rewriting it when --password is omitted', async () => {
+      keychain.passwordStore = 'kept-password';
+      const validator = new StubCredentialValidator();
+      const registry = makeRegistry(keychain, home);
+
+      await runSetup(JIRA, {
+        registry,
+        log: (m) => logs.push(m),
+        exit: () => undefined,
+        prompts: nonInteractivePrompts(),
+        validateCredentials: validator.asFn(),
+        args: makeArgs({ host: 'cli-host.example.com', username: 'jdoe', nonInteractive: true }),
+      });
+
+      expect(keychain.passwordWriteCalls).toBe(0);
+      expect(keychain.passwordStore).toBe('kept-password');
+      expect(validator.calls).toEqual([
+        {
+          host: 'cli-host.example.com',
+          apiBasePath: '/rest/api/2',
+          token: '',
+          username: 'jdoe',
+          password: 'kept-password',
+        },
+      ]);
     });
   });
 });

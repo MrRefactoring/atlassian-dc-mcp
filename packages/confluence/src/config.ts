@@ -10,6 +10,8 @@ export const CONFLUENCE_PRODUCT: ProductDefinition = {
     host: 'CONFLUENCE_HOST',
     apiBasePath: 'CONFLUENCE_API_BASE_PATH',
     token: 'CONFLUENCE_API_TOKEN',
+    username: 'CONFLUENCE_USERNAME',
+    password: 'CONFLUENCE_PASSWORD',
     defaultPageSize: 'CONFLUENCE_DEFAULT_PAGE_SIZE',
   },
   defaultApiBasePath: '',

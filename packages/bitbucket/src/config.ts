@@ -10,6 +10,8 @@ export const BITBUCKET_PRODUCT: ProductDefinition = {
     host: 'BITBUCKET_HOST',
     apiBasePath: 'BITBUCKET_API_BASE_PATH',
     token: 'BITBUCKET_API_TOKEN',
+    username: 'BITBUCKET_USERNAME',
+    password: 'BITBUCKET_PASSWORD',
     defaultPageSize: 'BITBUCKET_DEFAULT_PAGE_SIZE',
   },
   defaultApiBasePath: '/rest',

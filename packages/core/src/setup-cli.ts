@@ -18,6 +18,8 @@ type PromptDefaults = {
   host?: string;
   apiBasePath?: string;
   token?: string;
+  username?: string;
+  password?: string;
   defaultPageSize?: number;
 };
 
@@ -25,16 +27,21 @@ type PromptResult = {
   host: string;
   apiBasePath: string;
   defaultPageSize: string;
+  username: string;
   tokenToWrite: string | undefined;
   tokenForValidation: string | undefined;
+  passwordToWrite: string | undefined;
+  passwordForValidation: string | undefined;
 };
 
-type TokenPromptResult = Pick<PromptResult, 'tokenToWrite' | 'tokenForValidation'>;
+type SecretPromptResult = { toWrite: string | undefined; forValidation: string | undefined };
 
 export type CredentialValidationContext = {
   host: string;
   apiBasePath: string;
   token: string;
+  username?: string;
+  password?: string;
 };
 
 export type CredentialValidationResult =
@@ -119,8 +126,9 @@ export async function runSetup(product: ProductDefinition, deps: SetupDeps = {})
 
   const homeFile = requireHomeFile(registry);
   writeNonSecretFields(registry, product, answers, homeFile, log);
-  const tokenWriter = await writeToken(registry, product, answers.tokenToWrite, homeFile, log, prompts);
-  printSummary(log, product, answers, tokenWriter);
+  const tokenWriter = await writeSecret(registry, product, 'token', answers.tokenToWrite, homeFile, log, prompts);
+  const passwordWriter = await writeSecret(registry, product, 'password', answers.passwordToWrite, homeFile, log, prompts);
+  printSummary(log, product, answers, tokenWriter, passwordWriter);
 }
 
 async function collectAnswersWithValidation(
@@ -160,14 +168,16 @@ async function collectAnswersWithValidation(
       return undefined;
     }
 
-    if (!deps.validateCredentials || !answers.tokenForValidation) {
+    if (!deps.validateCredentials || (!answers.tokenForValidation && !answers.passwordForValidation)) {
       return answers;
     }
 
     const result = await deps.validateCredentials({
       host: answers.host,
       apiBasePath: answers.apiBasePath,
-      token: answers.tokenForValidation,
+      token: answers.tokenForValidation ?? '',
+      username: answers.username || undefined,
+      password: answers.passwordForValidation,
     });
     if (result.ok) {
       log(result.detail ? `Validation succeeded: ${result.detail}` : 'Validation succeeded.');
@@ -196,21 +206,24 @@ async function runNonInteractive(
   exit: (code: number) => void,
   args: ParsedSetupArgs,
 ): Promise<PromptResult | undefined> {
-  let tokenToWrite: string | undefined;
-  let tokenForValidation: string | undefined;
-  if (args.token) {
-    tokenToWrite = args.token;
-    tokenForValidation = args.token;
-  } else if (current.token) {
-    tokenForValidation = current.token;
-  }
+  const { toWrite: tokenToWrite, forValidation: tokenForValidation } = resolveSecretNonInteractive(
+    args.token,
+    current.token,
+  );
+  const { toWrite: passwordToWrite, forValidation: passwordForValidation } = resolveSecretNonInteractive(
+    args.password,
+    current.password,
+  );
 
   const answers: PromptResult = {
     host: args.host ?? current.host ?? '',
     apiBasePath: args.apiBasePath ?? current.apiBasePath ?? product.defaultApiBasePath ?? '',
     defaultPageSize: args.defaultPageSize ?? String(current.defaultPageSize ?? FALLBACK_PAGE_SIZE),
+    username: args.username ?? current.username ?? '',
     tokenToWrite,
     tokenForValidation,
+    passwordToWrite,
+    passwordForValidation,
   };
 
   const formatErrors = validateAnswers(product, answers);
@@ -222,11 +235,13 @@ async function runNonInteractive(
     return undefined;
   }
 
-  if (deps.validateCredentials && answers.tokenForValidation) {
+  if (deps.validateCredentials && (answers.tokenForValidation || answers.passwordForValidation)) {
     const result = await deps.validateCredentials({
       host: answers.host,
       apiBasePath: answers.apiBasePath,
-      token: answers.tokenForValidation,
+      token: answers.tokenForValidation ?? '',
+      username: answers.username || undefined,
+      password: answers.passwordForValidation,
     });
     if (!result.ok) {
       log(`Validation failed: ${result.message}`);
@@ -239,12 +254,24 @@ async function runNonInteractive(
   return answers;
 }
 
+function resolveSecretNonInteractive(
+  fromArgs: string | undefined,
+  existing: string | undefined,
+): SecretPromptResult {
+  if (fromArgs) {
+    return { toWrite: fromArgs, forValidation: fromArgs };
+  }
+  return { toWrite: undefined, forValidation: existing };
+}
+
 function answersAsDefaults(answers: PromptResult): PromptDefaults {
   const pageSize = Number.parseInt(answers.defaultPageSize, 10);
   return {
     host: answers.host,
     apiBasePath: answers.apiBasePath,
     token: answers.tokenForValidation,
+    username: answers.username,
+    password: answers.passwordForValidation,
     defaultPageSize: Number.isFinite(pageSize) && pageSize > 0 ? pageSize : undefined,
   };
 }
@@ -280,6 +307,8 @@ function readCurrentConfig(
     host: registry.resolve(product, 'host').value,
     apiBasePath: registry.resolve(product, 'apiBasePath').value,
     token: registry.resolve(product, 'token').value,
+    username: registry.resolve(product, 'username').value,
+    password: registry.resolve(product, 'password').value,
     defaultPageSize: pageSize,
   };
 }
@@ -312,11 +341,12 @@ function printCurrent(
   product: ProductDefinition,
   current: ProductRuntimeConfig,
 ): void {
-  const keys: ConfigKey[] = ['host', 'apiBasePath', 'token', 'defaultPageSize'];
+  const keys: ConfigKey[] = ['host', 'apiBasePath', 'token', 'username', 'password', 'defaultPageSize'];
   for (const key of keys) {
     const primary = registry.locate(product, key)[0];
     const label = displayLabel(key);
-    const displayValue = key === 'token' ? maskToken(current.token) : readable(current[key]);
+    const displayValue =
+      key === 'token' || key === 'password' ? maskSecret(current[key]) : readable(current[key]);
     const origin = primary ? `from ${primary.detail ?? primary.sourceId}` : 'not set';
     log(`Current ${label}: ${displayValue} (${origin})`);
   }
@@ -344,39 +374,56 @@ async function promptForValues(
     default: String(defaults.defaultPageSize ?? FALLBACK_PAGE_SIZE),
     validate: SetupValueValidator.pageSize,
   });
-  const token = await promptForToken(prompts, defaults.token, args?.token);
+  const username = args?.username ?? await prompts.input({
+    message: 'Username for Basic auth (leave blank if using a token):',
+    default: defaults.username ?? '',
+    validate: SetupValueValidator.token,
+  });
+  const token = await promptForSecret(prompts, {
+    message: 'API token (leave blank for anonymous access):',
+    keepExistingMessage: 'Keep existing token?',
+  }, defaults.token, args?.token);
+  const password = await promptForSecret(prompts, {
+    message: 'Password for Basic auth (leave blank if using a token):',
+    keepExistingMessage: 'Keep existing password?',
+  }, defaults.password, args?.password);
   return {
     host: host.trim(),
     apiBasePath: apiBasePath.trim(),
     defaultPageSize: defaultPageSize.trim(),
-    ...token,
+    username: username.trim(),
+    tokenToWrite: token.toWrite,
+    tokenForValidation: token.forValidation,
+    passwordToWrite: password.toWrite,
+    passwordForValidation: password.forValidation,
   };
 }
 
-async function promptForToken(
+async function promptForSecret(
   prompts: SetupPrompts,
+  opts: { message: string; keepExistingMessage: string },
   existing: string | undefined,
   fromArgs: string | undefined,
-): Promise<TokenPromptResult> {
+): Promise<SecretPromptResult> {
   if (fromArgs) {
-    return { tokenToWrite: fromArgs, tokenForValidation: fromArgs };
+    return { toWrite: fromArgs, forValidation: fromArgs };
   }
   const entered = await prompts.password({
-    message: 'API token (leave blank for anonymous access):',
+    message: opts.message,
     mask: '*',
     validate: SetupValueValidator.token,
   });
   const trimmed = entered.trim();
   if (trimmed.length > 0) {
-    return { tokenToWrite: trimmed, tokenForValidation: trimmed };
+    return { toWrite: trimmed, forValidation: trimmed };
   }
   if (!existing) {
-    return { tokenToWrite: undefined, tokenForValidation: undefined };
+    return { toWrite: undefined, forValidation: undefined };
   }
-  const keepExisting = await prompts.confirm({ message: 'Keep existing token?', default: true });
+  const keepExisting = await prompts.confirm({ message: opts.keepExistingMessage, default: true });
   return {
-    tokenToWrite: undefined,
-    tokenForValidation: keepExisting ? existing : undefined,
+    toWrite: undefined,
+    forValidation: keepExisting ? existing : undefined,
   };
 }
 
@@ -397,10 +444,24 @@ function validateAnswers(product: ProductDefinition, answers: PromptResult): str
     errors.push(`default page size: ${pageSize}`);
   }
 
+  if (answers.username) {
+    const usernameResult = SetupValueValidator.token(answers.username);
+    if (usernameResult !== true) {
+      errors.push(`username: ${usernameResult}`);
+    }
+  }
+
   if (answers.tokenForValidation) {
     const tokenResult = SetupValueValidator.token(answers.tokenForValidation);
     if (tokenResult !== true) {
       errors.push(`API token: ${tokenResult}`);
+    }
+  }
+
+  if (answers.passwordForValidation) {
+    const passwordResult = SetupValueValidator.token(answers.passwordForValidation);
+    if (passwordResult !== true) {
+      errors.push(`password: ${passwordResult}`);
     }
   }
 
@@ -420,7 +481,7 @@ function writeNonSecretFields(
   homeFile: HomeFileSource,
   log: (message: string) => void,
 ): void {
-  for (const key of ['host', 'apiBasePath', 'defaultPageSize'] as const) {
+  for (const key of ['host', 'apiBasePath', 'username', 'defaultPageSize'] as const) {
     warnIfShadowed(registry, product, key, homeFile, log);
     const value = answers[key];
     if (value.length > 0) {
@@ -429,15 +490,16 @@ function writeNonSecretFields(
   }
 }
 
-async function writeToken(
+async function writeSecret(
   registry: ConfigRegistry,
   product: ProductDefinition,
-  token: string | undefined,
+  key: 'token' | 'password',
+  value: string | undefined,
   homeFile: HomeFileSource,
   log: (message: string) => void,
   prompts: SetupPrompts,
 ): Promise<WritableSource | undefined> {
-  if (!token) {
+  if (!value) {
     return undefined;
   }
 
@@ -450,33 +512,34 @@ async function writeToken(
   }
   candidates.push(homeFile);
 
-  warnIfShadowed(registry, product, 'token', candidates[0], log);
+  warnIfShadowed(registry, product, key, candidates[0], log);
 
   for (const writer of candidates) {
-    const written = await tryWrite(writer, product, token, log, prompts);
+    const written = await tryWrite(writer, product, key, value, log, prompts);
     if (written) {
       if (writer instanceof MacosKeychainSource) {
-        homeFile.clear(product, 'token');
+        homeFile.clear(product, key);
       }
       return writer;
     }
   }
-  throw new Error('No writable source succeeded for token');
+  throw new Error(`No writable source succeeded for ${key}`);
 }
 
 async function tryWrite(
   writer: WritableSource,
   product: ProductDefinition,
-  token: string,
+  key: 'token' | 'password',
+  value: string,
   log: (message: string) => void,
   prompts: SetupPrompts,
 ): Promise<boolean> {
   try {
-    writer.write(product, 'token', token);
+    writer.write(product, key, value);
     return true;
   } catch (error) {
     const stderr = (error as { stderr?: string | Buffer }).stderr?.toString() ?? '';
-    log(`Failed to write token to ${writer.describe()}: ${(error as Error).message}`);
+    log(`Failed to write ${key} to ${writer.describe()}: ${(error as Error).message}`);
     if (stderr) {
       log(stderr.trim());
     }
@@ -488,7 +551,7 @@ async function tryWrite(
       if (fallback) {
         return false;
       }
-      throw new Error('Token was not saved because keychain write failed and plaintext fallback was declined');
+      throw new Error(`${key} was not saved because keychain write failed and plaintext fallback was declined`);
     }
     return false;
   }
@@ -527,23 +590,30 @@ function printSummary(
   product: ProductDefinition,
   answers: PromptResult,
   tokenWriter: WritableSource | undefined,
+  passwordWriter: WritableSource | undefined,
 ): void {
   log('');
   log('Saved configuration:');
   log(`  host: ${answers.host || '(unchanged)'}`);
   log(`  apiBasePath: ${answers.apiBasePath || '(unchanged)'}`);
+  log(`  username: ${answers.username || '(unchanged)'}`);
   log(`  defaultPageSize: ${answers.defaultPageSize || '(unchanged)'}`);
   if (tokenWriter) {
-    log(`  token: ${maskToken(answers.tokenToWrite)} (stored in ${describeWriter(tokenWriter, product)})`);
+    log(`  token: ${maskSecret(answers.tokenToWrite)} (stored in ${describeWriter(tokenWriter, product, 'token')})`);
   } else {
     log('  token: (unchanged)');
+  }
+  if (passwordWriter) {
+    log(`  password: ${maskSecret(answers.passwordToWrite)} (stored in ${describeWriter(passwordWriter, product, 'password')})`);
+  } else {
+    log('  password: (unchanged)');
   }
   log(`Home file: ${getHomeFilePath(product)}`);
 }
 
-function describeWriter(writer: WritableSource, product: ProductDefinition): string {
+function describeWriter(writer: WritableSource, product: ProductDefinition, key: 'token' | 'password'): string {
   if (writer instanceof MacosKeychainSource) {
-    return `macOS Keychain (service atlassian-dc-mcp, account ${product.id}-token)`;
+    return `macOS Keychain (service atlassian-dc-mcp, account ${product.id}-${key})`;
   }
   if (writer instanceof HomeFileSource) {
     return writer.describeForProduct(product);
@@ -559,6 +629,10 @@ function displayLabel(key: ConfigKey): string {
       return 'API base path';
     case 'token':
       return 'token';
+    case 'username':
+      return 'username';
+    case 'password':
+      return 'password';
     case 'defaultPageSize':
       return 'page size';
   }
@@ -571,11 +645,11 @@ function readable(value: string | number | undefined): string {
   return String(value);
 }
 
-function maskToken(token: string | undefined): string {
-  if (!token) {
+function maskSecret(secret: string | undefined): string {
+  if (!secret) {
     return '(not set)';
   }
-  const last4 = token.slice(-4);
+  const last4 = secret.slice(-4);
   return `••••${last4}`;
 }
 

@@ -45,10 +45,10 @@ export interface ConfluenceSpace {
   };
 }
 
-function resolveToken(token: string | (() => string | undefined)) {
+function resolveCredential(value: string | (() => string | undefined) | undefined) {
   return async () => {
-    const resolvedToken = typeof token === 'function' ? token() : token;
-    return resolvedToken ?? '';
+    const resolved = typeof value === 'function' ? value() : value;
+    return resolved ?? '';
   };
 }
 
@@ -60,6 +60,8 @@ export class ConfluenceService {
     token: string | (() => string | undefined),
     apiBasePath?: string,
     getPageSize: () => number = getDefaultPageSize,
+    username?: string | (() => string | undefined),
+    password?: string | (() => string | undefined),
   ) {
     OpenAPI.BASE = resolveOpenApiBase({
       host,
@@ -67,7 +69,9 @@ export class ConfluenceService {
       defaultBasePath: CONFLUENCE_PRODUCT.defaultApiBasePath ?? '',
       strippableSuffixes: CONFLUENCE_PRODUCT.apiBasePathStrippableSuffixes,
     });
-    OpenAPI.TOKEN = resolveToken(token);
+    OpenAPI.TOKEN = resolveCredential(token);
+    OpenAPI.USERNAME = resolveCredential(username);
+    OpenAPI.PASSWORD = resolveCredential(password);
     OpenAPI.VERSION = '1.0';
     // Attachment endpoints (create/update/move) enforce XSRF protection and require this header on every request.
     OpenAPI.HEADERS = { 'X-Atlassian-Token': 'no-check' };

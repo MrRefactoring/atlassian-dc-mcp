@@ -3662,6 +3662,26 @@ describe('JiraService', () => {
     });
   });
 
+  describe('constructor Basic auth wiring', () => {
+    it('resolves username and password onto OpenAPI for Basic auth', async () => {
+      new JiraService('jira.example.com', '', undefined, () => 25, 'jdoe', 'hunter2');
+      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
+      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+    });
+
+    it('resolves username/password from getter functions, same as token', async () => {
+      new JiraService('jira.example.com', '', undefined, () => 25, () => 'jdoe', () => 'hunter2');
+      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
+      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+    });
+
+    it('resolves username/password to an empty string when omitted', async () => {
+      new JiraService('jira.example.com', 'test-token');
+      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('');
+      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('');
+    });
+  });
+
   describe('validateConfig', () => {
     const originalEnv = process.env;
     const originalPlatform = process.platform;

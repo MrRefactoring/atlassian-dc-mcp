@@ -20,6 +20,8 @@ const bitbucketService = new BitbucketService(
   () => getBitbucketRuntimeConfig().token,
   bitbucketConfig.apiBasePath,
   getDefaultPageSize,
+  () => getBitbucketRuntimeConfig().username,
+  () => getBitbucketRuntimeConfig().password,
 );
 
 const server = createMcpServer({

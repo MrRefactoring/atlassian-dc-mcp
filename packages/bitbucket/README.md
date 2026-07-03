@@ -132,6 +132,12 @@ Alternatively, you can use `BITBUCKET_API_BASE_PATH` instead of `BITBUCKET_HOST`
    # Optional: omit for anonymous access if your instance allows unauthenticated reads
    BITBUCKET_API_TOKEN=your-personal-access-token
 
+   # Alternative to BITBUCKET_API_TOKEN: Basic auth with username + password (e.g. for
+   # older instances without personal access tokens). If both are set, Basic auth
+   # takes precedence over the Bearer token.
+   # BITBUCKET_USERNAME=your-username
+   # BITBUCKET_PASSWORD=your-password
+
    # Optional: default page size for paginated read tools (fallback: 25)
    BITBUCKET_DEFAULT_PAGE_SIZE=25
    ```
@@ -151,12 +157,12 @@ Each key is resolved by walking these sources in priority order and taking the f
 
 | Priority | Source | Reads | Written by `setup` |
 |---------:|--------|-------|--------------------|
-| 100 | `process.env` (`BITBUCKET_HOST`, `BITBUCKET_API_BASE_PATH`, `BITBUCKET_API_TOKEN`, `BITBUCKET_DEFAULT_PAGE_SIZE`) | all keys | — |
+| 100 | `process.env` (`BITBUCKET_HOST`, `BITBUCKET_API_BASE_PATH`, `BITBUCKET_API_TOKEN`, `BITBUCKET_USERNAME`, `BITBUCKET_PASSWORD`, `BITBUCKET_DEFAULT_PAGE_SIZE`) | all keys | — |
 | 80  | env file — `ATLASSIAN_DC_MCP_CONFIG_FILE` (absolute path) or `./.env` | all keys | — |
-| 60  | home file — `~/.atlassian-dc-mcp/bitbucket.env` on macOS/Linux, `%USERPROFILE%\.atlassian-dc-mcp\bitbucket.env` on Windows (mode `0600` on POSIX; Windows inherits the user-profile ACL) | all keys | host, apiBasePath, defaultPageSize (always); token (non-darwin or keychain fallback) |
-| 40  | macOS Keychain — service `atlassian-dc-mcp`, account `bitbucket-token` | token only | token (darwin only) |
+| 60  | home file — `~/.atlassian-dc-mcp/bitbucket.env` on macOS/Linux, `%USERPROFILE%\.atlassian-dc-mcp\bitbucket.env` on Windows (mode `0600` on POSIX; Windows inherits the user-profile ACL) | all keys | host, apiBasePath, username, defaultPageSize (always); token, password (non-darwin or keychain fallback) |
+| 40  | macOS Keychain — service `atlassian-dc-mcp`, accounts `bitbucket-token` / `bitbucket-password` | token, password | token, password (darwin only) |
 
-`setup` always writes non-secret fields to the home file and tries the keychain first for the token. If a higher-priority source shadows the value being saved, `setup` prints a warning so you can unset the env var.
+`setup` always writes non-secret fields (including username) to the home file and tries the keychain first for the token and password. Basic auth (username/password) takes precedence over the Bearer token when both are configured. If a higher-priority source shadows the value being saved, `setup` prints a warning so you can unset the env var.
 
 ## Usage
 
