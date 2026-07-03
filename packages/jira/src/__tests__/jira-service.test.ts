@@ -4,6 +4,7 @@ import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { JiraService } from '../jira-service.js';
 import {
+  ApplicationroleService,
   AttachmentService,
   AvatarService,
   BacklogService,
@@ -217,6 +218,10 @@ jest.mock('../jira-client/index.js', () => ({
     getPermissionSchemeGrants: jest.fn(),
     createPermissionGrant: jest.fn(),
     deletePermissionSchemeEntity: jest.fn(),
+  },
+  ApplicationroleService: {
+    getAll: jest.fn(),
+    get4: jest.fn(),
   },
   WorkflowService: {
     getAllWorkflows: jest.fn(),
@@ -2117,6 +2122,39 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The scheme does not exist');
+    });
+  });
+
+  describe('application roles', () => {
+    it('gets all application roles', async () => {
+      const mockRoles = [{ key: 'jira-software', name: 'JIRA Software' }];
+      (ApplicationroleService.getAll as jest.Mock).mockResolvedValue(mockRoles);
+
+      const result = await jiraService.getApplicationRoles();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRoles);
+      expect(ApplicationroleService.getAll).toHaveBeenCalledWith();
+    });
+
+    it('gets a single application role by key', async () => {
+      const mockRole = { key: 'jira-software', name: 'JIRA Software' };
+      (ApplicationroleService.get4 as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.getApplicationRole('jira-software');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(ApplicationroleService.get4).toHaveBeenCalledWith('jira-software');
+    });
+
+    it('handles errors', async () => {
+      (ApplicationroleService.getAll as jest.Mock).mockRejectedValue(new Error('The current user is not an administrator'));
+
+      const result = await jiraService.getApplicationRoles();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The current user is not an administrator');
     });
   });
 
