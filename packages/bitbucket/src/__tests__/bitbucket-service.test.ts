@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { BitbucketService } from '../bitbucket-service.js';
-import { BuildsAndDeploymentsService, DeprecatedService, ProjectService, PullRequestsService, RepositoryService } from '../bitbucket-client/index.js';
+import { BuildsAndDeploymentsService, DeprecatedService, PermissionManagementService, ProjectService, PullRequestsService, RepositoryService } from '../bitbucket-client/index.js';
 import { request as mockRequest } from '../bitbucket-client/core/request.js';
 
 // Mock the request function
@@ -90,7 +90,19 @@ jest.mock('../bitbucket-client/index.js', () => ({
     createRepository: jest.fn(),
     updateRepository: jest.fn(),
     forkRepository: jest.fn(),
-    deleteRepository: jest.fn()
+    deleteRepository: jest.fn(),
+    getUsersWithAnyPermission1: jest.fn(),
+    getGroupsWithAnyPermission1: jest.fn(),
+    setPermissionForUsers1: jest.fn(),
+    setPermissionForGroups1: jest.fn(),
+    revokePermissions: jest.fn()
+  },
+  PermissionManagementService: {
+    getUsersWithAnyPermission2: jest.fn(),
+    getGroupsWithAnyPermission2: jest.fn(),
+    setPermissionForUser: jest.fn(),
+    setPermissionForGroup: jest.fn(),
+    revokePermissions1: jest.fn()
   },
   OpenAPI: {
     BASE: '',
@@ -4621,6 +4633,172 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
+    });
+  });
+
+  describe('project permissions', () => {
+    it('should get combined users and groups with project permissions', async () => {
+      const mockUsers = { values: [{ user: { name: 'alice' }, permission: 'PROJECT_WRITE' }], size: 1, isLastPage: true };
+      const mockGroups = { values: [{ group: { name: 'devs' }, permission: 'PROJECT_READ' }], size: 1, isLastPage: true };
+      (ProjectService.getUsersWithAnyPermission1 as jest.Mock).mockResolvedValue(mockUsers);
+      (ProjectService.getGroupsWithAnyPermission1 as jest.Mock).mockResolvedValue(mockGroups);
+
+      const result = await bitbucketService.getProjectPermissions(mockProjectKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ users: mockUsers, groups: mockGroups });
+      expect(ProjectService.getUsersWithAnyPermission1).toHaveBeenCalledWith(mockProjectKey, undefined, undefined, 25);
+      expect(ProjectService.getGroupsWithAnyPermission1).toHaveBeenCalledWith(mockProjectKey, undefined, undefined, 25);
+    });
+
+    it('should handle errors when fetching project permissions', async () => {
+      (ProjectService.getUsersWithAnyPermission1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+      (ProjectService.getGroupsWithAnyPermission1 as jest.Mock).mockResolvedValue({ values: [] });
+
+      const result = await bitbucketService.getProjectPermissions(mockProjectKey);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+
+    it('should set a project user permission', async () => {
+      (ProjectService.setPermissionForUsers1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.setProjectUserPermission(mockProjectKey, 'alice', 'PROJECT_WRITE');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ projectKey: mockProjectKey, name: 'alice', permission: 'PROJECT_WRITE' });
+      expect(ProjectService.setPermissionForUsers1).toHaveBeenCalledWith(mockProjectKey, 'alice', 'PROJECT_WRITE');
+    });
+
+    it('should handle errors when setting a project user permission', async () => {
+      (ProjectService.setPermissionForUsers1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.setProjectUserPermission(mockProjectKey, 'alice', 'PROJECT_WRITE');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+
+    it('should set a project group permission', async () => {
+      (ProjectService.setPermissionForGroups1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.setProjectGroupPermission(mockProjectKey, 'devs', 'PROJECT_READ');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ projectKey: mockProjectKey, name: 'devs', permission: 'PROJECT_READ' });
+      expect(ProjectService.setPermissionForGroups1).toHaveBeenCalledWith(mockProjectKey, 'devs', 'PROJECT_READ');
+    });
+
+    it('should handle errors when setting a project group permission', async () => {
+      (ProjectService.setPermissionForGroups1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.setProjectGroupPermission(mockProjectKey, 'devs', 'PROJECT_READ');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+
+    it('should revoke a project permission for a user and a group', async () => {
+      (ProjectService.revokePermissions as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.revokeProjectPermission(mockProjectKey, 'alice', 'devs');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ revoked: true, projectKey: mockProjectKey, user: 'alice', group: 'devs' });
+      expect(ProjectService.revokePermissions).toHaveBeenCalledWith(mockProjectKey, 'alice', 'devs');
+    });
+
+    it('should handle errors when revoking a project permission', async () => {
+      (ProjectService.revokePermissions as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.revokeProjectPermission(mockProjectKey, 'alice');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('repository permissions', () => {
+    it('should get combined users and groups with repository permissions', async () => {
+      const mockUsers = { values: [{ user: { name: 'alice' }, permission: 'REPO_WRITE' }], size: 1, isLastPage: true };
+      const mockGroups = { values: [{ group: { name: 'devs' }, permission: 'REPO_READ' }], size: 1, isLastPage: true };
+      (PermissionManagementService.getUsersWithAnyPermission2 as jest.Mock).mockResolvedValue(mockUsers);
+      (PermissionManagementService.getGroupsWithAnyPermission2 as jest.Mock).mockResolvedValue(mockGroups);
+
+      const result = await bitbucketService.getRepoPermissions(mockProjectKey, mockRepositorySlug);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ users: mockUsers, groups: mockGroups });
+      expect(PermissionManagementService.getUsersWithAnyPermission2).toHaveBeenCalledWith(mockProjectKey, mockRepositorySlug, undefined, undefined, 25);
+      expect(PermissionManagementService.getGroupsWithAnyPermission2).toHaveBeenCalledWith(mockProjectKey, mockRepositorySlug, undefined, undefined, 25);
+    });
+
+    it('should handle errors when fetching repository permissions', async () => {
+      (PermissionManagementService.getUsersWithAnyPermission2 as jest.Mock).mockRejectedValue(new Error('API Error'));
+      (PermissionManagementService.getGroupsWithAnyPermission2 as jest.Mock).mockResolvedValue({ values: [] });
+
+      const result = await bitbucketService.getRepoPermissions(mockProjectKey, mockRepositorySlug);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+
+    it('should set a repository user permission', async () => {
+      (PermissionManagementService.setPermissionForUser as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.setRepoUserPermission(mockProjectKey, mockRepositorySlug, 'alice', 'REPO_WRITE');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ projectKey: mockProjectKey, repositorySlug: mockRepositorySlug, name: 'alice', permission: 'REPO_WRITE' });
+      expect(PermissionManagementService.setPermissionForUser).toHaveBeenCalledWith(mockProjectKey, ['alice'], 'REPO_WRITE', mockRepositorySlug);
+    });
+
+    it('should handle errors when setting a repository user permission', async () => {
+      (PermissionManagementService.setPermissionForUser as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.setRepoUserPermission(mockProjectKey, mockRepositorySlug, 'alice', 'REPO_WRITE');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+
+    it('should set a repository group permission', async () => {
+      (PermissionManagementService.setPermissionForGroup as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.setRepoGroupPermission(mockProjectKey, mockRepositorySlug, 'devs', 'REPO_READ');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ projectKey: mockProjectKey, repositorySlug: mockRepositorySlug, name: 'devs', permission: 'REPO_READ' });
+      expect(PermissionManagementService.setPermissionForGroup).toHaveBeenCalledWith(mockProjectKey, ['devs'], 'REPO_READ', mockRepositorySlug);
+    });
+
+    it('should handle errors when setting a repository group permission', async () => {
+      (PermissionManagementService.setPermissionForGroup as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.setRepoGroupPermission(mockProjectKey, mockRepositorySlug, 'devs', 'REPO_READ');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+
+    it('should revoke a repository permission for a user and a group', async () => {
+      (PermissionManagementService.revokePermissions1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.revokeRepoPermission(mockProjectKey, mockRepositorySlug, 'alice', 'devs');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ revoked: true, projectKey: mockProjectKey, repositorySlug: mockRepositorySlug, user: 'alice', group: 'devs' });
+      expect(PermissionManagementService.revokePermissions1).toHaveBeenCalledWith(mockProjectKey, mockRepositorySlug, 'alice', 'devs');
+    });
+
+    it('should handle errors when revoking a repository permission', async () => {
+      (PermissionManagementService.revokePermissions1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.revokeRepoPermission(mockProjectKey, mockRepositorySlug, 'alice');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
     });
   });
 });
