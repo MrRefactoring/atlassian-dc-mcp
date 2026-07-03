@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, SpaceService, SpacePropertyService, UserService, UserWatchService } from './confluence-client/index.js';
+import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluence-client/index.js';
 import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -18,6 +18,7 @@ export interface ConfluenceContent {
   id?: string;
   type: string;
   title: string;
+  status?: string;
   space: {
     key: string;
   };
@@ -42,6 +43,27 @@ export interface ConfluenceSpace {
       value: string;
       representation: 'plain';
     };
+  };
+}
+
+export interface OperationDescriptionInput {
+  targetType: string;
+  operationKey: string;
+}
+
+export interface SpacePermissionsForSubjectInput {
+  userKey?: string;
+  groupName?: string;
+  operations?: OperationDescriptionInput[];
+}
+
+export interface WebhookInput {
+  name: string;
+  url: string;
+  events: string[];
+  active?: boolean;
+  configuration?: {
+    secret?: string;
   };
 }
 
@@ -763,6 +785,456 @@ export class ConfluenceService {
     );
   }
 
+  /**
+   * Get all space permissions granted to users, groups and the anonymous user in a space.
+   * @param spaceKey The key of the space
+   */
+  async getAllSpacePermissions(spaceKey: string) {
+    return handleApiOperation(
+      () => SpacePermissionsService.getAllSpacePermissions(spaceKey),
+      'Error getting space permissions'
+    );
+  }
+
+  /**
+   * Set the full permission set for multiple users/groups/anonymous user in a space.
+   * Replaces each listed subject's existing permissions; subjects not mentioned are left untouched.
+   * @param spaceKey The key of the space
+   * @param permissions Up to 40 subjects, each with the full set of operations they should have
+   */
+  async setSpacePermissions(spaceKey: string, permissions: SpacePermissionsForSubjectInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.setPermissions1(spaceKey, permissions),
+      'Error setting space permissions'
+    );
+  }
+
+  /**
+   * Get the permissions granted to the anonymous user in a space.
+   * @param spaceKey The key of the space
+   */
+  async getAnonymousSpacePermissions(spaceKey: string) {
+    return handleApiOperation(
+      () => SpacePermissionsService.getPermissionsGrantedToAnonymousUsers1(spaceKey),
+      'Error getting anonymous space permissions'
+    );
+  }
+
+  /**
+   * Get the permissions granted to a group in a space.
+   * @param spaceKey The key of the space
+   * @param groupName The name of the group
+   */
+  async getGroupSpacePermissions(spaceKey: string, groupName: string) {
+    return handleApiOperation(
+      () => SpacePermissionsService.getPermissionsGrantedToGroup1(spaceKey, groupName),
+      'Error getting group space permissions'
+    );
+  }
+
+  /**
+   * Get the permissions granted to a user in a space.
+   * @param spaceKey The key of the space
+   * @param userKey The key of the user
+   */
+  async getUserSpacePermissions(spaceKey: string, userKey: string) {
+    return handleApiOperation(
+      () => SpacePermissionsService.getPermissionsGrantedToUser1(spaceKey, userKey),
+      'Error getting user space permissions'
+    );
+  }
+
+  /**
+   * Grant space permissions to the anonymous user. Adds to existing permissions, does not override them.
+   * @param spaceKey The key of the space
+   * @param operations Operations to grant, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async grantAnonymousSpacePermissions(spaceKey: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.grantPermissionsToAnonymousUsers1(spaceKey, operations),
+      'Error granting anonymous space permissions'
+    );
+  }
+
+  /**
+   * Grant space permissions to a group. Adds to existing permissions, does not override them.
+   * @param spaceKey The key of the space
+   * @param groupName The name of the group
+   * @param operations Operations to grant, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async grantGroupSpacePermissions(spaceKey: string, groupName: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.grantPermissionsToGroup1(spaceKey, groupName, operations),
+      'Error granting group space permissions'
+    );
+  }
+
+  /**
+   * Grant space permissions to a user. Adds to existing permissions, does not override them.
+   * @param spaceKey The key of the space
+   * @param userKey The key of the user
+   * @param operations Operations to grant, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async grantUserSpacePermissions(spaceKey: string, userKey: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.grantPermissionsToUser1(spaceKey, userKey, operations),
+      'Error granting user space permissions'
+    );
+  }
+
+  /**
+   * Revoke space permissions from the anonymous user. Permissions not currently held are silently skipped.
+   * @param spaceKey The key of the space
+   * @param operations Operations to revoke, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async revokeAnonymousSpacePermissions(spaceKey: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.revokePermissionsFromAnonymousUser(spaceKey, operations),
+      'Error revoking anonymous space permissions'
+    );
+  }
+
+  /**
+   * Revoke space permissions from a group. Permissions not currently held are silently skipped.
+   * @param spaceKey The key of the space
+   * @param groupName The name of the group
+   * @param operations Operations to revoke, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async revokeGroupSpacePermissions(spaceKey: string, groupName: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.revokePermissionsFromGroup1(spaceKey, groupName, operations),
+      'Error revoking group space permissions'
+    );
+  }
+
+  /**
+   * Revoke space permissions from a user. Permissions not currently held are silently skipped.
+   * @param spaceKey The key of the space
+   * @param userKey The key of the user
+   * @param operations Operations to revoke, e.g. { targetType: 'space', operationKey: 'read' }
+   */
+  async revokeUserSpacePermissions(spaceKey: string, userKey: string, operations: OperationDescriptionInput[]) {
+    return handleApiOperation(
+      () => SpacePermissionsService.revokePermissionsFromUser1(spaceKey, userKey, operations),
+      'Error revoking user space permissions'
+    );
+  }
+
+  /**
+   * Get information about the current logged in user.
+   */
+  async getCurrentUser(expand?: string) {
+    return handleApiOperation(() => UserService.getCurrent(expand), 'Error getting current user');
+  }
+
+  /**
+   * Get information about how the anonymous user is represented.
+   */
+  async getAnonymousUser(expand?: string) {
+    return handleApiOperation(() => UserService.getAnonymous(expand), 'Error getting anonymous user');
+  }
+
+  /**
+   * Get a user by user key or username. Exactly one of key or username should be supplied.
+   */
+  async getUser(key?: string, username?: string, expand?: string) {
+    return handleApiOperation(() => UserService.getUser(expand, key, username), 'Error getting user');
+  }
+
+  /**
+   * Get a paginated collection of all registered users.
+   */
+  async getUsers(limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => UserService.getUsers(expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting users'
+    );
+  }
+
+  /**
+   * Get a paginated collection of groups that a user is a member of. Exactly one of key or username should be supplied.
+   */
+  async getUserGroups(key?: string, username?: string, limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => UserService.getGroups1(expand, (limit ?? this.getPageSize()).toString(), start?.toString(), key, username),
+      'Error getting user groups'
+    );
+  }
+
+  /**
+   * Update the current user's details (full name, email).
+   */
+  async updateCurrentUser(fullName?: string, email?: string, currentPassword?: string) {
+    return handleApiOperation(
+      () => UserService.updateUser1({ fullName, email, currentPassword }),
+      'Error updating current user'
+    );
+  }
+
+  /**
+   * Change the password for the current user.
+   */
+  async changeCurrentUserPassword(newPassword: string, oldPassword?: string) {
+    return handleApiOperation(
+      () => UserService.changePassword1({ newPassword, oldPassword }),
+      'Error changing current user password'
+    );
+  }
+
+  /**
+   * Get a user group by name.
+   */
+  async getGroup(groupName: string, expand?: string) {
+    return handleApiOperation(() => GroupService.getGroup(groupName, expand), 'Error getting group');
+  }
+
+  /**
+   * Get a paginated collection of all user groups.
+   */
+  async getGroups(limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => GroupService.getGroups(expand, limit ?? this.getPageSize(), start),
+      'Error getting groups'
+    );
+  }
+
+  /**
+   * Get a paginated collection of the users that are members of a group.
+   */
+  async getGroupMembers(groupName: string, limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => GroupService.getMembers(groupName, expand, limit ?? this.getPageSize(), start),
+      'Error getting group members'
+    );
+  }
+
+  /**
+   * Get a paginated collection of the groups nested directly within a group.
+   */
+  async getNestedGroupMembers(groupName: string, limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => GroupService.getNestedGroupMembers(groupName, expand, limit ?? this.getPageSize(), start),
+      'Error getting nested group members'
+    );
+  }
+
+  /**
+   * Add a user to a group. Idempotent: adding an existing membership is a no-op.
+   */
+  async addUserToGroup(username: string, groupName: string) {
+    return handleApiOperation(
+      () => UserGroupService.update5(groupName, username),
+      'Error adding user to group'
+    );
+  }
+
+  /**
+   * Remove a user from a group. Idempotent: removing a non-existent membership is a no-op.
+   */
+  async removeUserFromGroup(username: string, groupName: string) {
+    return handleApiOperation(
+      () => UserGroupService.delete6(groupName, username),
+      'Error removing user from group'
+    );
+  }
+
+  /**
+   * Create a new user. Requires system administrator permission.
+   * Either supply a password, or set notifyViaEmail to invite the user by email.
+   */
+  async adminCreateUser(userName: string, fullName: string, email: string, password?: string, notifyViaEmail?: boolean) {
+    return handleApiOperation(
+      () => AdminUserService.createUser({ userName, fullName, email, password, notifyViaEmail }),
+      'Error creating user'
+    );
+  }
+
+  /**
+   * Update a user's full name and/or email. Requires system administrator permission.
+   */
+  async adminUpdateUser(username: string, fullName?: string, email?: string) {
+    return handleApiOperation(
+      () => AdminUserService.updateUser(username, { fullName, email }),
+      'Error updating user'
+    );
+  }
+
+  /**
+   * Delete a user. Requires system administrator permission. Runs asynchronously as a long-running task.
+   */
+  async adminDeleteUser(username: string) {
+    return handleApiOperation(() => AdminUserService.delete1(username), 'Error deleting user');
+  }
+
+  /**
+   * Disable (deactivate) a user. Requires system administrator permission. Idempotent.
+   */
+  async adminDisableUser(username: string) {
+    return handleApiOperation(() => AdminUserService.disable(username), 'Error disabling user');
+  }
+
+  /**
+   * Enable (reactivate) a user. Requires system administrator permission. Idempotent.
+   */
+  async adminEnableUser(username: string) {
+    return handleApiOperation(() => AdminUserService.enable(username), 'Error enabling user');
+  }
+
+  /**
+   * Change another user's password. Requires system administrator permission.
+   */
+  async adminChangeUserPassword(username: string, password: string) {
+    return handleApiOperation(
+      () => AdminUserService.changePassword(username, { password }),
+      'Error changing user password'
+    );
+  }
+
+  /**
+   * Create a new user group. Requires system administrator permission.
+   */
+  async adminCreateGroup(name: string) {
+    return handleApiOperation(() => AdminGroupService.create({ name }), 'Error creating group');
+  }
+
+  /**
+   * Delete a user group. Requires system administrator permission.
+   */
+  async adminDeleteGroup(groupName: string) {
+    return handleApiOperation(() => AdminGroupService.delete(groupName), 'Error deleting group');
+  }
+
+  /**
+   * Get a paginated collection of active users (those counting towards the license) via the search index.
+   */
+  async adminGetActiveUsers(limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => AdminUsersService.getActiveUsers(expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting active users'
+    );
+  }
+
+  /**
+   * Publish a shared draft created from a content blueprint (template), turning it into live content.
+   * @param draftId The ID of the draft (also used as the ID of the published content)
+   * @param content The content to publish, with status "current" and the same ID as the draft
+   * @param expand Optional comma-separated list of properties to expand on the response
+   */
+  async publishBlueprintSharedDraft(draftId: string, content: ConfluenceContent, expand?: string) {
+    return handleApiOperation(
+      () => ContentBlueprintService.publishSharedDraft(draftId, expand, 'draft', content),
+      'Error publishing shared blueprint draft'
+    );
+  }
+
+  /**
+   * Publish a legacy draft created from a content blueprint (template), turning it into live content.
+   * @param draftId The ID of the draft (also used as the ID of the published content)
+   * @param content The content to publish, with status "current" and the same ID as the draft
+   * @param expand Optional comma-separated list of properties to expand on the response
+   */
+  async publishBlueprintLegacyDraft(draftId: string, content: ConfluenceContent, expand?: string) {
+    return handleApiOperation(
+      () => ContentBlueprintService.publishLegacyDraft(draftId, expand, 'draft', content),
+      'Error publishing legacy blueprint draft'
+    );
+  }
+
+  /**
+   * Convert a content body between representations. Supported conversions:
+   * storage -> view,export_view,styled_view,editor; editor -> storage.
+   * @param to The representation to convert to
+   * @param value The body content to convert
+   * @param representation The representation of the supplied value (e.g. storage, editor)
+   * @param expand Optional comma-separated list of properties to expand on the response
+   */
+  async convertContentBody(to: string, value: string, representation: string, expand?: string) {
+    return handleApiOperation(
+      () => ContentBodyService.convert(to, expand, { value, representation }),
+      'Error converting content body'
+    );
+  }
+
+  /**
+   * Find webhooks. Requires administrator permission.
+   */
+  async findWebhooks(limit?: number, start?: number, event?: string, statistics?: boolean) {
+    return handleApiOperation(
+      () => WebhooksService.findWebhooks(
+        (limit ?? this.getPageSize()).toString(),
+        start?.toString(),
+        event,
+        statistics?.toString()
+      ),
+      'Error finding webhooks'
+    );
+  }
+
+  /**
+   * Create a webhook. Requires administrator permission.
+   */
+  async createWebhook(webhook: WebhookInput) {
+    return handleApiOperation(() => WebhooksService.createWebhook(webhook), 'Error creating webhook');
+  }
+
+  /**
+   * Get a webhook by ID. Requires administrator permission.
+   */
+  async getWebhook(webhookId: string, statistics?: boolean) {
+    return handleApiOperation(() => WebhooksService.getWebhook(webhookId, statistics), 'Error getting webhook');
+  }
+
+  /**
+   * Update an existing webhook. Requires administrator permission.
+   */
+  async updateWebhook(webhookId: string, webhook: WebhookInput) {
+    return handleApiOperation(() => WebhooksService.updateWebhook(webhookId, webhook), 'Error updating webhook');
+  }
+
+  /**
+   * Delete a webhook. Requires administrator permission.
+   */
+  async deleteWebhook(webhookId: string) {
+    return handleApiOperation(() => WebhooksService.deleteWebhook(webhookId), 'Error deleting webhook');
+  }
+
+  /**
+   * Get the latest invocation of a webhook, optionally filtered by outcome and/or event. Requires administrator permission.
+   */
+  async getWebhookLatestInvocation(webhookId: string, outcomes?: string, event?: string) {
+    return handleApiOperation(
+      () => WebhooksService.getLatestInvocation(webhookId, outcomes, event),
+      'Error getting webhook latest invocation'
+    );
+  }
+
+  /**
+   * Get invocation statistics for a webhook. Requires administrator permission.
+   */
+  async getWebhookStatistics(webhookId: string, event?: string) {
+    return handleApiOperation(
+      () => WebhooksService.getStatistics(webhookId, event),
+      'Error getting webhook statistics'
+    );
+  }
+
+  /**
+   * Get the invocation statistics summary for a webhook. Requires administrator permission.
+   */
+  async getWebhookStatisticsSummary(webhookId: string) {
+    return handleApiOperation(
+      () => WebhooksService.getStatisticsSummary(webhookId),
+      'Error getting webhook statistics summary'
+    );
+  }
+
+  /**
+   * Test connectivity to a webhook endpoint URL. Requires administrator permission.
+   */
+  async testWebhook(url: string) {
+    return handleApiOperation(() => WebhooksService.testWebhook(url), 'Error testing webhook');
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -1065,5 +1537,238 @@ export const confluenceToolSchemas = {
     contentId: z.string().describe("The ID of the content the attachment is on"),
     attachmentId: z.string().describe("The ID of the attachment"),
     version: z.number().describe("The version number to delete")
+  },
+  getAllSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to fetch permissions for")
+  },
+  setSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to set permissions on"),
+    permissions: z.array(z.object({
+      userKey: z.string().optional().describe("User key to set permissions for (mutually exclusive with groupName)"),
+      groupName: z.string().optional().describe("Group name to set permissions for (mutually exclusive with userKey)"),
+      operations: z.array(z.object({
+        targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+        operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+      })).optional().describe("Full set of operations this subject should have. Omit or pass an empty array to revoke all of the subject's existing permissions.")
+    })).min(1).max(40).describe("Up to 40 subjects (user/group/anonymous). Each entry replaces that subject's entire permission set in the space; subjects not listed are left unchanged.")
+  },
+  getAnonymousSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to fetch anonymous permissions for")
+  },
+  getGroupSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to fetch permissions for"),
+    groupName: z.string().describe("Name of the group to fetch permissions for")
+  },
+  getUserSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to fetch permissions for"),
+    userKey: z.string().describe("Key of the user to fetch permissions for")
+  },
+  grantAnonymousSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to grant permissions in"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to grant. Adds to existing permissions; does not override them.")
+  },
+  grantGroupSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to grant permissions in"),
+    groupName: z.string().describe("Name of the group to grant permissions to"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to grant. Adds to existing permissions; does not override them.")
+  },
+  grantUserSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to grant permissions in"),
+    userKey: z.string().describe("Key of the user to grant permissions to"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to grant. Adds to existing permissions; does not override them.")
+  },
+  revokeAnonymousSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to revoke permissions from"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to revoke. Permissions not currently held are silently skipped.")
+  },
+  revokeGroupSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to revoke permissions from"),
+    groupName: z.string().describe("Name of the group to revoke permissions from"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to revoke. Permissions not currently held are silently skipped.")
+  },
+  revokeUserSpacePermissions: {
+    spaceKey: z.string().describe("Key of the space to revoke permissions from"),
+    userKey: z.string().describe("Key of the user to revoke permissions from"),
+    operations: z.array(z.object({
+      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
+      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
+    })).min(1).describe("Operations to revoke. Permissions not currently held are silently skipped.")
+  },
+  getCurrentUser: {
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the user")
+  },
+  getAnonymousUser: {
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the user")
+  },
+  getUser: {
+    key: z.string().optional().describe("User key of the user to fetch (mutually exclusive with username)"),
+    username: z.string().optional().describe("Username of the user to fetch (mutually exclusive with key)"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the user")
+  },
+  getUsers: {
+    limit: z.number().optional().describe("Maximum number of users to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the users (e.g. status)")
+  },
+  getUserGroups: {
+    key: z.string().optional().describe("User key of the user (mutually exclusive with username)"),
+    username: z.string().optional().describe("Username of the user (mutually exclusive with key)"),
+    limit: z.number().optional().describe("Maximum number of groups to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+  },
+  updateCurrentUser: {
+    fullName: z.string().optional().describe("New full name for the current user"),
+    email: z.string().optional().describe("New email address for the current user"),
+    currentPassword: z.string().optional().describe("Current password, required when changing the email address")
+  },
+  changeCurrentUserPassword: {
+    newPassword: z.string().describe("The new password. Cannot be null or blank."),
+    oldPassword: z.string().optional().describe("The current password")
+  },
+  getGroup: {
+    groupName: z.string().describe("Name of the group to fetch"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+  },
+  getGroups: {
+    limit: z.number().optional().describe("Maximum number of groups to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+  },
+  getGroupMembers: {
+    groupName: z.string().describe("Name of the group to fetch members for"),
+    limit: z.number().optional().describe("Maximum number of members to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+  },
+  getNestedGroupMembers: {
+    groupName: z.string().describe("Name of the group to fetch nested group members for"),
+    limit: z.number().optional().describe("Maximum number of groups to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+  },
+  addUserToGroup: {
+    username: z.string().describe("Username of the user to add"),
+    groupName: z.string().describe("Name of the group to add the user to")
+  },
+  removeUserFromGroup: {
+    username: z.string().describe("Username of the user to remove"),
+    groupName: z.string().describe("Name of the group to remove the user from")
+  },
+  adminCreateUser: {
+    userName: z.string().describe("Username for the new user (lowercase, no whitespace or \\ , + < > ' \" characters, not 'anonymous')"),
+    fullName: z.string().describe("Full name for the new user"),
+    email: z.string().describe("Email address for the new user"),
+    password: z.string().optional().describe("Password for the new user. Required unless notifyViaEmail is true."),
+    notifyViaEmail: z.boolean().optional().describe("If true, email the user an invitation instead of setting a password directly")
+  },
+  adminUpdateUser: {
+    username: z.string().describe("Username of the user to update"),
+    fullName: z.string().optional().describe("New full name for the user"),
+    email: z.string().optional().describe("New email address for the user")
+  },
+  adminDeleteUser: {
+    username: z.string().describe("Username of the user to delete. Requires system administrator permission.")
+  },
+  adminDisableUser: {
+    username: z.string().describe("Username of the user to disable. Requires system administrator permission.")
+  },
+  adminEnableUser: {
+    username: z.string().describe("Username of the user to enable. Requires system administrator permission.")
+  },
+  adminChangeUserPassword: {
+    username: z.string().describe("Username of the user whose password will be changed"),
+    password: z.string().describe("The new password. Cannot be null or blank.")
+  },
+  adminCreateGroup: {
+    name: z.string().describe("Name for the new group. Requires system administrator permission.")
+  },
+  adminDeleteGroup: {
+    groupName: z.string().describe("Name of the group to delete. Requires system administrator permission.")
+  },
+  adminGetActiveUsers: {
+    limit: z.number().optional().describe("Maximum number of users to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the users (e.g. status)")
+  },
+  publishBlueprintSharedDraft: {
+    draftId: z.string().describe("ID of the shared draft (created from a content blueprint/template) to publish"),
+    title: z.string().describe("Title of the published content"),
+    spaceKey: z.string().describe("Space key where the content will be published"),
+    content: z.string().describe("Content body in Confluence Data Center \"storage\" format (confluence XML)"),
+    parentId: z.string().optional().describe("ID of the parent page (if publishing as a child page)"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the response")
+  },
+  publishBlueprintLegacyDraft: {
+    draftId: z.string().describe("ID of the legacy draft (created from a content blueprint/template) to publish"),
+    title: z.string().describe("Title of the published content"),
+    spaceKey: z.string().describe("Space key where the content will be published"),
+    content: z.string().describe("Content body in Confluence Data Center \"storage\" format (confluence XML)"),
+    parentId: z.string().optional().describe("ID of the parent page (if publishing as a child page)"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the response")
+  },
+  convertContentBody: {
+    to: z.enum(['view', 'export_view', 'styled_view', 'editor', 'storage']).describe("The representation to convert to. Supported conversions: storage -> view/export_view/styled_view/editor; editor -> storage."),
+    value: z.string().describe("The body content to convert"),
+    representation: z.enum(['storage', 'editor', 'view', 'export_view', 'styled_view']).describe("The representation of the supplied value"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the response")
+  },
+  findWebhooks: {
+    limit: z.number().optional().describe("Maximum number of webhooks to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    event: z.string().optional().describe("Filter by webhook event ID (e.g. page_created)"),
+    statistics: z.boolean().optional().describe("Include invocation statistics for each webhook")
+  },
+  createWebhook: {
+    name: z.string().describe("Name for the webhook"),
+    url: z.string().describe("The endpoint URL the webhook will POST event payloads to"),
+    events: z.array(z.string()).min(1).describe("Events to subscribe to, e.g. ['page_created', 'page_updated', 'page_removed']"),
+    active: z.boolean().optional().describe("Whether the webhook is enabled. Defaults to true."),
+    secret: z.string().optional().describe("Optional secret used to sign webhook payloads for verification")
+  },
+  getWebhook: {
+    webhookId: z.string().describe("ID of the webhook to fetch"),
+    statistics: z.boolean().optional().describe("Include invocation statistics. Defaults to false.")
+  },
+  updateWebhook: {
+    webhookId: z.string().describe("ID of the webhook to update"),
+    name: z.string().describe("Name for the webhook"),
+    url: z.string().describe("The endpoint URL the webhook will POST event payloads to"),
+    events: z.array(z.string()).min(1).describe("Events to subscribe to, e.g. ['page_created', 'page_updated', 'page_removed']"),
+    active: z.boolean().optional().describe("Whether the webhook is enabled"),
+    secret: z.string().optional().describe("Optional secret used to sign webhook payloads for verification")
+  },
+  deleteWebhook: {
+    webhookId: z.string().describe("ID of the webhook to delete")
+  },
+  getWebhookLatestInvocation: {
+    webhookId: z.string().describe("ID of the webhook"),
+    outcomes: z.string().optional().describe("Filter by outcome: SUCCESS, FAILURE or ERROR. Omit for all outcomes."),
+    event: z.string().optional().describe("Filter to the last invocation of a specific event")
+  },
+  getWebhookStatistics: {
+    webhookId: z.string().describe("ID of the webhook"),
+    event: z.string().optional().describe("Filter statistics to a specific event")
+  },
+  getWebhookStatisticsSummary: {
+    webhookId: z.string().describe("ID of the webhook")
+  },
+  testWebhook: {
+    url: z.string().describe("The endpoint URL to test connectivity against")
   }
 };

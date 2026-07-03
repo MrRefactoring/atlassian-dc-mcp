@@ -168,7 +168,7 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-The server registers 48 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
+The server registers 93 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
 #### Content — CRUD & search (CQL)
 
@@ -247,3 +247,63 @@ The server registers 48 tools, grouped below by area. All tools operate against 
 - `confluence_createSpaceProperty` — Create a space property
 - `confluence_updateSpaceProperty` — Update a space property
 - `confluence_deleteSpaceProperty` — Delete a space property
+
+#### Space permissions
+
+- `confluence_getAllSpacePermissions` — Get all permissions granted to users, groups and the anonymous user in a space
+- `confluence_setSpacePermissions` — Set the full permission set for up to 40 users/groups/anonymous user in a space
+- `confluence_getAnonymousSpacePermissions` — Get the permissions granted to the anonymous user in a space
+- `confluence_getGroupSpacePermissions` — Get the permissions granted to a group in a space
+- `confluence_getUserSpacePermissions` — Get the permissions granted to a user in a space
+- `confluence_grantAnonymousSpacePermissions` — Grant permissions to the anonymous user in a space
+- `confluence_grantGroupSpacePermissions` — Grant permissions to a group in a space
+- `confluence_grantUserSpacePermissions` — Grant permissions to a user in a space
+- `confluence_revokeAnonymousSpacePermissions` — Revoke permissions from the anonymous user in a space
+- `confluence_revokeGroupSpacePermissions` — Revoke permissions from a group in a space
+- `confluence_revokeUserSpacePermissions` — Revoke permissions from a user in a space
+
+#### Users and groups
+
+- `confluence_getCurrentUser` — Get information about the current logged in user
+- `confluence_getAnonymousUser` — Get information about how the anonymous user is represented
+- `confluence_getUser` — Get a user by user key or username
+- `confluence_getUsers` — List all registered users
+- `confluence_getUserGroups` — Get the groups a user is a member of
+- `confluence_updateCurrentUser` — Update the current user's full name and/or email
+- `confluence_changeCurrentUserPassword` — Change the password for the current user
+- `confluence_getGroup` — Get a user group by name
+- `confluence_getGroups` — List all user groups
+- `confluence_getGroupMembers` — Get the users that are members of a group
+- `confluence_getNestedGroupMembers` — Get the groups nested directly within a group
+- `confluence_addUserToGroup` — Add a user to a group
+- `confluence_removeUserFromGroup` — Remove a user from a group
+- `confluence_adminCreateUser` — Create a new user (requires system administrator permission)
+- `confluence_adminUpdateUser` — Update a user's full name and/or email (requires system administrator permission)
+- `confluence_adminDeleteUser` — Delete a user (requires system administrator permission)
+- `confluence_adminDisableUser` — Disable a user (requires system administrator permission)
+- `confluence_adminEnableUser` — Enable a user (requires system administrator permission)
+- `confluence_adminChangeUserPassword` — Change another user's password (requires system administrator permission)
+- `confluence_adminCreateGroup` — Create a new user group (requires system administrator permission)
+- `confluence_adminDeleteGroup` — Delete a user group (requires system administrator permission)
+- `confluence_adminGetActiveUsers` — List active (license-counting) users
+
+#### Content blueprints (templates)
+
+- `confluence_publishBlueprintSharedDraft` — Publish a shared draft created from a content blueprint (template), turning it into live content
+- `confluence_publishBlueprintLegacyDraft` — Publish a legacy draft created from a content blueprint (template), turning it into live content
+
+#### Content body conversion
+
+- `confluence_convertContentBody` — Convert a content body between representations (storage, view, export_view, styled_view, editor)
+
+#### Webhooks
+
+- `confluence_findWebhooks` — Find webhooks (requires administrator permission)
+- `confluence_createWebhook` — Create a webhook (requires administrator permission)
+- `confluence_getWebhook` — Get a webhook by ID (requires administrator permission)
+- `confluence_updateWebhook` — Update an existing webhook (requires administrator permission)
+- `confluence_deleteWebhook` — Delete a webhook (requires administrator permission)
+- `confluence_getWebhookLatestInvocation` — Get the latest invocation of a webhook (requires administrator permission)
+- `confluence_getWebhookStatistics` — Get invocation statistics for a webhook (requires administrator permission)
+- `confluence_getWebhookStatisticsSummary` — Get the invocation statistics summary for a webhook (requires administrator permission)
+- `confluence_testWebhook` — Test connectivity to a webhook endpoint URL (requires administrator permission)

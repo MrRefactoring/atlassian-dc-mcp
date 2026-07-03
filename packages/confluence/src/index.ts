@@ -620,6 +620,505 @@ server.tool(
   }
 );
 
+// Add Confluence space permissions tools
+server.tool(
+  "confluence_getAllSpacePermissions",
+  `Get all permissions granted to users, groups and the anonymous user in a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getAllSpacePermissions,
+  async ({ spaceKey }) => {
+    const result = await confluenceService.getAllSpacePermissions(spaceKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_setSpacePermissions",
+  `Set the full permission set for up to 40 users/groups/anonymous user in a space in ${confluenceInstanceType}. Replaces each listed subject's existing permissions.`,
+  confluenceToolSchemas.setSpacePermissions,
+  async ({ spaceKey, permissions }) => {
+    const result = await confluenceService.setSpacePermissions(spaceKey, permissions);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getAnonymousSpacePermissions",
+  `Get the permissions granted to the anonymous user in a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getAnonymousSpacePermissions,
+  async ({ spaceKey }) => {
+    const result = await confluenceService.getAnonymousSpacePermissions(spaceKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getGroupSpacePermissions",
+  `Get the permissions granted to a group in a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getGroupSpacePermissions,
+  async ({ spaceKey, groupName }) => {
+    const result = await confluenceService.getGroupSpacePermissions(spaceKey, groupName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getUserSpacePermissions",
+  `Get the permissions granted to a user in a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getUserSpacePermissions,
+  async ({ spaceKey, userKey }) => {
+    const result = await confluenceService.getUserSpacePermissions(spaceKey, userKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_grantAnonymousSpacePermissions",
+  `Grant space permissions to the anonymous user in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
+  confluenceToolSchemas.grantAnonymousSpacePermissions,
+  async ({ spaceKey, operations }) => {
+    const result = await confluenceService.grantAnonymousSpacePermissions(spaceKey, operations);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_grantGroupSpacePermissions",
+  `Grant space permissions to a group in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
+  confluenceToolSchemas.grantGroupSpacePermissions,
+  async ({ spaceKey, groupName, operations }) => {
+    const result = await confluenceService.grantGroupSpacePermissions(spaceKey, groupName, operations);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_grantUserSpacePermissions",
+  `Grant space permissions to a user in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
+  confluenceToolSchemas.grantUserSpacePermissions,
+  async ({ spaceKey, userKey, operations }) => {
+    const result = await confluenceService.grantUserSpacePermissions(spaceKey, userKey, operations);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_revokeAnonymousSpacePermissions",
+  `Revoke space permissions from the anonymous user in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
+  confluenceToolSchemas.revokeAnonymousSpacePermissions,
+  async ({ spaceKey, operations }) => {
+    const result = await confluenceService.revokeAnonymousSpacePermissions(spaceKey, operations);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_revokeGroupSpacePermissions",
+  `Revoke space permissions from a group in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
+  confluenceToolSchemas.revokeGroupSpacePermissions,
+  async ({ spaceKey, groupName, operations }) => {
+    const result = await confluenceService.revokeGroupSpacePermissions(spaceKey, groupName, operations);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_revokeUserSpacePermissions",
+  `Revoke space permissions from a user in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
+  confluenceToolSchemas.revokeUserSpacePermissions,
+  async ({ spaceKey, userKey, operations }) => {
+    const result = await confluenceService.revokeUserSpacePermissions(spaceKey, userKey, operations);
+    return formatToolResponse(result);
+  }
+);
+
+// Add Confluence users and groups tools
+server.tool(
+  "confluence_getCurrentUser",
+  `Get information about the current logged in user in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getCurrentUser,
+  async ({ expand }) => {
+    const result = await confluenceService.getCurrentUser(expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getAnonymousUser",
+  `Get information about how the anonymous user is represented in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getAnonymousUser,
+  async ({ expand }) => {
+    const result = await confluenceService.getAnonymousUser(expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getUser",
+  `Get a user by user key or username in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getUser,
+  async ({ key, username, expand }) => {
+    const result = await confluenceService.getUser(key, username, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getUsers",
+  `Get a paginated collection of all registered users in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getUsers,
+  async ({ limit, start, expand }) => {
+    const result = await confluenceService.getUsers(limit, start, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getUserGroups",
+  `Get the groups a user is a member of in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getUserGroups,
+  async ({ key, username, limit, start, expand }) => {
+    const result = await confluenceService.getUserGroups(key, username, limit, start, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_updateCurrentUser",
+  `Update the current user's full name and/or email in ${confluenceInstanceType}`,
+  confluenceToolSchemas.updateCurrentUser,
+  async ({ fullName, email, currentPassword }) => {
+    const result = await confluenceService.updateCurrentUser(fullName, email, currentPassword);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_changeCurrentUserPassword",
+  `Change the password for the current user in ${confluenceInstanceType}`,
+  confluenceToolSchemas.changeCurrentUserPassword,
+  async ({ newPassword, oldPassword }) => {
+    const result = await confluenceService.changeCurrentUserPassword(newPassword, oldPassword);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getGroup",
+  `Get a user group by name in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getGroup,
+  async ({ groupName, expand }) => {
+    const result = await confluenceService.getGroup(groupName, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getGroups",
+  `Get a paginated collection of all user groups in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getGroups,
+  async ({ limit, start, expand }) => {
+    const result = await confluenceService.getGroups(limit, start, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getGroupMembers",
+  `Get the users that are members of a group in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getGroupMembers,
+  async ({ groupName, limit, start, expand }) => {
+    const result = await confluenceService.getGroupMembers(groupName, limit, start, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getNestedGroupMembers",
+  `Get the groups nested directly within a group in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getNestedGroupMembers,
+  async ({ groupName, limit, start, expand }) => {
+    const result = await confluenceService.getNestedGroupMembers(groupName, limit, start, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_addUserToGroup",
+  `Add a user to a group in ${confluenceInstanceType}. Idempotent.`,
+  confluenceToolSchemas.addUserToGroup,
+  async ({ username, groupName }) => {
+    const result = await confluenceService.addUserToGroup(username, groupName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_removeUserFromGroup",
+  `Remove a user from a group in ${confluenceInstanceType}. Idempotent.`,
+  confluenceToolSchemas.removeUserFromGroup,
+  async ({ username, groupName }) => {
+    const result = await confluenceService.removeUserFromGroup(username, groupName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_adminCreateUser",
+  `Create a new user in ${confluenceInstanceType}. Requires system administrator permission.`,
+  confluenceToolSchemas.adminCreateUser,
+  async ({ userName, fullName, email, password, notifyViaEmail }) => {
+    const result = await confluenceService.adminCreateUser(userName, fullName, email, password, notifyViaEmail);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_adminUpdateUser",
+  `Update a user's full name and/or email in ${confluenceInstanceType}. Requires system administrator permission.`,
+  confluenceToolSchemas.adminUpdateUser,
+  async ({ username, fullName, email }) => {
+    const result = await confluenceService.adminUpdateUser(username, fullName, email);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_adminDeleteUser",
+  `Delete a user in ${confluenceInstanceType}. Requires system administrator permission. Runs asynchronously.`,
+  confluenceToolSchemas.adminDeleteUser,
+  async ({ username }) => {
+    const result = await confluenceService.adminDeleteUser(username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_adminDisableUser",
+  `Disable a user in ${confluenceInstanceType}. Requires system administrator permission. Idempotent.`,
+  confluenceToolSchemas.adminDisableUser,
+  async ({ username }) => {
+    const result = await confluenceService.adminDisableUser(username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_adminEnableUser",
+  `Enable a user in ${confluenceInstanceType}. Requires system administrator permission. Idempotent.`,
+  confluenceToolSchemas.adminEnableUser,
+  async ({ username }) => {
+    const result = await confluenceService.adminEnableUser(username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_adminChangeUserPassword",
+  `Change another user's password in ${confluenceInstanceType}. Requires system administrator permission.`,
+  confluenceToolSchemas.adminChangeUserPassword,
+  async ({ username, password }) => {
+    const result = await confluenceService.adminChangeUserPassword(username, password);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_adminCreateGroup",
+  `Create a new user group in ${confluenceInstanceType}. Requires system administrator permission.`,
+  confluenceToolSchemas.adminCreateGroup,
+  async ({ name }) => {
+    const result = await confluenceService.adminCreateGroup(name);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_adminDeleteGroup",
+  `Delete a user group in ${confluenceInstanceType}. Requires system administrator permission.`,
+  confluenceToolSchemas.adminDeleteGroup,
+  async ({ groupName }) => {
+    const result = await confluenceService.adminDeleteGroup(groupName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_adminGetActiveUsers",
+  `Get a paginated collection of active (license-counting) users in ${confluenceInstanceType}`,
+  confluenceToolSchemas.adminGetActiveUsers,
+  async ({ limit, start, expand }) => {
+    const result = await confluenceService.adminGetActiveUsers(limit, start, expand);
+    return formatToolResponse(result);
+  }
+);
+
+// Add Confluence blueprint/template draft-publishing tools
+server.tool(
+  "confluence_publishBlueprintSharedDraft",
+  `Publish a shared draft created from a content blueprint (template) in ${confluenceInstanceType}, turning it into live content`,
+  confluenceToolSchemas.publishBlueprintSharedDraft,
+  async ({ draftId, title, spaceKey, content, parentId, expand }) => {
+    const contentObj: ConfluenceContent = {
+      id: draftId,
+      type: 'page',
+      status: 'current',
+      title,
+      space: { key: spaceKey },
+      body: {
+        storage: {
+          value: content,
+          representation: 'storage'
+        }
+      }
+    };
+    if (parentId) {
+      contentObj.ancestors = [{ id: parentId }];
+    }
+    const result = await confluenceService.publishBlueprintSharedDraft(draftId, contentObj, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_publishBlueprintLegacyDraft",
+  `Publish a legacy draft created from a content blueprint (template) in ${confluenceInstanceType}, turning it into live content`,
+  confluenceToolSchemas.publishBlueprintLegacyDraft,
+  async ({ draftId, title, spaceKey, content, parentId, expand }) => {
+    const contentObj: ConfluenceContent = {
+      id: draftId,
+      type: 'page',
+      status: 'current',
+      title,
+      space: { key: spaceKey },
+      body: {
+        storage: {
+          value: content,
+          representation: 'storage'
+        }
+      }
+    };
+    if (parentId) {
+      contentObj.ancestors = [{ id: parentId }];
+    }
+    const result = await confluenceService.publishBlueprintLegacyDraft(draftId, contentObj, expand);
+    return formatToolResponse(result);
+  }
+);
+
+// Add Confluence content body conversion tool
+server.tool(
+  "confluence_convertContentBody",
+  `Convert a content body between representations (e.g. storage to view) in ${confluenceInstanceType}`,
+  confluenceToolSchemas.convertContentBody,
+  async ({ to, value, representation, expand }) => {
+    const result = await confluenceService.convertContentBody(to, value, representation, expand);
+    return formatToolResponse(result);
+  }
+);
+
+// Add Confluence webhook tools
+server.tool(
+  "confluence_findWebhooks",
+  `Find webhooks in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.findWebhooks,
+  async ({ limit, start, event, statistics }) => {
+    const result = await confluenceService.findWebhooks(limit, start, event, statistics);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_createWebhook",
+  `Create a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.createWebhook,
+  async ({ name, url, events, active, secret }) => {
+    const result = await confluenceService.createWebhook({
+      name,
+      url,
+      events,
+      active,
+      configuration: secret ? { secret } : undefined
+    });
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getWebhook",
+  `Get a webhook by ID in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.getWebhook,
+  async ({ webhookId, statistics }) => {
+    const result = await confluenceService.getWebhook(webhookId, statistics);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_updateWebhook",
+  `Update an existing webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.updateWebhook,
+  async ({ webhookId, name, url, events, active, secret }) => {
+    const result = await confluenceService.updateWebhook(webhookId, {
+      name,
+      url,
+      events,
+      active,
+      configuration: secret ? { secret } : undefined
+    });
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_deleteWebhook",
+  `Delete a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.deleteWebhook,
+  async ({ webhookId }) => {
+    const result = await confluenceService.deleteWebhook(webhookId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getWebhookLatestInvocation",
+  `Get the latest invocation of a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.getWebhookLatestInvocation,
+  async ({ webhookId, outcomes, event }) => {
+    const result = await confluenceService.getWebhookLatestInvocation(webhookId, outcomes, event);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getWebhookStatistics",
+  `Get invocation statistics for a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.getWebhookStatistics,
+  async ({ webhookId, event }) => {
+    const result = await confluenceService.getWebhookStatistics(webhookId, event);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getWebhookStatisticsSummary",
+  `Get the invocation statistics summary for a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.getWebhookStatisticsSummary,
+  async ({ webhookId }) => {
+    const result = await confluenceService.getWebhookStatisticsSummary(webhookId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_testWebhook",
+  `Test connectivity to a webhook endpoint URL in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.testWebhook,
+  async ({ url }) => {
+    const result = await confluenceService.testWebhook(url);
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "confluence-page",
   new ResourceTemplate("confluence://page/{pageId}", { list: undefined }),
