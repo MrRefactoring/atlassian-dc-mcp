@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import {
+  ApplicationroleService,
   AttachmentService,
   AvatarService,
   BacklogService,
@@ -931,6 +932,14 @@ export class JiraService {
     );
   }
 
+  async getApplicationRoles() {
+    return handleApiOperation(() => ApplicationroleService.getAll(), 'Error getting application roles');
+  }
+
+  async getApplicationRole(key: string) {
+    return handleApiOperation(() => ApplicationroleService.get4(key), 'Error getting application role');
+  }
+
   async getWorkflows(workflowName?: string) {
     return handleApiOperation(
       () => WorkflowService.getAllWorkflows(workflowName),
@@ -1688,6 +1697,10 @@ export const jiraToolSchemas = {
   deletePermissionGrant: {
     schemeId: z.number().describe("Id of the permission scheme"),
     permissionId: z.number().describe("Id of the permission grant to delete")
+  },
+  getApplicationRoles: {},
+  getApplicationRole: {
+    key: z.string().describe("Key of the application role, e.g. 'jira-software'. Use jira_getApplicationRoles to find valid keys.")
   },
   getWorkflows: {
     workflowName: z.string().optional().describe("Name of a specific workflow to return. Omit to return all workflows.")

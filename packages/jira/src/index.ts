@@ -1208,6 +1208,26 @@ server.tool(
 );
 
 server.tool(
+  "jira_getApplicationRoles",
+  `Get all application roles (e.g. jira-software, jira-servicedesk) in the ${jiraInstanceType}. Read-only catalog of licensed applications.`,
+  jiraToolSchemas.getApplicationRoles,
+  async () => {
+    const result = await jiraService.getApplicationRoles();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getApplicationRole",
+  `Get a single application role by key from the ${jiraInstanceType}. Use jira_getApplicationRoles to find valid keys.`,
+  jiraToolSchemas.getApplicationRole,
+  async ({ key }) => {
+    const result = await jiraService.getApplicationRole(key);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_getWorkflows",
   `Get all workflows (or a workflow by name) in the ${jiraInstanceType}`,
   jiraToolSchemas.getWorkflows,
