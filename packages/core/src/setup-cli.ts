@@ -552,7 +552,10 @@ async function tryWrite(
       if (fallback) {
         return false;
       }
-      throw new Error(`${key} was not saved because keychain write failed and plaintext fallback was declined`);
+      throw new Error(
+        `${key} was not saved because keychain write failed and plaintext fallback was declined`,
+        { cause: error },
+      );
     }
     return false;
   }

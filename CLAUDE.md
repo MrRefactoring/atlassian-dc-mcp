@@ -26,6 +26,10 @@ pnpm --filter jira-datacenter-mcp test
 # Run a single test by name
 pnpm --filter jira-datacenter-mcp exec jest -t 'test name'
 
+# Lint (ESLint flat config, root-level — covers all packages; generated *-client/ dirs are excluded)
+pnpm lint
+pnpm lint:fix
+
 # Dev mode (tsc --watch) per product
 pnpm dev:jira
 pnpm dev:confluence

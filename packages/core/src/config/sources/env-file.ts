@@ -51,6 +51,7 @@ export class EnvFileSource implements ReadableSource {
         if (explicitFilePath) {
           throw new Error(
             `${ATLASSIAN_DC_MCP_CONFIG_FILE_ENV_VAR} points to a missing file: ${error.filePath}`,
+            { cause: error },
           );
         }
         return {};
