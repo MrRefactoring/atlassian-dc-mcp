@@ -18,6 +18,7 @@ import {
   IssueService,
   IssuesecurityschemesService,
   IssuetypeService,
+  MypermissionsService,
   MyselfService,
   NotificationschemeService,
   OpenAPI,
@@ -1118,6 +1119,13 @@ export class JiraService {
     );
   }
 
+  async getMyPermissions(projectKey?: string, projectId?: string, issueKey?: string, issueId?: string) {
+    return handleApiOperation(
+      () => MypermissionsService.getPermissions(issueId, projectKey, issueKey, projectId),
+      'Error getting my permissions'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1785,5 +1793,11 @@ export const jiraToolSchemas = {
     id: z.number().describe("Id of the avatar to delete"),
     type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
     owningObjectId: z.string().describe("Id of the object that owns the avatar, e.g. a project id or username")
+  },
+  getMyPermissions: {
+    projectKey: z.string().optional().describe("Key of the project to scope returned permissions for"),
+    projectId: z.string().optional().describe("Id of the project to scope returned permissions for"),
+    issueKey: z.string().optional().describe("Key of the issue to scope returned permissions for"),
+    issueId: z.string().optional().describe("Id of the issue to scope returned permissions for")
   }
 };

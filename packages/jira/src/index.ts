@@ -1447,4 +1447,14 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getMyPermissions",
+  `Get the permissions the currently logged in user has in the ${jiraInstanceType}, optionally scoped to a project or issue`,
+  jiraToolSchemas.getMyPermissions,
+  async ({ projectKey, projectId, issueKey, issueId }) => {
+    const result = await jiraService.getMyPermissions(projectKey, projectId, issueKey, issueId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
