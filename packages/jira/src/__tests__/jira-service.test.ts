@@ -24,6 +24,7 @@ import {
   MypermissionsService,
   NotificationschemeService,
   OpenAPI,
+  PermissionsService,
   PermissionschemeService,
   PriorityService,
   ProjectService,
@@ -247,6 +248,9 @@ jest.mock('../jira-client/index.js', () => ({
   },
   MypermissionsService: {
     getPermissions: jest.fn(),
+  },
+  PermissionsService: {
+    getAllPermissions: jest.fn(),
   },
   UniversalAvatarService: {
     getAvatars: jest.fn(),
@@ -2498,6 +2502,33 @@ describe('JiraService', () => {
       (MypermissionsService.getPermissions as jest.Mock).mockRejectedValue(new Error('Not authenticated'));
 
       const result = await jiraService.getMyPermissions();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authenticated');
+    });
+  });
+
+  describe('getAllPermissions', () => {
+    it('gets the full permission catalog', async () => {
+      const mockPermissions = {
+        permissions: {
+          ADMINISTER: { id: '0', key: 'ADMINISTER', name: 'Administer Jira', type: 'GLOBAL' },
+          BROWSE: { id: '10', key: 'BROWSE', name: 'Browse Projects', type: 'PROJECT' },
+        },
+      };
+      (PermissionsService.getAllPermissions as jest.Mock).mockResolvedValue(mockPermissions);
+
+      const result = await jiraService.getAllPermissions();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPermissions);
+      expect(PermissionsService.getAllPermissions).toHaveBeenCalledWith();
+    });
+
+    it('handles errors', async () => {
+      (PermissionsService.getAllPermissions as jest.Mock).mockRejectedValue(new Error('Not authenticated'));
+
+      const result = await jiraService.getAllPermissions();
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Not authenticated');

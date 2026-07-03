@@ -1457,4 +1457,14 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getAllPermissions",
+  `Get the full catalog of permission types present in the ${jiraInstanceType} — global, project, and plugin-added`,
+  jiraToolSchemas.getAllPermissions,
+  async () => {
+    const result = await jiraService.getAllPermissions();
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
