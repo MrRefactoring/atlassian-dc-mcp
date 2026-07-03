@@ -1308,6 +1308,96 @@ server.tool(
 );
 
 server.tool(
+  "jira_getRoleDefinitions",
+  `Get all global role definitions available in the ${jiraInstanceType}. This is the global role catalog, distinct from jira_getProjectRoles which returns roles for a specific project.`,
+  jiraToolSchemas.getRoleDefinitions,
+  async () => {
+    const result = await jiraService.getRoleDefinitions();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createRoleDefinition",
+  `Create a new global role definition in the ${jiraInstanceType}. The created role has no default actors assigned.`,
+  jiraToolSchemas.createRoleDefinition,
+  async ({ name, description }) => {
+    const result = await jiraService.createRoleDefinition(name, description);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getRoleDefinition",
+  `Get a single global role definition by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getRoleDefinition,
+  async ({ id }) => {
+    const result = await jiraService.getRoleDefinition(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateRoleDefinition",
+  `Fully update a global role definition's name and description in the ${jiraInstanceType}. Both fields must be given.`,
+  jiraToolSchemas.updateRoleDefinition,
+  async ({ id, name, description }) => {
+    const result = await jiraService.updateRoleDefinition(id, name, description);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_partialUpdateRoleDefinition",
+  `Partially update a global role definition's name or description in the ${jiraInstanceType}`,
+  jiraToolSchemas.partialUpdateRoleDefinition,
+  async ({ id, name, description }) => {
+    const result = await jiraService.partialUpdateRoleDefinition(id, name, description);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteRoleDefinition",
+  `Delete a global role definition in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteRoleDefinition,
+  async ({ id, swap }) => {
+    const result = await jiraService.deleteRoleDefinition(id, swap);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getRoleDefinitionActors",
+  `Get the default actors for a global role definition in the ${jiraInstanceType}`,
+  jiraToolSchemas.getRoleDefinitionActors,
+  async ({ id }) => {
+    const result = await jiraService.getRoleDefinitionActors(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addRoleDefinitionActors",
+  `Add default actors to a global role definition in the ${jiraInstanceType}`,
+  jiraToolSchemas.addRoleDefinitionActors,
+  async ({ id, users, groups }) => {
+    const result = await jiraService.addRoleDefinitionActors(id, users, groups);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteRoleDefinitionActor",
+  `Remove a default actor from a global role definition in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteRoleDefinitionActor,
+  async ({ id, user, group }) => {
+    const result = await jiraService.deleteRoleDefinitionActor(id, user, group);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_getPermissionSchemes",
   `Get all permission schemes in the ${jiraInstanceType}`,
   jiraToolSchemas.getPermissionSchemes,
