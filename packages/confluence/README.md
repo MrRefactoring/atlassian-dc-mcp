@@ -168,7 +168,7 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-The server registers 83 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
+The server registers 84 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
 #### Content — CRUD & search (CQL)
 
@@ -291,3 +291,7 @@ The server registers 83 tools, grouped below by area. All tools operate against 
 
 - `confluence_publishBlueprintSharedDraft` — Publish a shared draft created from a content blueprint (template), turning it into live content
 - `confluence_publishBlueprintLegacyDraft` — Publish a legacy draft created from a content blueprint (template), turning it into live content
+
+#### Content body conversion
+
+- `confluence_convertContentBody` — Convert a content body between representations (storage, view, export_view, styled_view, editor)
