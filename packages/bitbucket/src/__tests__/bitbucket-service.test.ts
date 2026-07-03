@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { BitbucketService } from '../bitbucket-service.js';
-import { AuthenticationService, BuildsAndDeploymentsService, DeprecatedService, PermissionManagementService, ProjectService, PullRequestsService, RepositoryService, SecurityService } from '../bitbucket-client/index.js';
+import { AuthenticationService, BuildsAndDeploymentsService, DeprecatedService, OpenAPI, PermissionManagementService, ProjectService, PullRequestsService, RepositoryService, SecurityService } from '../bitbucket-client/index.js';
 import { request as mockRequest } from '../bitbucket-client/core/request.js';
 
 // Mock the request function
@@ -3487,6 +3487,26 @@ describe('BitbucketService', () => {
 
       const missingVars = BitbucketService.validateConfig();
       expect(missingVars).toEqual([]);
+    });
+  });
+
+  describe('constructor Basic auth wiring', () => {
+    it('resolves username and password onto OpenAPI for Basic auth', async () => {
+      new BitbucketService('test-host', '', undefined, () => 25, 'jdoe', 'hunter2');
+      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
+      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+    });
+
+    it('resolves username/password from getter functions, same as token', async () => {
+      new BitbucketService('test-host', '', undefined, () => 25, () => 'jdoe', () => 'hunter2');
+      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
+      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+    });
+
+    it('resolves username/password to an empty string when omitted', async () => {
+      new BitbucketService('test-host', 'test-token');
+      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('');
+      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('');
     });
   });
 

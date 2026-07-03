@@ -70,10 +70,10 @@ function toIssueFieldSelection(fields: string[]): Array<StringList> {
   return fields as unknown as Array<StringList>;
 }
 
-function resolveToken(token: string | (() => string | undefined)) {
+function resolveCredential(value: string | (() => string | undefined) | undefined) {
   return async () => {
-    const resolvedToken = typeof token === 'function' ? token() : token;
-    return resolvedToken ?? '';
+    const resolved = typeof value === 'function' ? value() : value;
+    return resolved ?? '';
   };
 }
 
@@ -85,6 +85,8 @@ export class JiraService {
     token: string | (() => string | undefined),
     apiBasePath?: string,
     getPageSize: () => number = getDefaultPageSize,
+    username?: string | (() => string | undefined),
+    password?: string | (() => string | undefined),
   ) {
     OpenAPI.BASE = resolveOpenApiBase({
       host,
@@ -92,7 +94,9 @@ export class JiraService {
       defaultBasePath: JIRA_PRODUCT.defaultApiBasePath ?? '/rest',
       strippableSuffixes: JIRA_PRODUCT.apiBasePathStrippableSuffixes,
     });
-    OpenAPI.TOKEN = resolveToken(token);
+    OpenAPI.TOKEN = resolveCredential(token);
+    OpenAPI.USERNAME = resolveCredential(username);
+    OpenAPI.PASSWORD = resolveCredential(password);
     OpenAPI.VERSION = '2';
     this.getPageSize = getPageSize;
   }

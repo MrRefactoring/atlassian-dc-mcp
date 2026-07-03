@@ -68,4 +68,46 @@ describe('Jira runtime config integration', () => {
     const headers = await getHeaders(OpenAPI, { method: 'GET', url: '/issue' });
     expect(headers.get('Authorization')).toBeNull();
   });
+
+  it('sends Basic auth when username/password are configured instead of a token', async () => {
+    fs.writeFileSync(
+      sharedConfigPath,
+      'JIRA_HOST=file-host\nJIRA_USERNAME=jdoe\nJIRA_PASSWORD=hunter2\nJIRA_DEFAULT_PAGE_SIZE=30\n',
+    );
+    initializeRuntimeConfig({ cwd: tempDir });
+
+    const startupConfig = getJiraRuntimeConfig();
+    new JiraService(
+      startupConfig.host,
+      () => getJiraRuntimeConfig().token,
+      startupConfig.apiBasePath,
+      () => getJiraRuntimeConfig().defaultPageSize,
+      () => getJiraRuntimeConfig().username,
+      () => getJiraRuntimeConfig().password,
+    );
+
+    const headers = await getHeaders(OpenAPI, { method: 'GET', url: '/issue' });
+    expect(headers.get('Authorization')).toBe(`Basic ${Buffer.from('jdoe:hunter2').toString('base64')}`);
+  });
+
+  it('prefers Basic auth over a Bearer token when both are configured', async () => {
+    fs.writeFileSync(
+      sharedConfigPath,
+      'JIRA_HOST=file-host\nJIRA_API_TOKEN=token-a\nJIRA_USERNAME=jdoe\nJIRA_PASSWORD=hunter2\nJIRA_DEFAULT_PAGE_SIZE=30\n',
+    );
+    initializeRuntimeConfig({ cwd: tempDir });
+
+    const startupConfig = getJiraRuntimeConfig();
+    new JiraService(
+      startupConfig.host,
+      () => getJiraRuntimeConfig().token,
+      startupConfig.apiBasePath,
+      () => getJiraRuntimeConfig().defaultPageSize,
+      () => getJiraRuntimeConfig().username,
+      () => getJiraRuntimeConfig().password,
+    );
+
+    const headers = await getHeaders(OpenAPI, { method: 'GET', url: '/issue' });
+    expect(headers.get('Authorization')).toBe(`Basic ${Buffer.from('jdoe:hunter2').toString('base64')}`);
+  });
 });

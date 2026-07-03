@@ -64,6 +64,12 @@ Available flags: `--host`/`-H`, `--api-base-path`/`-b`, `--token`/`-t`, `--defau
    # Optional: omit for anonymous access if your instance allows unauthenticated reads
    CONFLUENCE_API_TOKEN=your-personal-access-token
 
+   # Alternative to CONFLUENCE_API_TOKEN: Basic auth with username + password (e.g. for
+   # older instances without personal access tokens). If both are set, Basic auth
+   # takes precedence over the Bearer token.
+   # CONFLUENCE_USERNAME=your-username
+   # CONFLUENCE_PASSWORD=your-password
+
    # Optional: Use one of the following approaches:
    # 1. If your Confluence instance hosted on the subpath:
    # CONFLUENCE_API_BASE_PATH=https://your-confluence-instance.atlassian.net/sub-path
@@ -116,12 +122,12 @@ Each key is resolved by walking these sources in priority order and taking the f
 
 | Priority | Source | Reads | Written by `setup` |
 |---------:|--------|-------|--------------------|
-| 100 | `process.env` (`CONFLUENCE_HOST`, `CONFLUENCE_API_BASE_PATH`, `CONFLUENCE_API_TOKEN`, `CONFLUENCE_DEFAULT_PAGE_SIZE`) | all keys | — |
+| 100 | `process.env` (`CONFLUENCE_HOST`, `CONFLUENCE_API_BASE_PATH`, `CONFLUENCE_API_TOKEN`, `CONFLUENCE_USERNAME`, `CONFLUENCE_PASSWORD`, `CONFLUENCE_DEFAULT_PAGE_SIZE`) | all keys | — |
 | 80  | env file — `ATLASSIAN_DC_MCP_CONFIG_FILE` (absolute path) or `./.env` | all keys | — |
-| 60  | home file — `~/.atlassian-dc-mcp/confluence.env` on macOS/Linux, `%USERPROFILE%\.atlassian-dc-mcp\confluence.env` on Windows (mode `0600` on POSIX; Windows inherits the user-profile ACL) | all keys | host, apiBasePath, defaultPageSize (always); token (non-darwin or keychain fallback) |
-| 40  | macOS Keychain — service `atlassian-dc-mcp`, account `confluence-token` | token only | token (darwin only) |
+| 60  | home file — `~/.atlassian-dc-mcp/confluence.env` on macOS/Linux, `%USERPROFILE%\.atlassian-dc-mcp\confluence.env` on Windows (mode `0600` on POSIX; Windows inherits the user-profile ACL) | all keys | host, apiBasePath, username, defaultPageSize (always); token, password (non-darwin or keychain fallback) |
+| 40  | macOS Keychain — service `atlassian-dc-mcp`, accounts `confluence-token` / `confluence-password` | token, password | token, password (darwin only) |
 
-`setup` always writes non-secret fields to the home file and tries the keychain first for the token. If a higher-priority source shadows the value being saved, `setup` prints a warning so you can unset the env var.
+`setup` always writes non-secret fields (including username) to the home file and tries the keychain first for the token and password. Basic auth (username/password) takes precedence over the Bearer token when both are configured. If a higher-priority source shadows the value being saved, `setup` prints a warning so you can unset the env var.
 
 ## Usage
 

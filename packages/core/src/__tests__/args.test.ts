@@ -7,6 +7,8 @@ describe('parseSetupArgs', () => {
       host: undefined,
       apiBasePath: undefined,
       token: undefined,
+      username: undefined,
+      password: undefined,
       defaultPageSize: undefined,
       nonInteractive: false,
       help: false,
@@ -19,6 +21,8 @@ describe('parseSetupArgs', () => {
       '--api-base-path',
       '/rest/api/2',
       '--token=secret',
+      '--username=jdoe',
+      '--password=hunter2',
       '--default-page-size=50',
       '--non-interactive',
     ]);
@@ -26,6 +30,8 @@ describe('parseSetupArgs', () => {
       host: 'jira.example.com',
       apiBasePath: '/rest/api/2',
       token: 'secret',
+      username: 'jdoe',
+      password: 'hunter2',
       defaultPageSize: '50',
       nonInteractive: true,
       help: false,
@@ -33,9 +39,11 @@ describe('parseSetupArgs', () => {
   });
 
   it('treats whitespace-only and empty values as not provided', () => {
-    const args = parseSetupArgs(['--host=', '--token=   ']);
+    const args = parseSetupArgs(['--host=', '--token=   ', '--username=', '--password=   ']);
     expect(args.host).toBeUndefined();
     expect(args.token).toBeUndefined();
+    expect(args.username).toBeUndefined();
+    expect(args.password).toBeUndefined();
   });
 
   it('supports -h as short alias for --help', () => {
@@ -48,6 +56,8 @@ describe('parseSetupArgs', () => {
       '-H', 'jira.example.com',
       '-b', '/rest/api/2',
       '-t', 'short-token',
+      '-u', 'jdoe',
+      '-p', 'hunter2',
       '-s', '50',
       '-n',
     ]);
@@ -55,6 +65,8 @@ describe('parseSetupArgs', () => {
       host: 'jira.example.com',
       apiBasePath: '/rest/api/2',
       token: 'short-token',
+      username: 'jdoe',
+      password: 'hunter2',
       defaultPageSize: '50',
       nonInteractive: true,
       help: false,
@@ -74,6 +86,14 @@ describe('parseSetupArgs', () => {
       expect(parseSetupArgs(['-t', 'secret']).token).toBe('secret');
     });
 
+    it('-u sets username', () => {
+      expect(parseSetupArgs(['-u', 'jdoe']).username).toBe('jdoe');
+    });
+
+    it('-p sets password', () => {
+      expect(parseSetupArgs(['-p', 'hunter2']).password).toBe('hunter2');
+    });
+
     it('-s sets default-page-size', () => {
       expect(parseSetupArgs(['-s', '100']).defaultPageSize).toBe('100');
     });
@@ -87,6 +107,8 @@ describe('parseSetupArgs', () => {
         '-H', 'jira.example.com',
         '-b', '/rest',
         '-t', 'tok',
+        '-u', 'jdoe',
+        '-p', 'hunter2',
         '-s', '25',
         '-n',
       ]);
@@ -94,6 +116,8 @@ describe('parseSetupArgs', () => {
         '--host', 'jira.example.com',
         '--api-base-path', '/rest',
         '--token', 'tok',
+        '--username', 'jdoe',
+        '--password', 'hunter2',
         '--default-page-size', '25',
         '--non-interactive',
       ]);

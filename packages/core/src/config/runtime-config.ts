@@ -7,6 +7,8 @@ export type ProductRuntimeConfig = {
   host?: string;
   apiBasePath?: string;
   token?: string;
+  username?: string;
+  password?: string;
   defaultPageSize: number;
 };
 
@@ -39,6 +41,8 @@ export function getProductRuntimeConfig(product: ProductDefinition): ProductRunt
     host: resolveString(product, 'host'),
     apiBasePath: resolveString(product, 'apiBasePath'),
     token: resolveString(product, 'token'),
+    username: resolveString(product, 'username'),
+    password: resolveString(product, 'password'),
     defaultPageSize:
       parsePositiveInteger(resolveString(product, 'defaultPageSize')) ?? FALLBACK_PAGE_SIZE,
   };

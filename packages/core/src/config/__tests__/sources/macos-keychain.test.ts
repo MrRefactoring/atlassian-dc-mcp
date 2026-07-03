@@ -7,6 +7,8 @@ const JIRA: ProductDefinition = {
     host: 'JIRA_HOST',
     apiBasePath: 'JIRA_API_BASE_PATH',
     token: 'JIRA_API_TOKEN',
+    username: 'JIRA_USERNAME',
+    password: 'JIRA_PASSWORD',
     defaultPageSize: 'JIRA_DEFAULT_PAGE_SIZE',
   },
 };
@@ -94,11 +96,50 @@ describe('MacosKeychainSource', () => {
     );
   });
 
-  it('write throws when the key is not token', () => {
+  it('write throws when the key is not token or password', () => {
     const execFileSync = jest.fn();
     const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }));
-    expect(() => source.write(JIRA, 'host', 'x')).toThrow(/only stores the token/);
+    expect(() => source.write(JIRA, 'host', 'x')).toThrow(/only stores the token and password keys/);
     expect(execFileSync).not.toHaveBeenCalled();
+  });
+
+  it('supports password with its own keychain account, independent from token', () => {
+    const execFileSync = jest.fn().mockReturnValue('');
+    const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }));
+
+    source.write(JIRA, 'password', 'the-password');
+    expect(execFileSync).toHaveBeenNthCalledWith(
+      1,
+      SECURITY_BINARY,
+      ['add-generic-password', '-U', '-s', 'atlassian-dc-mcp', '-a', 'jira-password', '-w', 'the-password'],
+      expect.objectContaining({ encoding: 'utf8' }),
+    );
+
+    expect(source.read(JIRA, 'password')).toBe('the-password');
+    expect(execFileSync).toHaveBeenCalledTimes(1); // read hit cache from the write, not a fresh find
+
+    source.clear(JIRA, 'password');
+    expect(execFileSync).toHaveBeenNthCalledWith(
+      2,
+      SECURITY_BINARY,
+      ['delete-generic-password', '-s', 'atlassian-dc-mcp', '-a', 'jira-password'],
+      expect.any(Object),
+    );
+    expect(source.read(JIRA, 'password')).toBeUndefined();
+  });
+
+  it('caches token and password independently', () => {
+    const execFileSync = jest
+      .fn()
+      .mockReturnValueOnce('token-value\n')
+      .mockReturnValueOnce('password-value\n');
+    const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }));
+
+    expect(source.read(JIRA, 'token')).toBe('token-value');
+    expect(source.read(JIRA, 'password')).toBe('password-value');
+    expect(source.read(JIRA, 'token')).toBe('token-value');
+    expect(source.read(JIRA, 'password')).toBe('password-value');
+    expect(execFileSync).toHaveBeenCalledTimes(2);
   });
 
   it('round-trips a token containing shell metacharacters', () => {

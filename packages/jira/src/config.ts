@@ -10,6 +10,8 @@ export const JIRA_PRODUCT: ProductDefinition = {
     host: 'JIRA_HOST',
     apiBasePath: 'JIRA_API_BASE_PATH',
     token: 'JIRA_API_TOKEN',
+    username: 'JIRA_USERNAME',
+    password: 'JIRA_PASSWORD',
     defaultPageSize: 'JIRA_DEFAULT_PAGE_SIZE',
   },
   defaultApiBasePath: '/rest',

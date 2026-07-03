@@ -19,6 +19,8 @@ const jiraService = new JiraService(
   () => getJiraRuntimeConfig().token,
   jiraConfig.apiBasePath,
   getDefaultPageSize,
+  () => getJiraRuntimeConfig().username,
+  () => getJiraRuntimeConfig().password,
 );
 
 const server = createMcpServer({

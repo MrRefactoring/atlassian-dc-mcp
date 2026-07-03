@@ -14,10 +14,10 @@ import {
   shapePullRequestCommentsResponse,
 } from './bitbucket-response-mapper.js';
 
-function resolveToken(token: string | (() => string | undefined)) {
+function resolveCredential(value: string | (() => string | undefined) | undefined) {
   return async () => {
-    const resolvedToken = typeof token === 'function' ? token() : token;
-    return resolvedToken ?? '';
+    const resolved = typeof value === 'function' ? value() : value;
+    return resolved ?? '';
   };
 }
 
@@ -108,6 +108,8 @@ export class BitbucketService {
     token: string | (() => string | undefined),
     apiBasePath?: string,
     getPageSize: () => number = getDefaultPageSize,
+    username?: string | (() => string | undefined),
+    password?: string | (() => string | undefined),
   ) {
     OpenAPI.BASE = resolveOpenApiBase({
       host,
@@ -115,7 +117,9 @@ export class BitbucketService {
       defaultBasePath: BITBUCKET_PRODUCT.defaultApiBasePath ?? '/rest',
       strippableSuffixes: BITBUCKET_PRODUCT.apiBasePathStrippableSuffixes,
     });
-    OpenAPI.TOKEN = resolveToken(token);
+    OpenAPI.TOKEN = resolveCredential(token);
+    OpenAPI.USERNAME = resolveCredential(username);
+    OpenAPI.PASSWORD = resolveCredential(password);
     OpenAPI.VERSION = '1.0';
     this.getPageSize = getPageSize;
   }

@@ -21,7 +21,9 @@ const confluenceService = new ConfluenceService(
   confluenceConfig.host,
   () => getConfluenceRuntimeConfig().token,
   confluenceConfig.apiBasePath,
-  getDefaultPageSize
+  getDefaultPageSize,
+  () => getConfluenceRuntimeConfig().username,
+  () => getConfluenceRuntimeConfig().password,
 );
 
 // Define Confluence instance type

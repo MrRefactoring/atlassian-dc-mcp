@@ -8,6 +8,7 @@ import {
   ContentResourceService,
   ContentRestrictionsService,
   ContentWatchersService,
+  OpenAPI,
   SearchService,
   SpaceService,
   SpacePropertyService,
@@ -106,6 +107,26 @@ jest.mock('../confluence-client/index.js', () => ({
     HEADERS: undefined,
   },
 }));
+
+describe('constructor Basic auth wiring', () => {
+  it('resolves username and password onto OpenAPI for Basic auth', async () => {
+    new ConfluenceService('confluence.example.com', '', undefined, () => 25, 'jdoe', 'hunter2');
+    expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
+    expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+  });
+
+  it('resolves username/password from getter functions, same as token', async () => {
+    new ConfluenceService('confluence.example.com', '', undefined, () => 25, () => 'jdoe', () => 'hunter2');
+    expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
+    expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+  });
+
+  it('resolves username/password to an empty string when omitted', async () => {
+    new ConfluenceService('confluence.example.com', 'test-token');
+    expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('');
+    expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('');
+  });
+});
 
 describe('escapeSearchTextForCql', () => {
   it('returns plain text unchanged', () => {

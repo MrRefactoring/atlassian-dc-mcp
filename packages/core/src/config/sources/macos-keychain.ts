@@ -18,8 +18,21 @@ export type KeychainDeps = {
   getPlatform: () => NodeJS.Platform;
 };
 
-function accountFor(product: ProductDefinition): string {
-  return `${product.id}-token`;
+// Secrets storable in Keychain. 'token' keeps its original (suffix-less-named)
+// account for backward compatibility with entries written before 'password'
+// support existed; 'password' gets its own account so both can coexist.
+type KeychainSecretKey = 'token' | 'password';
+
+function isKeychainSecretKey(key: ConfigKey): key is KeychainSecretKey {
+  return key === 'token' || key === 'password';
+}
+
+function accountFor(product: ProductDefinition, key: KeychainSecretKey): string {
+  return `${product.id}-${key}`;
+}
+
+function cacheKeyFor(product: ProductDefinition, key: KeychainSecretKey): string {
+  return `${product.id}:${key}`;
 }
 
 const DEFAULT_DEPS: KeychainDeps = {
@@ -45,15 +58,16 @@ export class MacosKeychainSource implements WritableSource {
   }
 
   read(product: ProductDefinition, key: ConfigKey): string | undefined {
-    if (key !== 'token' || !this.isAvailable()) {
+    if (!isKeychainSecretKey(key) || !this.isAvailable()) {
       return undefined;
     }
-    if (this.cacheWarmed.has(product.id)) {
-      return this.cache.get(product.id);
+    const cacheKey = cacheKeyFor(product, key);
+    if (this.cacheWarmed.has(cacheKey)) {
+      return this.cache.get(cacheKey);
     }
-    const value = this.findPassword(product);
-    this.cache.set(product.id, value);
-    this.cacheWarmed.add(product.id);
+    const value = this.findPassword(product, key);
+    this.cache.set(cacheKey, value);
+    this.cacheWarmed.add(cacheKey);
     return value;
   }
 
@@ -62,8 +76,8 @@ export class MacosKeychainSource implements WritableSource {
   }
 
   write(product: ProductDefinition, key: ConfigKey, value: string): void {
-    if (key !== 'token') {
-      throw new Error('macOS Keychain only stores the token key');
+    if (!isKeychainSecretKey(key)) {
+      throw new Error('macOS Keychain only stores the token and password keys');
     }
     if (!this.isAvailable()) {
       throw new Error('macOS Keychain is not available on this platform');
@@ -74,37 +88,39 @@ export class MacosKeychainSource implements WritableSource {
         'add-generic-password',
         '-U',
         '-s', KEYCHAIN_SERVICE,
-        '-a', accountFor(product),
+        '-a', accountFor(product, key),
         '-w', value,
       ],
       { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', timeout: KEYCHAIN_TIMEOUT_MS },
     );
-    this.cache.set(product.id, value);
-    this.cacheWarmed.add(product.id);
+    const cacheKey = cacheKeyFor(product, key);
+    this.cache.set(cacheKey, value);
+    this.cacheWarmed.add(cacheKey);
   }
 
   clear(product: ProductDefinition, key: ConfigKey): void {
-    if (key !== 'token' || !this.isAvailable()) {
+    if (!isKeychainSecretKey(key) || !this.isAvailable()) {
       return;
     }
     try {
       this.deps.execFileSync(
         SECURITY_BINARY,
-        ['delete-generic-password', '-s', KEYCHAIN_SERVICE, '-a', accountFor(product)],
+        ['delete-generic-password', '-s', KEYCHAIN_SERVICE, '-a', accountFor(product, key)],
         { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', timeout: KEYCHAIN_TIMEOUT_MS },
       );
     } catch {
       // absent / already cleared — non-fatal
     }
-    this.cache.set(product.id, undefined);
-    this.cacheWarmed.add(product.id);
+    const cacheKey = cacheKeyFor(product, key);
+    this.cache.set(cacheKey, undefined);
+    this.cacheWarmed.add(cacheKey);
   }
 
-  private findPassword(product: ProductDefinition): string | undefined {
+  private findPassword(product: ProductDefinition, key: KeychainSecretKey): string | undefined {
     try {
       const stdout = this.deps.execFileSync(
         SECURITY_BINARY,
-        ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-a', accountFor(product), '-w'],
+        ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-a', accountFor(product, key), '-w'],
         { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', timeout: KEYCHAIN_TIMEOUT_MS },
       );
       return String(stdout).replace(/\n$/, '');

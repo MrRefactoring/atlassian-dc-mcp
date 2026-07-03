@@ -78,16 +78,17 @@ At startup, each MCP server resolves each config key by walking sources in this 
 |---------:|--------|-------|------------------|
 | 100 | `process.env` (`JIRA_*`, `CONFLUENCE_*`, `BITBUCKET_*`) | all keys | — |
 | 80  | env file — `ATLASSIAN_DC_MCP_CONFIG_FILE` or `./.env` | all keys | — |
-| 60  | home file — `~/.atlassian-dc-mcp/<product>.env` on macOS/Linux, `%USERPROFILE%\.atlassian-dc-mcp\<product>.env` on Windows (mode `0600` on POSIX; Windows inherits the user-profile ACL) | all keys | host, apiBasePath, defaultPageSize (always); token (non-darwin or keychain fallback) |
-| 40  | macOS Keychain — service `atlassian-dc-mcp`, account `<product>-token` | token only | token (darwin only) |
+| 60  | home file — `~/.atlassian-dc-mcp/<product>.env` on macOS/Linux, `%USERPROFILE%\.atlassian-dc-mcp\<product>.env` on Windows (mode `0600` on POSIX; Windows inherits the user-profile ACL) | all keys | host, apiBasePath, username, defaultPageSize (always); token, password (non-darwin or keychain fallback) |
+| 40  | macOS Keychain — service `atlassian-dc-mcp`, accounts `<product>-token` / `<product>-password` | token, password | token, password (darwin only) |
 
 Notes:
 
 - Process env wins over everything, so you can always override a stored credential for one session.
 - `ATLASSIAN_DC_MCP_CONFIG_FILE` must be an absolute path; if set and missing, the server fails fast.
-- Keychain reads are cached at init (one `execFileSync` per product-token), so tool calls never shell out.
+- Keychain reads are cached at init (one `execFileSync` per product-secret), so tool calls never shell out.
 - If a higher-priority source shadows the value setup is about to save, setup prints a warning naming the env var so you can unset it.
 - Atlassian API requests time out after 30 seconds by default. Set `ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS` to a positive millisecond value to override it.
+- Each product also accepts `*_USERNAME`/`*_PASSWORD` for Basic auth, as an alternative to `*_API_TOKEN` (useful for older instances without personal access tokens). If both are set, Basic auth takes precedence over the Bearer token.
 
 ## Claude Desktop Configuration
 
