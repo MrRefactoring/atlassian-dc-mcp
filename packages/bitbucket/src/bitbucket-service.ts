@@ -2509,6 +2509,28 @@ export class BitbucketService {
   }
 
   /**
+   * Get the direct forks of a repository
+   * @param projectKey The project key of the origin repository
+   * @param repositorySlug The repository slug of the origin repository
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (defaults to the package page size)
+   * @returns Promise with the page of forked repositories
+   */
+  async getRepositoryForks(
+    projectKey: string,
+    repositorySlug: string,
+    start?: number,
+    limit?: number
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => ProjectService.getForkedRepositories(projectKey, repositorySlug, start, limit ?? this.getPageSize()),
+      'Error fetching repository forks'
+    );
+  }
+
+  /**
    * Schedule a repository for deletion
    * @param projectKey The project key
    * @param repositorySlug The repository slug
@@ -3672,6 +3694,12 @@ export const bitbucketToolSchemas = {
     name: z.string().optional().describe("Name for the fork. Defaults to the origin repository name."),
     targetProjectKey: z.string().optional().describe("Target project key for the fork. Defaults to the user's personal project."),
     defaultBranch: z.string().optional().describe("Default branch for the fork. Defaults to the origin's default branch.")
+  },
+  getRepositoryForks: {
+    projectKey: z.string().describe("The project key of the origin repository"),
+    repositorySlug: z.string().describe("The repository slug of the origin repository"),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
   },
   deleteRepository: {
     projectKey: z.string().describe("The project key"),
