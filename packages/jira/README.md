@@ -173,7 +173,7 @@ pnpm dev
 
 ### Available Tools
 
-This server exposes 196 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 201 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -241,6 +241,11 @@ This server exposes 196 tools, grouped below by area. Every tool name is prefixe
 - `jira_searchProjects` — Search for projects by name or key using the picker-style search.
 - `jira_getProject` — Get details of a single project by id or key.
 - `jira_validateProjectKey` — Validate a candidate project key before creating a new project.
+- `jira_createProject` — Create a new project.
+- `jira_updateProject` — Update an existing project. Only non-null values sent are updated.
+- `jira_deleteProject` — Delete a project. This is irreversible.
+- `jira_archiveProject` — Archive a project.
+- `jira_restoreProject` — Restore a previously archived project.
 
 #### Project components
 

@@ -168,6 +168,84 @@ server.tool(
 );
 
 server.tool(
+  "jira_createProject",
+  `Create a new project in the ${jiraInstanceType}`,
+  jiraToolSchemas.createProject,
+  async ({ key, name, projectTypeKey, projectTemplateKey, description, lead, url, assigneeType, avatarId, issueSecurityScheme, permissionScheme, notificationScheme, categoryId, workflowSchemeId }) => {
+    const result = await jiraService.createProject({
+      key,
+      name,
+      projectTypeKey,
+      projectTemplateKey,
+      description,
+      lead,
+      url,
+      assigneeType,
+      avatarId,
+      issueSecurityScheme,
+      permissionScheme,
+      notificationScheme,
+      categoryId,
+      workflowSchemeId
+    });
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateProject",
+  `Update an existing project in the ${jiraInstanceType}. Only non-null values sent are updated.`,
+  jiraToolSchemas.updateProject,
+  async ({ projectIdOrKey, name, key, description, lead, url, assigneeType, avatarId, issueSecurityScheme, permissionScheme, notificationScheme, categoryId, projectTypeKey, expand }) => {
+    const result = await jiraService.updateProject(projectIdOrKey, {
+      name,
+      key,
+      description,
+      lead,
+      url,
+      assigneeType,
+      avatarId,
+      issueSecurityScheme,
+      permissionScheme,
+      notificationScheme,
+      categoryId,
+      projectTypeKey
+    }, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteProject",
+  `Delete a project from the ${jiraInstanceType}. WARNING: this is irreversible.`,
+  jiraToolSchemas.deleteProject,
+  async ({ projectIdOrKey }) => {
+    const result = await jiraService.deleteProject(projectIdOrKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_archiveProject",
+  `Archive a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.archiveProject,
+  async ({ projectIdOrKey }) => {
+    const result = await jiraService.archiveProject(projectIdOrKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_restoreProject",
+  `Restore a previously archived project in the ${jiraInstanceType}`,
+  jiraToolSchemas.restoreProject,
+  async ({ projectIdOrKey }) => {
+    const result = await jiraService.restoreProject(projectIdOrKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_getIssueTypes",
   `Get all issue types available in the ${jiraInstanceType}`,
   jiraToolSchemas.getIssueTypes,
