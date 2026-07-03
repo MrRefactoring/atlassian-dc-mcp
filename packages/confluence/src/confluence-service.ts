@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ContentResourceService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
+import { ChildContentService, ContentDescendantService, ContentResourceService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
@@ -149,6 +149,69 @@ export class ConfluenceService {
   }
 
   /**
+   * Get the direct children of a piece of content, keyed by child type.
+   * @param contentId The ID of the parent content
+   * @param expand Optional comma-separated list of properties to expand on the children
+   * @param limit Maximum number of children to return
+   * @param start Start index for pagination
+   */
+  async getContentChildren(contentId: string, expand?: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => ChildContentService.children(contentId, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting content children'
+    );
+  }
+
+  /**
+   * Get the direct children of a piece of content limited to a single child type (page, comment, attachment).
+   * @param contentId The ID of the parent content
+   * @param type The child content type to filter on
+   */
+  async getContentChildrenByType(contentId: string, type: string, expand?: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => ChildContentService.childrenOfType(contentId, type, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting content children by type'
+    );
+  }
+
+  /**
+   * Get the comments of a piece of content.
+   * @param contentId The ID of the content
+   * @param depth "" (root only, default) or "all"
+   * @param location Optional comment location filter (inline, footer, resolved)
+   */
+  async getContentComments(contentId: string, expand?: string, depth?: string, limit?: number, start?: number, location?: string) {
+    return handleApiOperation(
+      () => ChildContentService.commentsOfContent(contentId, expand, depth, (limit ?? this.getPageSize()).toString(), start?.toString(), location),
+      'Error getting content comments'
+    );
+  }
+
+  /**
+   * Get the descendants of a piece of content, keyed by content type.
+   * @param contentId The ID of the content
+   * @param expand Optional comma-separated list of properties to expand on the descendants
+   */
+  async getContentDescendants(contentId: string, expand?: string) {
+    return handleApiOperation(
+      () => ContentDescendantService.descendants(contentId, expand),
+      'Error getting content descendants'
+    );
+  }
+
+  /**
+   * Get the descendants of a piece of content limited to a single content type.
+   * @param contentId The ID of the content
+   * @param type The content type to filter descendants on
+   */
+  async getContentDescendantsByType(contentId: string, type: string, expand?: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => ContentDescendantService.descendantsOfType(contentId, type, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting content descendants by type'
+    );
+  }
+
+  /**
    * Search for spaces by text
    * @param searchText Text to search for in space names or descriptions
    * @param limit Maximum number of results to return
@@ -225,6 +288,38 @@ export const confluenceToolSchemas = {
   getContentHistory: {
     contentId: z.string().describe("ID of the content to fetch history for"),
     expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. previousVersion,nextVersion,lastUpdated,contributors). Defaults to previousVersion,nextVersion,lastUpdated.")
+  },
+  getContentChildren: {
+    contentId: z.string().describe("ID of the parent content"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the children (e.g. page,comment,attachment). Without an expand only the available child types are listed."),
+    limit: z.number().optional().describe("Maximum number of children to return"),
+    start: z.number().optional().describe("Start index for pagination")
+  },
+  getContentChildrenByType: {
+    contentId: z.string().describe("ID of the parent content"),
+    type: z.string().describe("Child content type to filter on (page, comment, attachment)"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the children"),
+    limit: z.number().optional().describe("Maximum number of children to return"),
+    start: z.number().optional().describe("Start index for pagination")
+  },
+  getContentComments: {
+    contentId: z.string().describe("ID of the content to fetch comments for"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the comments (e.g. body.view,extensions.resolution)"),
+    depth: z.string().optional().describe("Depth of the comments: empty string for ROOT only (default) or 'all' for the full thread"),
+    limit: z.number().optional().describe("Maximum number of comments to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    location: z.string().optional().describe("Comment location filter: inline, footer or resolved. Omit for all locations.")
+  },
+  getContentDescendants: {
+    contentId: z.string().describe("ID of the content to fetch descendants for"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the descendants (e.g. comment). Without an expand only the available descendant types are listed.")
+  },
+  getContentDescendantsByType: {
+    contentId: z.string().describe("ID of the content to fetch descendants for"),
+    type: z.string().describe("Content type to filter descendants on (currently only comment is supported)"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the descendants"),
+    limit: z.number().optional().describe("Maximum number of descendants to return"),
+    start: z.number().optional().describe("Start index for pagination")
   },
   searchSpaces: {
     searchText: z.string().describe("Text to search for in Confluence Data Center space names or descriptions. Quotes and backslashes are escaped for CQL; pass the literal search phrase only (do not pre-escape)."),

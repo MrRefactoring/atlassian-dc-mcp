@@ -161,6 +161,56 @@ server.tool(
   }
 );
 
+server.tool(
+  "confluence_getContentChildren",
+  `Get the direct children of a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentChildren,
+  async ({ contentId, expand, limit, start }) => {
+    const result = await confluenceService.getContentChildren(contentId, expand, limit, start);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getContentChildrenByType",
+  `Get the children of a piece of content limited to a single type in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentChildrenByType,
+  async ({ contentId, type, expand, limit, start }) => {
+    const result = await confluenceService.getContentChildrenByType(contentId, type, expand, limit, start);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getContentComments",
+  `Get the comments of a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentComments,
+  async ({ contentId, expand, depth, limit, start, location }) => {
+    const result = await confluenceService.getContentComments(contentId, expand, depth, limit, start, location);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getContentDescendants",
+  `Get the descendants of a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentDescendants,
+  async ({ contentId, expand }) => {
+    const result = await confluenceService.getContentDescendants(contentId, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getContentDescendantsByType",
+  `Get the descendants of a piece of content limited to a single type in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentDescendantsByType,
+  async ({ contentId, type, expand, limit, start }) => {
+    const result = await confluenceService.getContentDescendantsByType(contentId, type, expand, limit, start);
+    return formatToolResponse(result);
+  }
+);
+
 server.tool('confluence_searchSpace',
   `Search for spaces in ${confluenceInstanceType}`,
   confluenceToolSchemas.searchSpaces,
