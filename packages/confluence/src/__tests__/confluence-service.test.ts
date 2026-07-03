@@ -1,18 +1,28 @@
 import { ConfluenceService, escapeSearchTextForCql } from '../confluence-service.js';
 import {
+  AdminGroupService,
+  AdminUserService,
+  AdminUsersService,
   AttachmentsService,
   ChildContentService,
+  ContentBlueprintService,
+  ContentBodyService,
   ContentDescendantService,
   ContentLabelsService,
   ContentPropertyService,
   ContentResourceService,
   ContentRestrictionsService,
   ContentWatchersService,
+  GroupService,
   OpenAPI,
   SearchService,
+  SpacePermissionsService,
   SpaceService,
   SpacePropertyService,
+  UserGroupService,
+  UserService,
   UserWatchService,
+  WebhooksService,
 } from '../confluence-client/index.js';
 
 const CONTENT_RESOURCE = ContentResourceService as unknown as Record<string, jest.Mock>;
@@ -26,6 +36,16 @@ const USER_WATCH = UserWatchService as unknown as Record<string, jest.Mock>;
 const ATTACHMENTS = AttachmentsService as unknown as Record<string, jest.Mock>;
 const SPACE = SpaceService as unknown as Record<string, jest.Mock>;
 const SPACE_PROPERTY = SpacePropertyService as unknown as Record<string, jest.Mock>;
+const SPACE_PERMISSIONS = SpacePermissionsService as unknown as Record<string, jest.Mock>;
+const USER = UserService as unknown as Record<string, jest.Mock>;
+const GROUP = GroupService as unknown as Record<string, jest.Mock>;
+const USER_GROUP = UserGroupService as unknown as Record<string, jest.Mock>;
+const ADMIN_USER = AdminUserService as unknown as Record<string, jest.Mock>;
+const ADMIN_GROUP = AdminGroupService as unknown as Record<string, jest.Mock>;
+const ADMIN_USERS = AdminUsersService as unknown as Record<string, jest.Mock>;
+const CONTENT_BLUEPRINT = ContentBlueprintService as unknown as Record<string, jest.Mock>;
+const CONTENT_BODY = ContentBodyService as unknown as Record<string, jest.Mock>;
+const WEBHOOKS = WebhooksService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -99,6 +119,71 @@ jest.mock('../confluence-client/index.js', () => ({
     create3: jest.fn(),
     update3: jest.fn(),
     delete4: jest.fn(),
+  },
+  SpacePermissionsService: {
+    getAllSpacePermissions: jest.fn(),
+    setPermissions1: jest.fn(),
+    getPermissionsGrantedToAnonymousUsers1: jest.fn(),
+    getPermissionsGrantedToGroup1: jest.fn(),
+    getPermissionsGrantedToUser1: jest.fn(),
+    grantPermissionsToAnonymousUsers1: jest.fn(),
+    grantPermissionsToGroup1: jest.fn(),
+    grantPermissionsToUser1: jest.fn(),
+    revokePermissionsFromAnonymousUser: jest.fn(),
+    revokePermissionsFromGroup1: jest.fn(),
+    revokePermissionsFromUser1: jest.fn(),
+  },
+  UserService: {
+    getCurrent: jest.fn(),
+    getAnonymous: jest.fn(),
+    getUser: jest.fn(),
+    getUsers: jest.fn(),
+    getGroups1: jest.fn(),
+    updateUser1: jest.fn(),
+    changePassword1: jest.fn(),
+  },
+  GroupService: {
+    getGroup: jest.fn(),
+    getGroups: jest.fn(),
+    getMembers: jest.fn(),
+    getNestedGroupMembers: jest.fn(),
+  },
+  UserGroupService: {
+    update5: jest.fn(),
+    delete6: jest.fn(),
+  },
+  AdminUserService: {
+    createUser: jest.fn(),
+    updateUser: jest.fn(),
+    delete1: jest.fn(),
+    disable: jest.fn(),
+    enable: jest.fn(),
+    changePassword: jest.fn(),
+  },
+  AdminGroupService: {
+    create: jest.fn(),
+    delete: jest.fn(),
+  },
+  AdminUsersService: {
+    getActiveUsers: jest.fn(),
+  },
+  ContentBlueprintService: {
+    publishSharedDraft: jest.fn(),
+    publishLegacyDraft: jest.fn(),
+  },
+  ContentBodyService: {
+    convert: jest.fn(),
+  },
+  WebhooksService: {
+    findWebhooks: jest.fn(),
+    createWebhook: jest.fn(),
+    getWebhook: jest.fn(),
+    updateWebhook: jest.fn(),
+    deleteWebhook: jest.fn(),
+    getLatestInvocation: jest.fn(),
+    getStatistics: jest.fn(),
+    getStatisticsSummary: jest.fn(),
+    testWebhook: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -1075,5 +1160,834 @@ describe('ConfluenceService space properties', () => {
 
     expect(SPACE_PROPERTY.delete4).toHaveBeenCalledWith('DEV', 'my-key');
     expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService space permissions', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets all space permissions', async () => {
+    SPACE_PERMISSIONS.getAllSpacePermissions.mockResolvedValue([{ spaceKey: 'DEV' }]);
+
+    const result = await service.getAllSpacePermissions('DEV');
+
+    expect(SPACE_PERMISSIONS.getAllSpacePermissions).toHaveBeenCalledWith('DEV');
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual([{ spaceKey: 'DEV' }]);
+  });
+
+  it('forwards API errors when getting all space permissions', async () => {
+    SPACE_PERMISSIONS.getAllSpacePermissions.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getAllSpacePermissions('DEV');
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+  });
+
+  it('sets space permissions for multiple subjects', async () => {
+    SPACE_PERMISSIONS.setPermissions1.mockResolvedValue({});
+    const permissions = [{ userKey: 'u1', operations: [{ targetType: 'space', operationKey: 'read' }] }];
+
+    const result = await service.setSpacePermissions('DEV', permissions);
+
+    expect(SPACE_PERMISSIONS.setPermissions1).toHaveBeenCalledWith('DEV', permissions);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when setting space permissions', async () => {
+    SPACE_PERMISSIONS.setPermissions1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.setSpacePermissions('DEV', []);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+  });
+
+  it('gets anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToAnonymousUsers1.mockResolvedValue([]);
+
+    const result = await service.getAnonymousSpacePermissions('DEV');
+
+    expect(SPACE_PERMISSIONS.getPermissionsGrantedToAnonymousUsers1).toHaveBeenCalledWith('DEV');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToAnonymousUsers1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getAnonymousSpacePermissions('DEV');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets group space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToGroup1.mockResolvedValue([]);
+
+    const result = await service.getGroupSpacePermissions('DEV', 'developers');
+
+    expect(SPACE_PERMISSIONS.getPermissionsGrantedToGroup1).toHaveBeenCalledWith('DEV', 'developers');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting group space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToGroup1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getGroupSpacePermissions('DEV', 'developers');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets user space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToUser1.mockResolvedValue([]);
+
+    const result = await service.getUserSpacePermissions('DEV', 'user-key-1');
+
+    expect(SPACE_PERMISSIONS.getPermissionsGrantedToUser1).toHaveBeenCalledWith('DEV', 'user-key-1');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting user space permissions', async () => {
+    SPACE_PERMISSIONS.getPermissionsGrantedToUser1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getUserSpacePermissions('DEV', 'user-key-1');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('grants anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToAnonymousUsers1.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.grantAnonymousSpacePermissions('DEV', operations);
+
+    expect(SPACE_PERMISSIONS.grantPermissionsToAnonymousUsers1).toHaveBeenCalledWith('DEV', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when granting anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToAnonymousUsers1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.grantAnonymousSpacePermissions('DEV', []);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('grants group space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToGroup1.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.grantGroupSpacePermissions('DEV', 'developers', operations);
+
+    expect(SPACE_PERMISSIONS.grantPermissionsToGroup1).toHaveBeenCalledWith('DEV', 'developers', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when granting group space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToGroup1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.grantGroupSpacePermissions('DEV', 'developers', []);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('grants user space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToUser1.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.grantUserSpacePermissions('DEV', 'user-key-1', operations);
+
+    expect(SPACE_PERMISSIONS.grantPermissionsToUser1).toHaveBeenCalledWith('DEV', 'user-key-1', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when granting user space permissions', async () => {
+    SPACE_PERMISSIONS.grantPermissionsToUser1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.grantUserSpacePermissions('DEV', 'user-key-1', []);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('revokes anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromAnonymousUser.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.revokeAnonymousSpacePermissions('DEV', operations);
+
+    expect(SPACE_PERMISSIONS.revokePermissionsFromAnonymousUser).toHaveBeenCalledWith('DEV', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when revoking anonymous space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromAnonymousUser.mockRejectedValue(new Error('boom'));
+
+    const result = await service.revokeAnonymousSpacePermissions('DEV', []);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('revokes group space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromGroup1.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.revokeGroupSpacePermissions('DEV', 'developers', operations);
+
+    expect(SPACE_PERMISSIONS.revokePermissionsFromGroup1).toHaveBeenCalledWith('DEV', 'developers', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when revoking group space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromGroup1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.revokeGroupSpacePermissions('DEV', 'developers', []);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('revokes user space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromUser1.mockResolvedValue(undefined);
+    const operations = [{ targetType: 'space', operationKey: 'read' }];
+
+    const result = await service.revokeUserSpacePermissions('DEV', 'user-key-1', operations);
+
+    expect(SPACE_PERMISSIONS.revokePermissionsFromUser1).toHaveBeenCalledWith('DEV', 'user-key-1', operations);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when revoking user space permissions', async () => {
+    SPACE_PERMISSIONS.revokePermissionsFromUser1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.revokeUserSpacePermissions('DEV', 'user-key-1', []);
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ConfluenceService users and groups', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets the current user', async () => {
+    USER.getCurrent.mockResolvedValue({ username: 'me' });
+
+    const result = await service.getCurrentUser('status');
+
+    expect(USER.getCurrent).toHaveBeenCalledWith('status');
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual({ username: 'me' });
+  });
+
+  it('forwards API errors when getting the current user', async () => {
+    USER.getCurrent.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getCurrentUser();
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets the anonymous user representation', async () => {
+    USER.getAnonymous.mockResolvedValue({ username: 'anonymous' });
+
+    const result = await service.getAnonymousUser();
+
+    expect(USER.getAnonymous).toHaveBeenCalledWith(undefined);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting the anonymous user', async () => {
+    USER.getAnonymous.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getAnonymousUser();
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets a user by key or username', async () => {
+    USER.getUser.mockResolvedValue({ username: 'jdoe' });
+
+    const result = await service.getUser('key-1', undefined, 'status');
+
+    expect(USER.getUser).toHaveBeenCalledWith('status', 'key-1', undefined);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting a user', async () => {
+    USER.getUser.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getUser('key-1');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('lists registered users with the default page-size limit', async () => {
+    USER.getUsers.mockResolvedValue({ results: [] });
+
+    await service.getUsers();
+
+    expect(USER.getUsers).toHaveBeenCalledWith(undefined, '25', undefined);
+  });
+
+  it('forwards API errors when listing users', async () => {
+    USER.getUsers.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getUsers();
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets the groups a user is a member of', async () => {
+    USER.getGroups1.mockResolvedValue({ results: [] });
+
+    await service.getUserGroups(undefined, 'jdoe', 10, 0, 'status');
+
+    expect(USER.getGroups1).toHaveBeenCalledWith('status', '10', '0', undefined, 'jdoe');
+  });
+
+  it('forwards API errors when getting user groups', async () => {
+    USER.getGroups1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getUserGroups(undefined, 'jdoe');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('updates the current user', async () => {
+    USER.updateUser1.mockResolvedValue(undefined);
+
+    const result = await service.updateCurrentUser('Jane Doe', 'jane@example.com', 'oldpw');
+
+    expect(USER.updateUser1).toHaveBeenCalledWith({ fullName: 'Jane Doe', email: 'jane@example.com', currentPassword: 'oldpw' });
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when updating the current user', async () => {
+    USER.updateUser1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.updateCurrentUser('Jane Doe');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('changes the current user password', async () => {
+    USER.changePassword1.mockResolvedValue(undefined);
+
+    const result = await service.changeCurrentUserPassword('newpw', 'oldpw');
+
+    expect(USER.changePassword1).toHaveBeenCalledWith({ newPassword: 'newpw', oldPassword: 'oldpw' });
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when changing the current user password', async () => {
+    USER.changePassword1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.changeCurrentUserPassword('newpw');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets a group by name', async () => {
+    GROUP.getGroup.mockResolvedValue({ name: 'developers' });
+
+    const result = await service.getGroup('developers', 'status');
+
+    expect(GROUP.getGroup).toHaveBeenCalledWith('developers', 'status');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting a group', async () => {
+    GROUP.getGroup.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getGroup('developers');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('lists groups with the default page-size limit', async () => {
+    GROUP.getGroups.mockResolvedValue({ results: [] });
+
+    await service.getGroups();
+
+    expect(GROUP.getGroups).toHaveBeenCalledWith(undefined, 25, undefined);
+  });
+
+  it('forwards API errors when listing groups', async () => {
+    GROUP.getGroups.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getGroups();
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets the members of a group', async () => {
+    GROUP.getMembers.mockResolvedValue({ results: [] });
+
+    await service.getGroupMembers('developers', 10, 0, 'status');
+
+    expect(GROUP.getMembers).toHaveBeenCalledWith('developers', 'status', 10, 0);
+  });
+
+  it('forwards API errors when getting group members', async () => {
+    GROUP.getMembers.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getGroupMembers('developers');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets the nested group members of a group', async () => {
+    GROUP.getNestedGroupMembers.mockResolvedValue({ results: [] });
+
+    await service.getNestedGroupMembers('developers', 10, 0, 'status');
+
+    expect(GROUP.getNestedGroupMembers).toHaveBeenCalledWith('developers', 'status', 10, 0);
+  });
+
+  it('forwards API errors when getting nested group members', async () => {
+    GROUP.getNestedGroupMembers.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getNestedGroupMembers('developers');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('adds a user to a group', async () => {
+    USER_GROUP.update5.mockResolvedValue(undefined);
+
+    const result = await service.addUserToGroup('jdoe', 'developers');
+
+    expect(USER_GROUP.update5).toHaveBeenCalledWith('developers', 'jdoe');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when adding a user to a group', async () => {
+    USER_GROUP.update5.mockRejectedValue(new Error('boom'));
+
+    const result = await service.addUserToGroup('jdoe', 'developers');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('removes a user from a group', async () => {
+    USER_GROUP.delete6.mockResolvedValue(undefined);
+
+    const result = await service.removeUserFromGroup('jdoe', 'developers');
+
+    expect(USER_GROUP.delete6).toHaveBeenCalledWith('developers', 'jdoe');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when removing a user from a group', async () => {
+    USER_GROUP.delete6.mockRejectedValue(new Error('boom'));
+
+    const result = await service.removeUserFromGroup('jdoe', 'developers');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('creates a user as an admin', async () => {
+    ADMIN_USER.createUser.mockResolvedValue({ key: 'new-key' });
+
+    const result = await service.adminCreateUser('jdoe', 'Jane Doe', 'jane@example.com', 'secret');
+
+    expect(ADMIN_USER.createUser).toHaveBeenCalledWith({
+      userName: 'jdoe',
+      fullName: 'Jane Doe',
+      email: 'jane@example.com',
+      password: 'secret',
+      notifyViaEmail: undefined,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when creating a user as an admin', async () => {
+    ADMIN_USER.createUser.mockRejectedValue(new Error('boom'));
+
+    const result = await service.adminCreateUser('jdoe', 'Jane Doe', 'jane@example.com');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('updates a user as an admin', async () => {
+    ADMIN_USER.updateUser.mockResolvedValue(undefined);
+
+    const result = await service.adminUpdateUser('jdoe', 'Jane Doe', 'jane@example.com');
+
+    expect(ADMIN_USER.updateUser).toHaveBeenCalledWith('jdoe', { fullName: 'Jane Doe', email: 'jane@example.com' });
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when updating a user as an admin', async () => {
+    ADMIN_USER.updateUser.mockRejectedValue(new Error('boom'));
+
+    const result = await service.adminUpdateUser('jdoe');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('deletes a user as an admin', async () => {
+    ADMIN_USER.delete1.mockResolvedValue({ status: 'ACCEPTED' });
+
+    const result = await service.adminDeleteUser('jdoe');
+
+    expect(ADMIN_USER.delete1).toHaveBeenCalledWith('jdoe');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when deleting a user as an admin', async () => {
+    ADMIN_USER.delete1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.adminDeleteUser('jdoe');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('disables a user as an admin', async () => {
+    ADMIN_USER.disable.mockResolvedValue(undefined);
+
+    const result = await service.adminDisableUser('jdoe');
+
+    expect(ADMIN_USER.disable).toHaveBeenCalledWith('jdoe');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when disabling a user as an admin', async () => {
+    ADMIN_USER.disable.mockRejectedValue(new Error('boom'));
+
+    const result = await service.adminDisableUser('jdoe');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('enables a user as an admin', async () => {
+    ADMIN_USER.enable.mockResolvedValue(undefined);
+
+    const result = await service.adminEnableUser('jdoe');
+
+    expect(ADMIN_USER.enable).toHaveBeenCalledWith('jdoe');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when enabling a user as an admin', async () => {
+    ADMIN_USER.enable.mockRejectedValue(new Error('boom'));
+
+    const result = await service.adminEnableUser('jdoe');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('changes a user password as an admin', async () => {
+    ADMIN_USER.changePassword.mockResolvedValue(undefined);
+
+    const result = await service.adminChangeUserPassword('jdoe', 'newpw');
+
+    expect(ADMIN_USER.changePassword).toHaveBeenCalledWith('jdoe', { password: 'newpw' });
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when changing a user password as an admin', async () => {
+    ADMIN_USER.changePassword.mockRejectedValue(new Error('boom'));
+
+    const result = await service.adminChangeUserPassword('jdoe', 'newpw');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('creates a group as an admin', async () => {
+    ADMIN_GROUP.create.mockResolvedValue({ name: 'developers' });
+
+    const result = await service.adminCreateGroup('developers');
+
+    expect(ADMIN_GROUP.create).toHaveBeenCalledWith({ name: 'developers' });
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when creating a group as an admin', async () => {
+    ADMIN_GROUP.create.mockRejectedValue(new Error('boom'));
+
+    const result = await service.adminCreateGroup('developers');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('deletes a group as an admin', async () => {
+    ADMIN_GROUP.delete.mockResolvedValue(undefined);
+
+    const result = await service.adminDeleteGroup('developers');
+
+    expect(ADMIN_GROUP.delete).toHaveBeenCalledWith('developers');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when deleting a group as an admin', async () => {
+    ADMIN_GROUP.delete.mockRejectedValue(new Error('boom'));
+
+    const result = await service.adminDeleteGroup('developers');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('lists active users with the default page-size limit', async () => {
+    ADMIN_USERS.getActiveUsers.mockResolvedValue({ results: [] });
+
+    await service.adminGetActiveUsers();
+
+    expect(ADMIN_USERS.getActiveUsers).toHaveBeenCalledWith(undefined, '25', undefined);
+  });
+
+  it('forwards API errors when listing active users', async () => {
+    ADMIN_USERS.getActiveUsers.mockRejectedValue(new Error('boom'));
+
+    const result = await service.adminGetActiveUsers();
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ConfluenceService blueprint draft publishing', () => {
+  let service: ConfluenceService;
+  const draftContent = {
+    id: 'draft-1',
+    type: 'page',
+    status: 'current',
+    title: 'From template',
+    space: { key: 'DEV' },
+  };
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('publishes a shared blueprint draft', async () => {
+    CONTENT_BLUEPRINT.publishSharedDraft.mockResolvedValue({ id: 'draft-1' });
+
+    const result = await service.publishBlueprintSharedDraft('draft-1', draftContent);
+
+    expect(CONTENT_BLUEPRINT.publishSharedDraft).toHaveBeenCalledWith('draft-1', undefined, 'draft', draftContent);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when publishing a shared blueprint draft', async () => {
+    CONTENT_BLUEPRINT.publishSharedDraft.mockRejectedValue(new Error('boom'));
+
+    const result = await service.publishBlueprintSharedDraft('draft-1', draftContent);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('publishes a legacy blueprint draft', async () => {
+    CONTENT_BLUEPRINT.publishLegacyDraft.mockResolvedValue({ id: 'draft-1' });
+
+    const result = await service.publishBlueprintLegacyDraft('draft-1', draftContent, 'history');
+
+    expect(CONTENT_BLUEPRINT.publishLegacyDraft).toHaveBeenCalledWith('draft-1', 'history', 'draft', draftContent);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when publishing a legacy blueprint draft', async () => {
+    CONTENT_BLUEPRINT.publishLegacyDraft.mockRejectedValue(new Error('boom'));
+
+    const result = await service.publishBlueprintLegacyDraft('draft-1', draftContent);
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ConfluenceService.convertContentBody', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('converts a content body between representations', async () => {
+    CONTENT_BODY.convert.mockResolvedValue({ value: '<p>Hello</p>', representation: 'view' });
+
+    const result = await service.convertContentBody('view', '<p>Hello</p>', 'storage');
+
+    expect(CONTENT_BODY.convert).toHaveBeenCalledWith('view', undefined, { value: '<p>Hello</p>', representation: 'storage' });
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual({ value: '<p>Hello</p>', representation: 'view' });
+  });
+
+  it('forwards API errors when converting a content body', async () => {
+    CONTENT_BODY.convert.mockRejectedValue(new Error('boom'));
+
+    const result = await service.convertContentBody('view', '<p>Hello</p>', 'storage');
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ConfluenceService webhooks', () => {
+  let service: ConfluenceService;
+  const webhook = { name: 'my webhook', url: 'https://example.com/webhook', events: ['page_created'], active: true };
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('finds webhooks with the default page-size limit', async () => {
+    WEBHOOKS.findWebhooks.mockResolvedValue({ results: [] });
+
+    await service.findWebhooks();
+
+    expect(WEBHOOKS.findWebhooks).toHaveBeenCalledWith('25', undefined, undefined, undefined);
+  });
+
+  it('forwards API errors when finding webhooks', async () => {
+    WEBHOOKS.findWebhooks.mockRejectedValue(new Error('boom'));
+
+    const result = await service.findWebhooks();
+
+    expect(result.success).toBe(false);
+  });
+
+  it('creates a webhook', async () => {
+    WEBHOOKS.createWebhook.mockResolvedValue({ id: 'wh-1' });
+
+    const result = await service.createWebhook(webhook);
+
+    expect(WEBHOOKS.createWebhook).toHaveBeenCalledWith(webhook);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when creating a webhook', async () => {
+    WEBHOOKS.createWebhook.mockRejectedValue(new Error('boom'));
+
+    const result = await service.createWebhook(webhook);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets a webhook by ID', async () => {
+    WEBHOOKS.getWebhook.mockResolvedValue({ id: 'wh-1' });
+
+    const result = await service.getWebhook('wh-1', true);
+
+    expect(WEBHOOKS.getWebhook).toHaveBeenCalledWith('wh-1', true);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting a webhook', async () => {
+    WEBHOOKS.getWebhook.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getWebhook('wh-1');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('updates a webhook', async () => {
+    WEBHOOKS.updateWebhook.mockResolvedValue({ id: 'wh-1' });
+
+    const result = await service.updateWebhook('wh-1', webhook);
+
+    expect(WEBHOOKS.updateWebhook).toHaveBeenCalledWith('wh-1', webhook);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when updating a webhook', async () => {
+    WEBHOOKS.updateWebhook.mockRejectedValue(new Error('boom'));
+
+    const result = await service.updateWebhook('wh-1', webhook);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('deletes a webhook', async () => {
+    WEBHOOKS.deleteWebhook.mockResolvedValue(undefined);
+
+    const result = await service.deleteWebhook('wh-1');
+
+    expect(WEBHOOKS.deleteWebhook).toHaveBeenCalledWith('wh-1');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when deleting a webhook', async () => {
+    WEBHOOKS.deleteWebhook.mockRejectedValue(new Error('boom'));
+
+    const result = await service.deleteWebhook('wh-1');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets the latest invocation of a webhook', async () => {
+    WEBHOOKS.getLatestInvocation.mockResolvedValue({ outcome: 'SUCCESS' });
+
+    const result = await service.getWebhookLatestInvocation('wh-1', 'SUCCESS', 'page_created');
+
+    expect(WEBHOOKS.getLatestInvocation).toHaveBeenCalledWith('wh-1', 'SUCCESS', 'page_created');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting the latest invocation', async () => {
+    WEBHOOKS.getLatestInvocation.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getWebhookLatestInvocation('wh-1');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets webhook statistics', async () => {
+    WEBHOOKS.getStatistics.mockResolvedValue({ successCount: 1 });
+
+    const result = await service.getWebhookStatistics('wh-1', 'page_created');
+
+    expect(WEBHOOKS.getStatistics).toHaveBeenCalledWith('wh-1', 'page_created');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting webhook statistics', async () => {
+    WEBHOOKS.getStatistics.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getWebhookStatistics('wh-1');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets the webhook statistics summary', async () => {
+    WEBHOOKS.getStatisticsSummary.mockResolvedValue({ successCount: 1 });
+
+    const result = await service.getWebhookStatisticsSummary('wh-1');
+
+    expect(WEBHOOKS.getStatisticsSummary).toHaveBeenCalledWith('wh-1');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting the webhook statistics summary', async () => {
+    WEBHOOKS.getStatisticsSummary.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getWebhookStatisticsSummary('wh-1');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('tests connectivity to a webhook endpoint', async () => {
+    WEBHOOKS.testWebhook.mockResolvedValue({ ok: true });
+
+    const result = await service.testWebhook('https://example.com/webhook');
+
+    expect(WEBHOOKS.testWebhook).toHaveBeenCalledWith('https://example.com/webhook');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when testing a webhook', async () => {
+    WEBHOOKS.testWebhook.mockRejectedValue(new Error('boom'));
+
+    const result = await service.testWebhook('https://example.com/webhook');
+
+    expect(result.success).toBe(false);
   });
 });
