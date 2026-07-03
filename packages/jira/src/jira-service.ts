@@ -25,6 +25,7 @@ import {
   PermissionschemeService,
   PriorityschemesService,
   PriorityService,
+  ProjectCategoryService,
   ProjectService,
   ProjectsService,
   ResolutionService,
@@ -1022,6 +1023,41 @@ export class JiraService {
     );
   }
 
+  async getProjectCategories() {
+    return handleApiOperation(
+      () => ProjectCategoryService.getAllProjectCategories(),
+      'Error getting project categories'
+    );
+  }
+
+  async createProjectCategory(name?: string, description?: string) {
+    return handleApiOperation(
+      () => ProjectCategoryService.createProjectCategory({ name, description }),
+      'Error creating project category'
+    );
+  }
+
+  async getProjectCategory(id: number) {
+    return handleApiOperation(
+      () => ProjectCategoryService.getProjectCategoryById(id),
+      'Error getting project category'
+    );
+  }
+
+  async updateProjectCategory(id: number, name?: string, description?: string) {
+    return handleApiOperation(
+      () => ProjectCategoryService.updateProjectCategory(id, { name, description }),
+      'Error updating project category'
+    );
+  }
+
+  async deleteProjectCategory(id: number) {
+    return handleApiOperation(
+      () => ProjectCategoryService.removeProjectCategory(id),
+      'Error deleting project category'
+    );
+  }
+
   async getWorkflows(workflowName?: string) {
     return handleApiOperation(
       () => WorkflowService.getAllWorkflows(workflowName),
@@ -1784,6 +1820,22 @@ export const jiraToolSchemas = {
   },
   deletePriorityScheme: {
     schemeId: z.number().describe("Id of the priority scheme to delete")
+  },
+  getProjectCategories: {},
+  createProjectCategory: {
+    name: z.string().optional().describe("Name of the new project category"),
+    description: z.string().optional().describe("Description of the new project category")
+  },
+  getProjectCategory: {
+    id: z.number().describe("Id of the project category")
+  },
+  updateProjectCategory: {
+    id: z.number().describe("Id of the project category to update"),
+    name: z.string().optional().describe("New name for the project category"),
+    description: z.string().optional().describe("New description for the project category")
+  },
+  deleteProjectCategory: {
+    id: z.number().describe("Id of the project category to delete")
   },
   getPermissionSchemes: {
     expand: z.string().optional().describe("Comma-separated expansions, e.g. 'permissions' to include each scheme's permission grants")
