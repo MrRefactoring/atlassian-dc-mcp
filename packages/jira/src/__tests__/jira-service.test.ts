@@ -31,6 +31,7 @@ import {
   ProjectService,
   ProjectsService,
   ResolutionService,
+  RoleService,
   SearchService,
   SecuritylevelService,
   SprintService,
@@ -209,6 +210,17 @@ jest.mock('../jira-client/index.js', () => ({
   },
   StatusService: {
     getStatuses: jest.fn(),
+  },
+  RoleService: {
+    getProjectRoles1: jest.fn(),
+    createProjectRole: jest.fn(),
+    getProjectRolesById: jest.fn(),
+    fullyUpdateProjectRole: jest.fn(),
+    partialUpdateProjectRole: jest.fn(),
+    deleteProjectRole: jest.fn(),
+    getProjectRoleActorsForRole: jest.fn(),
+    addProjectRoleActorsToRole: jest.fn(),
+    deleteProjectRoleActorsFromRole: jest.fn(),
   },
   IssuetypeschemeService: {
     getAllIssueTypeSchemes: jest.fn(),
@@ -2271,6 +2283,117 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The category does not exist');
+    });
+  });
+
+  describe('role definitions', () => {
+    it('gets all role definitions', async () => {
+      const mockRoles = [{ id: 10, name: 'Administrators' }];
+      (RoleService.getProjectRoles1 as jest.Mock).mockResolvedValue(mockRoles);
+
+      const result = await jiraService.getRoleDefinitions();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRoles);
+      expect(RoleService.getProjectRoles1).toHaveBeenCalledWith();
+    });
+
+    it('creates a role definition', async () => {
+      const mockRole = { id: 11, name: 'New Role' };
+      (RoleService.createProjectRole as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.createRoleDefinition('New Role', 'A role');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(RoleService.createProjectRole).toHaveBeenCalledWith({ name: 'New Role', description: 'A role' });
+    });
+
+    it('gets a role definition by id', async () => {
+      const mockRole = { id: 10, name: 'Administrators' };
+      (RoleService.getProjectRolesById as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.getRoleDefinition(10);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(RoleService.getProjectRolesById).toHaveBeenCalledWith(10);
+    });
+
+    it('fully updates a role definition', async () => {
+      const mockRole = { id: 10, name: 'Renamed', description: 'Updated' };
+      (RoleService.fullyUpdateProjectRole as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.updateRoleDefinition(10, 'Renamed', 'Updated');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(RoleService.fullyUpdateProjectRole).toHaveBeenCalledWith(10, { name: 'Renamed', description: 'Updated' });
+    });
+
+    it('partially updates a role definition', async () => {
+      const mockRole = { id: 10, name: 'Renamed' };
+      (RoleService.partialUpdateProjectRole as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.partialUpdateRoleDefinition(10, 'Renamed');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(RoleService.partialUpdateProjectRole).toHaveBeenCalledWith(10, { name: 'Renamed', description: undefined });
+    });
+
+    it('deletes a role definition', async () => {
+      (RoleService.deleteProjectRole as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteRoleDefinition(10, 11);
+
+      expect(result.success).toBe(true);
+      expect(RoleService.deleteProjectRole).toHaveBeenCalledWith(10, 11);
+    });
+
+    it('gets role definition actors', async () => {
+      const mockActors = { id: 10, actors: [] };
+      (RoleService.getProjectRoleActorsForRole as jest.Mock).mockResolvedValue(mockActors);
+
+      const result = await jiraService.getRoleDefinitionActors(10);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockActors);
+      expect(RoleService.getProjectRoleActorsForRole).toHaveBeenCalledWith(10);
+    });
+
+    it('adds role definition actors', async () => {
+      const mockActors = { id: 10, actors: [] };
+      (RoleService.addProjectRoleActorsToRole as jest.Mock).mockResolvedValue(mockActors);
+
+      const result = await jiraService.addRoleDefinitionActors(10, ['jsmith'], ['jira-admins']);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockActors);
+      expect(RoleService.addProjectRoleActorsToRole).toHaveBeenCalledWith(10, {
+        user: ['jsmith'],
+        group: ['jira-admins'],
+      });
+    });
+
+    it('deletes a role definition actor', async () => {
+      const mockActors = { id: 10, actors: [] };
+      (RoleService.deleteProjectRoleActorsFromRole as jest.Mock).mockResolvedValue(mockActors);
+
+      const result = await jiraService.deleteRoleDefinitionActor(10, 'jsmith');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockActors);
+      expect(RoleService.deleteProjectRoleActorsFromRole).toHaveBeenCalledWith(10, 'jsmith', undefined);
+    });
+
+    it('handles errors', async () => {
+      (RoleService.getProjectRolesById as jest.Mock).mockRejectedValue(new Error('The role does not exist'));
+
+      const result = await jiraService.getRoleDefinition(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The role does not exist');
     });
   });
 

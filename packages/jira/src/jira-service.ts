@@ -29,6 +29,7 @@ import {
   ProjectService,
   ProjectsService,
   ResolutionService,
+  RoleService,
   SearchService,
   SecuritylevelService,
   SprintService,
@@ -1058,6 +1059,72 @@ export class JiraService {
     );
   }
 
+  async getRoleDefinitions() {
+    return handleApiOperation(
+      () => RoleService.getProjectRoles1(),
+      'Error getting role definitions'
+    );
+  }
+
+  async createRoleDefinition(name: string, description?: string) {
+    return handleApiOperation(
+      () => RoleService.createProjectRole({ name, description }),
+      'Error creating role definition'
+    );
+  }
+
+  async getRoleDefinition(id: number) {
+    return handleApiOperation(
+      () => RoleService.getProjectRolesById(id),
+      'Error getting role definition'
+    );
+  }
+
+  async updateRoleDefinition(id: number, name: string, description: string) {
+    return handleApiOperation(
+      () => RoleService.fullyUpdateProjectRole(id, { name, description }),
+      'Error updating role definition'
+    );
+  }
+
+  async partialUpdateRoleDefinition(id: number, name?: string, description?: string) {
+    return handleApiOperation(
+      () => RoleService.partialUpdateProjectRole(id, { name, description }),
+      'Error partially updating role definition'
+    );
+  }
+
+  async deleteRoleDefinition(id: number, swap?: number) {
+    return handleApiOperation(
+      () => RoleService.deleteProjectRole(id, swap),
+      'Error deleting role definition'
+    );
+  }
+
+  async getRoleDefinitionActors(id: number) {
+    return handleApiOperation(
+      () => RoleService.getProjectRoleActorsForRole(id),
+      'Error getting role definition actors'
+    );
+  }
+
+  async addRoleDefinitionActors(id: number, users?: string[], groups?: string[]) {
+    return handleApiOperation(
+      () => RoleService.addProjectRoleActorsToRole(id, {
+        ...(users ? { user: users } : {}),
+        ...(groups ? { group: groups } : {}),
+      }),
+      'Error adding role definition actors'
+    );
+  }
+
+  async deleteRoleDefinitionActor(id: number, user?: string, group?: string) {
+    return handleApiOperation(
+      () => RoleService.deleteProjectRoleActorsFromRole(id, user, group),
+      'Error deleting role definition actor'
+    );
+  }
+
   async getWorkflows(workflowName?: string) {
     return handleApiOperation(
       () => WorkflowService.getAllWorkflows(workflowName),
@@ -1836,6 +1903,41 @@ export const jiraToolSchemas = {
   },
   deleteProjectCategory: {
     id: z.number().describe("Id of the project category to delete")
+  },
+  getRoleDefinitions: {},
+  createRoleDefinition: {
+    name: z.string().describe("Name of the new global role definition"),
+    description: z.string().optional().describe("Description of the new global role definition")
+  },
+  getRoleDefinition: {
+    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids.")
+  },
+  updateRoleDefinition: {
+    id: z.number().describe("Id of the global role definition to fully update"),
+    name: z.string().describe("New name for the role definition"),
+    description: z.string().describe("New description for the role definition")
+  },
+  partialUpdateRoleDefinition: {
+    id: z.number().describe("Id of the global role definition to partially update"),
+    name: z.string().optional().describe("New name for the role definition"),
+    description: z.string().optional().describe("New description for the role definition")
+  },
+  deleteRoleDefinition: {
+    id: z.number().describe("Id of the global role definition to delete"),
+    swap: z.number().optional().describe("Id of another role definition to migrate existing usages to before deleting")
+  },
+  getRoleDefinitionActors: {
+    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids.")
+  },
+  addRoleDefinitionActors: {
+    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids."),
+    users: z.array(z.string()).optional().describe("Usernames to add as default actors for this role"),
+    groups: z.array(z.string()).optional().describe("Group names to add as default actors for this role")
+  },
+  deleteRoleDefinitionActor: {
+    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids."),
+    user: z.string().optional().describe("Username of the default actor to remove"),
+    group: z.string().optional().describe("Group name of the default actor to remove")
   },
   getPermissionSchemes: {
     expand: z.string().optional().describe("Comma-separated expansions, e.g. 'permissions' to include each scheme's permission grants")
