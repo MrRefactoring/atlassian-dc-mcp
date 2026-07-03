@@ -189,7 +189,7 @@ Besides tools, this server exposes one MCP resource template so an issue can be 
 
 ### Available Tools
 
-This server exposes 208 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 234 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -208,7 +208,9 @@ This server exposes 208 tools, grouped below by area. Every tool name is prefixe
 - `jira_createIssues` — Create multiple issues in a single bulk request.
 - `jira_archiveIssues` — Bulk archive issues by keys or JQL.
 - `jira_archiveIssue` — Archive a single issue.
+- `jira_restoreIssue` — Restore a previously archived issue.
 - `jira_rankIssues` — Reorder (rank) issues relative to another issue, as used on Agile boards/backlogs.
+- `jira_notifyIssue` — Send a manual email notification about an issue to specific users, groups, or roles.
 
 #### Issue comments
 
@@ -216,6 +218,8 @@ This server exposes 208 tools, grouped below by area. Every tool name is prefixe
 - `jira_postIssueComment` — Post a comment on an issue.
 - `jira_updateIssueComment` — Update the text of an existing comment.
 - `jira_deleteIssueComment` — Delete a comment. This is irreversible.
+- `jira_setCommentPinned` — Pin or unpin a comment.
+- `jira_getPinnedComments` — Get all pinned comments for an issue.
 
 #### Issue watchers & votes
 
@@ -233,6 +237,9 @@ This server exposes 208 tools, grouped below by area. Every tool name is prefixe
 - `jira_getIssueWorklog` — Get a single worklog entry of an issue.
 - `jira_updateIssueWorklog` — Update a worklog entry of an issue.
 - `jira_deleteIssueWorklog` — Delete a worklog entry. This is irreversible.
+- `jira_getWorklogsDeletedSince` — Get the ids of worklogs deleted since a given time across the whole instance, for bulk sync.
+- `jira_getWorklogsModifiedSince` — Get the ids of worklogs modified since a given time across the whole instance, for bulk sync.
+- `jira_getWorklogsForIds` — Get worklog details for a batch of worklog ids.
 
 #### Issue attachments
 
@@ -257,6 +264,23 @@ This server exposes 208 tools, grouped below by area. Every tool name is prefixe
 - `jira_createIssueLinkType` — Create a new issue link type.
 - `jira_updateIssueLinkType` — Update an issue link type.
 - `jira_deleteIssueLinkType` — Delete an issue link type. This is irreversible.
+
+#### Entity properties
+
+Arbitrary JSON key/value metadata attachable to issues, projects, and comments.
+
+- `jira_getIssuePropertyKeys` — Get the keys of all entity properties stored on an issue.
+- `jira_getIssueProperty` — Get a single entity property value from an issue.
+- `jira_setIssueProperty` — Set an entity property on an issue.
+- `jira_deleteIssueProperty` — Delete an entity property from an issue.
+- `jira_getProjectPropertyKeys` — Get the keys of all entity properties stored on a project.
+- `jira_getProjectProperty` — Get a single entity property value from a project.
+- `jira_setProjectProperty` — Set an entity property on a project.
+- `jira_deleteProjectProperty` — Delete an entity property from a project.
+- `jira_getCommentPropertyKeys` — Get the keys of all entity properties stored on a comment.
+- `jira_getCommentProperty` — Get a single entity property value from a comment.
+- `jira_setCommentProperty` — Set an entity property on a comment.
+- `jira_deleteCommentProperty` — Delete an entity property from a comment.
 
 #### Projects
 
@@ -421,13 +445,20 @@ This server exposes 208 tools, grouped below by area. Every tool name is prefixe
 - `jira_getApplicationRoles` — Get all application roles (e.g. jira-software, jira-servicedesk). Read-only catalog of licensed applications.
 - `jira_getApplicationRole` — Get a single application role by key.
 
-#### Workflows & workflow schemes (read-only)
+#### Workflows & workflow schemes
 
 - `jira_getWorkflows` — Get all workflows, or a workflow by name.
 - `jira_getWorkflowScheme` — Get a workflow scheme by id.
 - `jira_getWorkflowSchemeDefault` — Get the default workflow of a workflow scheme.
 - `jira_getWorkflowSchemeIssueTypeMapping` — Get the workflow mapping for a specific issue type in a workflow scheme.
 - `jira_getWorkflowSchemeWorkflowMapping` — Get the issue type mappings for a workflow (or all workflows) in a workflow scheme.
+- `jira_createWorkflowScheme` — Create a new workflow scheme.
+- `jira_updateWorkflowScheme` — Update a workflow scheme's name, description, default workflow, or issue type mappings.
+- `jira_deleteWorkflowScheme` — Delete a workflow scheme. This is irreversible.
+- `jira_setWorkflowSchemeIssueTypeMapping` — Set the workflow mapping for a specific issue type in a workflow scheme.
+- `jira_deleteWorkflowSchemeIssueTypeMapping` — Remove an issue type's workflow mapping from a workflow scheme.
+- `jira_setWorkflowSchemeWorkflowMapping` — Add or replace a workflow's issue type mapping in a workflow scheme.
+- `jira_deleteWorkflowSchemeWorkflowMapping` — Remove a workflow's mapping from a workflow scheme.
 
 #### Notification schemes
 

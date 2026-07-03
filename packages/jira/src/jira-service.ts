@@ -6,6 +6,7 @@ import {
   AvatarService,
   BacklogService,
   BoardService,
+  CommentService,
   ComponentService,
   CustomFieldOptionService,
   CustomFieldsService,
@@ -48,6 +49,7 @@ import {
   VersionService,
   WorkflowService,
   WorkflowschemeService,
+  WorklogService,
 } from './jira-client/index.js';
 import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
 import type { MoveFieldBean } from './jira-client/models/MoveFieldBean.js';
@@ -310,6 +312,34 @@ export class JiraService {
     );
   }
 
+  async getProjectPropertyKeys(projectIdOrKey: string) {
+    return handleApiOperation(
+      () => ProjectService.getPropertiesKeys3(projectIdOrKey),
+      'Error getting project property keys'
+    );
+  }
+
+  async getProjectProperty(projectIdOrKey: string, propertyKey: string) {
+    return handleApiOperation(
+      () => ProjectService.getProperty5(propertyKey, projectIdOrKey),
+      'Error getting project property'
+    );
+  }
+
+  async setProjectProperty(projectIdOrKey: string, propertyKey: string, value: string) {
+    return handleApiOperation(
+      () => ProjectService.setProperty4(propertyKey, projectIdOrKey, { key: propertyKey, value }),
+      'Error setting project property'
+    );
+  }
+
+  async deleteProjectProperty(projectIdOrKey: string, propertyKey: string) {
+    return handleApiOperation(
+      () => ProjectService.deleteProperty5(propertyKey, projectIdOrKey),
+      'Error deleting project property'
+    );
+  }
+
   async getIssueTypes() {
     return handleApiOperation(() => IssuetypeService.getIssueAllTypes(), 'Error getting issue types');
   }
@@ -362,6 +392,34 @@ export class JiraService {
     return handleApiOperation(
       () => IssueService.deleteComment(issueKey, commentId),
       'Error deleting issue comment'
+    );
+  }
+
+  async getCommentPropertyKeys(commentId: string) {
+    return handleApiOperation(
+      () => CommentService.getPropertiesKeys1(commentId),
+      'Error getting comment property keys'
+    );
+  }
+
+  async getCommentProperty(commentId: string, propertyKey: string) {
+    return handleApiOperation(
+      () => CommentService.getProperty2(propertyKey, commentId),
+      'Error getting comment property'
+    );
+  }
+
+  async setCommentProperty(commentId: string, propertyKey: string, value: string) {
+    return handleApiOperation(
+      () => CommentService.setProperty1(propertyKey, commentId, value),
+      'Error setting comment property'
+    );
+  }
+
+  async deleteCommentProperty(commentId: string, propertyKey: string) {
+    return handleApiOperation(
+      () => CommentService.deleteProperty2(propertyKey, commentId),
+      'Error deleting comment property'
     );
   }
 
@@ -421,6 +479,27 @@ export class JiraService {
     return handleApiOperation(
       () => IssueService.deleteWorklog(issueKey, worklogId),
       'Error deleting issue worklog'
+    );
+  }
+
+  async getWorklogsDeletedSince(since?: number) {
+    return handleApiOperation(
+      () => WorklogService.getIdsOfWorklogsDeletedSince(since),
+      'Error getting worklogs deleted since given time'
+    );
+  }
+
+  async getWorklogsModifiedSince(since?: number) {
+    return handleApiOperation(
+      () => WorklogService.getIdsOfWorklogsModifiedSince(since),
+      'Error getting worklogs modified since given time'
+    );
+  }
+
+  async getWorklogsForIds(worklogIds: number[]) {
+    return handleApiOperation(
+      () => WorklogService.getWorklogsForIds({ ids: worklogIds }),
+      'Error getting worklogs for ids'
     );
   }
 
@@ -888,10 +967,91 @@ export class JiraService {
     );
   }
 
+  async restoreIssue(issueKey: string, notifyUsers?: boolean) {
+    return handleApiOperation(
+      () => IssueService.restoreIssue(issueKey, notifyUsers?.toString()),
+      'Error restoring issue'
+    );
+  }
+
   async rankIssues(issueKeys: string[], rankBeforeIssue?: string, rankAfterIssue?: string, rankCustomFieldId?: number) {
     return handleApiOperation(
       () => IssueService.rankIssues({ issues: issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId }),
       'Error ranking issues'
+    );
+  }
+
+  async getIssuePropertyKeys(issueKey: string) {
+    return handleApiOperation(
+      () => IssueService.getPropertiesKeys2(issueKey),
+      'Error getting issue property keys'
+    );
+  }
+
+  async getIssueProperty(issueKey: string, propertyKey: string) {
+    return handleApiOperation(
+      () => IssueService.getProperty3(propertyKey, issueKey),
+      'Error getting issue property'
+    );
+  }
+
+  async setIssueProperty(issueKey: string, propertyKey: string, value: string) {
+    return handleApiOperation(
+      () => IssueService.setProperty2(propertyKey, issueKey, value),
+      'Error setting issue property'
+    );
+  }
+
+  async deleteIssueProperty(issueKey: string, propertyKey: string) {
+    return handleApiOperation(
+      () => IssueService.deleteProperty3(propertyKey, issueKey),
+      'Error deleting issue property'
+    );
+  }
+
+  async notifyIssue(
+    issueKey: string,
+    subject?: string,
+    textBody?: string,
+    htmlBody?: string,
+    toReporter?: boolean,
+    toAssignee?: boolean,
+    toWatchers?: boolean,
+    toVoters?: boolean,
+    toUsernames?: string[],
+    toGroupNames?: string[],
+    restrictToGroupNames?: string[]
+  ) {
+    return handleApiOperation(
+      () => IssueService.notify(issueKey, {
+        subject,
+        textBody,
+        htmlBody,
+        to: {
+          reporter: toReporter,
+          assignee: toAssignee,
+          watchers: toWatchers,
+          voters: toVoters,
+          users: toUsernames?.map((name) => ({ name })),
+          groups: toGroupNames?.map((name) => ({ name })),
+        },
+        restrict: restrictToGroupNames ? { groups: restrictToGroupNames.map((name) => ({ name })) } : undefined,
+      }),
+      'Error sending issue notification'
+    );
+  }
+
+  async setCommentPinned(issueKey: string, commentId: string, pinned: boolean) {
+    return handleApiOperation(
+      () => IssueService.setPinComment(issueKey, commentId, pinned),
+      'Error setting comment pinned state'
+    );
+  }
+
+  async getPinnedComments(issueKey: string) {
+    return handleApiOperation(
+      () => IssueService.getPinnedComments(issueKey),
+      'Error getting pinned comments'
     );
   }
 
@@ -1359,6 +1519,55 @@ export class JiraService {
     );
   }
 
+  async createWorkflowScheme(name?: string, description?: string, defaultWorkflow?: string, issueTypeMappings?: Record<string, string>) {
+    return handleApiOperation(
+      () => WorkflowschemeService.createScheme({ name, description, defaultWorkflow, issueTypeMappings }),
+      'Error creating workflow scheme'
+    );
+  }
+
+  async updateWorkflowScheme(schemeId: number, name?: string, description?: string, defaultWorkflow?: string, issueTypeMappings?: Record<string, string>, updateDraftIfNeeded?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.update(schemeId, { name, description, defaultWorkflow, issueTypeMappings, updateDraftIfNeeded }),
+      'Error updating workflow scheme'
+    );
+  }
+
+  async deleteWorkflowScheme(schemeId: number) {
+    return handleApiOperation(
+      () => WorkflowschemeService.deleteScheme(schemeId),
+      'Error deleting workflow scheme'
+    );
+  }
+
+  async setWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, workflow: string, updateDraftIfNeeded?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.setIssueType(issueType, schemeId, { issueType, workflow, updateDraftIfNeeded }),
+      'Error setting workflow scheme issue type mapping'
+    );
+  }
+
+  async deleteWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, updateDraftIfNeeded?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.deleteIssueType(issueType, schemeId, updateDraftIfNeeded),
+      'Error deleting workflow scheme issue type mapping'
+    );
+  }
+
+  async setWorkflowSchemeWorkflowMapping(schemeId: number, workflow: string, issueTypes?: string[], defaultMapping?: boolean, updateDraftIfNeeded?: boolean, workflowName?: string) {
+    return handleApiOperation(
+      () => WorkflowschemeService.updateWorkflowMapping(schemeId, { workflow, issueTypes, defaultMapping, updateDraftIfNeeded }, workflowName),
+      'Error setting workflow scheme workflow mapping'
+    );
+  }
+
+  async deleteWorkflowSchemeWorkflowMapping(schemeId: number, workflowName?: string, updateDraftIfNeeded?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.deleteWorkflowMapping(schemeId, updateDraftIfNeeded, workflowName),
+      'Error deleting workflow scheme workflow mapping'
+    );
+  }
+
   async getNotificationSchemes(expand?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => NotificationschemeService.getNotificationSchemes(expand, maxResults, startAt),
@@ -1798,6 +2007,22 @@ export const jiraToolSchemas = {
   restoreProject: {
     projectIdOrKey: z.string().describe("Project id or key (e.g., TEST) of a previously archived project")
   },
+  getProjectPropertyKeys: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)")
+  },
+  getProjectProperty: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    propertyKey: z.string().describe("Key of the property to look up. Use jira_getProjectPropertyKeys to find valid keys.")
+  },
+  setProjectProperty: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    propertyKey: z.string().describe("Key of the property to set. The maximum length of the key is 255 bytes."),
+    value: z.string().describe("New property value as a JSON-encoded string, e.g. '{\"foo\":\"bar\"}' or '\"a plain string\"'. Maximum length 32768 bytes.")
+  },
+  deleteProjectProperty: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    propertyKey: z.string().describe("Key of the property to remove")
+  },
   getIssueTypes: {},
   getPriorities: {},
   getResolutions: {},
@@ -1828,6 +2053,22 @@ export const jiraToolSchemas = {
   deleteIssueComment: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
     commentId: z.string().describe("Id of the comment to delete. Use jira_getIssueComments to find comment ids.")
+  },
+  getCommentPropertyKeys: {
+    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids.")
+  },
+  getCommentProperty: {
+    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids."),
+    propertyKey: z.string().describe("Key of the property to look up. Use jira_getCommentPropertyKeys to find valid keys.")
+  },
+  setCommentProperty: {
+    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids."),
+    propertyKey: z.string().describe("Key of the property to set. The maximum length of the key is 255 bytes."),
+    value: z.string().describe("New property value as a JSON-encoded string, e.g. '{\"foo\":\"bar\"}' or '\"a plain string\"'. Maximum length 32768 bytes.")
+  },
+  deleteCommentProperty: {
+    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids."),
+    propertyKey: z.string().describe("Key of the property to remove")
   },
   getIssueWatchers: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
@@ -1872,6 +2113,15 @@ export const jiraToolSchemas = {
   deleteIssueWorklog: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
     worklogId: z.string().describe("Id of the worklog entry to delete. Use jira_getIssueWorklogs to find worklog ids.")
+  },
+  getWorklogsDeletedSince: {
+    since: z.number().optional().describe("Unix epoch millisecond timestamp; only worklogs deleted after this time are returned. Omit to get the full (up to 1000) result set. Excludes worklogs deleted in the last minute.")
+  },
+  getWorklogsModifiedSince: {
+    since: z.number().optional().describe("Unix epoch millisecond timestamp; only worklogs updated after this time are returned. Omit to get the full (up to 1000) result set. Excludes worklogs updated in the last minute.")
+  },
+  getWorklogsForIds: {
+    worklogIds: z.array(z.number()).describe("Worklog ids to fetch, e.g. from jira_getWorklogsDeletedSince or jira_getWorklogsModifiedSince. Maximum 1000 ids per request.")
   },
   addIssueAttachment: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
@@ -2151,11 +2401,52 @@ export const jiraToolSchemas = {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
     notifyUsers: z.boolean().optional().describe("Whether to send notifications for this change")
   },
+  restoreIssue: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123) of a previously archived issue"),
+    notifyUsers: z.boolean().optional().describe("Whether to send notifications for this change. Admin or project admin permission is required to disable notifications.")
+  },
   rankIssues: {
     issueKeys: z.array(z.string()).describe("Issue keys to rank, in the desired order"),
     rankBeforeIssue: z.string().optional().describe("Rank the issues before this issue key"),
     rankAfterIssue: z.string().optional().describe("Rank the issues after this issue key"),
     rankCustomFieldId: z.number().optional().describe("Id of the custom 'Rank' field, if not the default")
+  },
+  getIssuePropertyKeys: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+  },
+  getIssueProperty: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    propertyKey: z.string().describe("Key of the property to look up. Use jira_getIssuePropertyKeys to find valid keys.")
+  },
+  setIssueProperty: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    propertyKey: z.string().describe("Key of the property to set"),
+    value: z.string().describe("New property value as a JSON-encoded string, e.g. '{\"foo\":\"bar\"}' or '\"a plain string\"'")
+  },
+  deleteIssueProperty: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    propertyKey: z.string().describe("Key of the property to remove")
+  },
+  notifyIssue: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    subject: z.string().optional().describe("Email subject. Defaults to the issue summary if omitted."),
+    textBody: z.string().optional().describe("Plain-text email body"),
+    htmlBody: z.string().optional().describe("HTML email body"),
+    toReporter: z.boolean().optional().describe("Send to the issue's reporter"),
+    toAssignee: z.boolean().optional().describe("Send to the issue's assignee"),
+    toWatchers: z.boolean().optional().describe("Send to all watchers of the issue"),
+    toVoters: z.boolean().optional().describe("Send to all voters of the issue"),
+    toUsernames: z.array(z.string()).optional().describe("Usernames of additional recipients"),
+    toGroupNames: z.array(z.string()).optional().describe("Names of groups whose members should receive the notification"),
+    restrictToGroupNames: z.array(z.string()).optional().describe("Restrict the notification to only recipients who are members of these groups")
+  },
+  setCommentPinned: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
+    commentId: z.string().describe("Id of the comment to pin or unpin. Use jira_getIssueComments to find comment ids."),
+    pinned: z.boolean().describe("true to pin the comment to the top of the comment list, false to unpin it")
+  },
+  getPinnedComments: {
+    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
   },
   getBoards: {
     maxResults: z.number().optional().describe("Maximum number of boards to return"),
@@ -2449,6 +2740,47 @@ export const jiraToolSchemas = {
     schemeId: z.number().describe("Id of the workflow scheme"),
     workflowName: z.string().optional().describe("Name of a specific workflow to look up. Omit to return all workflow mappings."),
     returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's mapping if a draft exists")
+  },
+  createWorkflowScheme: {
+    name: z.string().optional().describe("Name of the new workflow scheme"),
+    description: z.string().optional().describe("Description of the workflow scheme"),
+    defaultWorkflow: z.string().optional().describe("Name of the workflow to use as the scheme's default"),
+    issueTypeMappings: z.record(z.string(), z.string()).optional().describe("Map of issue type id to workflow name for issue types that should use a workflow other than the default")
+  },
+  updateWorkflowScheme: {
+    schemeId: z.number().describe("Id of the workflow scheme to update"),
+    name: z.string().optional().describe("New name for the workflow scheme"),
+    description: z.string().optional().describe("New description for the workflow scheme"),
+    defaultWorkflow: z.string().optional().describe("New default workflow name"),
+    issueTypeMappings: z.record(z.string(), z.string()).optional().describe("Replacement map of issue type id to workflow name"),
+    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+  },
+  deleteWorkflowScheme: {
+    schemeId: z.number().describe("Id of the workflow scheme to delete. The scheme must not be active (in use by a project).")
+  },
+  setWorkflowSchemeIssueTypeMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    issueType: z.string().describe("Id of the issue type to map"),
+    workflow: z.string().describe("Name of the workflow to map the issue type to"),
+    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+  },
+  deleteWorkflowSchemeIssueTypeMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    issueType: z.string().describe("Id of the issue type mapping to remove"),
+    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+  },
+  setWorkflowSchemeWorkflowMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    workflow: z.string().describe("Name of the workflow for this mapping"),
+    issueTypes: z.array(z.string()).optional().describe("Issue type ids to associate with this workflow"),
+    defaultMapping: z.boolean().optional().describe("Whether this mapping should become the scheme's default"),
+    workflowName: z.string().optional().describe("Name of the existing workflow mapping to replace. Omit when adding a brand new mapping."),
+    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+  },
+  deleteWorkflowSchemeWorkflowMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    workflowName: z.string().optional().describe("Name of the workflow mapping to remove. Omit to remove the default workflow's mapping."),
+    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
   },
   getNotificationSchemes: {
     expand: z.string().optional().describe("Comma-separated expansions, e.g. 'all,field,group,user,projectRole,notificationSchemeEvents'"),

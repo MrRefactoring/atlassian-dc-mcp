@@ -9,6 +9,7 @@ import {
   AvatarService,
   BacklogService,
   BoardService,
+  CommentService,
   ComponentService,
   CustomFieldOptionService,
   CustomFieldsService,
@@ -50,6 +51,7 @@ import {
   VersionService,
   WorkflowService,
   WorkflowschemeService,
+  WorklogService,
 } from '../jira-client/index.js';
 import { request as __request } from '../jira-client/core/request.js';
 
@@ -91,6 +93,7 @@ jest.mock('../jira-client/index.js', () => ({
     createIssues: jest.fn(),
     archiveIssues: jest.fn(),
     archiveIssue: jest.fn(),
+    restoreIssue: jest.fn(),
     rankIssues: jest.fn(),
     getRemoteIssueLinks: jest.fn(),
     getRemoteIssueLinkById: jest.fn(),
@@ -98,6 +101,19 @@ jest.mock('../jira-client/index.js', () => ({
     updateRemoteIssueLink: jest.fn(),
     deleteRemoteIssueLinkById: jest.fn(),
     deleteRemoteIssueLinkByGlobalId: jest.fn(),
+    getPropertiesKeys2: jest.fn(),
+    getProperty3: jest.fn(),
+    setProperty2: jest.fn(),
+    deleteProperty3: jest.fn(),
+    notify: jest.fn(),
+    setPinComment: jest.fn(),
+    getPinnedComments: jest.fn(),
+  },
+  CommentService: {
+    getPropertiesKeys1: jest.fn(),
+    getProperty2: jest.fn(),
+    setProperty1: jest.fn(),
+    deleteProperty2: jest.fn(),
   },
   AttachmentService: {
     getAttachmentMeta: jest.fn(),
@@ -212,6 +228,10 @@ jest.mock('../jira-client/index.js', () => ({
     deleteProject: jest.fn(),
     archiveProject: jest.fn(),
     restoreProject: jest.fn(),
+    getPropertiesKeys3: jest.fn(),
+    getProperty5: jest.fn(),
+    setProperty4: jest.fn(),
+    deleteProperty5: jest.fn(),
     getProjectRoles: jest.fn(),
     getProjectRole: jest.fn(),
     setActors: jest.fn(),
@@ -300,6 +320,18 @@ jest.mock('../jira-client/index.js', () => ({
     getDefault: jest.fn(),
     getIssueType: jest.fn(),
     getWorkflow: jest.fn(),
+    createScheme: jest.fn(),
+    update: jest.fn(),
+    deleteScheme: jest.fn(),
+    setIssueType: jest.fn(),
+    deleteIssueType: jest.fn(),
+    updateWorkflowMapping: jest.fn(),
+    deleteWorkflowMapping: jest.fn(),
+  },
+  WorklogService: {
+    getIdsOfWorklogsDeletedSince: jest.fn(),
+    getIdsOfWorklogsModifiedSince: jest.fn(),
+    getWorklogsForIds: jest.fn(),
   },
   NotificationschemeService: {
     getNotificationSchemes: jest.fn(),
@@ -873,6 +905,84 @@ describe('JiraService', () => {
     });
   });
 
+  describe('project entity properties', () => {
+    it('gets project property keys', async () => {
+      const mockKeys = { keys: [{ key: 'my-property', self: 'https://example.com' }] };
+      (ProjectService.getPropertiesKeys3 as jest.Mock).mockResolvedValue(mockKeys);
+
+      const result = await jiraService.getProjectPropertyKeys('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockKeys);
+      expect(ProjectService.getPropertiesKeys3).toHaveBeenCalledWith('TEST');
+    });
+
+    it('handles errors getting project property keys', async () => {
+      (ProjectService.getPropertiesKeys3 as jest.Mock).mockRejectedValue(new Error('The project does not exist'));
+
+      const result = await jiraService.getProjectPropertyKeys('MISSING');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The project does not exist');
+    });
+
+    it('gets a project property', async () => {
+      const mockProperty = { key: 'my-property', value: '{"a":1}' };
+      (ProjectService.getProperty5 as jest.Mock).mockResolvedValue(mockProperty);
+
+      const result = await jiraService.getProjectProperty('TEST', 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProperty);
+      expect(ProjectService.getProperty5).toHaveBeenCalledWith('my-property', 'TEST');
+    });
+
+    it('handles errors getting a project property', async () => {
+      (ProjectService.getProperty5 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.getProjectProperty('TEST', 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
+    });
+
+    it('sets a project property', async () => {
+      (ProjectService.setProperty4 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setProjectProperty('TEST', 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(true);
+      expect(ProjectService.setProperty4).toHaveBeenCalledWith('my-property', 'TEST', { key: 'my-property', value: '{"a":1}' });
+    });
+
+    it('handles errors setting a project property', async () => {
+      (ProjectService.setProperty4 as jest.Mock).mockRejectedValue(new Error('The calling user does not have permission to administer the project'));
+
+      const result = await jiraService.setProjectProperty('TEST', 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The calling user does not have permission to administer the project');
+    });
+
+    it('deletes a project property', async () => {
+      (ProjectService.deleteProperty5 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteProjectProperty('TEST', 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(ProjectService.deleteProperty5).toHaveBeenCalledWith('my-property', 'TEST');
+    });
+
+    it('handles errors deleting a project property', async () => {
+      (ProjectService.deleteProperty5 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.deleteProjectProperty('TEST', 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
+    });
+  });
+
   describe('reference data lookups', () => {
     it('gets issue types', async () => {
       const mockTypes = [{ name: 'Bug' }];
@@ -1041,6 +1151,84 @@ describe('JiraService', () => {
     });
   });
 
+  describe('comment entity properties', () => {
+    it('gets comment property keys', async () => {
+      const mockKeys = { keys: [{ key: 'my-property', self: 'https://example.com' }] };
+      (CommentService.getPropertiesKeys1 as jest.Mock).mockResolvedValue(mockKeys);
+
+      const result = await jiraService.getCommentPropertyKeys('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockKeys);
+      expect(CommentService.getPropertiesKeys1).toHaveBeenCalledWith('10000');
+    });
+
+    it('handles errors getting comment property keys', async () => {
+      (CommentService.getPropertiesKeys1 as jest.Mock).mockRejectedValue(new Error('The comment with given key or id does not exist'));
+
+      const result = await jiraService.getCommentPropertyKeys('99999');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The comment with given key or id does not exist');
+    });
+
+    it('gets a comment property', async () => {
+      const mockProperty = { key: 'my-property', value: '{"a":1}' };
+      (CommentService.getProperty2 as jest.Mock).mockResolvedValue(mockProperty);
+
+      const result = await jiraService.getCommentProperty('10000', 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProperty);
+      expect(CommentService.getProperty2).toHaveBeenCalledWith('my-property', '10000');
+    });
+
+    it('handles errors getting a comment property', async () => {
+      (CommentService.getProperty2 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.getCommentProperty('10000', 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
+    });
+
+    it('sets a comment property', async () => {
+      (CommentService.setProperty1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setCommentProperty('10000', 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(true);
+      expect(CommentService.setProperty1).toHaveBeenCalledWith('my-property', '10000', '{"a":1}');
+    });
+
+    it('handles errors setting a comment property', async () => {
+      (CommentService.setProperty1 as jest.Mock).mockRejectedValue(new Error('The calling user does not have permission to administer the comment'));
+
+      const result = await jiraService.setCommentProperty('10000', 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The calling user does not have permission to administer the comment');
+    });
+
+    it('deletes a comment property', async () => {
+      (CommentService.deleteProperty2 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteCommentProperty('10000', 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(CommentService.deleteProperty2).toHaveBeenCalledWith('my-property', '10000');
+    });
+
+    it('handles errors deleting a comment property', async () => {
+      (CommentService.deleteProperty2 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.deleteCommentProperty('10000', 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
+    });
+  });
+
   describe('watchers', () => {
     it('gets issue watchers', async () => {
       const mockWatchers = { watchCount: 1, watchers: [{ name: 'john.doe' }] };
@@ -1180,6 +1368,68 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Time tracking is disabled');
+    });
+  });
+
+  describe('bulk worklog sync', () => {
+    it('gets ids of worklogs deleted since a given time', async () => {
+      const mockChanges = { values: [{ worklogId: 100, updatedTime: 123 }], lastPage: true };
+      (WorklogService.getIdsOfWorklogsDeletedSince as jest.Mock).mockResolvedValue(mockChanges);
+
+      const result = await jiraService.getWorklogsDeletedSince(1000);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockChanges);
+      expect(WorklogService.getIdsOfWorklogsDeletedSince).toHaveBeenCalledWith(1000);
+    });
+
+    it('handles errors getting ids of worklogs deleted since a given time', async () => {
+      (WorklogService.getIdsOfWorklogsDeletedSince as jest.Mock).mockRejectedValue(new Error('Invalid since parameter'));
+
+      const result = await jiraService.getWorklogsDeletedSince(-1);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid since parameter');
+    });
+
+    it('gets ids of worklogs modified since a given time', async () => {
+      const mockChanges = { values: [{ worklogId: 100, updatedTime: 123 }], lastPage: true };
+      (WorklogService.getIdsOfWorklogsModifiedSince as jest.Mock).mockResolvedValue(mockChanges);
+
+      const result = await jiraService.getWorklogsModifiedSince(1000);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockChanges);
+      expect(WorklogService.getIdsOfWorklogsModifiedSince).toHaveBeenCalledWith(1000);
+    });
+
+    it('handles errors getting ids of worklogs modified since a given time', async () => {
+      (WorklogService.getIdsOfWorklogsModifiedSince as jest.Mock).mockRejectedValue(new Error('Invalid since parameter'));
+
+      const result = await jiraService.getWorklogsModifiedSince(-1);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid since parameter');
+    });
+
+    it('gets worklogs for a batch of ids', async () => {
+      const mockWorklogs = [{ id: '100', timeSpent: '3h' }];
+      (WorklogService.getWorklogsForIds as jest.Mock).mockResolvedValue(mockWorklogs);
+
+      const result = await jiraService.getWorklogsForIds([100, 101]);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWorklogs);
+      expect(WorklogService.getWorklogsForIds).toHaveBeenCalledWith({ ids: [100, 101] });
+    });
+
+    it('handles errors getting worklogs for a batch of ids', async () => {
+      (WorklogService.getWorklogsForIds as jest.Mock).mockRejectedValue(new Error('The request contains more than 1000 ids'));
+
+      const result = await jiraService.getWorklogsForIds([100]);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The request contains more than 1000 ids');
     });
   });
 
@@ -2084,6 +2334,24 @@ describe('JiraService', () => {
       expect(IssueService.archiveIssue).toHaveBeenCalledWith(mockIssueKey, undefined);
     });
 
+    it('restores an archived issue', async () => {
+      (IssueService.restoreIssue as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.restoreIssue(mockIssueKey, true);
+
+      expect(result.success).toBe(true);
+      expect(IssueService.restoreIssue).toHaveBeenCalledWith(mockIssueKey, 'true');
+    });
+
+    it('handles errors restoring an archived issue', async () => {
+      (IssueService.restoreIssue as jest.Mock).mockRejectedValue(new Error('The issue is not archived'));
+
+      const result = await jiraService.restoreIssue(mockIssueKey);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The issue is not archived');
+    });
+
     it('ranks issues', async () => {
       (IssueService.rankIssues as jest.Mock).mockResolvedValue({ success: true });
 
@@ -2105,6 +2373,155 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('User does not have permission to rank');
+    });
+  });
+
+  describe('issue entity properties', () => {
+    it('gets issue property keys', async () => {
+      const mockKeys = { keys: [{ key: 'my-property', self: 'https://example.com' }] };
+      (IssueService.getPropertiesKeys2 as jest.Mock).mockResolvedValue(mockKeys);
+
+      const result = await jiraService.getIssuePropertyKeys(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockKeys);
+      expect(IssueService.getPropertiesKeys2).toHaveBeenCalledWith(mockIssueKey);
+    });
+
+    it('handles errors getting issue property keys', async () => {
+      (IssueService.getPropertiesKeys2 as jest.Mock).mockRejectedValue(new Error('The issue with given key or id does not exist'));
+
+      const result = await jiraService.getIssuePropertyKeys('PROJ-999');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The issue with given key or id does not exist');
+    });
+
+    it('gets an issue property', async () => {
+      const mockProperty = { key: 'my-property', value: '{"a":1}' };
+      (IssueService.getProperty3 as jest.Mock).mockResolvedValue(mockProperty);
+
+      const result = await jiraService.getIssueProperty(mockIssueKey, 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProperty);
+      expect(IssueService.getProperty3).toHaveBeenCalledWith('my-property', mockIssueKey);
+    });
+
+    it('handles errors getting an issue property', async () => {
+      (IssueService.getProperty3 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.getIssueProperty(mockIssueKey, 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
+    });
+
+    it('sets an issue property', async () => {
+      (IssueService.setProperty2 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setIssueProperty(mockIssueKey, 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(true);
+      expect(IssueService.setProperty2).toHaveBeenCalledWith('my-property', mockIssueKey, '{"a":1}');
+    });
+
+    it('handles errors setting an issue property', async () => {
+      (IssueService.setProperty2 as jest.Mock).mockRejectedValue(new Error('The calling user does not have permission to edit the issue'));
+
+      const result = await jiraService.setIssueProperty(mockIssueKey, 'my-property', '{"a":1}');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The calling user does not have permission to edit the issue');
+    });
+
+    it('deletes an issue property', async () => {
+      (IssueService.deleteProperty3 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteIssueProperty(mockIssueKey, 'my-property');
+
+      expect(result.success).toBe(true);
+      expect(IssueService.deleteProperty3).toHaveBeenCalledWith('my-property', mockIssueKey);
+    });
+
+    it('handles errors deleting an issue property', async () => {
+      (IssueService.deleteProperty3 as jest.Mock).mockRejectedValue(new Error('The property with given key is not found'));
+
+      const result = await jiraService.deleteIssueProperty(mockIssueKey, 'missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The property with given key is not found');
+    });
+  });
+
+  describe('issue lifecycle extras', () => {
+    it('sends a manual notification', async () => {
+      (IssueService.notify as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.notifyIssue(mockIssueKey, 'Heads up', 'Please review', undefined, true, false, true, false, ['john.doe'], ['jira-admins'], ['jira-admins']);
+
+      expect(result.success).toBe(true);
+      expect(IssueService.notify).toHaveBeenCalledWith(mockIssueKey, {
+        subject: 'Heads up',
+        textBody: 'Please review',
+        htmlBody: undefined,
+        to: {
+          reporter: true,
+          assignee: false,
+          watchers: true,
+          voters: false,
+          users: [{ name: 'john.doe' }],
+          groups: [{ name: 'jira-admins' }],
+        },
+        restrict: { groups: [{ name: 'jira-admins' }] },
+      });
+    });
+
+    it('handles errors sending a manual notification', async () => {
+      (IssueService.notify as jest.Mock).mockRejectedValue(new Error('Outgoing emails are disabled'));
+
+      const result = await jiraService.notifyIssue(mockIssueKey);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Outgoing emails are disabled');
+    });
+
+    it('pins a comment', async () => {
+      (IssueService.setPinComment as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setCommentPinned(mockIssueKey, '10000', true);
+
+      expect(result.success).toBe(true);
+      expect(IssueService.setPinComment).toHaveBeenCalledWith(mockIssueKey, '10000', true);
+    });
+
+    it('handles errors pinning a comment', async () => {
+      (IssueService.setPinComment as jest.Mock).mockRejectedValue(new Error('The comment with the given id does not exist'));
+
+      const result = await jiraService.setCommentPinned(mockIssueKey, '99999', true);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The comment with the given id does not exist');
+    });
+
+    it('gets pinned comments', async () => {
+      const mockPinned = { comment: { id: '10000', body: 'Important' }, pinnedBy: 'john.doe' };
+      (IssueService.getPinnedComments as jest.Mock).mockResolvedValue(mockPinned);
+
+      const result = await jiraService.getPinnedComments(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPinned);
+      expect(IssueService.getPinnedComments).toHaveBeenCalledWith(mockIssueKey);
+    });
+
+    it('handles errors getting pinned comments', async () => {
+      (IssueService.getPinnedComments as jest.Mock).mockRejectedValue(new Error('The issue does not exist'));
+
+      const result = await jiraService.getPinnedComments(mockIssueKey);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The issue does not exist');
     });
   });
 
@@ -2983,6 +3400,159 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The workflow scheme does not exist');
+    });
+
+    it('creates a workflow scheme', async () => {
+      const mockScheme = { id: 2, name: 'New Scheme' };
+      (WorkflowschemeService.createScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.createWorkflowScheme('New Scheme', 'A new scheme', 'jira', { '10001': 'jira' });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.createScheme).toHaveBeenCalledWith({
+        name: 'New Scheme',
+        description: 'A new scheme',
+        defaultWorkflow: 'jira',
+        issueTypeMappings: { '10001': 'jira' },
+      });
+    });
+
+    it('handles errors creating a workflow scheme', async () => {
+      (WorkflowschemeService.createScheme as jest.Mock).mockRejectedValue(new Error('A scheme with that name already exists'));
+
+      const result = await jiraService.createWorkflowScheme('New Scheme');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('A scheme with that name already exists');
+    });
+
+    it('updates a workflow scheme', async () => {
+      const mockScheme = { id: 2, name: 'Renamed Scheme' };
+      (WorkflowschemeService.update as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.updateWorkflowScheme(2, 'Renamed Scheme');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.update).toHaveBeenCalledWith(2, {
+        name: 'Renamed Scheme',
+        description: undefined,
+        defaultWorkflow: undefined,
+        issueTypeMappings: undefined,
+        updateDraftIfNeeded: undefined,
+      });
+    });
+
+    it('handles errors updating a workflow scheme', async () => {
+      (WorkflowschemeService.update as jest.Mock).mockRejectedValue(new Error('The requested scheme does not exist'));
+
+      const result = await jiraService.updateWorkflowScheme(999, 'Renamed Scheme');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The requested scheme does not exist');
+    });
+
+    it('deletes a workflow scheme', async () => {
+      (WorkflowschemeService.deleteScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteWorkflowScheme(2);
+
+      expect(result.success).toBe(true);
+      expect(WorkflowschemeService.deleteScheme).toHaveBeenCalledWith(2);
+    });
+
+    it('handles errors deleting a workflow scheme', async () => {
+      (WorkflowschemeService.deleteScheme as jest.Mock).mockRejectedValue(new Error('The requested scheme is active'));
+
+      const result = await jiraService.deleteWorkflowScheme(2);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The requested scheme is active');
+    });
+
+    it('sets a workflow scheme issue type mapping', async () => {
+      const mockScheme = { id: 2, issueTypeMappings: { '10001': 'jira' } };
+      (WorkflowschemeService.setIssueType as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.setWorkflowSchemeIssueTypeMapping(2, '10001', 'jira');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.setIssueType).toHaveBeenCalledWith('10001', 2, { issueType: '10001', workflow: 'jira', updateDraftIfNeeded: undefined });
+    });
+
+    it('handles errors setting a workflow scheme issue type mapping', async () => {
+      (WorkflowschemeService.setIssueType as jest.Mock).mockRejectedValue(new Error('The requested issue type does not exist'));
+
+      const result = await jiraService.setWorkflowSchemeIssueTypeMapping(2, '99999', 'jira');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The requested issue type does not exist');
+    });
+
+    it('deletes a workflow scheme issue type mapping', async () => {
+      const mockScheme = { id: 2 };
+      (WorkflowschemeService.deleteIssueType as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.deleteWorkflowSchemeIssueTypeMapping(2, '10001');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.deleteIssueType).toHaveBeenCalledWith('10001', 2, undefined);
+    });
+
+    it('handles errors deleting a workflow scheme issue type mapping', async () => {
+      (WorkflowschemeService.deleteIssueType as jest.Mock).mockRejectedValue(new Error('The requested mapping does not exist'));
+
+      const result = await jiraService.deleteWorkflowSchemeIssueTypeMapping(2, '99999');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The requested mapping does not exist');
+    });
+
+    it('sets a workflow scheme workflow mapping', async () => {
+      const mockScheme = { id: 2 };
+      (WorkflowschemeService.updateWorkflowMapping as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.setWorkflowSchemeWorkflowMapping(2, 'jira', ['10001'], true, undefined, 'jira');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.updateWorkflowMapping).toHaveBeenCalledWith(
+        2,
+        { workflow: 'jira', issueTypes: ['10001'], defaultMapping: true, updateDraftIfNeeded: undefined },
+        'jira'
+      );
+    });
+
+    it('handles errors setting a workflow scheme workflow mapping', async () => {
+      (WorkflowschemeService.updateWorkflowMapping as jest.Mock).mockRejectedValue(new Error('The currently authenticated user does not have permission'));
+
+      const result = await jiraService.setWorkflowSchemeWorkflowMapping(2, 'jira');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The currently authenticated user does not have permission');
+    });
+
+    it('deletes a workflow scheme workflow mapping', async () => {
+      const mockScheme = { id: 2 };
+      (WorkflowschemeService.deleteWorkflowMapping as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.deleteWorkflowSchemeWorkflowMapping(2, 'jira');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.deleteWorkflowMapping).toHaveBeenCalledWith(2, undefined, 'jira');
+    });
+
+    it('handles errors deleting a workflow scheme workflow mapping', async () => {
+      (WorkflowschemeService.deleteWorkflowMapping as jest.Mock).mockRejectedValue(new Error('The requested scheme or workflow does not exist'));
+
+      const result = await jiraService.deleteWorkflowSchemeWorkflowMapping(2, 'missing-workflow');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The requested scheme or workflow does not exist');
     });
   });
 
