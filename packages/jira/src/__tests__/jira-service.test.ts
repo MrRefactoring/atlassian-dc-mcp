@@ -17,6 +17,7 @@ import {
   FilterService,
   GroupService,
   GroupsService,
+  GroupuserpickerService,
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
@@ -163,6 +164,9 @@ jest.mock('../jira-client/index.js', () => ({
   },
   GroupsService: {
     findGroups: jest.fn(),
+  },
+  GroupuserpickerService: {
+    findUsersAndGroups: jest.fn(),
   },
   VersionService: {
     createVersion: jest.fn(),
@@ -1457,6 +1461,17 @@ describe('JiraService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockSuggestions);
       expect(GroupsService.findGroups).toHaveBeenCalledWith('10', 'dev', undefined, undefined);
+    });
+
+    it('finds users and groups matching a query', async () => {
+      const mockMatches = { users: { users: [{ name: 'john.doe' }] }, groups: { groups: [{ name: 'developers' }] } };
+      (GroupuserpickerService.findUsersAndGroups as jest.Mock).mockResolvedValue(mockMatches);
+
+      const result = await jiraService.findUsersAndGroups('jo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockMatches);
+      expect(GroupuserpickerService.findUsersAndGroups).toHaveBeenCalledWith(undefined, undefined, 'jo', undefined, undefined, undefined);
     });
 
     it('handles errors', async () => {
