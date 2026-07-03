@@ -19,15 +19,19 @@ import {
   IssuesecurityschemesService,
   IssuetypeschemeService,
   IssuetypeService,
+  JqlService,
+  MypermissionsService,
   MyselfService,
   NotificationschemeService,
   OpenAPI,
+  PermissionsService,
   PermissionschemeService,
   PriorityschemesService,
   PriorityService,
   ProjectCategoryService,
   ProjectService,
   ProjectsService,
+  ProjectvalidateService,
   ResolutionService,
   RoleService,
   SearchService,
@@ -1328,6 +1332,41 @@ export class JiraService {
     );
   }
 
+  async getMyPermissions(projectKey?: string, projectId?: string, issueKey?: string, issueId?: string) {
+    return handleApiOperation(
+      () => MypermissionsService.getPermissions(issueId, projectKey, issueKey, projectId),
+      'Error getting my permissions'
+    );
+  }
+
+  async getAllPermissions() {
+    return handleApiOperation(
+      () => PermissionsService.getAllPermissions(),
+      'Error getting all permissions'
+    );
+  }
+
+  async getJqlAutocompleteData() {
+    return handleApiOperation(
+      () => JqlService.getAutoComplete(),
+      'Error getting JQL autocomplete data'
+    );
+  }
+
+  async getJqlFieldAutocomplete(fieldName?: string, fieldValue?: string, predicateName?: string, predicateValue?: string) {
+    return handleApiOperation(
+      () => JqlService.getFieldAutoCompleteForQueryString(predicateValue, predicateName, fieldName, fieldValue),
+      'Error getting JQL field autocomplete suggestions'
+    );
+  }
+
+  async validateProjectKey(key?: string) {
+    return handleApiOperation(
+      () => ProjectvalidateService.getProject1(key),
+      'Error validating project key'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -2108,5 +2147,22 @@ export const jiraToolSchemas = {
     id: z.number().describe("Id of the avatar to delete"),
     type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
     owningObjectId: z.string().describe("Id of the object that owns the avatar, e.g. a project id or username")
+  },
+  getMyPermissions: {
+    projectKey: z.string().optional().describe("Key of the project to scope returned permissions for"),
+    projectId: z.string().optional().describe("Id of the project to scope returned permissions for"),
+    issueKey: z.string().optional().describe("Key of the issue to scope returned permissions for"),
+    issueId: z.string().optional().describe("Id of the issue to scope returned permissions for")
+  },
+  getAllPermissions: {},
+  getJqlAutocompleteData: {},
+  getJqlFieldAutocomplete: {
+    fieldName: z.string().optional().describe("JQL field name to get value suggestions for, e.g. 'assignee' or 'status'"),
+    fieldValue: z.string().optional().describe("Partial value typed so far, used to filter the returned suggestions"),
+    predicateName: z.string().optional().describe("Name of the JQL predicate being completed, e.g. 'in' or 'was'"),
+    predicateValue: z.string().optional().describe("Partial predicate value typed so far, used to filter the returned suggestions")
+  },
+  validateProjectKey: {
+    key: z.string().optional().describe("Candidate project key to validate before creating a new project, e.g. 'TEST'. Returns validation errors, if any; an empty result means the key is valid.")
   }
 };
