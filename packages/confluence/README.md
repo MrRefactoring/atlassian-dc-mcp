@@ -168,7 +168,7 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-The server registers 81 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
+The server registers 83 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
 #### Content — CRUD & search (CQL)
 
@@ -286,3 +286,8 @@ The server registers 81 tools, grouped below by area. All tools operate against 
 - `confluence_adminCreateGroup` — Create a new user group (requires system administrator permission)
 - `confluence_adminDeleteGroup` — Delete a user group (requires system administrator permission)
 - `confluence_adminGetActiveUsers` — List active (license-counting) users
+
+#### Content blueprints (templates)
+
+- `confluence_publishBlueprintSharedDraft` — Publish a shared draft created from a content blueprint (template), turning it into live content
+- `confluence_publishBlueprintLegacyDraft` — Publish a legacy draft created from a content blueprint (template), turning it into live content

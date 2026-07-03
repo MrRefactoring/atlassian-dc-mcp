@@ -5,6 +5,7 @@ import {
   AdminUsersService,
   AttachmentsService,
   ChildContentService,
+  ContentBlueprintService,
   ContentDescendantService,
   ContentLabelsService,
   ContentPropertyService,
@@ -40,6 +41,7 @@ const USER_GROUP = UserGroupService as unknown as Record<string, jest.Mock>;
 const ADMIN_USER = AdminUserService as unknown as Record<string, jest.Mock>;
 const ADMIN_GROUP = AdminGroupService as unknown as Record<string, jest.Mock>;
 const ADMIN_USERS = AdminUsersService as unknown as Record<string, jest.Mock>;
+const CONTENT_BLUEPRINT = ContentBlueprintService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -160,6 +162,10 @@ jest.mock('../confluence-client/index.js', () => ({
   },
   AdminUsersService: {
     getActiveUsers: jest.fn(),
+  },
+  ContentBlueprintService: {
+    publishSharedDraft: jest.fn(),
+    publishLegacyDraft: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -1724,6 +1730,56 @@ describe('ConfluenceService users and groups', () => {
     ADMIN_USERS.getActiveUsers.mockRejectedValue(new Error('boom'));
 
     const result = await service.adminGetActiveUsers();
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ConfluenceService blueprint draft publishing', () => {
+  let service: ConfluenceService;
+  const draftContent = {
+    id: 'draft-1',
+    type: 'page',
+    status: 'current',
+    title: 'From template',
+    space: { key: 'DEV' },
+  };
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('publishes a shared blueprint draft', async () => {
+    CONTENT_BLUEPRINT.publishSharedDraft.mockResolvedValue({ id: 'draft-1' });
+
+    const result = await service.publishBlueprintSharedDraft('draft-1', draftContent);
+
+    expect(CONTENT_BLUEPRINT.publishSharedDraft).toHaveBeenCalledWith('draft-1', undefined, 'draft', draftContent);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when publishing a shared blueprint draft', async () => {
+    CONTENT_BLUEPRINT.publishSharedDraft.mockRejectedValue(new Error('boom'));
+
+    const result = await service.publishBlueprintSharedDraft('draft-1', draftContent);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('publishes a legacy blueprint draft', async () => {
+    CONTENT_BLUEPRINT.publishLegacyDraft.mockResolvedValue({ id: 'draft-1' });
+
+    const result = await service.publishBlueprintLegacyDraft('draft-1', draftContent, 'history');
+
+    expect(CONTENT_BLUEPRINT.publishLegacyDraft).toHaveBeenCalledWith('draft-1', 'history', 'draft', draftContent);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when publishing a legacy blueprint draft', async () => {
+    CONTENT_BLUEPRINT.publishLegacyDraft.mockRejectedValue(new Error('boom'));
+
+    const result = await service.publishBlueprintLegacyDraft('draft-1', draftContent);
 
     expect(result.success).toBe(false);
   });

@@ -952,6 +952,59 @@ server.tool(
   }
 );
 
+// Add Confluence blueprint/template draft-publishing tools
+server.tool(
+  "confluence_publishBlueprintSharedDraft",
+  `Publish a shared draft created from a content blueprint (template) in ${confluenceInstanceType}, turning it into live content`,
+  confluenceToolSchemas.publishBlueprintSharedDraft,
+  async ({ draftId, title, spaceKey, content, parentId, expand }) => {
+    const contentObj: ConfluenceContent = {
+      id: draftId,
+      type: 'page',
+      status: 'current',
+      title,
+      space: { key: spaceKey },
+      body: {
+        storage: {
+          value: content,
+          representation: 'storage'
+        }
+      }
+    };
+    if (parentId) {
+      contentObj.ancestors = [{ id: parentId }];
+    }
+    const result = await confluenceService.publishBlueprintSharedDraft(draftId, contentObj, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_publishBlueprintLegacyDraft",
+  `Publish a legacy draft created from a content blueprint (template) in ${confluenceInstanceType}, turning it into live content`,
+  confluenceToolSchemas.publishBlueprintLegacyDraft,
+  async ({ draftId, title, spaceKey, content, parentId, expand }) => {
+    const contentObj: ConfluenceContent = {
+      id: draftId,
+      type: 'page',
+      status: 'current',
+      title,
+      space: { key: spaceKey },
+      body: {
+        storage: {
+          value: content,
+          representation: 'storage'
+        }
+      }
+    };
+    if (parentId) {
+      contentObj.ancestors = [{ id: parentId }];
+    }
+    const result = await confluenceService.publishBlueprintLegacyDraft(draftId, contentObj, expand);
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "confluence-page",
   new ResourceTemplate("confluence://page/{pageId}", { list: undefined }),
