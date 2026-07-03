@@ -130,6 +130,25 @@ export class ConfluenceService {
   }
 
   /**
+   * Delete a piece of content. Without a status it moves current content to the trash;
+   * pass status='trashed' to purge already-trashed content or status='draft' to delete a draft.
+   * @param contentId The ID of the content to delete
+   * @param status Optional content status selector
+   */
+  async deleteContent(contentId: string, status?: string) {
+    return handleApiOperation(() => ContentResourceService.delete3(contentId, status), 'Error deleting content');
+  }
+
+  /**
+   * Get the history (versions/contributors) of a piece of content.
+   * @param contentId The ID of the content
+   * @param expand Optional comma-separated list of properties to expand
+   */
+  async getContentHistory(contentId: string, expand?: string) {
+    return handleApiOperation(() => ContentResourceService.getHistory(contentId, expand), 'Error getting content history');
+  }
+
+  /**
    * Search for spaces by text
    * @param searchText Text to search for in space names or descriptions
    * @param limit Maximum number of results to return
@@ -198,6 +217,14 @@ export const confluenceToolSchemas = {
     version: z.number().describe("New version number (must be incremented)"),
     versionComment: z.string().optional().describe("Comment for this version"),
     output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
+  },
+  deleteContent: {
+    contentId: z.string().describe("ID of the content to delete"),
+    status: z.string().optional().describe("Content status selector. Omit to move current content to the trash; pass 'trashed' to permanently purge already-trashed content, or 'draft' to delete a draft.")
+  },
+  getContentHistory: {
+    contentId: z.string().describe("ID of the content to fetch history for"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. previousVersion,nextVersion,lastUpdated,contributors). Defaults to previousVersion,nextVersion,lastUpdated.")
   },
   searchSpaces: {
     searchText: z.string().describe("Text to search for in Confluence Data Center space names or descriptions. Quotes and backslashes are escaped for CQL; pass the literal search phrase only (do not pre-escape)."),
