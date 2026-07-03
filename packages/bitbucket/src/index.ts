@@ -808,4 +808,84 @@ server.tool(
   }
 );
 
+server.tool(
+  "bitbucket_setDefaultBranch",
+  "Set the default branch of a Bitbucket repository. Requires REPO_ADMIN permission. Pass the full ref ID of the branch (e.g. 'refs/heads/main').",
+  bitbucketToolSchemas.setDefaultBranch,
+  async ({ projectKey, repositorySlug, branchId }) => {
+    const result = await bitbucketService.setDefaultBranch(projectKey, repositorySlug, branchId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_getPullRequestSettings",
+  "Get the pull request settings for a Bitbucket repository, including merge strategy configuration and merge checks (required approvers, required tasks, required builds).",
+  bitbucketToolSchemas.getPullRequestSettings,
+  async ({ projectKey, repositorySlug }) => {
+    const result = await bitbucketService.getPullRequestSettings(projectKey, repositorySlug);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_updatePullRequestSettings",
+  "Update the pull request settings for a Bitbucket repository. Requires REPO_ADMIN permission. Only the provided keys are changed (e.g. mergeConfig, requiredApprovers, requiredAllApprovers, requiredAllTasksComplete, requiredSuccessfulBuilds).",
+  bitbucketToolSchemas.updatePullRequestSettings,
+  async ({ projectKey, repositorySlug, settings }) => {
+    const result = await bitbucketService.updatePullRequestSettings(projectKey, repositorySlug, settings);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_getRepoHooks",
+  "List the repository hooks (pre-receive/post-receive) configured for a Bitbucket repository, with their enabled state. Requires REPO_ADMIN permission.",
+  bitbucketToolSchemas.getRepoHooks,
+  async ({ projectKey, repositorySlug, type, start, limit }) => {
+    const result = await bitbucketService.getRepoHooks(projectKey, repositorySlug, type, start, limit);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_enableRepoHook",
+  "Enable a repository hook on a Bitbucket repository by its hook key. Requires REPO_ADMIN permission.",
+  bitbucketToolSchemas.enableRepoHook,
+  async ({ projectKey, repositorySlug, hookKey }) => {
+    const result = await bitbucketService.enableRepoHook(projectKey, repositorySlug, hookKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_disableRepoHook",
+  "Disable a repository hook on a Bitbucket repository by its hook key. Requires REPO_ADMIN permission.",
+  bitbucketToolSchemas.disableRepoHook,
+  async ({ projectKey, repositorySlug, hookKey }) => {
+    const result = await bitbucketService.disableRepoHook(projectKey, repositorySlug, hookKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_getRepoHookSettings",
+  "Get the settings document for a repository hook on a Bitbucket repository. The structure of the settings is decided by the hook's plugin. Requires REPO_ADMIN permission.",
+  bitbucketToolSchemas.getRepoHookSettings,
+  async ({ projectKey, repositorySlug, hookKey }) => {
+    const result = await bitbucketService.getRepoHookSettings(projectKey, repositorySlug, hookKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_setRepoHookSettings",
+  "Update the settings document for a repository hook on a Bitbucket repository. Requires REPO_ADMIN permission. The structure of the settings is decided by the hook's plugin; the settings document is limited to 32KB once serialized.",
+  bitbucketToolSchemas.setRepoHookSettings,
+  async ({ projectKey, repositorySlug, hookKey, settings }) => {
+    const result = await bitbucketService.setRepoHookSettings(projectKey, repositorySlug, hookKey, settings);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
