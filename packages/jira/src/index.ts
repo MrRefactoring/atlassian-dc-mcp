@@ -254,6 +254,46 @@ server.tool(
 );
 
 server.tool(
+  "jira_getProjectPropertyKeys",
+  `Get the keys of all entity properties stored on a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectPropertyKeys,
+  async ({ projectIdOrKey }) => {
+    const result = await jiraService.getProjectPropertyKeys(projectIdOrKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getProjectProperty",
+  `Get a single entity property value from a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectProperty,
+  async ({ projectIdOrKey, propertyKey }) => {
+    const result = await jiraService.getProjectProperty(projectIdOrKey, propertyKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setProjectProperty",
+  `Set an entity property (arbitrary JSON key/value metadata) on a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.setProjectProperty,
+  async ({ projectIdOrKey, propertyKey, value }) => {
+    const result = await jiraService.setProjectProperty(projectIdOrKey, propertyKey, value);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteProjectProperty",
+  `Delete an entity property from a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteProjectProperty,
+  async ({ projectIdOrKey, propertyKey }) => {
+    const result = await jiraService.deleteProjectProperty(projectIdOrKey, propertyKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_getIssueTypes",
   `Get all issue types available in the ${jiraInstanceType}`,
   jiraToolSchemas.getIssueTypes,
@@ -349,6 +389,46 @@ server.tool(
   jiraToolSchemas.deleteIssueComment,
   async ({ issueKey, commentId }) => {
     const result = await jiraService.deleteIssueComment(issueKey, commentId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getCommentPropertyKeys",
+  `Get the keys of all entity properties stored on a comment in the ${jiraInstanceType}`,
+  jiraToolSchemas.getCommentPropertyKeys,
+  async ({ commentId }) => {
+    const result = await jiraService.getCommentPropertyKeys(commentId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getCommentProperty",
+  `Get a single entity property value from a comment in the ${jiraInstanceType}`,
+  jiraToolSchemas.getCommentProperty,
+  async ({ commentId, propertyKey }) => {
+    const result = await jiraService.getCommentProperty(commentId, propertyKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setCommentProperty",
+  `Set an entity property (arbitrary JSON key/value metadata) on a comment in the ${jiraInstanceType}`,
+  jiraToolSchemas.setCommentProperty,
+  async ({ commentId, propertyKey, value }) => {
+    const result = await jiraService.setCommentProperty(commentId, propertyKey, value);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteCommentProperty",
+  `Delete an entity property from a comment in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteCommentProperty,
+  async ({ commentId, propertyKey }) => {
+    const result = await jiraService.deleteCommentProperty(commentId, propertyKey);
     return formatToolResponse(result);
   }
 );
@@ -459,6 +539,36 @@ server.tool(
   jiraToolSchemas.deleteIssueWorklog,
   async ({ issueKey, worklogId }) => {
     const result = await jiraService.deleteIssueWorklog(issueKey, worklogId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorklogsDeletedSince",
+  `Get the ids of worklogs deleted since a given time across the whole ${jiraInstanceType}, for bulk sync`,
+  jiraToolSchemas.getWorklogsDeletedSince,
+  async ({ since }) => {
+    const result = await jiraService.getWorklogsDeletedSince(since);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorklogsModifiedSince",
+  `Get the ids of worklogs modified since a given time across the whole ${jiraInstanceType}, for bulk sync`,
+  jiraToolSchemas.getWorklogsModifiedSince,
+  async ({ since }) => {
+    const result = await jiraService.getWorklogsModifiedSince(since);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorklogsForIds",
+  `Get worklog details for a batch of worklog ids in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorklogsForIds,
+  async ({ worklogIds }) => {
+    const result = await jiraService.getWorklogsForIds(worklogIds);
     return formatToolResponse(result);
   }
 );
@@ -1054,11 +1164,91 @@ server.tool(
 );
 
 server.tool(
+  "jira_restoreIssue",
+  `Restore a previously archived JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.restoreIssue,
+  async ({ issueKey, notifyUsers }) => {
+    const result = await jiraService.restoreIssue(issueKey, notifyUsers);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_rankIssues",
   `Reorder (rank) JIRA issues relative to another issue in the ${jiraInstanceType}, as used on Agile boards/backlogs`,
   jiraToolSchemas.rankIssues,
   async ({ issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId }) => {
     const result = await jiraService.rankIssues(issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssuePropertyKeys",
+  `Get the keys of all entity properties stored on an issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssuePropertyKeys,
+  async ({ issueKey }) => {
+    const result = await jiraService.getIssuePropertyKeys(issueKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueProperty",
+  `Get a single entity property value from an issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueProperty,
+  async ({ issueKey, propertyKey }) => {
+    const result = await jiraService.getIssueProperty(issueKey, propertyKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setIssueProperty",
+  `Set an entity property (arbitrary JSON key/value metadata) on an issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.setIssueProperty,
+  async ({ issueKey, propertyKey, value }) => {
+    const result = await jiraService.setIssueProperty(issueKey, propertyKey, value);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteIssueProperty",
+  `Delete an entity property from an issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteIssueProperty,
+  async ({ issueKey, propertyKey }) => {
+    const result = await jiraService.deleteIssueProperty(issueKey, propertyKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_notifyIssue",
+  `Send a manual email notification about a JIRA issue in the ${jiraInstanceType} to specific users, groups, or roles (reporter/assignee/watchers/voters)`,
+  jiraToolSchemas.notifyIssue,
+  async ({ issueKey, subject, textBody, htmlBody, toReporter, toAssignee, toWatchers, toVoters, toUsernames, toGroupNames, restrictToGroupNames }) => {
+    const result = await jiraService.notifyIssue(issueKey, subject, textBody, htmlBody, toReporter, toAssignee, toWatchers, toVoters, toUsernames, toGroupNames, restrictToGroupNames);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setCommentPinned",
+  `Pin or unpin a comment on a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.setCommentPinned,
+  async ({ issueKey, commentId, pinned }) => {
+    const result = await jiraService.setCommentPinned(issueKey, commentId, pinned);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getPinnedComments",
+  `Get all pinned comments for a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.getPinnedComments,
+  async ({ issueKey }) => {
+    const result = await jiraService.getPinnedComments(issueKey);
     return formatToolResponse(result);
   }
 );
@@ -1719,6 +1909,76 @@ server.tool(
   jiraToolSchemas.getWorkflowSchemeWorkflowMapping,
   async ({ schemeId, workflowName, returnDraftIfExists }) => {
     const result = await jiraService.getWorkflowSchemeWorkflowMapping(schemeId, workflowName, returnDraftIfExists);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createWorkflowScheme",
+  `Create a new workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.createWorkflowScheme,
+  async ({ name, description, defaultWorkflow, issueTypeMappings }) => {
+    const result = await jiraService.createWorkflowScheme(name, description, defaultWorkflow, issueTypeMappings);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateWorkflowScheme",
+  `Update a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateWorkflowScheme,
+  async ({ schemeId, name, description, defaultWorkflow, issueTypeMappings, updateDraftIfNeeded }) => {
+    const result = await jiraService.updateWorkflowScheme(schemeId, name, description, defaultWorkflow, issueTypeMappings, updateDraftIfNeeded);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteWorkflowScheme",
+  `Delete a workflow scheme in the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteWorkflowScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.deleteWorkflowScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setWorkflowSchemeIssueTypeMapping",
+  `Set the workflow mapping for a specific issue type in a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.setWorkflowSchemeIssueTypeMapping,
+  async ({ schemeId, issueType, workflow, updateDraftIfNeeded }) => {
+    const result = await jiraService.setWorkflowSchemeIssueTypeMapping(schemeId, issueType, workflow, updateDraftIfNeeded);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteWorkflowSchemeIssueTypeMapping",
+  `Remove an issue type's workflow mapping from a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteWorkflowSchemeIssueTypeMapping,
+  async ({ schemeId, issueType, updateDraftIfNeeded }) => {
+    const result = await jiraService.deleteWorkflowSchemeIssueTypeMapping(schemeId, issueType, updateDraftIfNeeded);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setWorkflowSchemeWorkflowMapping",
+  `Set (add or replace) a workflow's issue type mapping in a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.setWorkflowSchemeWorkflowMapping,
+  async ({ schemeId, workflow, issueTypes, defaultMapping, workflowName, updateDraftIfNeeded }) => {
+    const result = await jiraService.setWorkflowSchemeWorkflowMapping(schemeId, workflow, issueTypes, defaultMapping, updateDraftIfNeeded, workflowName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteWorkflowSchemeWorkflowMapping",
+  `Remove a workflow's mapping from a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteWorkflowSchemeWorkflowMapping,
+  async ({ schemeId, workflowName, updateDraftIfNeeded }) => {
+    const result = await jiraService.deleteWorkflowSchemeWorkflowMapping(schemeId, workflowName, updateDraftIfNeeded);
     return formatToolResponse(result);
   }
 );
