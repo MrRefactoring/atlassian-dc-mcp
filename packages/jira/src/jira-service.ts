@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import {
+  ApplicationroleService,
   AttachmentService,
   AvatarService,
   BacklogService,
@@ -13,6 +14,8 @@ import {
   FieldService,
   FilterService,
   GroupService,
+  GroupsService,
+  GroupuserpickerService,
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
@@ -21,6 +24,7 @@ import {
   IssuetypeService,
   JqlService,
   MypermissionsService,
+  MypreferencesService,
   MyselfService,
   NotificationschemeService,
   OpenAPI,
@@ -604,6 +608,20 @@ export class JiraService {
     );
   }
 
+  async findGroups(query?: string, maxResults?: number, exclude?: string, userName?: string) {
+    return handleApiOperation(
+      () => GroupsService.findGroups(maxResults?.toString(), query, exclude, userName),
+      'Error finding groups'
+    );
+  }
+
+  async findUsersAndGroups(query: string, maxResults?: number, showAvatar?: boolean, issueTypeId?: string, projectId?: string, fieldId?: string) {
+    return handleApiOperation(
+      () => GroupuserpickerService.findUsersAndGroups(issueTypeId, maxResults?.toString(), query, showAvatar?.toString(), projectId, fieldId),
+      'Error finding users and groups'
+    );
+  }
+
   async createFilter(name: string, jql: string, description?: string, favourite?: boolean) {
     return handleApiOperation(
       () => FilterService.createFilter(undefined, { name, jql, description, favourite }),
@@ -1129,6 +1147,14 @@ export class JiraService {
     );
   }
 
+  async getApplicationRoles() {
+    return handleApiOperation(() => ApplicationroleService.getAll(), 'Error getting application roles');
+  }
+
+  async getApplicationRole(key: string) {
+    return handleApiOperation(() => ApplicationroleService.get4(key), 'Error getting application role');
+  }
+
   async getWorkflows(workflowName?: string) {
     return handleApiOperation(
       () => WorkflowService.getAllWorkflows(workflowName),
@@ -1364,6 +1390,24 @@ export class JiraService {
     return handleApiOperation(
       () => ProjectvalidateService.getProject1(key),
       'Error validating project key'
+    );
+  }
+
+  async getMyPreference(key: string) {
+    return handleApiOperation(() => MypreferencesService.getPreference(key), 'Error getting user preference');
+  }
+
+  async setMyPreference(key: string, value: string) {
+    return handleApiOperation(
+      () => MypreferencesService.setPreference(key, value),
+      'Error setting user preference'
+    );
+  }
+
+  async deleteMyPreference(key: string) {
+    return handleApiOperation(
+      () => MypreferencesService.removePreference(key),
+      'Error deleting user preference'
     );
   }
 
@@ -1685,6 +1729,20 @@ export const jiraToolSchemas = {
   removeUserFromGroup: {
     groupname: z.string().describe("Name of the group"),
     username: z.string().describe("Username of the user to remove")
+  },
+  findGroups: {
+    query: z.string().optional().describe("Substring to match group names against"),
+    maxResults: z.number().optional().describe("Maximum number of matching groups to return"),
+    exclude: z.string().optional().describe("Comma-separated group names to exclude from the results"),
+    userName: z.string().optional().describe("Restrict results to groups containing this username, for context")
+  },
+  findUsersAndGroups: {
+    query: z.string().describe("Substring matched against username, display name, email address, or group name"),
+    maxResults: z.number().optional().describe("Maximum number of users to return (groups are not subject to this limit)"),
+    showAvatar: z.boolean().optional().describe("Whether to include avatar URLs for matched users"),
+    issueTypeId: z.string().optional().describe("Comma-separated issue type ids to further restrict the search"),
+    projectId: z.string().optional().describe("Comma-separated project ids to further restrict the search"),
+    fieldId: z.string().optional().describe("Id of the custom field this picker is being used for, e.g. for a custom user/group picker field")
   },
   createFilter: {
     name: z.string().describe("Filter name"),
@@ -2021,6 +2079,10 @@ export const jiraToolSchemas = {
     schemeId: z.number().describe("Id of the permission scheme"),
     permissionId: z.number().describe("Id of the permission grant to delete")
   },
+  getApplicationRoles: {},
+  getApplicationRole: {
+    key: z.string().describe("Key of the application role, e.g. 'jira-software'. Use jira_getApplicationRoles to find valid keys.")
+  },
   getWorkflows: {
     workflowName: z.string().optional().describe("Name of a specific workflow to return. Omit to return all workflows.")
   },
@@ -2164,5 +2226,15 @@ export const jiraToolSchemas = {
   },
   validateProjectKey: {
     key: z.string().optional().describe("Candidate project key to validate before creating a new project, e.g. 'TEST'. Returns validation errors, if any; an empty result means the key is valid.")
+  },
+  getMyPreference: {
+    key: z.string().describe("Preference key to look up for the current user")
+  },
+  setMyPreference: {
+    key: z.string().describe("Preference key to set for the current user"),
+    value: z.string().describe("Preference value to store")
+  },
+  deleteMyPreference: {
+    key: z.string().describe("Preference key to remove for the current user")
   }
 };
