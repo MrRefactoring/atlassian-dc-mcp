@@ -88,6 +88,7 @@ Notes:
 - Keychain reads are cached at init (one `execFileSync` per product-secret), so tool calls never shell out.
 - If a higher-priority source shadows the value setup is about to save, setup prints a warning naming the env var so you can unset it.
 - Atlassian API requests time out after 30 seconds by default. Set `ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS` to a positive millisecond value to override it.
+- Transient failures (HTTP 429 and 5xx) are retried automatically with exponential backoff and jitter (up to 3 retries) before a tool call reports an error. 4xx client errors (bad input, auth, not found, ...) are never retried.
 - Each product also accepts `*_USERNAME`/`*_PASSWORD` for Basic auth, as an alternative to `*_API_TOKEN` (useful for older instances without personal access tokens). If both are set, Basic auth takes precedence over the Bearer token.
 
 ## Claude Desktop Configuration
