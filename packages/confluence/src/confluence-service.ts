@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, UserService, UserWatchService } from './confluence-client/index.js';
+import { AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, UserService, UserWatchService } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
@@ -405,6 +405,31 @@ export class ConfluenceService {
   }
 
   /**
+   * Get the attachments on a piece of content.
+   * @param contentId The ID of the content the attachments are on
+   * @param filename Optional exact filename filter
+   * @param mediaType Optional media type filter
+   */
+  async getAttachments(contentId: string, expand?: string, filename?: string, limit?: number, start?: number, mediaType?: string) {
+    return handleApiOperation(
+      () => AttachmentsService.getAttachments(contentId, expand, filename, (limit ?? this.getPageSize()).toString(), start?.toString(), mediaType),
+      'Error getting attachments'
+    );
+  }
+
+  /**
+   * Remove an attachment from a piece of content.
+   * @param attachmentId The ID of the attachment to remove
+   * @param contentId The ID of the content the attachment is on
+   */
+  async removeAttachment(attachmentId: string, contentId: string) {
+    return handleApiOperation(
+      () => AttachmentsService.removeAttachment(attachmentId, contentId),
+      'Error removing attachment'
+    );
+  }
+
+  /**
    * Search for spaces by text
    * @param searchText Text to search for in space names or descriptions
    * @param limit Maximum number of results to return
@@ -605,6 +630,18 @@ export const confluenceToolSchemas = {
     contentId: z.string().describe("ID of the content to unwatch"),
     key: z.string().optional().describe("User key of the user to remove. Omit to remove the current user."),
     username: z.string().optional().describe("Username of the user to remove. Omit to remove the current user.")
+  },
+  getAttachments: {
+    contentId: z.string().describe("ID of the content the attachments are on"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the attachments (e.g. version,container)"),
+    filename: z.string().optional().describe("Return only the attachment matching this exact file name"),
+    limit: z.number().optional().describe("Maximum number of attachments to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    mediaType: z.string().optional().describe("Return only attachments matching this media type (e.g. image/png)")
+  },
+  removeAttachment: {
+    attachmentId: z.string().describe("ID of the attachment to remove"),
+    contentId: z.string().describe("ID of the content the attachment is on")
   },
   searchSpaces: {
     searchText: z.string().describe("Text to search for in Confluence Data Center space names or descriptions. Quotes and backslashes are escaped for CQL; pass the literal search phrase only (do not pre-escape)."),

@@ -1,5 +1,6 @@
 import { ConfluenceService, escapeSearchTextForCql } from '../confluence-service.js';
 import {
+  AttachmentsService,
   ChildContentService,
   ContentDescendantService,
   ContentLabelsService,
@@ -19,6 +20,7 @@ const CONTENT_PROPERTY = ContentPropertyService as unknown as Record<string, jes
 const CONTENT_RESTRICTIONS = ContentRestrictionsService as unknown as Record<string, jest.Mock>;
 const CONTENT_WATCHERS = ContentWatchersService as unknown as Record<string, jest.Mock>;
 const USER_WATCH = UserWatchService as unknown as Record<string, jest.Mock>;
+const ATTACHMENTS = AttachmentsService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -64,6 +66,10 @@ jest.mock('../confluence-client/index.js', () => ({
     isWatchingContent: jest.fn(),
     addContentWatcher: jest.fn(),
     removeContentWatcher: jest.fn(),
+  },
+  AttachmentsService: {
+    getAttachments: jest.fn(),
+    removeAttachment: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -672,6 +678,32 @@ describe('ConfluenceService content watchers', () => {
     const result = await service.removeContentWatcher('123', 'user-key');
 
     expect(USER_WATCH.removeContentWatcher).toHaveBeenCalledWith('123', 'user-key', undefined);
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService attachments', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('lists attachments with the default page-size limit and filters', async () => {
+    ATTACHMENTS.getAttachments.mockResolvedValue({ results: [] });
+
+    await service.getAttachments('123', 'version', 'diagram.png', undefined, undefined, 'image/png');
+
+    expect(ATTACHMENTS.getAttachments).toHaveBeenCalledWith('123', 'version', 'diagram.png', '25', undefined, 'image/png');
+  });
+
+  it('removes an attachment', async () => {
+    ATTACHMENTS.removeAttachment.mockResolvedValue(undefined);
+
+    const result = await service.removeAttachment('att-1', '123');
+
+    expect(ATTACHMENTS.removeAttachment).toHaveBeenCalledWith('att-1', '123');
     expect(result.success).toBe(true);
   });
 });
