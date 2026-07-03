@@ -5,27 +5,38 @@ import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { JiraService } from '../jira-service.js';
 import {
   AttachmentService,
+  AvatarService,
   BacklogService,
   BoardService,
   ComponentService,
+  CustomFieldOptionService,
+  CustomFieldsService,
   DashboardService,
   EpicService,
+  FieldService,
   FilterService,
   GroupService,
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
+  IssuesecurityschemesService,
   IssuetypeService,
+  NotificationschemeService,
   OpenAPI,
+  PermissionschemeService,
   PriorityService,
   ProjectService,
   ProjectsService,
   ResolutionService,
   SearchService,
+  SecuritylevelService,
   SprintService,
   StatusService,
+  UniversalAvatarService,
   UserService,
   VersionService,
+  WorkflowService,
+  WorkflowschemeService,
 } from '../jira-client/index.js';
 import { request as __request } from '../jira-client/core/request.js';
 
@@ -135,6 +146,12 @@ jest.mock('../jira-client/index.js', () => ({
     getUser1: jest.fn(),
     findUsers: jest.fn(),
     findAssignableUsers1: jest.fn(),
+    createUser: jest.fn(),
+    removeUser: jest.fn(),
+    changeUserPassword: jest.fn(),
+    validateUserAnonymization: jest.fn(),
+    scheduleUserAnonymization: jest.fn(),
+    getProgress1: jest.fn(),
   },
   GroupService: {
     createGroup: jest.fn(),
@@ -182,6 +199,56 @@ jest.mock('../jira-client/index.js', () => ({
   },
   StatusService: {
     getStatuses: jest.fn(),
+  },
+  PermissionschemeService: {
+    getPermissionSchemes: jest.fn(),
+    getPermissionScheme: jest.fn(),
+    createPermissionScheme: jest.fn(),
+    updatePermissionScheme: jest.fn(),
+    deletePermissionScheme: jest.fn(),
+    getPermissionSchemeGrants: jest.fn(),
+    createPermissionGrant: jest.fn(),
+    deletePermissionSchemeEntity: jest.fn(),
+  },
+  WorkflowService: {
+    getAllWorkflows: jest.fn(),
+  },
+  WorkflowschemeService: {
+    getById: jest.fn(),
+    getDefault: jest.fn(),
+    getIssueType: jest.fn(),
+    getWorkflow: jest.fn(),
+  },
+  NotificationschemeService: {
+    getNotificationSchemes: jest.fn(),
+    getNotificationScheme: jest.fn(),
+  },
+  SecuritylevelService: {
+    getIssuesecuritylevel: jest.fn(),
+  },
+  IssuesecurityschemesService: {
+    getIssueSecuritySchemes: jest.fn(),
+    getIssueSecurityScheme: jest.fn(),
+  },
+  CustomFieldsService: {
+    getCustomFields: jest.fn(),
+    bulkDeleteCustomFields: jest.fn(),
+    getCustomFieldOptions: jest.fn(),
+  },
+  CustomFieldOptionService: {
+    getCustomFieldOption: jest.fn(),
+  },
+  FieldService: {
+    createCustomField: jest.fn(),
+  },
+  AvatarService: {
+    getAllSystemAvatars: jest.fn(),
+  },
+  UniversalAvatarService: {
+    getAvatars: jest.fn(),
+    storeTemporaryAvatarUsingMultiPart2: jest.fn(),
+    createAvatarFromTemporary3: jest.fn(),
+    deleteAvatar1: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -1910,6 +1977,494 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The epic does not exist');
+    });
+  });
+
+  describe('permission schemes', () => {
+    it('gets all permission schemes', async () => {
+      const mockSchemes = { permissionSchemes: [{ id: 1, name: 'Default' }] };
+      (PermissionschemeService.getPermissionSchemes as jest.Mock).mockResolvedValue(mockSchemes);
+
+      const result = await jiraService.getPermissionSchemes('permissions');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchemes);
+      expect(PermissionschemeService.getPermissionSchemes).toHaveBeenCalledWith('permissions');
+    });
+
+    it('gets a permission scheme by id', async () => {
+      const mockScheme = { id: 1, name: 'Default' };
+      (PermissionschemeService.getPermissionScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getPermissionScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PermissionschemeService.getPermissionScheme).toHaveBeenCalledWith(1, undefined);
+    });
+
+    it('creates a permission scheme', async () => {
+      const mockScheme = { id: 2, name: 'New Scheme' };
+      (PermissionschemeService.createPermissionScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.createPermissionScheme('New Scheme', 'A scheme', [
+        { permission: 'BROWSE_PROJECTS', holderType: 'group', holderParameter: 'jira-users' },
+      ]);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PermissionschemeService.createPermissionScheme).toHaveBeenCalledWith(undefined, {
+        name: 'New Scheme',
+        description: 'A scheme',
+        permissions: [
+          { permission: 'BROWSE_PROJECTS', holder: { type: 'group', parameter: 'jira-users' } },
+        ],
+      });
+    });
+
+    it('updates a permission scheme', async () => {
+      const mockScheme = { id: 1, name: 'Renamed' };
+      (PermissionschemeService.updatePermissionScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.updatePermissionScheme(1, 'Renamed');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PermissionschemeService.updatePermissionScheme).toHaveBeenCalledWith(1, undefined, {
+        name: 'Renamed',
+        description: undefined,
+        permissions: undefined,
+      });
+    });
+
+    it('deletes a permission scheme', async () => {
+      (PermissionschemeService.deletePermissionScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deletePermissionScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(PermissionschemeService.deletePermissionScheme).toHaveBeenCalledWith(1);
+    });
+
+    it('gets permission scheme grants', async () => {
+      const mockGrants = { permissions: [{ id: 10, permission: 'BROWSE_PROJECTS' }] };
+      (PermissionschemeService.getPermissionSchemeGrants as jest.Mock).mockResolvedValue(mockGrants);
+
+      const result = await jiraService.getPermissionSchemeGrants(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockGrants);
+      expect(PermissionschemeService.getPermissionSchemeGrants).toHaveBeenCalledWith(1, undefined);
+    });
+
+    it('creates a permission grant', async () => {
+      const mockGrant = { id: 10, permission: 'BROWSE_PROJECTS' };
+      (PermissionschemeService.createPermissionGrant as jest.Mock).mockResolvedValue(mockGrant);
+
+      const result = await jiraService.createPermissionGrant(1, 'BROWSE_PROJECTS', 'group', 'jira-users');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockGrant);
+      expect(PermissionschemeService.createPermissionGrant).toHaveBeenCalledWith(1, undefined, {
+        permission: 'BROWSE_PROJECTS',
+        holder: { type: 'group', parameter: 'jira-users' },
+      });
+    });
+
+    it('deletes a permission grant', async () => {
+      (PermissionschemeService.deletePermissionSchemeEntity as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deletePermissionGrant(1, 10);
+
+      expect(result.success).toBe(true);
+      expect(PermissionschemeService.deletePermissionSchemeEntity).toHaveBeenCalledWith(10, 1);
+    });
+
+    it('handles errors', async () => {
+      (PermissionschemeService.getPermissionScheme as jest.Mock).mockRejectedValue(new Error('The scheme does not exist'));
+
+      const result = await jiraService.getPermissionScheme(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The scheme does not exist');
+    });
+  });
+
+  describe('workflows and workflow schemes', () => {
+    it('gets all workflows', async () => {
+      const mockWorkflows = [{ name: 'jira' }];
+      (WorkflowService.getAllWorkflows as jest.Mock).mockResolvedValue(mockWorkflows);
+
+      const result = await jiraService.getWorkflows();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWorkflows);
+      expect(WorkflowService.getAllWorkflows).toHaveBeenCalledWith(undefined);
+    });
+
+    it('gets a workflow scheme by id', async () => {
+      const mockScheme = { id: 1, name: 'Default Workflow Scheme' };
+      (WorkflowschemeService.getById as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getWorkflowScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.getById).toHaveBeenCalledWith(1, undefined);
+    });
+
+    it('gets the default workflow for a scheme', async () => {
+      const mockDefault = { defaultWorkflow: 'jira' };
+      (WorkflowschemeService.getDefault as jest.Mock).mockResolvedValue(mockDefault);
+
+      const result = await jiraService.getWorkflowSchemeDefault(1, true);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockDefault);
+      expect(WorkflowschemeService.getDefault).toHaveBeenCalledWith(1, true);
+    });
+
+    it('gets the issue type mapping for a scheme', async () => {
+      const mockMapping = { issueType: '10001', workflow: 'jira' };
+      (WorkflowschemeService.getIssueType as jest.Mock).mockResolvedValue(mockMapping);
+
+      const result = await jiraService.getWorkflowSchemeIssueTypeMapping(1, '10001');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockMapping);
+      expect(WorkflowschemeService.getIssueType).toHaveBeenCalledWith('10001', 1, undefined);
+    });
+
+    it('gets the workflow mapping for a scheme', async () => {
+      const mockMapping = { issueTypes: ['10001'], workflow: 'jira' };
+      (WorkflowschemeService.getWorkflow as jest.Mock).mockResolvedValue(mockMapping);
+
+      const result = await jiraService.getWorkflowSchemeWorkflowMapping(1, 'jira');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockMapping);
+      expect(WorkflowschemeService.getWorkflow).toHaveBeenCalledWith(1, 'jira', undefined);
+    });
+
+    it('handles errors', async () => {
+      (WorkflowschemeService.getById as jest.Mock).mockRejectedValue(new Error('The workflow scheme does not exist'));
+
+      const result = await jiraService.getWorkflowScheme(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The workflow scheme does not exist');
+    });
+  });
+
+  describe('notification schemes', () => {
+    it('gets a paginated list of notification schemes', async () => {
+      const mockSchemes = { values: [{ id: 1, name: 'Default Notification Scheme' }] };
+      (NotificationschemeService.getNotificationSchemes as jest.Mock).mockResolvedValue(mockSchemes);
+
+      const result = await jiraService.getNotificationSchemes('all', 50, 0);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchemes);
+      expect(NotificationschemeService.getNotificationSchemes).toHaveBeenCalledWith('all', 50, 0);
+    });
+
+    it('gets a notification scheme by id', async () => {
+      const mockScheme = { id: 1, name: 'Default Notification Scheme' };
+      (NotificationschemeService.getNotificationScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getNotificationScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(NotificationschemeService.getNotificationScheme).toHaveBeenCalledWith(1, undefined);
+    });
+
+    it('handles errors', async () => {
+      (NotificationschemeService.getNotificationScheme as jest.Mock).mockRejectedValue(new Error('The notification scheme does not exist'));
+
+      const result = await jiraService.getNotificationScheme(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The notification scheme does not exist');
+    });
+  });
+
+  describe('security levels and schemes', () => {
+    it('gets a security level by id', async () => {
+      const mockLevel = { id: '10000', name: 'Confidential' };
+      (SecuritylevelService.getIssuesecuritylevel as jest.Mock).mockResolvedValue(mockLevel);
+
+      const result = await jiraService.getSecurityLevel('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockLevel);
+      expect(SecuritylevelService.getIssuesecuritylevel).toHaveBeenCalledWith('10000');
+    });
+
+    it('gets all issue security schemes', async () => {
+      const mockSchemes = { issueSecuritySchemes: [{ id: '1', name: 'Default Scheme' }] };
+      (IssuesecurityschemesService.getIssueSecuritySchemes as jest.Mock).mockResolvedValue(mockSchemes);
+
+      const result = await jiraService.getIssueSecuritySchemes();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchemes);
+      expect(IssuesecurityschemesService.getIssueSecuritySchemes).toHaveBeenCalledWith();
+    });
+
+    it('gets an issue security scheme by id', async () => {
+      const mockScheme = { id: '1', name: 'Default Scheme' };
+      (IssuesecurityschemesService.getIssueSecurityScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getIssueSecurityScheme('1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(IssuesecurityschemesService.getIssueSecurityScheme).toHaveBeenCalledWith('1');
+    });
+
+    it('handles errors', async () => {
+      (SecuritylevelService.getIssuesecuritylevel as jest.Mock).mockRejectedValue(new Error('The security level does not exist'));
+
+      const result = await jiraService.getSecurityLevel('missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The security level does not exist');
+    });
+  });
+
+  describe('custom fields admin', () => {
+    it('gets custom fields with filters', async () => {
+      const mockFields = { values: [{ id: 'customfield_10001', name: 'Story Points' }] };
+      (CustomFieldsService.getCustomFields as jest.Mock).mockResolvedValue(mockFields);
+
+      const result = await jiraService.getCustomFields(undefined, ['textfield'], 'Story', 25, undefined, undefined, undefined, undefined, 0);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockFields);
+      expect(CustomFieldsService.getCustomFields).toHaveBeenCalledWith(
+        undefined, 'textfield', 'Story', '25', undefined, undefined, undefined, undefined, '0'
+      );
+    });
+
+    it('deletes custom fields in bulk', async () => {
+      (CustomFieldsService.bulkDeleteCustomFields as jest.Mock).mockResolvedValue({ deletedCustomFields: ['customfield_10001'] });
+
+      const result = await jiraService.deleteCustomFields(['customfield_10001', 'customfield_10002']);
+
+      expect(result.success).toBe(true);
+      expect(CustomFieldsService.bulkDeleteCustomFields).toHaveBeenCalledWith('customfield_10001,customfield_10002');
+    });
+
+    it('gets custom field options', async () => {
+      const mockOptions = { values: [{ id: '10001', value: 'Option A' }] };
+      (CustomFieldsService.getCustomFieldOptions as jest.Mock).mockResolvedValue(mockOptions);
+
+      const result = await jiraService.getCustomFieldOptions('customfield_10001');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockOptions);
+      expect(CustomFieldsService.getCustomFieldOptions).toHaveBeenCalledWith(
+        'customfield_10001', undefined, undefined, undefined, undefined, undefined, undefined, undefined
+      );
+    });
+
+    it('gets a custom field option by id', async () => {
+      const mockOption = { id: '10001', value: 'Option A' };
+      (CustomFieldOptionService.getCustomFieldOption as jest.Mock).mockResolvedValue(mockOption);
+
+      const result = await jiraService.getCustomFieldOption('10001');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockOption);
+      expect(CustomFieldOptionService.getCustomFieldOption).toHaveBeenCalledWith('10001');
+    });
+
+    it('creates a custom field', async () => {
+      const mockField = { id: 'customfield_10099', name: 'Story Points' };
+      (FieldService.createCustomField as jest.Mock).mockResolvedValue(mockField);
+
+      const result = await jiraService.createCustomField(
+        'Story Points',
+        'com.atlassian.jira.plugin.system.customfieldtypes:float'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockField);
+      expect(FieldService.createCustomField).toHaveBeenCalledWith({
+        name: 'Story Points',
+        type: 'com.atlassian.jira.plugin.system.customfieldtypes:float',
+        description: undefined,
+        searcherKey: undefined,
+        issueTypeIds: undefined,
+        projectIds: undefined,
+      });
+    });
+
+    it('handles errors', async () => {
+      (FieldService.createCustomField as jest.Mock).mockRejectedValue(new Error('Invalid custom field type'));
+
+      const result = await jiraService.createCustomField('Bad Field', 'not-a-real-type');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid custom field type');
+    });
+  });
+
+  describe('user admin', () => {
+    it('creates a user', async () => {
+      const mockUser = { name: 'jdoe', emailAddress: 'jdoe@example.com' };
+      (UserService.createUser as jest.Mock).mockResolvedValue(mockUser);
+
+      const result = await jiraService.createUser('jdoe', 'jdoe@example.com', 'John Doe');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockUser);
+      expect(UserService.createUser).toHaveBeenCalledWith({
+        name: 'jdoe',
+        emailAddress: 'jdoe@example.com',
+        displayName: 'John Doe',
+        password: undefined,
+        notification: undefined,
+      });
+    });
+
+    it('removes a user', async () => {
+      (UserService.removeUser as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.removeUser(undefined, 'jdoe');
+
+      expect(result.success).toBe(true);
+      expect(UserService.removeUser).toHaveBeenCalledWith(undefined, 'jdoe');
+    });
+
+    it('changes a user password', async () => {
+      (UserService.changeUserPassword as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.changeUserPassword('new-pass', undefined, undefined, 'jdoe');
+
+      expect(result.success).toBe(true);
+      expect(UserService.changeUserPassword).toHaveBeenCalledWith(
+        { password: 'new-pass', currentPassword: undefined },
+        undefined,
+        'jdoe'
+      );
+    });
+
+    it('validates user anonymization', async () => {
+      const mockValidation = { username: 'jdoe', errors: {} };
+      (UserService.validateUserAnonymization as jest.Mock).mockResolvedValue(mockValidation);
+
+      const result = await jiraService.validateUserAnonymization('jdoe');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockValidation);
+      expect(UserService.validateUserAnonymization).toHaveBeenCalledWith(undefined, 'jdoe');
+    });
+
+    it('schedules user anonymization', async () => {
+      const mockSchedule = { status: 'IN_PROGRESS' };
+      (UserService.scheduleUserAnonymization as jest.Mock).mockResolvedValue(mockSchedule);
+
+      const result = await jiraService.scheduleUserAnonymization('jdoe', 'admin');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchedule);
+      expect(UserService.scheduleUserAnonymization).toHaveBeenCalledWith({ userKey: 'jdoe', newOwnerKey: 'admin' });
+    });
+
+    it('gets user anonymization progress', async () => {
+      const mockProgress = { status: 'IN_PROGRESS', currentProgress: 50 };
+      (UserService.getProgress1 as jest.Mock).mockResolvedValue(mockProgress);
+
+      const result = await jiraService.getUserAnonymizationProgress(123);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProgress);
+      expect(UserService.getProgress1).toHaveBeenCalledWith(123);
+    });
+
+    it('handles errors', async () => {
+      (UserService.createUser as jest.Mock).mockRejectedValue(new Error('A user with that username already exists'));
+
+      const result = await jiraService.createUser('jdoe', 'jdoe@example.com');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('A user with that username already exists');
+    });
+  });
+
+  describe('avatars', () => {
+    it('gets system avatars for a type', async () => {
+      const mockAvatars = { system: [{ id: '1', owner: 'jira' }] };
+      (AvatarService.getAllSystemAvatars as jest.Mock).mockResolvedValue(mockAvatars);
+
+      const result = await jiraService.getSystemAvatars('project');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockAvatars);
+      expect(AvatarService.getAllSystemAvatars).toHaveBeenCalledWith('project');
+    });
+
+    it('gets avatars for a type and owner', async () => {
+      const mockAvatars = { system: [], custom: [{ id: '10001' }] };
+      (UniversalAvatarService.getAvatars as jest.Mock).mockResolvedValue(mockAvatars);
+
+      const result = await jiraService.getAvatars('project', 'TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockAvatars);
+      expect(UniversalAvatarService.getAvatars).toHaveBeenCalledWith('project', 'TEST');
+    });
+
+    it('uploads a temporary avatar', async () => {
+      const mockCropping = { url: 'https://jira.example.com/temp/avatar.png', needsCropping: true };
+      (UniversalAvatarService.storeTemporaryAvatarUsingMultiPart2 as jest.Mock).mockResolvedValue(mockCropping);
+
+      const result = await jiraService.uploadTemporaryAvatar('project', 'TEST', 'avatar.png', Buffer.from('img').toString('base64'));
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCropping);
+      const [calledType, calledOwner, calledFormData] = (UniversalAvatarService.storeTemporaryAvatarUsingMultiPart2 as jest.Mock).mock.calls[0];
+      expect(calledType).toBe('project');
+      expect(calledOwner).toBe('TEST');
+      expect((calledFormData as { file: File }).file).toBeInstanceOf(File);
+      expect((calledFormData as { file: File }).file.name).toBe('avatar.png');
+    });
+
+    it('creates an avatar from a temporary avatar', async () => {
+      const mockAvatar = { id: '10001', owner: 'TEST' };
+      (UniversalAvatarService.createAvatarFromTemporary3 as jest.Mock).mockResolvedValue(mockAvatar);
+
+      const result = await jiraService.createAvatarFromTemporary('project', 'TEST', 0, 0, 48, true, 'https://jira.example.com/temp/avatar.png');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockAvatar);
+      expect(UniversalAvatarService.createAvatarFromTemporary3).toHaveBeenCalledWith('project', 'TEST', {
+        cropperOffsetX: 0,
+        cropperOffsetY: 0,
+        cropperWidth: 48,
+        needsCropping: true,
+        url: 'https://jira.example.com/temp/avatar.png',
+      });
+    });
+
+    it('deletes an avatar', async () => {
+      (UniversalAvatarService.deleteAvatar1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteAvatar(10001, 'project', 'TEST');
+
+      expect(result.success).toBe(true);
+      expect(UniversalAvatarService.deleteAvatar1).toHaveBeenCalledWith(10001, 'project', 'TEST');
+    });
+
+    it('handles errors', async () => {
+      (AvatarService.getAllSystemAvatars as jest.Mock).mockRejectedValue(new Error('Invalid avatar type'));
+
+      const result = await jiraService.getSystemAvatars('not-a-type');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid avatar type');
     });
   });
 

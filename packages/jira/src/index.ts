@@ -1107,4 +1107,344 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getPermissionSchemes",
+  `Get all permission schemes in the ${jiraInstanceType}`,
+  jiraToolSchemas.getPermissionSchemes,
+  async ({ expand }) => {
+    const result = await jiraService.getPermissionSchemes(expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getPermissionScheme",
+  `Get a single permission scheme by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getPermissionScheme,
+  async ({ schemeId, expand }) => {
+    const result = await jiraService.getPermissionScheme(schemeId, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createPermissionScheme",
+  `Create a new permission scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.createPermissionScheme,
+  async ({ name, description, permissions }) => {
+    const result = await jiraService.createPermissionScheme(name, description, permissions);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updatePermissionScheme",
+  `Update a permission scheme's name, description, or permission grants in the ${jiraInstanceType}`,
+  jiraToolSchemas.updatePermissionScheme,
+  async ({ schemeId, name, description, permissions }) => {
+    const result = await jiraService.updatePermissionScheme(schemeId, name, description, permissions);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deletePermissionScheme",
+  `Delete a permission scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.deletePermissionScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.deletePermissionScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getPermissionSchemeGrants",
+  `Get all permission grants of a permission scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.getPermissionSchemeGrants,
+  async ({ schemeId, expand }) => {
+    const result = await jiraService.getPermissionSchemeGrants(schemeId, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createPermissionGrant",
+  `Create a permission grant in a permission scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.createPermissionGrant,
+  async ({ schemeId, permission, holderType, holderParameter }) => {
+    const result = await jiraService.createPermissionGrant(schemeId, permission, holderType, holderParameter);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deletePermissionGrant",
+  `Delete a permission grant from a permission scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.deletePermissionGrant,
+  async ({ schemeId, permissionId }) => {
+    const result = await jiraService.deletePermissionGrant(schemeId, permissionId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorkflows",
+  `Get all workflows (or a workflow by name) in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorkflows,
+  async ({ workflowName }) => {
+    const result = await jiraService.getWorkflows(workflowName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorkflowScheme",
+  `Get a workflow scheme by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorkflowScheme,
+  async ({ schemeId, returnDraftIfExists }) => {
+    const result = await jiraService.getWorkflowScheme(schemeId, returnDraftIfExists);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorkflowSchemeDefault",
+  `Get the default workflow of a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorkflowSchemeDefault,
+  async ({ schemeId, returnDraftIfExists }) => {
+    const result = await jiraService.getWorkflowSchemeDefault(schemeId, returnDraftIfExists);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorkflowSchemeIssueTypeMapping",
+  `Get the workflow mapping for a specific issue type in a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorkflowSchemeIssueTypeMapping,
+  async ({ schemeId, issueType, returnDraftIfExists }) => {
+    const result = await jiraService.getWorkflowSchemeIssueTypeMapping(schemeId, issueType, returnDraftIfExists);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getWorkflowSchemeWorkflowMapping",
+  `Get the issue type mappings for a workflow (or all workflows) in a workflow scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.getWorkflowSchemeWorkflowMapping,
+  async ({ schemeId, workflowName, returnDraftIfExists }) => {
+    const result = await jiraService.getWorkflowSchemeWorkflowMapping(schemeId, workflowName, returnDraftIfExists);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getNotificationSchemes",
+  `Get a paginated list of notification schemes in the ${jiraInstanceType}`,
+  jiraToolSchemas.getNotificationSchemes,
+  async ({ expand, maxResults, startAt }) => {
+    const result = await jiraService.getNotificationSchemes(expand, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getNotificationScheme",
+  `Get full details of a notification scheme by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.getNotificationScheme,
+  async ({ id, expand }) => {
+    const result = await jiraService.getNotificationScheme(id, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getSecurityLevel",
+  `Get an issue security level by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.getSecurityLevel,
+  async ({ id }) => {
+    const result = await jiraService.getSecurityLevel(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueSecuritySchemes",
+  `Get all issue security schemes in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueSecuritySchemes,
+  async () => {
+    const result = await jiraService.getIssueSecuritySchemes();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueSecurityScheme",
+  `Get an issue security scheme by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueSecurityScheme,
+  async ({ id }) => {
+    const result = await jiraService.getIssueSecurityScheme(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getCustomFields",
+  `Get a paginated, filterable list of custom fields in the ${jiraInstanceType}`,
+  jiraToolSchemas.getCustomFields,
+  async ({ sortColumn, types, search, maxResults, sortOrder, screenIds, lastValueUpdate, projectIds, startAt }) => {
+    const result = await jiraService.getCustomFields(sortColumn, types, search, maxResults, sortOrder, screenIds, lastValueUpdate, projectIds, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteCustomFields",
+  `Delete custom fields in bulk in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteCustomFields,
+  async ({ ids }) => {
+    const result = await jiraService.deleteCustomFields(ids);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getCustomFieldOptions",
+  `Get a custom field's options defined in a given context of projects and issue types in the ${jiraInstanceType}`,
+  jiraToolSchemas.getCustomFieldOptions,
+  async ({ customFieldId, maxResults, issueTypeIds, query, sortByOptionName, useAllContexts, page, projectIds }) => {
+    const result = await jiraService.getCustomFieldOptions(customFieldId, maxResults, issueTypeIds, query, sortByOptionName, useAllContexts, page, projectIds);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getCustomFieldOption",
+  `Get a custom field option by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.getCustomFieldOption,
+  async ({ id }) => {
+    const result = await jiraService.getCustomFieldOption(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createCustomField",
+  `Create a new custom field in the ${jiraInstanceType}`,
+  jiraToolSchemas.createCustomField,
+  async ({ name, type, description, searcherKey, issueTypeIds, projectIds }) => {
+    const result = await jiraService.createCustomField(name, type, description, searcherKey, issueTypeIds, projectIds);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createUser",
+  `Create a new user in the ${jiraInstanceType}`,
+  jiraToolSchemas.createUser,
+  async ({ name, emailAddress, displayName, password, notification }) => {
+    const result = await jiraService.createUser(name, emailAddress, displayName, password, notification);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_removeUser",
+  `Remove a user and its references in the ${jiraInstanceType}`,
+  jiraToolSchemas.removeUser,
+  async ({ key, username }) => {
+    const result = await jiraService.removeUser(key, username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_changeUserPassword",
+  `Change a user's password in the ${jiraInstanceType}`,
+  jiraToolSchemas.changeUserPassword,
+  async ({ password, currentPassword, key, username }) => {
+    const result = await jiraService.changeUserPassword(password, currentPassword, key, username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_validateUserAnonymization",
+  `Validate whether a user can be anonymized in the ${jiraInstanceType}`,
+  jiraToolSchemas.validateUserAnonymization,
+  async ({ userKey, expand }) => {
+    const result = await jiraService.validateUserAnonymization(userKey, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_scheduleUserAnonymization",
+  `Schedule a user anonymization process in the ${jiraInstanceType}. Requires system admin permission.`,
+  jiraToolSchemas.scheduleUserAnonymization,
+  async ({ userKey, newOwnerKey }) => {
+    const result = await jiraService.scheduleUserAnonymization(userKey, newOwnerKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getUserAnonymizationProgress",
+  `Get the progress of a user anonymization task in the ${jiraInstanceType}`,
+  jiraToolSchemas.getUserAnonymizationProgress,
+  async ({ taskId }) => {
+    const result = await jiraService.getUserAnonymizationProgress(taskId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getSystemAvatars",
+  `Get all system avatars of a given type in the ${jiraInstanceType}`,
+  jiraToolSchemas.getSystemAvatars,
+  async ({ type }) => {
+    const result = await jiraService.getSystemAvatars(type);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getAvatars",
+  `Get all avatars (system and custom) for a given type and owner in the ${jiraInstanceType}`,
+  jiraToolSchemas.getAvatars,
+  async ({ type, owningObjectId }) => {
+    const result = await jiraService.getAvatars(type, owningObjectId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_uploadTemporaryAvatar",
+  `Upload a temporary avatar image in the ${jiraInstanceType}. Returns cropping instructions to pass to jira_createAvatarFromTemporary.`,
+  jiraToolSchemas.uploadTemporaryAvatar,
+  async ({ type, owningObjectId, fileName, contentBase64 }) => {
+    const result = await jiraService.uploadTemporaryAvatar(type, owningObjectId, fileName, contentBase64);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createAvatarFromTemporary",
+  `Finalize a temporary avatar into a real avatar in the ${jiraInstanceType}, using the cropping instructions from jira_uploadTemporaryAvatar.`,
+  jiraToolSchemas.createAvatarFromTemporary,
+  async ({ type, owningObjectId, cropperOffsetX, cropperOffsetY, cropperWidth, needsCropping, url }) => {
+    const result = await jiraService.createAvatarFromTemporary(type, owningObjectId, cropperOffsetX, cropperOffsetY, cropperWidth, needsCropping, url);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteAvatar",
+  `Delete an avatar by id in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteAvatar,
+  async ({ id, type, owningObjectId }) => {
+    const result = await jiraService.deleteAvatar(id, type, owningObjectId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
