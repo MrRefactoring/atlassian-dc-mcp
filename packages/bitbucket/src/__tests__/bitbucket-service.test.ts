@@ -37,7 +37,8 @@ jest.mock('../bitbucket-client/index.js', () => ({
     watch1: jest.fn(),
     unwatch1: jest.fn(),
     assignParticipantRole: jest.fn(),
-    unassignParticipantRole: jest.fn()
+    unassignParticipantRole: jest.fn(),
+    listParticipants: jest.fn()
   },
   RepositoryService: {
     getRestrictions1: jest.fn(),
@@ -345,6 +346,44 @@ describe('BitbucketService', () => {
         mockPullRequestId,
         'reviewer1'
       );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('getPullRequestParticipants', () => {
+    it('should get the participants of a pull request with default limit', async () => {
+      const mockData = {
+        values: [
+          { user: { name: 'author1' }, role: 'AUTHOR', approved: true },
+          { user: { name: 'commenter1' }, role: 'PARTICIPANT', approved: false }
+        ],
+        isLastPage: true
+      };
+      (PullRequestsService.listParticipants as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.getPullRequestParticipants(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(PullRequestsService.listParticipants).toHaveBeenCalledWith(
+        mockProjectKey, mockPullRequestId, mockRepositorySlug, undefined, 25
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (PullRequestsService.listParticipants as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.getPullRequestParticipants(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId
+      );
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
     });

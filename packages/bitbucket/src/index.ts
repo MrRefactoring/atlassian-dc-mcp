@@ -425,6 +425,16 @@ server.tool(
   }
 );
 
+server.tool(
+  "bitbucket_getPullRequestParticipants",
+  "List the participants of a pull request — everyone who has interacted with it (author, reviewers, and anyone else who has commented or approved), unlike bitbucket_getRequiredReviewers which only covers reviewers requested up front.",
+  bitbucketToolSchemas.getPullRequestParticipants,
+  async ({ projectKey, repositorySlug, pullRequestId, start, limit }) => {
+    const result = await bitbucketService.getPullRequestParticipants(projectKey, repositorySlug, pullRequestId, start, limit);
+    return formatToolResponse(result);
+  }
+);
+
 
 server.tool(
   "bitbucket_canMergePullRequest",
