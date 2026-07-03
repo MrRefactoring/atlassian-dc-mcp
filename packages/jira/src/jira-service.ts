@@ -1181,6 +1181,41 @@ export class JiraService {
     );
   }
 
+  async getScreenTabFields(screenId: number, tabId: number, projectKey?: string) {
+    return handleApiOperation(
+      () => ScreensService.getAllFields(tabId, screenId, projectKey),
+      'Error getting screen tab fields'
+    );
+  }
+
+  async addFieldToScreenTab(screenId: number, tabId: number, fieldId: string) {
+    return handleApiOperation(
+      () => ScreensService.addField(tabId, screenId, { fieldId }),
+      'Error adding field to screen tab'
+    );
+  }
+
+  async removeFieldFromScreenTab(screenId: number, tabId: number, fieldId: string) {
+    return handleApiOperation(
+      () => ScreensService.removeField(tabId, screenId, fieldId),
+      'Error removing field from screen tab'
+    );
+  }
+
+  async moveScreenTabField(screenId: number, tabId: number, fieldId: string, after?: string, position?: 'Earlier' | 'Later' | 'First' | 'Last') {
+    return handleApiOperation(
+      () => ScreensService.moveField(tabId, screenId, fieldId, { after, position: position as MoveFieldBean.position | undefined }),
+      'Error moving screen tab field'
+    );
+  }
+
+  async updateScreenTabFieldShowWhenEmpty(screenId: number, tabId: number, fieldId: string, showWhenEmpty: boolean) {
+    return handleApiOperation(
+      () => ScreensService.updateShowWhenEmptyIndicator(tabId, screenId, showWhenEmpty, fieldId),
+      'Error updating screen tab field show-when-empty indicator'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1882,5 +1917,33 @@ export const jiraToolSchemas = {
     screenId: z.number().describe("Id of the screen"),
     tabId: z.number().describe("Id of the tab to move"),
     pos: z.number().describe("Zero-based position to move the tab to")
+  },
+  getScreenTabFields: {
+    screenId: z.number().describe("Id of the screen"),
+    tabId: z.number().describe("Id of the tab"),
+    projectKey: z.string().optional().describe("Key of the project to scope the returned fields to")
+  },
+  addFieldToScreenTab: {
+    screenId: z.number().describe("Id of the screen"),
+    tabId: z.number().describe("Id of the tab to add the field to"),
+    fieldId: z.string().describe("Id of the field or custom field to add")
+  },
+  removeFieldFromScreenTab: {
+    screenId: z.number().describe("Id of the screen"),
+    tabId: z.number().describe("Id of the tab"),
+    fieldId: z.string().describe("Id of the field to remove from the tab")
+  },
+  moveScreenTabField: {
+    screenId: z.number().describe("Id of the screen"),
+    tabId: z.number().describe("Id of the tab"),
+    fieldId: z.string().describe("Id of the field to move"),
+    after: z.string().optional().describe("Id of the field to position this field after"),
+    position: z.enum(['Earlier', 'Later', 'First', 'Last']).optional().describe("Relative position to move the field to within the tab")
+  },
+  updateScreenTabFieldShowWhenEmpty: {
+    screenId: z.number().describe("Id of the screen"),
+    tabId: z.number().describe("Id of the tab"),
+    fieldId: z.string().describe("Id of the field"),
+    showWhenEmpty: z.boolean().describe("Whether to show a 'no value' indicator for this field on the screen when it is empty")
   }
 };
