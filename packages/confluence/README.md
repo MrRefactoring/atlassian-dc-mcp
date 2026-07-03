@@ -168,7 +168,7 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-The server registers 59 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
+The server registers 81 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
 #### Content — CRUD & search (CQL)
 
@@ -261,3 +261,28 @@ The server registers 59 tools, grouped below by area. All tools operate against 
 - `confluence_revokeAnonymousSpacePermissions` — Revoke permissions from the anonymous user in a space
 - `confluence_revokeGroupSpacePermissions` — Revoke permissions from a group in a space
 - `confluence_revokeUserSpacePermissions` — Revoke permissions from a user in a space
+
+#### Users and groups
+
+- `confluence_getCurrentUser` — Get information about the current logged in user
+- `confluence_getAnonymousUser` — Get information about how the anonymous user is represented
+- `confluence_getUser` — Get a user by user key or username
+- `confluence_getUsers` — List all registered users
+- `confluence_getUserGroups` — Get the groups a user is a member of
+- `confluence_updateCurrentUser` — Update the current user's full name and/or email
+- `confluence_changeCurrentUserPassword` — Change the password for the current user
+- `confluence_getGroup` — Get a user group by name
+- `confluence_getGroups` — List all user groups
+- `confluence_getGroupMembers` — Get the users that are members of a group
+- `confluence_getNestedGroupMembers` — Get the groups nested directly within a group
+- `confluence_addUserToGroup` — Add a user to a group
+- `confluence_removeUserFromGroup` — Remove a user from a group
+- `confluence_adminCreateUser` — Create a new user (requires system administrator permission)
+- `confluence_adminUpdateUser` — Update a user's full name and/or email (requires system administrator permission)
+- `confluence_adminDeleteUser` — Delete a user (requires system administrator permission)
+- `confluence_adminDisableUser` — Disable a user (requires system administrator permission)
+- `confluence_adminEnableUser` — Enable a user (requires system administrator permission)
+- `confluence_adminChangeUserPassword` — Change another user's password (requires system administrator permission)
+- `confluence_adminCreateGroup` — Create a new user group (requires system administrator permission)
+- `confluence_adminDeleteGroup` — Delete a user group (requires system administrator permission)
+- `confluence_adminGetActiveUsers` — List active (license-counting) users
