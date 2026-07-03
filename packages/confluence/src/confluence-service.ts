@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, UserService, UserWatchService } from './confluence-client/index.js';
+import { AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, SpaceService, UserService, UserWatchService } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
@@ -31,6 +31,17 @@ export interface ConfluenceContent {
     message?: string;
   };
   ancestors?: Array<{ id: string }>;
+}
+
+export interface ConfluenceSpace {
+  key?: string;
+  name?: string;
+  description?: {
+    plain: {
+      value: string;
+      representation: 'plain';
+    };
+  };
 }
 
 function resolveToken(token: string | (() => string | undefined)) {
@@ -459,6 +470,79 @@ export class ConfluenceService {
     ), 'Error searching for spaces');
   }
 
+  /**
+   * Get information about a single space by key.
+   * @param spaceKey The key of the space
+   * @param expand Optional comma-separated list of properties to expand
+   */
+  async getSpace(spaceKey: string, expand?: string) {
+    return handleApiOperation(() => SpaceService.space(spaceKey, expand), 'Error getting space');
+  }
+
+  /**
+   * List spaces with optional filters (type, status, label, favourite).
+   * @param spaceKey Optional key to fetch a single space's information
+   */
+  async getSpaces(
+    spaceKey?: string,
+    type?: string,
+    status?: string,
+    label?: string,
+    favourite?: boolean,
+    expand?: string,
+    limit?: number,
+    start?: number,
+  ) {
+    return handleApiOperation(
+      () => SpaceService.spaces(
+        undefined,
+        start?.toString(),
+        label,
+        favourite?.toString(),
+        type,
+        spaceKey,
+        undefined,
+        expand,
+        undefined,
+        (limit ?? this.getPageSize()).toString(),
+        undefined,
+        undefined,
+        undefined,
+        status,
+      ),
+      'Error getting spaces'
+    );
+  }
+
+  /**
+   * Create a new space. Set isPrivate to create a space viewable only by its creator.
+   * @param space The space body ({ key, name, description? })
+   * @param isPrivate Whether to create a private space
+   */
+  async createSpace(space: ConfluenceSpace, isPrivate = false) {
+    return handleApiOperation(
+      () => (isPrivate ? SpaceService.createPrivateSpace(space) : SpaceService.createSpace(space)),
+      'Error creating space'
+    );
+  }
+
+  /**
+   * Update a space's name and/or description.
+   * @param spaceKey The key of the space to update
+   * @param space The space body ({ name, description? })
+   */
+  async updateSpace(spaceKey: string, space: ConfluenceSpace) {
+    return handleApiOperation(() => SpaceService.update4(spaceKey, space), 'Error updating space');
+  }
+
+  /**
+   * Delete a space. Deletion runs as a long-running task; the response points to its status.
+   * @param spaceKey The key of the space to delete
+   */
+  async deleteSpace(spaceKey: string) {
+    return handleApiOperation(() => SpaceService.delete5(spaceKey), 'Error deleting space');
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -649,5 +733,33 @@ export const confluenceToolSchemas = {
     start: z.number().optional().describe("Start index for pagination"),
     expand: z.string().optional().describe("Comma-separated list of properties to expand"),
     excerpt: z.enum(['none', 'highlight']).optional().describe("Excerpt mode for search results. Defaults to none.")
+  },
+  getSpace: {
+    spaceKey: z.string().describe("Key of the space to fetch"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. description.plain,homepage,metadata.labels)")
+  },
+  getSpaces: {
+    spaceKey: z.string().optional().describe("Fetch information for a single space by key"),
+    type: z.enum(['global', 'personal']).optional().describe("Filter spaces by type"),
+    status: z.enum(['current', 'archived']).optional().describe("Filter spaces by status"),
+    label: z.string().optional().describe("Filter spaces by label"),
+    favourite: z.boolean().optional().describe("Filter to only the calling user's favourite spaces"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the spaces"),
+    limit: z.number().optional().describe("Maximum number of spaces to return"),
+    start: z.number().optional().describe("Start index for pagination")
+  },
+  createSpace: {
+    key: z.string().describe("Key for the new space (unique, uppercase letters/numbers)"),
+    name: z.string().describe("Name of the new space"),
+    description: z.string().optional().describe("Plain-text description of the space"),
+    isPrivate: z.boolean().optional().describe("Create a private space viewable only by its creator. Defaults to false.")
+  },
+  updateSpace: {
+    spaceKey: z.string().describe("Key of the space to update"),
+    name: z.string().describe("New name for the space"),
+    description: z.string().optional().describe("New plain-text description of the space")
+  },
+  deleteSpace: {
+    spaceKey: z.string().describe("Key of the space to delete. Deletion runs as a long-running task.")
   }
 };

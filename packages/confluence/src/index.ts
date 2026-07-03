@@ -1,5 +1,5 @@
 import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from 'datacenter-mcp-core';
-import { ConfluenceService, ConfluenceContent, confluenceToolSchemas } from './confluence-service.js';
+import { ConfluenceService, ConfluenceContent, ConfluenceSpace, confluenceToolSchemas } from './confluence-service.js';
 import { shapeConfluenceMutationAck } from './confluence-response-mapper.js';
 import { getConfluenceRuntimeConfig, getDefaultPageSize } from './config.js';
 import { createRequire } from 'node:module';
@@ -394,5 +394,63 @@ server.tool('confluence_searchSpace',
     const result = await confluenceService.searchSpaces(searchText, limit, start, expand, excerpt);
     return formatToolResponse(result);
   });
+
+server.tool(
+  "confluence_getSpace",
+  `Get information about a single space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getSpace,
+  async ({ spaceKey, expand }) => {
+    const result = await confluenceService.getSpace(spaceKey, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getSpaces",
+  `List spaces with optional filters in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getSpaces,
+  async ({ spaceKey, type, status, label, favourite, expand, limit, start }) => {
+    const result = await confluenceService.getSpaces(spaceKey, type, status, label, favourite, expand, limit, start);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_createSpace",
+  `Create a new space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.createSpace,
+  async ({ key, name, description, isPrivate }) => {
+    const spaceBody: ConfluenceSpace = { key, name };
+    if (description) {
+      spaceBody.description = { plain: { value: description, representation: 'plain' } };
+    }
+    const result = await confluenceService.createSpace(spaceBody, isPrivate);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_updateSpace",
+  `Update a space's name and description in ${confluenceInstanceType}`,
+  confluenceToolSchemas.updateSpace,
+  async ({ spaceKey, name, description }) => {
+    const spaceBody: ConfluenceSpace = { key: spaceKey, name };
+    if (description) {
+      spaceBody.description = { plain: { value: description, representation: 'plain' } };
+    }
+    const result = await confluenceService.updateSpace(spaceKey, spaceBody);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_deleteSpace",
+  `Delete a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.deleteSpace,
+  async ({ spaceKey }) => {
+    const result = await confluenceService.deleteSpace(spaceKey);
+    return formatToolResponse(result);
+  }
+);
 
 await connectServer(server);
