@@ -168,7 +168,7 @@ pnpm dev
 
 ### Available Tools
 
-This server registers 78 tools, grouped below by area.
+This server registers 106 tools, grouped below by area.
 
 #### Projects & Repositories
 
@@ -194,6 +194,7 @@ This server registers 78 tools, grouped below by area.
 - `bitbucket_createBranch` — Create a branch from a given start point (ref or commit).
 - `bitbucket_deleteBranch` — Delete a branch (supports `dryRun` validation).
 - `bitbucket_getDefaultBranch` — Get the default branch of a repository.
+- `bitbucket_setDefaultBranch` — Set the default branch of a repository from a full ref ID, e.g. `refs/heads/main` (requires `REPO_ADMIN`).
 - `bitbucket_getTags` — Get tags for a repository, with filtering and ordering.
 - `bitbucket_getTag` — Get a single tag by name.
 - `bitbucket_createTag` — Create a (optionally annotated) tag pointing at a ref or commit.
@@ -209,6 +210,12 @@ This server registers 78 tools, grouped below by area.
 - `bitbucket_createDefaultReviewerCondition` — Create a default reviewer condition with source/target matchers and reviewer IDs.
 - `bitbucket_updateDefaultReviewerCondition` — Replace a default reviewer condition's matchers and reviewer set.
 - `bitbucket_deleteDefaultReviewerCondition` — Delete a default reviewer condition by ID.
+
+#### Branch Model
+
+- `bitbucket_getBranchModel` — Get the branch model configuration: development/production branches and the bugfix/feature/hotfix/release prefix settings.
+- `bitbucket_setBranchModel` — Replace the branch model configuration; `development` is required, `production`/`types` fall back to server defaults (requires `REPO_ADMIN`).
+- `bitbucket_deleteBranchModel` — Reset the branch model configuration to server defaults (requires `REPO_ADMIN`).
 
 #### Commits & Diffs
 
@@ -266,6 +273,16 @@ This server registers 78 tools, grouped below by area.
 - `bitbucket_updateWebhook` — Replace an existing webhook's configuration (requires `REPO_ADMIN`).
 - `bitbucket_deleteWebhook` — Delete a webhook by ID (requires `REPO_ADMIN`).
 
+#### Repository Settings & Hooks
+
+- `bitbucket_getPullRequestSettings` — Get a repository's pull request settings: merge strategy configuration and merge checks (required approvers/tasks/builds).
+- `bitbucket_updatePullRequestSettings` — Update a repository's pull request settings; only the provided keys are changed (requires `REPO_ADMIN`).
+- `bitbucket_getRepoHooks` — List a repository's hooks (pre-receive/post-receive) with their enabled state (requires `REPO_ADMIN`).
+- `bitbucket_enableRepoHook` — Enable a repository hook by its hook key (requires `REPO_ADMIN`).
+- `bitbucket_disableRepoHook` — Disable a repository hook by its hook key (requires `REPO_ADMIN`).
+- `bitbucket_getRepoHookSettings` — Get the settings document for a repository hook; the shape is decided by the hook's plugin (requires `REPO_ADMIN`).
+- `bitbucket_setRepoHookSettings` — Update the settings document for a repository hook, limited to 32KB serialized (requires `REPO_ADMIN`).
+
 #### Dashboard & Inbox
 
 - `bitbucket_getInboxPullRequests` — Get pull requests from the authenticated user's inbox needing review.
@@ -274,6 +291,32 @@ This server registers 78 tools, grouped below by area.
 #### Users
 
 - `bitbucket_getUser` — Get a user by slug, or search users by name/email to resolve their slug.
+
+#### Access Tokens (PAT)
+
+- `bitbucket_getAccessTokens` — Get HTTP access tokens (PATs) for a user, project, or repository (`scope: user|project|repo`).
+- `bitbucket_createAccessToken` — Create an HTTP access token for a user, project, or repository; the raw token value is only returned once.
+- `bitbucket_deleteAccessToken` — Delete an HTTP access token by ID from a user, project, or repository.
+
+#### SSH & GPG Keys
+
+- `bitbucket_getSshKeys` — List SSH keys for a user (defaults to the authenticated user; other users require `ADMIN`).
+- `bitbucket_addSshKey` — Add an SSH public key for a user (defaults to the authenticated user; other users require `ADMIN`).
+- `bitbucket_deleteSshKey` — Delete an SSH key by its ID (requires `ADMIN`).
+- `bitbucket_getGpgKeys` — List GPG keys for a user (defaults to the authenticated user; other users require `ADMIN`).
+- `bitbucket_addGpgKey` — Add an ASCII-armored GPG public key for a user (defaults to the authenticated user; other users require `ADMIN`).
+- `bitbucket_deleteGpgKey` — Delete a GPG key by its ID or fingerprint.
+
+#### Permissions
+
+- `bitbucket_getProjectPermissions` — Get the users/groups granted a permission on a project, with their highest level (requires `PROJECT_ADMIN` or higher).
+- `bitbucket_setProjectUserPermission` — Grant or change a user's project permission (`PROJECT_READ`/`PROJECT_WRITE`/`PROJECT_ADMIN`).
+- `bitbucket_setProjectGroupPermission` — Grant or change a group's project permission (`PROJECT_READ`/`PROJECT_WRITE`/`PROJECT_ADMIN`).
+- `bitbucket_revokeProjectPermission` — Revoke a user's and/or a group's permissions on a project (requires `PROJECT_ADMIN` or higher).
+- `bitbucket_getRepoPermissions` — Get the users/groups granted a permission on a repository, with their highest level (requires `REPO_ADMIN` or higher project/global permission).
+- `bitbucket_setRepoUserPermission` — Grant or change a user's repository permission (`REPO_READ`/`REPO_WRITE`/`REPO_ADMIN`).
+- `bitbucket_setRepoGroupPermission` — Grant or change a group's repository permission (`REPO_READ`/`REPO_WRITE`/`REPO_ADMIN`).
+- `bitbucket_revokeRepoPermission` — Revoke a user's and/or a group's permissions on a repository (requires `REPO_ADMIN` or higher project/global permission).
 
 ## Response Shaping
 

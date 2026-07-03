@@ -154,7 +154,7 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-The server registers 42 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
+The server registers 48 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
 #### Content — CRUD & search (CQL)
 
@@ -203,10 +203,16 @@ The server registers 42 tools, grouped below by area. All tools operate against 
 - `confluence_addContentWatcher` — Add a watcher to a piece of content
 - `confluence_removeContentWatcher` — Remove a watcher from a piece of content
 
-#### Attachments (list/remove only — no upload currently)
+#### Attachments
 
 - `confluence_getAttachments` — Get the attachments on a piece of content
+- `confluence_createAttachment` — Upload a new attachment to a piece of content
+- `confluence_updateAttachmentMeta` — Update an attachment's metadata (filename, media type, comment)
+- `confluence_updateAttachmentData` — Replace the binary data of an attachment, adding a new version
+- `confluence_moveAttachment` — Move an attachment to a different content entity, optionally renaming it
 - `confluence_removeAttachment` — Remove an attachment from a piece of content
+- `confluence_deleteAttachment` — Delete an attachment
+- `confluence_deleteAttachmentVersion` — Delete a specific version of an attachment
 
 #### Spaces — search, CRUD, archive/restore
 
