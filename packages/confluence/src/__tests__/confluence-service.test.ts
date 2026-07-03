@@ -2,6 +2,7 @@ import { ConfluenceService, escapeSearchTextForCql } from '../confluence-service
 import {
   ChildContentService,
   ContentDescendantService,
+  ContentLabelsService,
   ContentResourceService,
   SearchService,
 } from '../confluence-client/index.js';
@@ -9,6 +10,7 @@ import {
 const CONTENT_RESOURCE = ContentResourceService as unknown as Record<string, jest.Mock>;
 const CHILD_CONTENT = ChildContentService as unknown as Record<string, jest.Mock>;
 const CONTENT_DESCENDANT = ContentDescendantService as unknown as Record<string, jest.Mock>;
+const CONTENT_LABELS = ContentLabelsService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -29,6 +31,11 @@ jest.mock('../confluence-client/index.js', () => ({
   ContentDescendantService: {
     descendants: jest.fn(),
     descendantsOfType: jest.fn(),
+  },
+  ContentLabelsService: {
+    labels: jest.fn(),
+    addLabels: jest.fn(),
+    deleteLabelWithQueryParam: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -464,5 +471,40 @@ describe('ConfluenceService children & descendants', () => {
     await service.getContentDescendantsByType('123', 'comment', undefined, 50, 10);
 
     expect(CONTENT_DESCENDANT.descendantsOfType).toHaveBeenCalledWith('123', 'comment', undefined, '50', '10');
+  });
+});
+
+describe('ConfluenceService content labels', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets labels with prefix filter and default limit', async () => {
+    CONTENT_LABELS.labels.mockResolvedValue({ results: [] });
+
+    await service.getContentLabels('123', 'global');
+
+    expect(CONTENT_LABELS.labels).toHaveBeenCalledWith('123', 'global', '25', undefined);
+  });
+
+  it('adds labels forwarding the list as the request body', async () => {
+    CONTENT_LABELS.addLabels.mockResolvedValue({ results: [] });
+    const labels = [{ name: 'docs' }, { prefix: 'global', name: 'api' }];
+
+    await service.addContentLabels('123', labels);
+
+    expect(CONTENT_LABELS.addLabels).toHaveBeenCalledWith('123', labels);
+  });
+
+  it('deletes a label using the query-param variant', async () => {
+    CONTENT_LABELS.deleteLabelWithQueryParam.mockResolvedValue(undefined);
+
+    const result = await service.deleteContentLabel('123', 'docs');
+
+    expect(CONTENT_LABELS.deleteLabelWithQueryParam).toHaveBeenCalledWith('123', 'docs');
+    expect(result.success).toBe(true);
   });
 });

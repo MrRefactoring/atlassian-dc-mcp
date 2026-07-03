@@ -211,6 +211,36 @@ server.tool(
   }
 );
 
+server.tool(
+  "confluence_getContentLabels",
+  `Get the labels attached to a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentLabels,
+  async ({ contentId, prefix, limit, start }) => {
+    const result = await confluenceService.getContentLabels(contentId, prefix, limit, start);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_addContentLabels",
+  `Add one or more labels to a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.addContentLabels,
+  async ({ contentId, labels }) => {
+    const result = await confluenceService.addContentLabels(contentId, labels);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_deleteContentLabel",
+  `Remove a label from a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.deleteContentLabel,
+  async ({ contentId, name }) => {
+    const result = await confluenceService.deleteContentLabel(contentId, name);
+    return formatToolResponse(result);
+  }
+);
+
 server.tool('confluence_searchSpace',
   `Search for spaces in ${confluenceInstanceType}`,
   confluenceToolSchemas.searchSpaces,

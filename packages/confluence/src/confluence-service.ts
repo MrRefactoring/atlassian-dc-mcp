@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ChildContentService, ContentDescendantService, ContentResourceService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
+import { ChildContentService, ContentDescendantService, ContentLabelsService, ContentResourceService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
@@ -212,6 +212,43 @@ export class ConfluenceService {
   }
 
   /**
+   * Get the labels attached to a piece of content.
+   * @param contentId The ID of the content
+   * @param prefix Optional label prefix filter (global, my, team)
+   */
+  async getContentLabels(contentId: string, prefix?: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => ContentLabelsService.labels(contentId, prefix, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting content labels'
+    );
+  }
+
+  /**
+   * Add one or more labels to a piece of content.
+   * @param contentId The ID of the content
+   * @param labels A list of labels ({ name, prefix? }) to add
+   */
+  async addContentLabels(contentId: string, labels: Array<{ name: string; prefix?: string }>) {
+    return handleApiOperation(
+      () => ContentLabelsService.addLabels(contentId, labels),
+      'Error adding content labels'
+    );
+  }
+
+  /**
+   * Remove a single label from a piece of content (uses the query-param variant so labels
+   * containing characters like "/" are handled safely).
+   * @param contentId The ID of the content
+   * @param name The name of the label to remove
+   */
+  async deleteContentLabel(contentId: string, name: string) {
+    return handleApiOperation(
+      () => ContentLabelsService.deleteLabelWithQueryParam(contentId, name),
+      'Error deleting content label'
+    );
+  }
+
+  /**
    * Search for spaces by text
    * @param searchText Text to search for in space names or descriptions
    * @param limit Maximum number of results to return
@@ -320,6 +357,23 @@ export const confluenceToolSchemas = {
     expand: z.string().optional().describe("Comma-separated list of properties to expand on the descendants"),
     limit: z.number().optional().describe("Maximum number of descendants to return"),
     start: z.number().optional().describe("Start index for pagination")
+  },
+  getContentLabels: {
+    contentId: z.string().describe("ID of the content to fetch labels for"),
+    prefix: z.string().optional().describe("Label prefix filter: global, my or team. Omit for all prefixes."),
+    limit: z.number().optional().describe("Maximum number of labels to return"),
+    start: z.number().optional().describe("Start index for pagination")
+  },
+  addContentLabels: {
+    contentId: z.string().describe("ID of the content to add labels to"),
+    labels: z.array(z.object({
+      name: z.string().describe("The label name (without prefix)"),
+      prefix: z.string().optional().describe("Label prefix, defaults to 'global' on the server")
+    })).min(1).describe("One or more labels to add to the content")
+  },
+  deleteContentLabel: {
+    contentId: z.string().describe("ID of the content to remove the label from"),
+    name: z.string().describe("Name of the label to remove")
   },
   searchSpaces: {
     searchText: z.string().describe("Text to search for in Confluence Data Center space names or descriptions. Quotes and backslashes are escaped for CQL; pass the literal search phrase only (do not pre-escape)."),
