@@ -3,6 +3,7 @@ import {
   ChildContentService,
   ContentDescendantService,
   ContentLabelsService,
+  ContentPropertyService,
   ContentResourceService,
   SearchService,
 } from '../confluence-client/index.js';
@@ -11,6 +12,7 @@ const CONTENT_RESOURCE = ContentResourceService as unknown as Record<string, jes
 const CHILD_CONTENT = ChildContentService as unknown as Record<string, jest.Mock>;
 const CONTENT_DESCENDANT = ContentDescendantService as unknown as Record<string, jest.Mock>;
 const CONTENT_LABELS = ContentLabelsService as unknown as Record<string, jest.Mock>;
+const CONTENT_PROPERTY = ContentPropertyService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -36,6 +38,13 @@ jest.mock('../confluence-client/index.js', () => ({
     labels: jest.fn(),
     addLabels: jest.fn(),
     deleteLabelWithQueryParam: jest.fn(),
+  },
+  ContentPropertyService: {
+    findAll: jest.fn(),
+    findByKey: jest.fn(),
+    create1: jest.fn(),
+    update1: jest.fn(),
+    delete2: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -505,6 +514,61 @@ describe('ConfluenceService content labels', () => {
     const result = await service.deleteContentLabel('123', 'docs');
 
     expect(CONTENT_LABELS.deleteLabelWithQueryParam).toHaveBeenCalledWith('123', 'docs');
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService content properties', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('lists properties with the default page-size limit', async () => {
+    CONTENT_PROPERTY.findAll.mockResolvedValue({ results: [] });
+
+    await service.getContentProperties('123', 'version');
+
+    expect(CONTENT_PROPERTY.findAll).toHaveBeenCalledWith('123', 'version', '25', undefined);
+  });
+
+  it('gets a single property by key', async () => {
+    CONTENT_PROPERTY.findByKey.mockResolvedValue({ key: 'k' });
+
+    await service.getContentProperty('123', 'my-key', 'content');
+
+    expect(CONTENT_PROPERTY.findByKey).toHaveBeenCalledWith('123', 'my-key', 'content');
+  });
+
+  it('creates a property wrapping key and value into the body', async () => {
+    CONTENT_PROPERTY.create1.mockResolvedValue({ key: 'k' });
+
+    await service.createContentProperty('123', 'my-key', { enabled: true });
+
+    expect(CONTENT_PROPERTY.create1).toHaveBeenCalledWith('123', { key: 'my-key', value: { enabled: true } });
+  });
+
+  it('updates a property with the new version number', async () => {
+    CONTENT_PROPERTY.update1.mockResolvedValue({ key: 'k' });
+
+    await service.updateContentProperty('123', 'my-key', 'new-value', 2);
+
+    expect(CONTENT_PROPERTY.update1).toHaveBeenCalledWith(
+      '123',
+      'my-key',
+      undefined,
+      { key: 'my-key', value: 'new-value', version: { number: 2 } }
+    );
+  });
+
+  it('deletes a property by key', async () => {
+    CONTENT_PROPERTY.delete2.mockResolvedValue(undefined);
+
+    const result = await service.deleteContentProperty('123', 'my-key');
+
+    expect(CONTENT_PROPERTY.delete2).toHaveBeenCalledWith('123', 'my-key');
     expect(result.success).toBe(true);
   });
 });

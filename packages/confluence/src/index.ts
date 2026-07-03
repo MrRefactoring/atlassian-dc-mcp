@@ -241,6 +241,56 @@ server.tool(
   }
 );
 
+server.tool(
+  "confluence_getContentProperties",
+  `Get the properties stored on a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentProperties,
+  async ({ contentId, expand, limit, start }) => {
+    const result = await confluenceService.getContentProperties(contentId, expand, limit, start);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getContentProperty",
+  `Get a single content property by key in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentProperty,
+  async ({ contentId, key, expand }) => {
+    const result = await confluenceService.getContentProperty(contentId, key, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_createContentProperty",
+  `Create a content property in ${confluenceInstanceType}`,
+  confluenceToolSchemas.createContentProperty,
+  async ({ contentId, key, value }) => {
+    const result = await confluenceService.createContentProperty(contentId, key, value);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_updateContentProperty",
+  `Update a content property in ${confluenceInstanceType}`,
+  confluenceToolSchemas.updateContentProperty,
+  async ({ contentId, key, value, version }) => {
+    const result = await confluenceService.updateContentProperty(contentId, key, value, version);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_deleteContentProperty",
+  `Delete a content property in ${confluenceInstanceType}`,
+  confluenceToolSchemas.deleteContentProperty,
+  async ({ contentId, key }) => {
+    const result = await confluenceService.deleteContentProperty(contentId, key);
+    return formatToolResponse(result);
+  }
+);
+
 server.tool('confluence_searchSpace',
   `Search for spaces in ${confluenceInstanceType}`,
   confluenceToolSchemas.searchSpaces,
