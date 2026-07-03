@@ -183,7 +183,7 @@ pnpm dev
 
 ### Available Tools
 
-This server registers 108 tools, grouped below by area.
+This server registers 114 tools, grouped below by area.
 
 #### Projects & Repositories
 
@@ -294,6 +294,12 @@ This server registers 108 tools, grouped below by area.
 
 - `bitbucket_getPullRequestSettings` — Get a repository's pull request settings: merge strategy configuration and merge checks (required approvers/tasks/builds).
 - `bitbucket_updatePullRequestSettings` — Update a repository's pull request settings; only the provided keys are changed (requires `REPO_ADMIN`).
+- `bitbucket_getAutoDeclineSettings` — Get a repository's auto-decline settings for inactive pull requests.
+- `bitbucket_setAutoDeclineSettings` — Enable/disable auto-decline and set the inactivity period (1, 2, 4, 8, or 12 weeks) (requires `REPO_ADMIN`).
+- `bitbucket_deleteAutoDeclineSettings` — Delete a repository's auto-decline settings, reverting to project/default settings (requires `REPO_ADMIN`).
+- `bitbucket_getAutoMergeSettings` — Get a repository's pull request auto-merge settings.
+- `bitbucket_setAutoMergeSettings` — Enable/disable automatically merging pull requests once all merge checks pass (requires `REPO_ADMIN`).
+- `bitbucket_deleteAutoMergeSettings` — Delete a repository's auto-merge settings, reverting to project/default settings (requires `REPO_ADMIN`).
 - `bitbucket_getRepoHooks` — List a repository's hooks (pre-receive/post-receive) with their enabled state (requires `REPO_ADMIN`).
 - `bitbucket_enableRepoHook` — Enable a repository hook by its hook key (requires `REPO_ADMIN`).
 - `bitbucket_disableRepoHook` — Disable a repository hook by its hook key (requires `REPO_ADMIN`).

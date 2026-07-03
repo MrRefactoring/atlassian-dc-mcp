@@ -967,6 +967,66 @@ server.tool(
 );
 
 server.tool(
+  "bitbucket_getAutoDeclineSettings",
+  "Get the auto-decline settings for a Bitbucket repository: whether inactive pull requests are automatically declined, and after how many weeks of inactivity. Falls back to project or default settings if none are set on the repository.",
+  bitbucketToolSchemas.getAutoDeclineSettings,
+  async ({ projectKey, repositorySlug }) => {
+    const result = await bitbucketService.getAutoDeclineSettings(projectKey, repositorySlug);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_setAutoDeclineSettings",
+  "Create or update the auto-decline settings for a Bitbucket repository. Requires REPO_ADMIN permission. inactivityWeeks must be one of 1, 2, 4, 8, or 12.",
+  bitbucketToolSchemas.setAutoDeclineSettings,
+  async ({ projectKey, repositorySlug, enabled, inactivityWeeks }) => {
+    const result = await bitbucketService.setAutoDeclineSettings(projectKey, repositorySlug, enabled, inactivityWeeks);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_deleteAutoDeclineSettings",
+  "Delete the auto-decline settings for a Bitbucket repository, reverting it to the project or default settings. Requires REPO_ADMIN permission.",
+  bitbucketToolSchemas.deleteAutoDeclineSettings,
+  async ({ projectKey, repositorySlug }) => {
+    const result = await bitbucketService.deleteAutoDeclineSettings(projectKey, repositorySlug);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_getAutoMergeSettings",
+  "Get the pull request auto-merge settings for a Bitbucket repository: whether pull requests are automatically merged once all merge checks pass. Falls back to project or default settings if none are set on the repository.",
+  bitbucketToolSchemas.getAutoMergeSettings,
+  async ({ projectKey, repositorySlug }) => {
+    const result = await bitbucketService.getAutoMergeSettings(projectKey, repositorySlug);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_setAutoMergeSettings",
+  "Create or update the pull request auto-merge settings for a Bitbucket repository. Requires REPO_ADMIN permission.",
+  bitbucketToolSchemas.setAutoMergeSettings,
+  async ({ projectKey, repositorySlug, enabled }) => {
+    const result = await bitbucketService.setAutoMergeSettings(projectKey, repositorySlug, enabled);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_deleteAutoMergeSettings",
+  "Delete the pull request auto-merge settings for a Bitbucket repository, reverting it to the project or default settings. Requires REPO_ADMIN permission.",
+  bitbucketToolSchemas.deleteAutoMergeSettings,
+  async ({ projectKey, repositorySlug }) => {
+    const result = await bitbucketService.deleteAutoMergeSettings(projectKey, repositorySlug);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "bitbucket_getRepoHooks",
   "List the repository hooks (pre-receive/post-receive) configured for a Bitbucket repository, with their enabled state. Requires REPO_ADMIN permission.",
   bitbucketToolSchemas.getRepoHooks,
