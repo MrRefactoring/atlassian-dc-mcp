@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BuildsAndDeploymentsService, DeprecatedService, OpenAPI, ProjectService, PullRequestsService, RepositoryService } from './bitbucket-client/index.js';
+import { BuildsAndDeploymentsService, DeprecatedService, OpenAPI, PermissionManagementService, ProjectService, PullRequestsService, RepositoryService } from './bitbucket-client/index.js';
 import { request as __request } from './bitbucket-client/core/request.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { simplifyInboxPullRequests } from './inbox-pr-mapper.js';
@@ -2459,6 +2459,192 @@ export class BitbucketService {
     };
   }
 
+  /**
+   * Get the users and groups with a permission on a project
+   * @param projectKey The project key
+   * @param filter Optional filter applied to both user and group names
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (default: 25)
+   * @returns Promise with { users, groups } pages of permitted principals
+   */
+  async getProjectPermissions(projectKey: string, filter?: string, start?: number, limit?: number) {
+    projectKey = projectKey.toUpperCase();
+    const pageLimit = limit ?? this.getPageSize();
+    return handleApiOperation(
+      async () => {
+        const [users, groups] = await Promise.all([
+          ProjectService.getUsersWithAnyPermission1(projectKey, filter, start, pageLimit),
+          ProjectService.getGroupsWithAnyPermission1(projectKey, filter, start, pageLimit),
+        ]);
+        return { users, groups };
+      },
+      'Error fetching project permissions'
+    );
+  }
+
+  /**
+   * Grant or change a user's permission level on a project
+   * @param projectKey The project key
+   * @param name The username to grant the permission to
+   * @param permission The permission to grant: PROJECT_READ, PROJECT_WRITE, or PROJECT_ADMIN
+   * @returns Promise with an acknowledgement
+   */
+  async setProjectUserPermission(
+    projectKey: string,
+    name: string,
+    permission: 'PROJECT_READ' | 'PROJECT_WRITE' | 'PROJECT_ADMIN'
+  ) {
+    projectKey = projectKey.toUpperCase();
+    const result = await handleApiOperation(
+      () => ProjectService.setPermissionForUsers1(projectKey, name, permission),
+      'Error setting project user permission'
+    );
+    if (result.success) {
+      return { ...result, data: { projectKey, name, permission } };
+    }
+    return result;
+  }
+
+  /**
+   * Grant or change a group's permission level on a project
+   * @param projectKey The project key
+   * @param name The group name to grant the permission to
+   * @param permission The permission to grant: PROJECT_READ, PROJECT_WRITE, or PROJECT_ADMIN
+   * @returns Promise with an acknowledgement
+   */
+  async setProjectGroupPermission(
+    projectKey: string,
+    name: string,
+    permission: 'PROJECT_READ' | 'PROJECT_WRITE' | 'PROJECT_ADMIN'
+  ) {
+    projectKey = projectKey.toUpperCase();
+    const result = await handleApiOperation(
+      () => ProjectService.setPermissionForGroups1(projectKey, name, permission),
+      'Error setting project group permission'
+    );
+    if (result.success) {
+      return { ...result, data: { projectKey, name, permission } };
+    }
+    return result;
+  }
+
+  /**
+   * Revoke a user's and/or a group's permissions on a project
+   * @param projectKey The project key
+   * @param user Optional username whose project permissions should be revoked
+   * @param group Optional group name whose project permissions should be revoked
+   * @returns Promise with an acknowledgement
+   */
+  async revokeProjectPermission(projectKey: string, user?: string, group?: string) {
+    projectKey = projectKey.toUpperCase();
+    const result = await handleApiOperation(
+      () => ProjectService.revokePermissions(projectKey, user, group),
+      'Error revoking project permission'
+    );
+    if (result.success) {
+      return { ...result, data: { revoked: true, projectKey, user, group } };
+    }
+    return result;
+  }
+
+  /**
+   * Get the users and groups with a permission on a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param filter Optional filter applied to both user and group names
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (default: 25)
+   * @returns Promise with { users, groups } pages of permitted principals
+   */
+  async getRepoPermissions(projectKey: string, repositorySlug: string, filter?: string, start?: number, limit?: number) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const pageLimit = limit ?? this.getPageSize();
+    return handleApiOperation(
+      async () => {
+        const [users, groups] = await Promise.all([
+          PermissionManagementService.getUsersWithAnyPermission2(projectKey, repositorySlug, filter, start, pageLimit),
+          PermissionManagementService.getGroupsWithAnyPermission2(projectKey, repositorySlug, filter, start, pageLimit),
+        ]);
+        return { users, groups };
+      },
+      'Error fetching repository permissions'
+    );
+  }
+
+  /**
+   * Grant or change a user's permission level on a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param name The username to grant the permission to
+   * @param permission The permission to grant: REPO_READ, REPO_WRITE, or REPO_ADMIN
+   * @returns Promise with an acknowledgement
+   */
+  async setRepoUserPermission(
+    projectKey: string,
+    repositorySlug: string,
+    name: string,
+    permission: 'REPO_READ' | 'REPO_WRITE' | 'REPO_ADMIN'
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const result = await handleApiOperation(
+      () => PermissionManagementService.setPermissionForUser(projectKey, [name], permission, repositorySlug),
+      'Error setting repository user permission'
+    );
+    if (result.success) {
+      return { ...result, data: { projectKey, repositorySlug, name, permission } };
+    }
+    return result;
+  }
+
+  /**
+   * Grant or change a group's permission level on a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param name The group name to grant the permission to
+   * @param permission The permission to grant: REPO_READ, REPO_WRITE, or REPO_ADMIN
+   * @returns Promise with an acknowledgement
+   */
+  async setRepoGroupPermission(
+    projectKey: string,
+    repositorySlug: string,
+    name: string,
+    permission: 'REPO_READ' | 'REPO_WRITE' | 'REPO_ADMIN'
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const result = await handleApiOperation(
+      () => PermissionManagementService.setPermissionForGroup(projectKey, [name], permission, repositorySlug),
+      'Error setting repository group permission'
+    );
+    if (result.success) {
+      return { ...result, data: { projectKey, repositorySlug, name, permission } };
+    }
+    return result;
+  }
+
+  /**
+   * Revoke a user's and/or a group's permissions on a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param user Optional username whose repository permissions should be revoked
+   * @param group Optional group name whose repository permissions should be revoked
+   * @returns Promise with an acknowledgement
+   */
+  async revokeRepoPermission(projectKey: string, repositorySlug: string, user?: string, group?: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const result = await handleApiOperation(
+      () => PermissionManagementService.revokePermissions1(projectKey, repositorySlug, user, group),
+      'Error revoking repository permission'
+    );
+    if (result.success) {
+      return { ...result, data: { revoked: true, projectKey, repositorySlug, user, group } };
+    }
+    return result;
+  }
+
   async validateSetup(): Promise<void> {
     await __request(OpenAPI, {
       method: 'GET',
@@ -3065,5 +3251,51 @@ export const bitbucketToolSchemas = {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug"),
     webhookId: z.string().describe("The ID of the webhook to delete")
+  },
+  getProjectPermissions: {
+    projectKey: z.string().describe("The project key"),
+    filter: z.string().optional().describe("Optional filter applied to both returned user and group names"),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return per principal type. If not passed, the package default page size is used.")
+  },
+  setProjectUserPermission: {
+    projectKey: z.string().describe("The project key"),
+    name: z.string().describe("The username to grant the permission to"),
+    permission: z.enum(['PROJECT_READ', 'PROJECT_WRITE', 'PROJECT_ADMIN']).describe("The permission to grant")
+  },
+  setProjectGroupPermission: {
+    projectKey: z.string().describe("The project key"),
+    name: z.string().describe("The group name to grant the permission to"),
+    permission: z.enum(['PROJECT_READ', 'PROJECT_WRITE', 'PROJECT_ADMIN']).describe("The permission to grant")
+  },
+  revokeProjectPermission: {
+    projectKey: z.string().describe("The project key"),
+    user: z.string().optional().describe("Username whose project permissions should be revoked"),
+    group: z.string().optional().describe("Group name whose project permissions should be revoked. At least one of user or group must be provided.")
+  },
+  getRepoPermissions: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    filter: z.string().optional().describe("Optional filter applied to both returned user and group names"),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return per principal type. If not passed, the package default page size is used.")
+  },
+  setRepoUserPermission: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    name: z.string().describe("The username to grant the permission to"),
+    permission: z.enum(['REPO_READ', 'REPO_WRITE', 'REPO_ADMIN']).describe("The permission to grant")
+  },
+  setRepoGroupPermission: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    name: z.string().describe("The group name to grant the permission to"),
+    permission: z.enum(['REPO_READ', 'REPO_WRITE', 'REPO_ADMIN']).describe("The permission to grant")
+  },
+  revokeRepoPermission: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    user: z.string().optional().describe("Username whose repository permissions should be revoked"),
+    group: z.string().optional().describe("Group name whose repository permissions should be revoked. At least one of user or group must be provided.")
   }
 };
