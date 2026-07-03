@@ -24,6 +24,7 @@ import {
   IssueService,
   IssuesecurityschemesService,
   IssuetypeService,
+  MypreferencesService,
   NotificationschemeService,
   OpenAPI,
   PermissionschemeService,
@@ -222,6 +223,11 @@ jest.mock('../jira-client/index.js', () => ({
   ApplicationroleService: {
     getAll: jest.fn(),
     get4: jest.fn(),
+  },
+  MypreferencesService: {
+    getPreference: jest.fn(),
+    setPreference: jest.fn(),
+    removePreference: jest.fn(),
   },
   WorkflowService: {
     getAllWorkflows: jest.fn(),
@@ -2533,6 +2539,45 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Invalid avatar type');
+    });
+  });
+
+  describe('my preferences', () => {
+    it('gets a preference by key', async () => {
+      (MypreferencesService.getPreference as jest.Mock).mockResolvedValue('dark');
+
+      const result = await jiraService.getMyPreference('theme');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe('dark');
+      expect(MypreferencesService.getPreference).toHaveBeenCalledWith('theme');
+    });
+
+    it('sets a preference by key', async () => {
+      (MypreferencesService.setPreference as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setMyPreference('theme', 'dark');
+
+      expect(result.success).toBe(true);
+      expect(MypreferencesService.setPreference).toHaveBeenCalledWith('theme', 'dark');
+    });
+
+    it('deletes a preference by key', async () => {
+      (MypreferencesService.removePreference as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteMyPreference('theme');
+
+      expect(result.success).toBe(true);
+      expect(MypreferencesService.removePreference).toHaveBeenCalledWith('theme');
+    });
+
+    it('handles errors', async () => {
+      (MypreferencesService.getPreference as jest.Mock).mockRejectedValue(new Error('Key not found.'));
+
+      const result = await jiraService.getMyPreference('missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Key not found.');
     });
   });
 
