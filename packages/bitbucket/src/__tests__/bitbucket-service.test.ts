@@ -4308,6 +4308,135 @@ describe('BitbucketService', () => {
     });
   });
 
+  describe('branch model configuration', () => {
+    const { request: mockRequest } = require('../bitbucket-client/core/request.js');
+
+    it('should get the branch model configuration', async () => {
+      const mockData = {
+        development: { refId: 'refs/heads/master', useDefault: true },
+        production: null,
+        types: [{ id: 'FEATURE', displayName: 'Feature', prefix: 'feature/' }],
+      };
+      mockRequest.mockResolvedValue(mockData);
+
+      const result = await bitbucketService.getBranchModel('test', 'Test-Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.any(Object),
+        {
+          method: 'GET',
+          url: '/branch-utils/1.0/projects/{projectKey}/repos/{repositorySlug}/branchmodel/configuration',
+          path: { projectKey: 'TEST', repositorySlug: 'test-repo' },
+          errors: {
+            401: 'The currently authenticated user has insufficient permissions to view the branch model configuration.',
+            404: 'The specified repository does not exist.',
+          },
+        }
+      );
+    });
+
+    it('should handle errors when getting the branch model configuration', async () => {
+      mockRequest.mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.getBranchModel('TEST', 'test-repo');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should set the branch model configuration with development only', async () => {
+      const mockData = { development: { refId: 'refs/heads/develop', useDefault: false } };
+      mockRequest.mockResolvedValue(mockData);
+
+      const result = await bitbucketService.setBranchModel(
+        'test', 'Test-Repo', { refId: 'refs/heads/develop' }
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.any(Object),
+        {
+          method: 'PUT',
+          url: '/branch-utils/1.0/projects/{projectKey}/repos/{repositorySlug}/branchmodel/configuration',
+          path: { projectKey: 'TEST', repositorySlug: 'test-repo' },
+          body: { development: { refId: 'refs/heads/develop' } },
+          mediaType: 'application/json',
+          errors: {
+            400: 'The branch model configuration was invalid.',
+            401: 'The currently authenticated user has insufficient permissions to configure the branch model.',
+            404: 'The specified repository does not exist.',
+          },
+        }
+      );
+    });
+
+    it('should set the branch model configuration with production and types', async () => {
+      mockRequest.mockResolvedValue({});
+
+      await bitbucketService.setBranchModel(
+        'TEST',
+        'test-repo',
+        { refId: 'refs/heads/develop', useDefault: false },
+        { refId: 'refs/heads/master', useDefault: false },
+        [{ id: 'FEATURE', prefix: 'feature/', enabled: true }]
+      );
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          method: 'PUT',
+          body: {
+            development: { refId: 'refs/heads/develop', useDefault: false },
+            production: { refId: 'refs/heads/master', useDefault: false },
+            types: [{ id: 'FEATURE', prefix: 'feature/', enabled: true }],
+          },
+        })
+      );
+    });
+
+    it('should handle errors when setting the branch model configuration', async () => {
+      mockRequest.mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.setBranchModel('TEST', 'test-repo', { refId: 'refs/heads/develop' });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should delete the branch model configuration and return an ack', async () => {
+      mockRequest.mockResolvedValue(undefined);
+
+      const result = await bitbucketService.deleteBranchModel('test', 'Test-Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ reset: true, projectKey: 'TEST', repositorySlug: 'test-repo' });
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.any(Object),
+        {
+          method: 'DELETE',
+          url: '/branch-utils/1.0/projects/{projectKey}/repos/{repositorySlug}/branchmodel/configuration',
+          path: { projectKey: 'TEST', repositorySlug: 'test-repo' },
+          errors: {
+            401: 'The currently authenticated user has insufficient permissions to reset the branch model configuration.',
+            404: 'The specified repository does not exist.',
+          },
+        }
+      );
+    });
+
+    it('should preserve the error field when deleting the branch model configuration fails', async () => {
+      mockRequest.mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.deleteBranchModel('TEST', 'test-repo');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+  });
+
   describe('searchCode', () => {
     const { request: mockRequest } = require('../bitbucket-client/core/request.js');
 
