@@ -453,4 +453,34 @@ server.tool(
   }
 );
 
+server.tool(
+  "confluence_getSpaceContent",
+  `Get the content in a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getSpaceContent,
+  async ({ spaceKey, type, expand, depth, limit, start }) => {
+    const result = await confluenceService.getSpaceContent(spaceKey, type, expand, depth, limit, start);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_archiveSpace",
+  `Archive a space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.archiveSpace,
+  async ({ spaceKey }) => {
+    const result = await confluenceService.archiveSpace(spaceKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_restoreSpace",
+  `Restore an archived space in ${confluenceInstanceType}`,
+  confluenceToolSchemas.restoreSpace,
+  async ({ spaceKey }) => {
+    const result = await confluenceService.restoreSpace(spaceKey);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

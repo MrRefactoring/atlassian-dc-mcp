@@ -543,6 +543,38 @@ export class ConfluenceService {
     return handleApiOperation(() => SpaceService.delete5(spaceKey), 'Error deleting space');
   }
 
+  /**
+   * Get the content in a space, optionally limited to a single content type (page or blogpost).
+   * @param spaceKey The key of the space
+   * @param type Optional content type filter (page, blogpost)
+   * @param depth "all" (default) or "root" to return only top-level content
+   */
+  async getSpaceContent(spaceKey: string, type?: string, expand?: string, depth?: string, limit?: number, start?: number) {
+    const limitValue = (limit ?? this.getPageSize()).toString();
+    return handleApiOperation(
+      () => (type
+        ? SpaceService.contentsWithType1(spaceKey, type, expand, depth, limitValue, start?.toString())
+        : SpaceService.contents(spaceKey, expand, depth, limitValue, start?.toString())),
+      'Error getting space content'
+    );
+  }
+
+  /**
+   * Archive a space. Idempotent: archiving an already-archived space is a no-op.
+   * @param spaceKey The key of the space to archive
+   */
+  async archiveSpace(spaceKey: string) {
+    return handleApiOperation(() => SpaceService.archive(spaceKey), 'Error archiving space');
+  }
+
+  /**
+   * Restore an archived space. Idempotent: restoring an already-current space is a no-op.
+   * @param spaceKey The key of the space to restore
+   */
+  async restoreSpace(spaceKey: string) {
+    return handleApiOperation(() => SpaceService.restore(spaceKey), 'Error restoring space');
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -761,5 +793,19 @@ export const confluenceToolSchemas = {
   },
   deleteSpace: {
     spaceKey: z.string().describe("Key of the space to delete. Deletion runs as a long-running task.")
+  },
+  getSpaceContent: {
+    spaceKey: z.string().describe("Key of the space to fetch content from"),
+    type: z.enum(['page', 'blogpost']).optional().describe("Limit results to a single content type. Omit to return all content types."),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the content (e.g. history,version,body.storage)"),
+    depth: z.enum(['all', 'root']).optional().describe("'all' (default) for the full tree or 'root' for only top-level content"),
+    limit: z.number().optional().describe("Maximum number of content items to return"),
+    start: z.number().optional().describe("Start index for pagination")
+  },
+  archiveSpace: {
+    spaceKey: z.string().describe("Key of the space to archive")
+  },
+  restoreSpace: {
+    spaceKey: z.string().describe("Key of the archived space to restore")
   }
 };
