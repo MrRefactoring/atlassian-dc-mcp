@@ -198,6 +198,11 @@ jest.mock('../jira-client/index.js', () => ({
     getProject: jest.fn(),
     getProjectComponents: jest.fn(),
     getProjectVersions: jest.fn(),
+    createProject: jest.fn(),
+    updateProject: jest.fn(),
+    deleteProject: jest.fn(),
+    archiveProject: jest.fn(),
+    restoreProject: jest.fn(),
     getProjectRoles: jest.fn(),
     getProjectRole: jest.fn(),
     setActors: jest.fn(),
@@ -740,6 +745,122 @@ describe('JiraService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockVersions);
       expect(ProjectService.getProjectVersions).toHaveBeenCalledWith('TEST', undefined);
+    });
+  });
+
+  describe('createProject', () => {
+    it('creates a project', async () => {
+      const mockIdentity = { id: 10001, key: 'TEST', self: 'https://jira.example.com/rest/api/2/project/10001' };
+      (ProjectService.createProject as jest.Mock).mockResolvedValue(mockIdentity);
+
+      const result = await jiraService.createProject({ key: 'TEST', name: 'Test Project' });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockIdentity);
+      expect(ProjectService.createProject).toHaveBeenCalledWith({ key: 'TEST', name: 'Test Project' });
+    });
+
+    it('handles API errors', async () => {
+      (ProjectService.createProject as jest.Mock).mockRejectedValue(new Error('Project key already exists'));
+
+      const result = await jiraService.createProject({ key: 'TEST', name: 'Test Project' });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Project key already exists');
+    });
+  });
+
+  describe('updateProject', () => {
+    it('updates a project', async () => {
+      const mockProject = { key: 'TEST', name: 'Renamed Project' };
+      (ProjectService.updateProject as jest.Mock).mockResolvedValue(mockProject);
+
+      const result = await jiraService.updateProject('TEST', { name: 'Renamed Project' });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProject);
+      expect(ProjectService.updateProject).toHaveBeenCalledWith('TEST', { name: 'Renamed Project' }, undefined);
+    });
+
+    it('forwards expand', async () => {
+      (ProjectService.updateProject as jest.Mock).mockResolvedValue({});
+
+      await jiraService.updateProject('TEST', { description: 'New description' }, 'lead');
+
+      expect(ProjectService.updateProject).toHaveBeenCalledWith('TEST', { description: 'New description' }, 'lead');
+    });
+
+    it('handles API errors', async () => {
+      (ProjectService.updateProject as jest.Mock).mockRejectedValue(new Error('Project not found'));
+
+      const result = await jiraService.updateProject('MISSING', { name: 'X' });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Project not found');
+    });
+  });
+
+  describe('deleteProject', () => {
+    it('deletes a project and returns an acknowledgement', async () => {
+      (ProjectService.deleteProject as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteProject('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, projectIdOrKey: 'TEST' });
+      expect(ProjectService.deleteProject).toHaveBeenCalledWith('TEST');
+    });
+
+    it('handles API errors', async () => {
+      (ProjectService.deleteProject as jest.Mock).mockRejectedValue(new Error('Permission denied'));
+
+      const result = await jiraService.deleteProject('TEST');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Permission denied');
+    });
+  });
+
+  describe('archiveProject', () => {
+    it('archives a project and returns an acknowledgement', async () => {
+      (ProjectService.archiveProject as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.archiveProject('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ archived: true, projectIdOrKey: 'TEST' });
+      expect(ProjectService.archiveProject).toHaveBeenCalledWith('TEST');
+    });
+
+    it('handles API errors', async () => {
+      (ProjectService.archiveProject as jest.Mock).mockRejectedValue(new Error('Already archived'));
+
+      const result = await jiraService.archiveProject('TEST');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Already archived');
+    });
+  });
+
+  describe('restoreProject', () => {
+    it('restores an archived project', async () => {
+      const mockProject = { key: 'TEST' };
+      (ProjectService.restoreProject as jest.Mock).mockResolvedValue(mockProject);
+
+      const result = await jiraService.restoreProject('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProject);
+      expect(ProjectService.restoreProject).toHaveBeenCalledWith('TEST');
+    });
+
+    it('handles API errors', async () => {
+      (ProjectService.restoreProject as jest.Mock).mockRejectedValue(new Error('Already active'));
+
+      const result = await jiraService.restoreProject('TEST');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Already active');
     });
   });
 

@@ -51,6 +51,8 @@ import {
 } from './jira-client/index.js';
 import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
 import type { MoveFieldBean } from './jira-client/models/MoveFieldBean.js';
+import type { ProjectInputBean } from './jira-client/models/ProjectInputBean.js';
+import type { ProjectUpdateBean } from './jira-client/models/ProjectUpdateBean.js';
 import { request as __request } from './jira-client/core/request.js';
 import type { StringList } from './jira-client/models/StringList.js';
 import type { FilePart } from './jira-client/models/FilePart.js';
@@ -257,6 +259,49 @@ export class JiraService {
     return handleApiOperation(
       () => ProjectService.getProjectVersions(projectIdOrKey, expand),
       'Error getting project versions'
+    );
+  }
+
+  async createProject(project: Omit<ProjectInputBean, 'assigneeType'> & { assigneeType?: 'PROJECT_LEAD' | 'UNASSIGNED' }) {
+    return handleApiOperation(
+      () => ProjectService.createProject(project as ProjectInputBean),
+      'Error creating project'
+    );
+  }
+
+  async updateProject(projectIdOrKey: string, project: Omit<ProjectUpdateBean, 'assigneeType'> & { assigneeType?: 'PROJECT_LEAD' | 'UNASSIGNED' }, expand?: string) {
+    return handleApiOperation(
+      () => ProjectService.updateProject(projectIdOrKey, project as ProjectUpdateBean, expand),
+      'Error updating project'
+    );
+  }
+
+  async deleteProject(projectIdOrKey: string) {
+    const result = await handleApiOperation(
+      () => ProjectService.deleteProject(projectIdOrKey),
+      'Error deleting project'
+    );
+    if (result.success) {
+      return { ...result, data: { deleted: true, projectIdOrKey } };
+    }
+    return result;
+  }
+
+  async archiveProject(projectIdOrKey: string) {
+    const result = await handleApiOperation(
+      () => ProjectService.archiveProject(projectIdOrKey),
+      'Error archiving project'
+    );
+    if (result.success) {
+      return { ...result, data: { archived: true, projectIdOrKey } };
+    }
+    return result;
+  }
+
+  async restoreProject(projectIdOrKey: string) {
+    return handleApiOperation(
+      () => ProjectService.restoreProject(projectIdOrKey),
+      'Error restoring project'
     );
   }
 
@@ -1589,6 +1634,47 @@ export const jiraToolSchemas = {
   getProjectVersions: {
     projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
     expand: z.string().optional().describe("Comma-separated version sections to expand, such as operations")
+  },
+  createProject: {
+    key: z.string().describe("Unique project key (uppercase letters, e.g., TEST)"),
+    name: z.string().describe("Name of the new project"),
+    projectTypeKey: z.string().optional().describe("Project type key, e.g., 'software', 'business', or 'service_desk'"),
+    projectTemplateKey: z.string().optional().describe("Project template key determining the default scheme set, e.g., 'com.pyxis.greenhopper.jira:gh-simplified-kanban-classic'"),
+    description: z.string().optional().describe("Project description"),
+    lead: z.string().optional().describe("Username of the project lead"),
+    url: z.string().optional().describe("A link to information about this project, such as a documentation page"),
+    assigneeType: z.enum(['PROJECT_LEAD', 'UNASSIGNED']).optional().describe("Default assignee when a new issue is created"),
+    avatarId: z.number().optional().describe("ID of an existing avatar to use for the project"),
+    issueSecurityScheme: z.number().optional().describe("ID of the issue security scheme to associate with the project"),
+    permissionScheme: z.number().optional().describe("ID of the permission scheme to associate with the project"),
+    notificationScheme: z.number().optional().describe("ID of the notification scheme to associate with the project"),
+    categoryId: z.number().optional().describe("ID of the project category to assign the project to"),
+    workflowSchemeId: z.number().optional().describe("ID of the workflow scheme to associate with the project")
+  },
+  updateProject: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
+    name: z.string().optional().describe("New name for the project"),
+    key: z.string().optional().describe("New unique project key (uppercase letters)"),
+    description: z.string().optional().describe("New project description"),
+    lead: z.string().optional().describe("Username of the new project lead"),
+    url: z.string().optional().describe("A link to information about this project, such as a documentation page"),
+    assigneeType: z.enum(['PROJECT_LEAD', 'UNASSIGNED']).optional().describe("Default assignee when a new issue is created"),
+    avatarId: z.number().optional().describe("ID of an existing avatar to use for the project"),
+    issueSecurityScheme: z.number().optional().describe("ID of the issue security scheme to associate with the project"),
+    permissionScheme: z.number().optional().describe("ID of the permission scheme to associate with the project"),
+    notificationScheme: z.number().optional().describe("ID of the notification scheme to associate with the project"),
+    categoryId: z.number().optional().describe("ID of the project category to assign the project to"),
+    projectTypeKey: z.string().optional().describe("New project type key, e.g., 'software', 'business', or 'service_desk'"),
+    expand: z.string().optional().describe("Comma-separated project sections to expand in the response, such as description, lead, or issueTypes")
+  },
+  deleteProject: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST). Deletion is irreversible.")
+  },
+  archiveProject: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)")
+  },
+  restoreProject: {
+    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST) of a previously archived project")
   },
   getIssueTypes: {},
   getPriorities: {},
