@@ -808,4 +808,34 @@ server.tool(
   }
 );
 
+server.tool(
+  "bitbucket_getAccessTokens",
+  "Get HTTP access tokens (PATs) for a user, project, or repository. Set scope to 'user' (with userSlug), 'project' (with projectKey), or 'repo' (with projectKey and repositorySlug).",
+  bitbucketToolSchemas.getAccessTokens,
+  async ({ scope, userSlug, projectKey, repositorySlug, start, limit }) => {
+    const result = await bitbucketService.getAccessTokens(scope, userSlug, projectKey, repositorySlug, start, limit);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_createAccessToken",
+  "Create an HTTP access token (PAT) for a user, project, or repository. Set scope to 'user' (with userSlug), 'project' (with projectKey), or 'repo' (with projectKey and repositorySlug). The raw token value is only returned once, in the response of this call.",
+  bitbucketToolSchemas.createAccessToken,
+  async ({ scope, name, permissions, expiryDays, userSlug, projectKey, repositorySlug }) => {
+    const result = await bitbucketService.createAccessToken(scope, name, permissions, expiryDays, userSlug, projectKey, repositorySlug);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_deleteAccessToken",
+  "Delete an HTTP access token (PAT) from a user, project, or repository by its ID. Set scope to 'user' (with userSlug), 'project' (with projectKey), or 'repo' (with projectKey and repositorySlug).",
+  bitbucketToolSchemas.deleteAccessToken,
+  async ({ scope, tokenId, userSlug, projectKey, repositorySlug }) => {
+    const result = await bitbucketService.deleteAccessToken(scope, tokenId, userSlug, projectKey, repositorySlug);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
