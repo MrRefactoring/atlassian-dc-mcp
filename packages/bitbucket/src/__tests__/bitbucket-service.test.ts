@@ -37,7 +37,8 @@ jest.mock('../bitbucket-client/index.js', () => ({
     watch1: jest.fn(),
     unwatch1: jest.fn(),
     assignParticipantRole: jest.fn(),
-    unassignParticipantRole: jest.fn()
+    unassignParticipantRole: jest.fn(),
+    listParticipants: jest.fn()
   },
   RepositoryService: {
     getRestrictions1: jest.fn(),
@@ -67,6 +68,12 @@ jest.mock('../bitbucket-client/index.js', () => ({
     deleteWebhook1: jest.fn(),
     getPullRequestSettings1: jest.fn(),
     updatePullRequestSettings1: jest.fn(),
+    getAutoDeclineSettings1: jest.fn(),
+    setAutoDeclineSettings1: jest.fn(),
+    deleteAutoDeclineSettings1: jest.fn(),
+    get5: jest.fn(),
+    set1: jest.fn(),
+    delete5: jest.fn(),
     getRepositoryHooks1: jest.fn(),
     enableHook1: jest.fn(),
     disableHook1: jest.fn(),
@@ -97,6 +104,7 @@ jest.mock('../bitbucket-client/index.js', () => ({
     createRepository: jest.fn(),
     updateRepository: jest.fn(),
     forkRepository: jest.fn(),
+    getForkedRepositories: jest.fn(),
     deleteRepository: jest.fn(),
     getUsersWithAnyPermission1: jest.fn(),
     getGroupsWithAnyPermission1: jest.fn(),
@@ -344,6 +352,44 @@ describe('BitbucketService', () => {
         mockPullRequestId,
         'reviewer1'
       );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('getPullRequestParticipants', () => {
+    it('should get the participants of a pull request with default limit', async () => {
+      const mockData = {
+        values: [
+          { user: { name: 'author1' }, role: 'AUTHOR', approved: true },
+          { user: { name: 'commenter1' }, role: 'PARTICIPANT', approved: false }
+        ],
+        isLastPage: true
+      };
+      (PullRequestsService.listParticipants as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.getPullRequestParticipants(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(PullRequestsService.listParticipants).toHaveBeenCalledWith(
+        mockProjectKey, mockPullRequestId, mockRepositorySlug, undefined, 25
+      );
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (PullRequestsService.listParticipants as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.getPullRequestParticipants(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId
+      );
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
     });
@@ -4144,6 +4190,26 @@ describe('BitbucketService', () => {
       expect(ProjectService.forkRepository).toHaveBeenCalledWith('TEST', 'test-repo', {});
     });
 
+    it('should get the direct forks of a repository with default limit', async () => {
+      const mockData = { values: [{ slug: 'my-fork' }], isLastPage: true };
+      (ProjectService.getForkedRepositories as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.getRepositoryForks('test', 'Test-Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(ProjectService.getForkedRepositories).toHaveBeenCalledWith('TEST', 'test-repo', undefined, 25);
+    });
+
+    it('should handle errors when getting repository forks', async () => {
+      (ProjectService.getForkedRepositories as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.getRepositoryForks('TEST', 'test-repo');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
     it('should delete a repository and return an ack', async () => {
       (ProjectService.deleteRepository as jest.Mock).mockResolvedValue(undefined);
 
@@ -4343,6 +4409,135 @@ describe('BitbucketService', () => {
       (RepositoryService.updatePullRequestSettings1 as jest.Mock).mockRejectedValue(new Error('API Error'));
 
       const result = await bitbucketService.updatePullRequestSettings('TEST', 'test-repo', { requiredAllApprovers: true });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should get auto-decline settings', async () => {
+      const mockData = { enabled: true, inactivityWeeks: 4 };
+      (RepositoryService.getAutoDeclineSettings1 as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.getAutoDeclineSettings('test', 'Test-Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(RepositoryService.getAutoDeclineSettings1).toHaveBeenCalledWith('TEST', 'test-repo');
+    });
+
+    it('should handle errors when getting auto-decline settings', async () => {
+      (RepositoryService.getAutoDeclineSettings1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.getAutoDeclineSettings('TEST', 'test-repo');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should set auto-decline settings with inactivity weeks', async () => {
+      const mockData = { enabled: true, inactivityWeeks: 8 };
+      (RepositoryService.setAutoDeclineSettings1 as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.setAutoDeclineSettings('test', 'Test-Repo', true, 8);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(RepositoryService.setAutoDeclineSettings1).toHaveBeenCalledWith('TEST', 'test-repo', {
+        enabled: true,
+        inactivityWeeks: 8
+      });
+    });
+
+    it('should omit inactivityWeeks from the auto-decline body when not provided', async () => {
+      (RepositoryService.setAutoDeclineSettings1 as jest.Mock).mockResolvedValue({});
+
+      await bitbucketService.setAutoDeclineSettings('TEST', 'test-repo', false);
+
+      expect(RepositoryService.setAutoDeclineSettings1).toHaveBeenCalledWith('TEST', 'test-repo', { enabled: false });
+    });
+
+    it('should handle errors when setting auto-decline settings', async () => {
+      (RepositoryService.setAutoDeclineSettings1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.setAutoDeclineSettings('TEST', 'test-repo', true);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should delete auto-decline settings and return an ack', async () => {
+      (RepositoryService.deleteAutoDeclineSettings1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.deleteAutoDeclineSettings('test', 'Test-Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, projectKey: 'TEST', repositorySlug: 'test-repo' });
+      expect(RepositoryService.deleteAutoDeclineSettings1).toHaveBeenCalledWith('TEST', 'test-repo');
+    });
+
+    it('should handle errors when deleting auto-decline settings', async () => {
+      (RepositoryService.deleteAutoDeclineSettings1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.deleteAutoDeclineSettings('TEST', 'test-repo');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should get auto-merge settings', async () => {
+      const mockData = { enabled: true };
+      (RepositoryService.get5 as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.getAutoMergeSettings('test', 'Test-Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(RepositoryService.get5).toHaveBeenCalledWith('TEST', 'test-repo');
+    });
+
+    it('should handle errors when getting auto-merge settings', async () => {
+      (RepositoryService.get5 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.getAutoMergeSettings('TEST', 'test-repo');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should set auto-merge settings', async () => {
+      const mockData = { enabled: true };
+      (RepositoryService.set1 as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.setAutoMergeSettings('test', 'Test-Repo', true);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(RepositoryService.set1).toHaveBeenCalledWith('TEST', 'test-repo', { enabled: true });
+    });
+
+    it('should handle errors when setting auto-merge settings', async () => {
+      (RepositoryService.set1 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.setAutoMergeSettings('TEST', 'test-repo', false);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should delete auto-merge settings and return an ack', async () => {
+      (RepositoryService.delete5 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.deleteAutoMergeSettings('test', 'Test-Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, projectKey: 'TEST', repositorySlug: 'test-repo' });
+      expect(RepositoryService.delete5).toHaveBeenCalledWith('TEST', 'test-repo');
+    });
+
+    it('should handle errors when deleting auto-merge settings', async () => {
+      (RepositoryService.delete5 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.deleteAutoMergeSettings('TEST', 'test-repo');
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();

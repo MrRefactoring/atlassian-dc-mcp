@@ -183,7 +183,7 @@ pnpm dev
 
 ### Available Tools
 
-This server registers 106 tools, grouped below by area.
+This server registers 114 tools, grouped below by area.
 
 #### Projects & Repositories
 
@@ -198,6 +198,7 @@ This server registers 106 tools, grouped below by area.
 - `bitbucket_updateRepository` — Rename a repository or change its description, default branch, or project (requires `REPO_ADMIN`).
 - `bitbucket_deleteRepository` — Schedule a repository for deletion (requires `REPO_ADMIN`; irreversible).
 - `bitbucket_forkRepository` — Fork an existing repository into another (or the user's personal) project.
+- `bitbucket_getRepositoryForks` — List the direct forks of a repository (one level deep only).
 - `bitbucket_browseRepository` — Browse a repository path: list a directory, read a file's content, or fetch blame.
 - `bitbucket_getFileContent` — Get the raw text content of a file at a given ref or commit.
 - `bitbucket_editFile` — Create or edit a file and commit the change in one call, with optimistic conflict detection.
@@ -268,6 +269,7 @@ This server registers 106 tools, grouped below by area.
 - `bitbucket_getRequiredReviewers` — Get required reviewers for pull requests from a given source ref to a target ref.
 - `bitbucket_addPullRequestReviewer` — Add a single reviewer to a pull request without replacing existing reviewers.
 - `bitbucket_removePullRequestReviewer` — Remove a reviewer from a pull request (remains a participant).
+- `bitbucket_getPullRequestParticipants` — List everyone who has interacted with a pull request (author, reviewers, and anyone who has commented or approved), not just the requested reviewers.
 - `bitbucket_submitPullRequestReview` — Publish all pending (draft) comments and set the reviewer's verdict.
 - `bitbucket_watchPullRequest` — Start watching a pull request for notifications.
 - `bitbucket_unwatchPullRequest` — Stop watching a pull request.
@@ -292,6 +294,12 @@ This server registers 106 tools, grouped below by area.
 
 - `bitbucket_getPullRequestSettings` — Get a repository's pull request settings: merge strategy configuration and merge checks (required approvers/tasks/builds).
 - `bitbucket_updatePullRequestSettings` — Update a repository's pull request settings; only the provided keys are changed (requires `REPO_ADMIN`).
+- `bitbucket_getAutoDeclineSettings` — Get a repository's auto-decline settings for inactive pull requests.
+- `bitbucket_setAutoDeclineSettings` — Enable/disable auto-decline and set the inactivity period (1, 2, 4, 8, or 12 weeks) (requires `REPO_ADMIN`).
+- `bitbucket_deleteAutoDeclineSettings` — Delete a repository's auto-decline settings, reverting to project/default settings (requires `REPO_ADMIN`).
+- `bitbucket_getAutoMergeSettings` — Get a repository's pull request auto-merge settings.
+- `bitbucket_setAutoMergeSettings` — Enable/disable automatically merging pull requests once all merge checks pass (requires `REPO_ADMIN`).
+- `bitbucket_deleteAutoMergeSettings` — Delete a repository's auto-merge settings, reverting to project/default settings (requires `REPO_ADMIN`).
 - `bitbucket_getRepoHooks` — List a repository's hooks (pre-receive/post-receive) with their enabled state (requires `REPO_ADMIN`).
 - `bitbucket_enableRepoHook` — Enable a repository hook by its hook key (requires `REPO_ADMIN`).
 - `bitbucket_disableRepoHook` — Disable a repository hook by its hook key (requires `REPO_ADMIN`).

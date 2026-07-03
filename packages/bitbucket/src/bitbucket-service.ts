@@ -2414,6 +2414,33 @@ export class BitbucketService {
   }
 
   /**
+   * Get the participants of a pull request — everyone who has interacted with it (author, reviewers,
+   * and anyone else who has commented or approved), as opposed to just the requested reviewers.
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param pullRequestId The pull request ID
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (defaults to the package page size)
+   * @returns Promise with the page of pull request participants
+   */
+  async getPullRequestParticipants(
+    projectKey: string,
+    repositorySlug: string,
+    pullRequestId: string,
+    start?: number,
+    limit?: number
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => PullRequestsService.listParticipants(
+        projectKey, pullRequestId, repositorySlug, start, limit ?? this.getPageSize()
+      ),
+      'Error fetching pull request participants'
+    );
+  }
+
+  /**
    * Update an existing project (the project key is never changed)
    * @param key The project key
    * @param name Optional new project name
@@ -2505,6 +2532,28 @@ export class BitbucketService {
     return handleApiOperation(
       () => ProjectService.forkRepository(projectKey, repositorySlug, requestBody),
       'Error forking repository'
+    );
+  }
+
+  /**
+   * Get the direct forks of a repository
+   * @param projectKey The project key of the origin repository
+   * @param repositorySlug The repository slug of the origin repository
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (defaults to the package page size)
+   * @returns Promise with the page of forked repositories
+   */
+  async getRepositoryForks(
+    projectKey: string,
+    repositorySlug: string,
+    start?: number,
+    limit?: number
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => ProjectService.getForkedRepositories(projectKey, repositorySlug, start, limit ?? this.getPageSize()),
+      'Error fetching repository forks'
     );
   }
 
@@ -2624,6 +2673,116 @@ export class BitbucketService {
       () => RepositoryService.updatePullRequestSettings1(projectKey, repositorySlug, settings),
       'Error updating pull request settings'
     );
+  }
+
+  /**
+   * Get the auto-decline settings for a repository (automatically decline inactive pull requests)
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @returns Promise with the auto-decline settings
+   */
+  async getAutoDeclineSettings(projectKey: string, repositorySlug: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.getAutoDeclineSettings1(projectKey, repositorySlug),
+      'Error fetching auto-decline settings'
+    );
+  }
+
+  /**
+   * Create or update the auto-decline settings for a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param enabled Whether auto-decline is enabled
+   * @param inactivityWeeks Optional number of inactivity weeks before decline (must be one of 1, 2, 4, 8, or 12)
+   * @returns Promise with the updated auto-decline settings
+   */
+  async setAutoDeclineSettings(
+    projectKey: string,
+    repositorySlug: string,
+    enabled: boolean,
+    inactivityWeeks?: number
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const requestBody: any = {
+      enabled,
+      ...(inactivityWeeks !== undefined ? { inactivityWeeks } : {}),
+    };
+    return handleApiOperation(
+      () => RepositoryService.setAutoDeclineSettings1(projectKey, repositorySlug, requestBody),
+      'Error updating auto-decline settings'
+    );
+  }
+
+  /**
+   * Delete the auto-decline settings for a repository, reverting to the project/default settings
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @returns Promise resolving to an acknowledgement
+   */
+  async deleteAutoDeclineSettings(projectKey: string, repositorySlug: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const result = await handleApiOperation(
+      () => RepositoryService.deleteAutoDeclineSettings1(projectKey, repositorySlug),
+      'Error deleting auto-decline settings'
+    );
+    if (result.success) {
+      return { ...result, data: { deleted: true, projectKey, repositorySlug } };
+    }
+    return result;
+  }
+
+  /**
+   * Get the pull request auto-merge settings for a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @returns Promise with the auto-merge settings
+   */
+  async getAutoMergeSettings(projectKey: string, repositorySlug: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.get5(projectKey, repositorySlug),
+      'Error fetching auto-merge settings'
+    );
+  }
+
+  /**
+   * Create or update the pull request auto-merge settings for a repository
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param enabled Whether pull request auto-merge is enabled
+   * @returns Promise with the updated auto-merge settings
+   */
+  async setAutoMergeSettings(projectKey: string, repositorySlug: string, enabled: boolean) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => RepositoryService.set1(projectKey, repositorySlug, { enabled }),
+      'Error updating auto-merge settings'
+    );
+  }
+
+  /**
+   * Delete the pull request auto-merge settings for a repository, reverting to the project/default settings
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @returns Promise resolving to an acknowledgement
+   */
+  async deleteAutoMergeSettings(projectKey: string, repositorySlug: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    const result = await handleApiOperation(
+      () => RepositoryService.delete5(projectKey, repositorySlug),
+      'Error deleting auto-merge settings'
+    );
+    if (result.success) {
+      return { ...result, data: { deleted: true, projectKey, repositorySlug } };
+    }
+    return result;
   }
 
   /**
@@ -3464,6 +3623,13 @@ export const bitbucketToolSchemas = {
     pullRequestId: z.string().describe("The pull request ID"),
     userSlug: z.string().describe("The username/name of the reviewer to remove. The user remains a participant but loses the REVIEWER role.")
   },
+  getPullRequestParticipants: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    pullRequestId: z.string().describe("The pull request ID"),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+  },
   getRequiredReviewers: {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug"),
@@ -3673,6 +3839,12 @@ export const bitbucketToolSchemas = {
     targetProjectKey: z.string().optional().describe("Target project key for the fork. Defaults to the user's personal project."),
     defaultBranch: z.string().optional().describe("Default branch for the fork. Defaults to the origin's default branch.")
   },
+  getRepositoryForks: {
+    projectKey: z.string().describe("The project key of the origin repository"),
+    repositorySlug: z.string().describe("The repository slug of the origin repository"),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+  },
   deleteRepository: {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug")
@@ -3822,6 +3994,33 @@ export const bitbucketToolSchemas = {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug"),
     settings: z.record(z.any()).describe("Settings to update; only the provided keys are changed. Known keys: mergeConfig, requiredApprovers, requiredAllApprovers, requiredAllTasksComplete, requiredSuccessfulBuilds, 'com.atlassian.bitbucket.server.bundled-hooks.requiredApproversMergeHook', 'com.atlassian.bitbucket.server.bitbucket-build.requiredBuildsMergeCheck'")
+  },
+  getAutoDeclineSettings: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug")
+  },
+  setAutoDeclineSettings: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    enabled: z.boolean().describe("Whether auto-decline of inactive pull requests is enabled"),
+    inactivityWeeks: z.number().optional().describe("Number of weeks of inactivity before a pull request is auto-declined. Must be one of 1, 2, 4, 8, or 12.")
+  },
+  deleteAutoDeclineSettings: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug")
+  },
+  getAutoMergeSettings: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug")
+  },
+  setAutoMergeSettings: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    enabled: z.boolean().describe("Whether pull requests are automatically merged once all merge checks pass")
+  },
+  deleteAutoMergeSettings: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug")
   },
   getRepoHooks: {
     projectKey: z.string().describe("The project key"),
