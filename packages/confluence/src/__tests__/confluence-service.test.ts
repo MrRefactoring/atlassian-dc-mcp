@@ -5,6 +5,7 @@ import {
   ContentLabelsService,
   ContentPropertyService,
   ContentResourceService,
+  ContentRestrictionsService,
   SearchService,
 } from '../confluence-client/index.js';
 
@@ -13,6 +14,7 @@ const CHILD_CONTENT = ChildContentService as unknown as Record<string, jest.Mock
 const CONTENT_DESCENDANT = ContentDescendantService as unknown as Record<string, jest.Mock>;
 const CONTENT_LABELS = ContentLabelsService as unknown as Record<string, jest.Mock>;
 const CONTENT_PROPERTY = ContentPropertyService as unknown as Record<string, jest.Mock>;
+const CONTENT_RESTRICTIONS = ContentRestrictionsService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -45,6 +47,11 @@ jest.mock('../confluence-client/index.js', () => ({
     create1: jest.fn(),
     update1: jest.fn(),
     delete2: jest.fn(),
+  },
+  ContentRestrictionsService: {
+    byOperation: jest.fn(),
+    forOperation: jest.fn(),
+    updateRestrictions: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -570,5 +577,47 @@ describe('ConfluenceService content properties', () => {
 
     expect(CONTENT_PROPERTY.delete2).toHaveBeenCalledWith('123', 'my-key');
     expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService content restrictions', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets all restrictions grouped by operation', async () => {
+    CONTENT_RESTRICTIONS.byOperation.mockResolvedValue({ read: {} });
+
+    await service.getContentRestrictions('123', 'restrictions.user');
+
+    expect(CONTENT_RESTRICTIONS.byOperation).toHaveBeenCalledWith('123', 'restrictions.user');
+  });
+
+  it('gets restrictions for a single operation with pagination', async () => {
+    CONTENT_RESTRICTIONS.forOperation.mockResolvedValue({ results: [] });
+
+    await service.getContentRestrictionsByOperation('read', '123', 'restrictions.group', 10, 0);
+
+    expect(CONTENT_RESTRICTIONS.forOperation).toHaveBeenCalledWith('read', '123', 'restrictions.group', '10', '0');
+  });
+
+  it('forwards the restrictions array as the request body when updating', async () => {
+    CONTENT_RESTRICTIONS.updateRestrictions.mockResolvedValue({ results: [] });
+    const restrictions = [
+      { operation: 'update', restrictions: { user: [{ type: 'known', username: 'admin' }] } },
+    ];
+
+    await service.updateContentRestrictions('123', restrictions, 'restrictions.user');
+
+    expect(CONTENT_RESTRICTIONS.updateRestrictions).toHaveBeenCalledWith(
+      '123',
+      'restrictions.user',
+      undefined,
+      undefined,
+      restrictions
+    );
   });
 });

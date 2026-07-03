@@ -291,6 +291,36 @@ server.tool(
   }
 );
 
+server.tool(
+  "confluence_getContentRestrictions",
+  `Get all restrictions on a piece of content, grouped by operation, in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentRestrictions,
+  async ({ contentId, expand }) => {
+    const result = await confluenceService.getContentRestrictions(contentId, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getContentRestrictionsByOperation",
+  `Get the restrictions on a piece of content for a single operation in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentRestrictionsByOperation,
+  async ({ operationKey, contentId, expand, limit, start }) => {
+    const result = await confluenceService.getContentRestrictionsByOperation(operationKey, contentId, expand, limit, start);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_updateContentRestrictions",
+  `Overwrite the restrictions on a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.updateContentRestrictions,
+  async ({ contentId, restrictions, expand }) => {
+    const result = await confluenceService.updateContentRestrictions(contentId, restrictions, expand);
+    return formatToolResponse(result);
+  }
+);
+
 server.tool('confluence_searchSpace',
   `Search for spaces in ${confluenceInstanceType}`,
   confluenceToolSchemas.searchSpaces,
