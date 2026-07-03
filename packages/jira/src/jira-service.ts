@@ -53,6 +53,7 @@ import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
 import type { MoveFieldBean } from './jira-client/models/MoveFieldBean.js';
 import type { ProjectInputBean } from './jira-client/models/ProjectInputBean.js';
 import type { ProjectUpdateBean } from './jira-client/models/ProjectUpdateBean.js';
+import type { RemoteIssueLinkCreateOrUpdateRequest } from './jira-client/models/RemoteIssueLinkCreateOrUpdateRequest.js';
 import { request as __request, resolve as __resolveAuth } from './jira-client/core/request.js';
 import type { StringList } from './jira-client/models/StringList.js';
 import type { FilePart } from './jira-client/models/FilePart.js';
@@ -483,6 +484,99 @@ export class JiraService {
 
   async deleteIssueLink(linkId: string) {
     return handleApiOperation(() => IssueLinkService.deleteIssueLink(linkId), 'Error deleting issue link');
+  }
+
+  private buildRemoteIssueLinkBody(params: {
+    url: string;
+    title: string;
+    summary?: string;
+    globalId?: string;
+    relationship?: string;
+    applicationName?: string;
+    applicationType?: string;
+  }): RemoteIssueLinkCreateOrUpdateRequest {
+    return {
+      ...(params.globalId ? { globalId: params.globalId } : {}),
+      ...(params.relationship ? { relationship: params.relationship } : {}),
+      object: {
+        url: params.url,
+        title: params.title,
+        ...(params.summary ? { summary: params.summary } : {}),
+      },
+      ...(params.applicationName || params.applicationType
+        ? { application: { name: params.applicationName, type: params.applicationType } }
+        : {}),
+    };
+  }
+
+  async getRemoteIssueLinks(issueIdOrKey: string, globalId?: string) {
+    return handleApiOperation(
+      () => IssueService.getRemoteIssueLinks(issueIdOrKey, globalId),
+      'Error getting remote issue links'
+    );
+  }
+
+  async getRemoteIssueLink(issueIdOrKey: string, linkId: string) {
+    return handleApiOperation(
+      () => IssueService.getRemoteIssueLinkById(linkId, issueIdOrKey),
+      'Error getting remote issue link'
+    );
+  }
+
+  async createOrUpdateRemoteIssueLink(issueIdOrKey: string, params: {
+    url: string;
+    title: string;
+    summary?: string;
+    globalId?: string;
+    relationship?: string;
+    applicationName?: string;
+    applicationType?: string;
+  }) {
+    return handleApiOperation(
+      () => IssueService.createOrUpdateRemoteIssueLink(issueIdOrKey, this.buildRemoteIssueLinkBody(params)),
+      'Error creating or updating remote issue link'
+    );
+  }
+
+  async updateRemoteIssueLink(issueIdOrKey: string, linkId: string, params: {
+    url: string;
+    title: string;
+    summary?: string;
+    globalId?: string;
+    relationship?: string;
+    applicationName?: string;
+    applicationType?: string;
+  }) {
+    const result = await handleApiOperation(
+      () => IssueService.updateRemoteIssueLink(linkId, issueIdOrKey, this.buildRemoteIssueLinkBody(params)),
+      'Error updating remote issue link'
+    );
+    if (result.success) {
+      return { ...result, data: { updated: true, linkId } };
+    }
+    return result;
+  }
+
+  async deleteRemoteIssueLink(issueIdOrKey: string, linkId: string) {
+    const result = await handleApiOperation(
+      () => IssueService.deleteRemoteIssueLinkById(linkId, issueIdOrKey),
+      'Error deleting remote issue link'
+    );
+    if (result.success) {
+      return { ...result, data: { deleted: true, linkId } };
+    }
+    return result;
+  }
+
+  async deleteRemoteIssueLinkByGlobalId(issueIdOrKey: string, globalId: string) {
+    const result = await handleApiOperation(
+      () => IssueService.deleteRemoteIssueLinkByGlobalId(issueIdOrKey, globalId),
+      'Error deleting remote issue link'
+    );
+    if (result.success) {
+      return { ...result, data: { deleted: true, globalId } };
+    }
+    return result;
   }
 
   async assignIssue(issueKey: string, username: string | null) {
@@ -1801,6 +1895,43 @@ export const jiraToolSchemas = {
   },
   deleteIssueLink: {
     linkId: z.string().describe("Id of the issue link to delete")
+  },
+  getRemoteIssueLinks: {
+    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
+    globalId: z.string().optional().describe("Optional global id to filter to a single remote issue link")
+  },
+  getRemoteIssueLink: {
+    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
+    linkId: z.string().describe("Id of the remote issue link")
+  },
+  createOrUpdateRemoteIssueLink: {
+    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
+    url: z.string().describe("URL of the remote object being linked to (e.g., a Confluence page or external URL)"),
+    title: z.string().describe("Title of the remote object, shown in the issue's remote links list"),
+    summary: z.string().optional().describe("Optional short summary of the remote object"),
+    globalId: z.string().optional().describe("Optional global id identifying this remote link. If a link with this globalId already exists on the issue, it is updated instead of creating a duplicate."),
+    relationship: z.string().optional().describe("Optional description of the relationship between the issue and the remote object (e.g., 'mentioned in', 'documented by')"),
+    applicationName: z.string().optional().describe("Optional name of the application hosting the remote object (e.g., 'My Confluence Instance')"),
+    applicationType: z.string().optional().describe("Optional type of the application hosting the remote object (e.g., 'com.atlassian.confluence')")
+  },
+  updateRemoteIssueLink: {
+    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
+    linkId: z.string().describe("Id of the remote issue link to update"),
+    url: z.string().describe("URL of the remote object being linked to"),
+    title: z.string().describe("Title of the remote object"),
+    summary: z.string().optional().describe("Optional short summary of the remote object"),
+    globalId: z.string().optional().describe("Optional global id identifying this remote link"),
+    relationship: z.string().optional().describe("Optional description of the relationship between the issue and the remote object"),
+    applicationName: z.string().optional().describe("Optional name of the application hosting the remote object"),
+    applicationType: z.string().optional().describe("Optional type of the application hosting the remote object")
+  },
+  deleteRemoteIssueLink: {
+    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
+    linkId: z.string().describe("Id of the remote issue link to delete")
+  },
+  deleteRemoteIssueLinkByGlobalId: {
+    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
+    globalId: z.string().describe("Global id of the remote issue link to delete")
   },
   assignIssue: {
     issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),

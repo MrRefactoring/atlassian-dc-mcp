@@ -92,6 +92,12 @@ jest.mock('../jira-client/index.js', () => ({
     archiveIssues: jest.fn(),
     archiveIssue: jest.fn(),
     rankIssues: jest.fn(),
+    getRemoteIssueLinks: jest.fn(),
+    getRemoteIssueLinkById: jest.fn(),
+    createOrUpdateRemoteIssueLink: jest.fn(),
+    updateRemoteIssueLink: jest.fn(),
+    deleteRemoteIssueLinkById: jest.fn(),
+    deleteRemoteIssueLinkByGlobalId: jest.fn(),
   },
   AttachmentService: {
     getAttachmentMeta: jest.fn(),
@@ -1349,6 +1355,119 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Could not find issue link type');
+    });
+  });
+
+  describe('remote issue links', () => {
+    it('gets remote issue links for an issue', async () => {
+      const mockLinks = [{ id: 1, object: { url: 'https://example.com' } }];
+      (IssueService.getRemoteIssueLinks as jest.Mock).mockResolvedValue(mockLinks);
+
+      const result = await jiraService.getRemoteIssueLinks(mockIssueKey);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockLinks);
+      expect(IssueService.getRemoteIssueLinks).toHaveBeenCalledWith(mockIssueKey, undefined);
+    });
+
+    it('filters remote issue links by globalId', async () => {
+      (IssueService.getRemoteIssueLinks as jest.Mock).mockResolvedValue([]);
+
+      await jiraService.getRemoteIssueLinks(mockIssueKey, 'system=https://example.com');
+
+      expect(IssueService.getRemoteIssueLinks).toHaveBeenCalledWith(mockIssueKey, 'system=https://example.com');
+    });
+
+    it('gets a single remote issue link by id', async () => {
+      const mockLink = { id: 1, object: { url: 'https://example.com' } };
+      (IssueService.getRemoteIssueLinkById as jest.Mock).mockResolvedValue(mockLink);
+
+      const result = await jiraService.getRemoteIssueLink(mockIssueKey, '1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockLink);
+      expect(IssueService.getRemoteIssueLinkById).toHaveBeenCalledWith('1', mockIssueKey);
+    });
+
+    it('creates a remote issue link with the minimal fields', async () => {
+      const mockLink = { id: 1 };
+      (IssueService.createOrUpdateRemoteIssueLink as jest.Mock).mockResolvedValue(mockLink);
+
+      const result = await jiraService.createOrUpdateRemoteIssueLink(mockIssueKey, {
+        url: 'https://example.com/page',
+        title: 'Example page',
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockLink);
+      expect(IssueService.createOrUpdateRemoteIssueLink).toHaveBeenCalledWith(mockIssueKey, {
+        object: { url: 'https://example.com/page', title: 'Example page' },
+      });
+    });
+
+    it('creates a remote issue link with all optional fields', async () => {
+      (IssueService.createOrUpdateRemoteIssueLink as jest.Mock).mockResolvedValue({ id: 1 });
+
+      await jiraService.createOrUpdateRemoteIssueLink(mockIssueKey, {
+        url: 'https://example.com/page',
+        title: 'Example page',
+        summary: 'A summary',
+        globalId: 'system=https://example.com',
+        relationship: 'documented by',
+        applicationName: 'My App',
+        applicationType: 'com.example.app',
+      });
+
+      expect(IssueService.createOrUpdateRemoteIssueLink).toHaveBeenCalledWith(mockIssueKey, {
+        globalId: 'system=https://example.com',
+        relationship: 'documented by',
+        object: { url: 'https://example.com/page', title: 'Example page', summary: 'A summary' },
+        application: { name: 'My App', type: 'com.example.app' },
+      });
+    });
+
+    it('updates a remote issue link by id', async () => {
+      (IssueService.updateRemoteIssueLink as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.updateRemoteIssueLink(mockIssueKey, '1', {
+        url: 'https://example.com/page',
+        title: 'Updated title',
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ updated: true, linkId: '1' });
+      expect(IssueService.updateRemoteIssueLink).toHaveBeenCalledWith('1', mockIssueKey, {
+        object: { url: 'https://example.com/page', title: 'Updated title' },
+      });
+    });
+
+    it('deletes a remote issue link by id', async () => {
+      (IssueService.deleteRemoteIssueLinkById as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteRemoteIssueLink(mockIssueKey, '1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, linkId: '1' });
+      expect(IssueService.deleteRemoteIssueLinkById).toHaveBeenCalledWith('1', mockIssueKey);
+    });
+
+    it('deletes a remote issue link by globalId', async () => {
+      (IssueService.deleteRemoteIssueLinkByGlobalId as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteRemoteIssueLinkByGlobalId(mockIssueKey, 'system=https://example.com');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, globalId: 'system=https://example.com' });
+      expect(IssueService.deleteRemoteIssueLinkByGlobalId).toHaveBeenCalledWith(mockIssueKey, 'system=https://example.com');
+    });
+
+    it('handles API errors', async () => {
+      (IssueService.getRemoteIssueLinks as jest.Mock).mockRejectedValue(new Error('Issue linking is disabled'));
+
+      const result = await jiraService.getRemoteIssueLinks(mockIssueKey);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Issue linking is disabled');
     });
   });
 

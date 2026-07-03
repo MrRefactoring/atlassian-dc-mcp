@@ -536,6 +536,66 @@ server.tool(
 );
 
 server.tool(
+  "jira_getRemoteIssueLinks",
+  `Get the remote issue links (e.g., links to Confluence pages or external URLs) for a JIRA issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.getRemoteIssueLinks,
+  async ({ issueIdOrKey, globalId }) => {
+    const result = await jiraService.getRemoteIssueLinks(issueIdOrKey, globalId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getRemoteIssueLink",
+  `Get a single remote issue link by its id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getRemoteIssueLink,
+  async ({ issueIdOrKey, linkId }) => {
+    const result = await jiraService.getRemoteIssueLink(issueIdOrKey, linkId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createOrUpdateRemoteIssueLink",
+  `Create a remote issue link on a JIRA issue in the ${jiraInstanceType} (e.g., link to a Confluence page or external URL). If globalId is provided and a link with that globalId already exists, it is updated instead of duplicated.`,
+  jiraToolSchemas.createOrUpdateRemoteIssueLink,
+  async ({ issueIdOrKey, url, title, summary, globalId, relationship, applicationName, applicationType }) => {
+    const result = await jiraService.createOrUpdateRemoteIssueLink(issueIdOrKey, { url, title, summary, globalId, relationship, applicationName, applicationType });
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateRemoteIssueLink",
+  `Update a remote issue link by its id on a JIRA issue in the ${jiraInstanceType}. Any fields not provided are set to null.`,
+  jiraToolSchemas.updateRemoteIssueLink,
+  async ({ issueIdOrKey, linkId, url, title, summary, globalId, relationship, applicationName, applicationType }) => {
+    const result = await jiraService.updateRemoteIssueLink(issueIdOrKey, linkId, { url, title, summary, globalId, relationship, applicationName, applicationType });
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteRemoteIssueLink",
+  `Delete a remote issue link by its id from a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteRemoteIssueLink,
+  async ({ issueIdOrKey, linkId }) => {
+    const result = await jiraService.deleteRemoteIssueLink(issueIdOrKey, linkId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteRemoteIssueLinkByGlobalId",
+  `Delete a remote issue link by its global id from a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
+  jiraToolSchemas.deleteRemoteIssueLinkByGlobalId,
+  async ({ issueIdOrKey, globalId }) => {
+    const result = await jiraService.deleteRemoteIssueLinkByGlobalId(issueIdOrKey, globalId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_assignIssue",
   `Assign or unassign a JIRA issue in the ${jiraInstanceType} via the dedicated assignee endpoint. Equivalent to setting the assignee field via jira_updateIssue, but simpler for this one common case.`,
   jiraToolSchemas.assignIssue,
