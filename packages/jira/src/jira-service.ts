@@ -21,6 +21,7 @@ import {
   IssueService,
   IssuesecurityschemesService,
   IssuetypeService,
+  MypreferencesService,
   MyselfService,
   NotificationschemeService,
   OpenAPI,
@@ -1143,6 +1144,24 @@ export class JiraService {
     );
   }
 
+  async getMyPreference(key: string) {
+    return handleApiOperation(() => MypreferencesService.getPreference(key), 'Error getting user preference');
+  }
+
+  async setMyPreference(key: string, value: string) {
+    return handleApiOperation(
+      () => MypreferencesService.setPreference(key, value),
+      'Error setting user preference'
+    );
+  }
+
+  async deleteMyPreference(key: string) {
+    return handleApiOperation(
+      () => MypreferencesService.removePreference(key),
+      'Error deleting user preference'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1828,5 +1847,15 @@ export const jiraToolSchemas = {
     id: z.number().describe("Id of the avatar to delete"),
     type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
     owningObjectId: z.string().describe("Id of the object that owns the avatar, e.g. a project id or username")
+  },
+  getMyPreference: {
+    key: z.string().describe("Preference key to look up for the current user")
+  },
+  setMyPreference: {
+    key: z.string().describe("Preference key to set for the current user"),
+    value: z.string().describe("Preference value to store")
+  },
+  deleteMyPreference: {
+    key: z.string().describe("Preference key to remove for the current user")
   }
 };

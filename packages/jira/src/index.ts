@@ -1487,4 +1487,34 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getMyPreference",
+  `Get a preference value for the current user by key in the ${jiraInstanceType}`,
+  jiraToolSchemas.getMyPreference,
+  async ({ key }) => {
+    const result = await jiraService.getMyPreference(key);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setMyPreference",
+  `Set a preference value for the current user by key in the ${jiraInstanceType}`,
+  jiraToolSchemas.setMyPreference,
+  async ({ key, value }) => {
+    const result = await jiraService.setMyPreference(key, value);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteMyPreference",
+  `Remove a preference value for the current user by key in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteMyPreference,
+  async ({ key }) => {
+    const result = await jiraService.deleteMyPreference(key);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
