@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, SpacePermissionsService, SpaceService, SpacePropertyService, UserService, UserWatchService } from './confluence-client/index.js';
+import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService } from './confluence-client/index.js';
 import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -909,6 +909,200 @@ export class ConfluenceService {
     );
   }
 
+  /**
+   * Get information about the current logged in user.
+   */
+  async getCurrentUser(expand?: string) {
+    return handleApiOperation(() => UserService.getCurrent(expand), 'Error getting current user');
+  }
+
+  /**
+   * Get information about how the anonymous user is represented.
+   */
+  async getAnonymousUser(expand?: string) {
+    return handleApiOperation(() => UserService.getAnonymous(expand), 'Error getting anonymous user');
+  }
+
+  /**
+   * Get a user by user key or username. Exactly one of key or username should be supplied.
+   */
+  async getUser(key?: string, username?: string, expand?: string) {
+    return handleApiOperation(() => UserService.getUser(expand, key, username), 'Error getting user');
+  }
+
+  /**
+   * Get a paginated collection of all registered users.
+   */
+  async getUsers(limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => UserService.getUsers(expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting users'
+    );
+  }
+
+  /**
+   * Get a paginated collection of groups that a user is a member of. Exactly one of key or username should be supplied.
+   */
+  async getUserGroups(key?: string, username?: string, limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => UserService.getGroups1(expand, (limit ?? this.getPageSize()).toString(), start?.toString(), key, username),
+      'Error getting user groups'
+    );
+  }
+
+  /**
+   * Update the current user's details (full name, email).
+   */
+  async updateCurrentUser(fullName?: string, email?: string, currentPassword?: string) {
+    return handleApiOperation(
+      () => UserService.updateUser1({ fullName, email, currentPassword }),
+      'Error updating current user'
+    );
+  }
+
+  /**
+   * Change the password for the current user.
+   */
+  async changeCurrentUserPassword(newPassword: string, oldPassword?: string) {
+    return handleApiOperation(
+      () => UserService.changePassword1({ newPassword, oldPassword }),
+      'Error changing current user password'
+    );
+  }
+
+  /**
+   * Get a user group by name.
+   */
+  async getGroup(groupName: string, expand?: string) {
+    return handleApiOperation(() => GroupService.getGroup(groupName, expand), 'Error getting group');
+  }
+
+  /**
+   * Get a paginated collection of all user groups.
+   */
+  async getGroups(limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => GroupService.getGroups(expand, limit ?? this.getPageSize(), start),
+      'Error getting groups'
+    );
+  }
+
+  /**
+   * Get a paginated collection of the users that are members of a group.
+   */
+  async getGroupMembers(groupName: string, limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => GroupService.getMembers(groupName, expand, limit ?? this.getPageSize(), start),
+      'Error getting group members'
+    );
+  }
+
+  /**
+   * Get a paginated collection of the groups nested directly within a group.
+   */
+  async getNestedGroupMembers(groupName: string, limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => GroupService.getNestedGroupMembers(groupName, expand, limit ?? this.getPageSize(), start),
+      'Error getting nested group members'
+    );
+  }
+
+  /**
+   * Add a user to a group. Idempotent: adding an existing membership is a no-op.
+   */
+  async addUserToGroup(username: string, groupName: string) {
+    return handleApiOperation(
+      () => UserGroupService.update5(groupName, username),
+      'Error adding user to group'
+    );
+  }
+
+  /**
+   * Remove a user from a group. Idempotent: removing a non-existent membership is a no-op.
+   */
+  async removeUserFromGroup(username: string, groupName: string) {
+    return handleApiOperation(
+      () => UserGroupService.delete6(groupName, username),
+      'Error removing user from group'
+    );
+  }
+
+  /**
+   * Create a new user. Requires system administrator permission.
+   * Either supply a password, or set notifyViaEmail to invite the user by email.
+   */
+  async adminCreateUser(userName: string, fullName: string, email: string, password?: string, notifyViaEmail?: boolean) {
+    return handleApiOperation(
+      () => AdminUserService.createUser({ userName, fullName, email, password, notifyViaEmail }),
+      'Error creating user'
+    );
+  }
+
+  /**
+   * Update a user's full name and/or email. Requires system administrator permission.
+   */
+  async adminUpdateUser(username: string, fullName?: string, email?: string) {
+    return handleApiOperation(
+      () => AdminUserService.updateUser(username, { fullName, email }),
+      'Error updating user'
+    );
+  }
+
+  /**
+   * Delete a user. Requires system administrator permission. Runs asynchronously as a long-running task.
+   */
+  async adminDeleteUser(username: string) {
+    return handleApiOperation(() => AdminUserService.delete1(username), 'Error deleting user');
+  }
+
+  /**
+   * Disable (deactivate) a user. Requires system administrator permission. Idempotent.
+   */
+  async adminDisableUser(username: string) {
+    return handleApiOperation(() => AdminUserService.disable(username), 'Error disabling user');
+  }
+
+  /**
+   * Enable (reactivate) a user. Requires system administrator permission. Idempotent.
+   */
+  async adminEnableUser(username: string) {
+    return handleApiOperation(() => AdminUserService.enable(username), 'Error enabling user');
+  }
+
+  /**
+   * Change another user's password. Requires system administrator permission.
+   */
+  async adminChangeUserPassword(username: string, password: string) {
+    return handleApiOperation(
+      () => AdminUserService.changePassword(username, { password }),
+      'Error changing user password'
+    );
+  }
+
+  /**
+   * Create a new user group. Requires system administrator permission.
+   */
+  async adminCreateGroup(name: string) {
+    return handleApiOperation(() => AdminGroupService.create({ name }), 'Error creating group');
+  }
+
+  /**
+   * Delete a user group. Requires system administrator permission.
+   */
+  async adminDeleteGroup(groupName: string) {
+    return handleApiOperation(() => AdminGroupService.delete(groupName), 'Error deleting group');
+  }
+
+  /**
+   * Get a paginated collection of active users (those counting towards the license) via the search index.
+   */
+  async adminGetActiveUsers(limit?: number, start?: number, expand?: string) {
+    return handleApiOperation(
+      () => AdminUsersService.getActiveUsers(expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting active users'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -1282,5 +1476,102 @@ export const confluenceToolSchemas = {
       targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
       operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
     })).min(1).describe("Operations to revoke. Permissions not currently held are silently skipped.")
+  },
+  getCurrentUser: {
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the user")
+  },
+  getAnonymousUser: {
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the user")
+  },
+  getUser: {
+    key: z.string().optional().describe("User key of the user to fetch (mutually exclusive with username)"),
+    username: z.string().optional().describe("Username of the user to fetch (mutually exclusive with key)"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the user")
+  },
+  getUsers: {
+    limit: z.number().optional().describe("Maximum number of users to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the users (e.g. status)")
+  },
+  getUserGroups: {
+    key: z.string().optional().describe("User key of the user (mutually exclusive with username)"),
+    username: z.string().optional().describe("Username of the user (mutually exclusive with key)"),
+    limit: z.number().optional().describe("Maximum number of groups to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+  },
+  updateCurrentUser: {
+    fullName: z.string().optional().describe("New full name for the current user"),
+    email: z.string().optional().describe("New email address for the current user"),
+    currentPassword: z.string().optional().describe("Current password, required when changing the email address")
+  },
+  changeCurrentUserPassword: {
+    newPassword: z.string().describe("The new password. Cannot be null or blank."),
+    oldPassword: z.string().optional().describe("The current password")
+  },
+  getGroup: {
+    groupName: z.string().describe("Name of the group to fetch"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+  },
+  getGroups: {
+    limit: z.number().optional().describe("Maximum number of groups to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+  },
+  getGroupMembers: {
+    groupName: z.string().describe("Name of the group to fetch members for"),
+    limit: z.number().optional().describe("Maximum number of members to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+  },
+  getNestedGroupMembers: {
+    groupName: z.string().describe("Name of the group to fetch nested group members for"),
+    limit: z.number().optional().describe("Maximum number of groups to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+  },
+  addUserToGroup: {
+    username: z.string().describe("Username of the user to add"),
+    groupName: z.string().describe("Name of the group to add the user to")
+  },
+  removeUserFromGroup: {
+    username: z.string().describe("Username of the user to remove"),
+    groupName: z.string().describe("Name of the group to remove the user from")
+  },
+  adminCreateUser: {
+    userName: z.string().describe("Username for the new user (lowercase, no whitespace or \\ , + < > ' \" characters, not 'anonymous')"),
+    fullName: z.string().describe("Full name for the new user"),
+    email: z.string().describe("Email address for the new user"),
+    password: z.string().optional().describe("Password for the new user. Required unless notifyViaEmail is true."),
+    notifyViaEmail: z.boolean().optional().describe("If true, email the user an invitation instead of setting a password directly")
+  },
+  adminUpdateUser: {
+    username: z.string().describe("Username of the user to update"),
+    fullName: z.string().optional().describe("New full name for the user"),
+    email: z.string().optional().describe("New email address for the user")
+  },
+  adminDeleteUser: {
+    username: z.string().describe("Username of the user to delete. Requires system administrator permission.")
+  },
+  adminDisableUser: {
+    username: z.string().describe("Username of the user to disable. Requires system administrator permission.")
+  },
+  adminEnableUser: {
+    username: z.string().describe("Username of the user to enable. Requires system administrator permission.")
+  },
+  adminChangeUserPassword: {
+    username: z.string().describe("Username of the user whose password will be changed"),
+    password: z.string().describe("The new password. Cannot be null or blank.")
+  },
+  adminCreateGroup: {
+    name: z.string().describe("Name for the new group. Requires system administrator permission.")
+  },
+  adminDeleteGroup: {
+    groupName: z.string().describe("Name of the group to delete. Requires system administrator permission.")
+  },
+  adminGetActiveUsers: {
+    limit: z.number().optional().describe("Maximum number of users to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the users (e.g. status)")
   }
 };
