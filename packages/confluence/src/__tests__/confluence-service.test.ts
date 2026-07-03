@@ -1,14 +1,98 @@
 import { ConfluenceService, escapeSearchTextForCql } from '../confluence-service.js';
-import { ContentResourceService, SearchService } from '../confluence-client/index.js';
+import {
+  AttachmentsService,
+  ChildContentService,
+  ContentDescendantService,
+  ContentLabelsService,
+  ContentPropertyService,
+  ContentResourceService,
+  ContentRestrictionsService,
+  ContentWatchersService,
+  SearchService,
+  SpaceService,
+  SpacePropertyService,
+  UserWatchService,
+} from '../confluence-client/index.js';
+
+const CONTENT_RESOURCE = ContentResourceService as unknown as Record<string, jest.Mock>;
+const CHILD_CONTENT = ChildContentService as unknown as Record<string, jest.Mock>;
+const CONTENT_DESCENDANT = ContentDescendantService as unknown as Record<string, jest.Mock>;
+const CONTENT_LABELS = ContentLabelsService as unknown as Record<string, jest.Mock>;
+const CONTENT_PROPERTY = ContentPropertyService as unknown as Record<string, jest.Mock>;
+const CONTENT_RESTRICTIONS = ContentRestrictionsService as unknown as Record<string, jest.Mock>;
+const CONTENT_WATCHERS = ContentWatchersService as unknown as Record<string, jest.Mock>;
+const USER_WATCH = UserWatchService as unknown as Record<string, jest.Mock>;
+const ATTACHMENTS = AttachmentsService as unknown as Record<string, jest.Mock>;
+const SPACE = SpaceService as unknown as Record<string, jest.Mock>;
+const SPACE_PROPERTY = SpacePropertyService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
     getContentById: jest.fn(),
     createContent: jest.fn(),
     update2: jest.fn(),
+    delete3: jest.fn(),
+    getHistory: jest.fn(),
   },
   SearchService: {
     search1: jest.fn(),
+  },
+  ChildContentService: {
+    children: jest.fn(),
+    childrenOfType: jest.fn(),
+    commentsOfContent: jest.fn(),
+  },
+  ContentDescendantService: {
+    descendants: jest.fn(),
+    descendantsOfType: jest.fn(),
+  },
+  ContentLabelsService: {
+    labels: jest.fn(),
+    addLabels: jest.fn(),
+    deleteLabelWithQueryParam: jest.fn(),
+  },
+  ContentPropertyService: {
+    findAll: jest.fn(),
+    findByKey: jest.fn(),
+    create1: jest.fn(),
+    update1: jest.fn(),
+    delete2: jest.fn(),
+  },
+  ContentRestrictionsService: {
+    byOperation: jest.fn(),
+    forOperation: jest.fn(),
+    updateRestrictions: jest.fn(),
+  },
+  ContentWatchersService: {
+    index: jest.fn(),
+  },
+  UserWatchService: {
+    isWatchingContent: jest.fn(),
+    addContentWatcher: jest.fn(),
+    removeContentWatcher: jest.fn(),
+  },
+  AttachmentsService: {
+    getAttachments: jest.fn(),
+    removeAttachment: jest.fn(),
+  },
+  SpaceService: {
+    space: jest.fn(),
+    spaces: jest.fn(),
+    createSpace: jest.fn(),
+    createPrivateSpace: jest.fn(),
+    update4: jest.fn(),
+    delete5: jest.fn(),
+    contents: jest.fn(),
+    contentsWithType1: jest.fn(),
+    archive: jest.fn(),
+    restore: jest.fn(),
+  },
+  SpacePropertyService: {
+    get1: jest.fn(),
+    get: jest.fn(),
+    create3: jest.fn(),
+    update3: jest.fn(),
+    delete4: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -342,5 +426,507 @@ describe('ConfluenceService token optimization paths', () => {
       'highlight',
       'type=space AND title ~ "docs"'
     );
+  });
+});
+
+describe('ConfluenceService content lifecycle (delete + history)', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('deletes content without a status (trash)', async () => {
+    CONTENT_RESOURCE.delete3.mockResolvedValue(undefined);
+
+    const result = await service.deleteContent('123');
+
+    expect(CONTENT_RESOURCE.delete3).toHaveBeenCalledWith('123', undefined);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards the status selector when purging trashed content', async () => {
+    CONTENT_RESOURCE.delete3.mockResolvedValue(undefined);
+
+    await service.deleteContent('123', 'trashed');
+
+    expect(CONTENT_RESOURCE.delete3).toHaveBeenCalledWith('123', 'trashed');
+  });
+
+  it('gets content history with an expand list', async () => {
+    CONTENT_RESOURCE.getHistory.mockResolvedValue({ latest: true });
+
+    const result = await service.getContentHistory('123', 'contributors');
+
+    expect(CONTENT_RESOURCE.getHistory).toHaveBeenCalledWith('123', 'contributors');
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual({ latest: true });
+  });
+
+  it('forwards API errors via handleApiOperation', async () => {
+    CONTENT_RESOURCE.delete3.mockRejectedValue(new Error('boom'));
+
+    const result = await service.deleteContent('123');
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+  });
+});
+
+describe('ConfluenceService children & descendants', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets children with the default page-size limit', async () => {
+    CHILD_CONTENT.children.mockResolvedValue({ results: [] });
+
+    await service.getContentChildren('123', 'page');
+
+    expect(CHILD_CONTENT.children).toHaveBeenCalledWith('123', 'page', '25', undefined);
+  });
+
+  it('passes an explicit limit and start as strings for children', async () => {
+    CHILD_CONTENT.children.mockResolvedValue({ results: [] });
+
+    await service.getContentChildren('123', undefined, 10, 5);
+
+    expect(CHILD_CONTENT.children).toHaveBeenCalledWith('123', undefined, '10', '5');
+  });
+
+  it('gets children filtered by type', async () => {
+    CHILD_CONTENT.childrenOfType.mockResolvedValue({ results: [] });
+
+    await service.getContentChildrenByType('123', 'comment', 'body.view', 3, 0);
+
+    expect(CHILD_CONTENT.childrenOfType).toHaveBeenCalledWith('123', 'comment', 'body.view', '3', '0');
+  });
+
+  it('gets comments forwarding depth and location', async () => {
+    CHILD_CONTENT.commentsOfContent.mockResolvedValue({ results: [] });
+
+    await service.getContentComments('123', 'body.view', 'all', 7, 2, 'inline');
+
+    expect(CHILD_CONTENT.commentsOfContent).toHaveBeenCalledWith('123', 'body.view', 'all', '7', '2', 'inline');
+  });
+
+  it('gets descendants (no pagination params)', async () => {
+    CONTENT_DESCENDANT.descendants.mockResolvedValue({ results: [] });
+
+    await service.getContentDescendants('123', 'comment');
+
+    expect(CONTENT_DESCENDANT.descendants).toHaveBeenCalledWith('123', 'comment');
+  });
+
+  it('gets descendants filtered by type with pagination', async () => {
+    CONTENT_DESCENDANT.descendantsOfType.mockResolvedValue({ results: [] });
+
+    await service.getContentDescendantsByType('123', 'comment', undefined, 50, 10);
+
+    expect(CONTENT_DESCENDANT.descendantsOfType).toHaveBeenCalledWith('123', 'comment', undefined, '50', '10');
+  });
+});
+
+describe('ConfluenceService content labels', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets labels with prefix filter and default limit', async () => {
+    CONTENT_LABELS.labels.mockResolvedValue({ results: [] });
+
+    await service.getContentLabels('123', 'global');
+
+    expect(CONTENT_LABELS.labels).toHaveBeenCalledWith('123', 'global', '25', undefined);
+  });
+
+  it('adds labels forwarding the list as the request body', async () => {
+    CONTENT_LABELS.addLabels.mockResolvedValue({ results: [] });
+    const labels = [{ name: 'docs' }, { prefix: 'global', name: 'api' }];
+
+    await service.addContentLabels('123', labels);
+
+    expect(CONTENT_LABELS.addLabels).toHaveBeenCalledWith('123', labels);
+  });
+
+  it('deletes a label using the query-param variant', async () => {
+    CONTENT_LABELS.deleteLabelWithQueryParam.mockResolvedValue(undefined);
+
+    const result = await service.deleteContentLabel('123', 'docs');
+
+    expect(CONTENT_LABELS.deleteLabelWithQueryParam).toHaveBeenCalledWith('123', 'docs');
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService content properties', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('lists properties with the default page-size limit', async () => {
+    CONTENT_PROPERTY.findAll.mockResolvedValue({ results: [] });
+
+    await service.getContentProperties('123', 'version');
+
+    expect(CONTENT_PROPERTY.findAll).toHaveBeenCalledWith('123', 'version', '25', undefined);
+  });
+
+  it('gets a single property by key', async () => {
+    CONTENT_PROPERTY.findByKey.mockResolvedValue({ key: 'k' });
+
+    await service.getContentProperty('123', 'my-key', 'content');
+
+    expect(CONTENT_PROPERTY.findByKey).toHaveBeenCalledWith('123', 'my-key', 'content');
+  });
+
+  it('creates a property wrapping key and value into the body', async () => {
+    CONTENT_PROPERTY.create1.mockResolvedValue({ key: 'k' });
+
+    await service.createContentProperty('123', 'my-key', { enabled: true });
+
+    expect(CONTENT_PROPERTY.create1).toHaveBeenCalledWith('123', { key: 'my-key', value: { enabled: true } });
+  });
+
+  it('updates a property with the new version number', async () => {
+    CONTENT_PROPERTY.update1.mockResolvedValue({ key: 'k' });
+
+    await service.updateContentProperty('123', 'my-key', 'new-value', 2);
+
+    expect(CONTENT_PROPERTY.update1).toHaveBeenCalledWith(
+      '123',
+      'my-key',
+      undefined,
+      { key: 'my-key', value: 'new-value', version: { number: 2 } }
+    );
+  });
+
+  it('deletes a property by key', async () => {
+    CONTENT_PROPERTY.delete2.mockResolvedValue(undefined);
+
+    const result = await service.deleteContentProperty('123', 'my-key');
+
+    expect(CONTENT_PROPERTY.delete2).toHaveBeenCalledWith('123', 'my-key');
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService content restrictions', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets all restrictions grouped by operation', async () => {
+    CONTENT_RESTRICTIONS.byOperation.mockResolvedValue({ read: {} });
+
+    await service.getContentRestrictions('123', 'restrictions.user');
+
+    expect(CONTENT_RESTRICTIONS.byOperation).toHaveBeenCalledWith('123', 'restrictions.user');
+  });
+
+  it('gets restrictions for a single operation with pagination', async () => {
+    CONTENT_RESTRICTIONS.forOperation.mockResolvedValue({ results: [] });
+
+    await service.getContentRestrictionsByOperation('read', '123', 'restrictions.group', 10, 0);
+
+    expect(CONTENT_RESTRICTIONS.forOperation).toHaveBeenCalledWith('read', '123', 'restrictions.group', '10', '0');
+  });
+
+  it('forwards the restrictions array as the request body when updating', async () => {
+    CONTENT_RESTRICTIONS.updateRestrictions.mockResolvedValue({ results: [] });
+    const restrictions = [
+      { operation: 'update', restrictions: { user: [{ type: 'known', username: 'admin' }] } },
+    ];
+
+    await service.updateContentRestrictions('123', restrictions, 'restrictions.user');
+
+    expect(CONTENT_RESTRICTIONS.updateRestrictions).toHaveBeenCalledWith(
+      '123',
+      'restrictions.user',
+      undefined,
+      undefined,
+      restrictions
+    );
+  });
+});
+
+describe('ConfluenceService content watchers', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('lists watchers with the default page-size limit', async () => {
+    CONTENT_WATCHERS.index.mockResolvedValue({ results: [] });
+
+    await service.getContentWatchers('123');
+
+    expect(CONTENT_WATCHERS.index).toHaveBeenCalledWith('123', '25', undefined);
+  });
+
+  it('checks the current user watch state when no user is given', async () => {
+    USER_WATCH.isWatchingContent.mockResolvedValue({ watching: true });
+
+    await service.isWatchingContent('123');
+
+    expect(USER_WATCH.isWatchingContent).toHaveBeenCalledWith('123', undefined, undefined);
+  });
+
+  it('adds a watcher for a named user', async () => {
+    USER_WATCH.addContentWatcher.mockResolvedValue({ watching: true });
+
+    await service.addContentWatcher('123', undefined, 'jblogs');
+
+    expect(USER_WATCH.addContentWatcher).toHaveBeenCalledWith('123', undefined, 'jblogs');
+  });
+
+  it('removes a watcher by user key', async () => {
+    USER_WATCH.removeContentWatcher.mockResolvedValue(undefined);
+
+    const result = await service.removeContentWatcher('123', 'user-key');
+
+    expect(USER_WATCH.removeContentWatcher).toHaveBeenCalledWith('123', 'user-key', undefined);
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService attachments', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('lists attachments with the default page-size limit and filters', async () => {
+    ATTACHMENTS.getAttachments.mockResolvedValue({ results: [] });
+
+    await service.getAttachments('123', 'version', 'diagram.png', undefined, undefined, 'image/png');
+
+    expect(ATTACHMENTS.getAttachments).toHaveBeenCalledWith('123', 'version', 'diagram.png', '25', undefined, 'image/png');
+  });
+
+  it('removes an attachment', async () => {
+    ATTACHMENTS.removeAttachment.mockResolvedValue(undefined);
+
+    const result = await service.removeAttachment('att-1', '123');
+
+    expect(ATTACHMENTS.removeAttachment).toHaveBeenCalledWith('att-1', '123');
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService space CRUD', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets a single space by key', async () => {
+    SPACE.space.mockResolvedValue({ key: 'DEV' });
+
+    await service.getSpace('DEV', 'description.plain');
+
+    expect(SPACE.space).toHaveBeenCalledWith('DEV', 'description.plain');
+  });
+
+  it('lists spaces mapping filters onto the generated positional params', async () => {
+    SPACE.spaces.mockResolvedValue({ results: [] });
+
+    await service.getSpaces('DEV', 'global', 'current', 'team', true, 'description.plain', 10, 5);
+
+    expect(SPACE.spaces).toHaveBeenCalledWith(
+      undefined,
+      '5',
+      'team',
+      'true',
+      'global',
+      'DEV',
+      undefined,
+      'description.plain',
+      undefined,
+      '10',
+      undefined,
+      undefined,
+      undefined,
+      'current'
+    );
+  });
+
+  it('defaults the limit to the package page size when listing spaces', async () => {
+    SPACE.spaces.mockResolvedValue({ results: [] });
+
+    await service.getSpaces();
+
+    expect(SPACE.spaces).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      '25',
+      undefined,
+      undefined,
+      undefined,
+      undefined
+    );
+  });
+
+  it('creates a public space via createSpace', async () => {
+    SPACE.createSpace.mockResolvedValue({ key: 'DEV' });
+    const body = { key: 'DEV', name: 'Dev' };
+
+    await service.createSpace(body);
+
+    expect(SPACE.createSpace).toHaveBeenCalledWith(body);
+    expect(SPACE.createPrivateSpace).not.toHaveBeenCalled();
+  });
+
+  it('creates a private space when isPrivate is true', async () => {
+    SPACE.createPrivateSpace.mockResolvedValue({ key: 'DEV' });
+    const body = { key: 'DEV', name: 'Dev' };
+
+    await service.createSpace(body, true);
+
+    expect(SPACE.createPrivateSpace).toHaveBeenCalledWith(body);
+    expect(SPACE.createSpace).not.toHaveBeenCalled();
+  });
+
+  it('updates a space', async () => {
+    SPACE.update4.mockResolvedValue({ key: 'DEV' });
+    const body = { key: 'DEV', name: 'Dev renamed' };
+
+    await service.updateSpace('DEV', body);
+
+    expect(SPACE.update4).toHaveBeenCalledWith('DEV', body);
+  });
+
+  it('deletes a space', async () => {
+    SPACE.delete5.mockResolvedValue({ id: 'task-1' });
+
+    const result = await service.deleteSpace('DEV');
+
+    expect(SPACE.delete5).toHaveBeenCalledWith('DEV');
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService space content & archival lifecycle', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets all space content when no type is given', async () => {
+    SPACE.contents.mockResolvedValue({ results: [] });
+
+    await service.getSpaceContent('DEV', undefined, 'history', 'root');
+
+    expect(SPACE.contents).toHaveBeenCalledWith('DEV', 'history', 'root', '25', undefined);
+    expect(SPACE.contentsWithType1).not.toHaveBeenCalled();
+  });
+
+  it('gets space content filtered by type', async () => {
+    SPACE.contentsWithType1.mockResolvedValue({ results: [] });
+
+    await service.getSpaceContent('DEV', 'page', undefined, undefined, 10, 5);
+
+    expect(SPACE.contentsWithType1).toHaveBeenCalledWith('DEV', 'page', undefined, undefined, '10', '5');
+    expect(SPACE.contents).not.toHaveBeenCalled();
+  });
+
+  it('archives a space', async () => {
+    SPACE.archive.mockResolvedValue(undefined);
+
+    const result = await service.archiveSpace('DEV');
+
+    expect(SPACE.archive).toHaveBeenCalledWith('DEV');
+    expect(result.success).toBe(true);
+  });
+
+  it('restores a space', async () => {
+    SPACE.restore.mockResolvedValue(undefined);
+
+    const result = await service.restoreSpace('DEV');
+
+    expect(SPACE.restore).toHaveBeenCalledWith('DEV');
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService space properties', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('lists space properties with the default page-size limit', async () => {
+    SPACE_PROPERTY.get1.mockResolvedValue({ results: [] });
+
+    await service.getSpaceProperties('DEV', 'version');
+
+    expect(SPACE_PROPERTY.get1).toHaveBeenCalledWith('DEV', 'version', '25', undefined);
+  });
+
+  it('gets a single space property by key', async () => {
+    SPACE_PROPERTY.get.mockResolvedValue({ key: 'k' });
+
+    await service.getSpaceProperty('DEV', 'my-key', 'space');
+
+    expect(SPACE_PROPERTY.get).toHaveBeenCalledWith('DEV', 'my-key', 'space');
+  });
+
+  it('creates a space property wrapping key and value into the body', async () => {
+    SPACE_PROPERTY.create3.mockResolvedValue({ key: 'k' });
+
+    await service.createSpaceProperty('DEV', 'my-key', { enabled: true });
+
+    expect(SPACE_PROPERTY.create3).toHaveBeenCalledWith('DEV', { key: 'my-key', value: { enabled: true } });
+  });
+
+  it('updates a space property with the new version number', async () => {
+    SPACE_PROPERTY.update3.mockResolvedValue({ key: 'k' });
+
+    await service.updateSpaceProperty('DEV', 'my-key', 'new-value', 2);
+
+    expect(SPACE_PROPERTY.update3).toHaveBeenCalledWith(
+      'DEV',
+      'my-key',
+      { key: 'my-key', value: 'new-value', version: { number: 2 } }
+    );
+  });
+
+  it('deletes a space property by key', async () => {
+    SPACE_PROPERTY.delete4.mockResolvedValue(undefined);
+
+    const result = await service.deleteSpaceProperty('DEV', 'my-key');
+
+    expect(SPACE_PROPERTY.delete4).toHaveBeenCalledWith('DEV', 'my-key');
+    expect(result.success).toBe(true);
   });
 });
