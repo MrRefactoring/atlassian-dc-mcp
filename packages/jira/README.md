@@ -173,7 +173,7 @@ pnpm dev
 
 ### Available Tools
 
-This server exposes 202 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 208 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -231,6 +231,12 @@ This server exposes 202 tools, grouped below by area. Every tool name is prefixe
 - `jira_linkIssues` — Create a link between two issues (e.g., "blocks", "relates to").
 - `jira_getIssueLink` — Get details of a link between two issues.
 - `jira_deleteIssueLink` — Delete a link between two issues. This is irreversible.
+- `jira_getRemoteIssueLinks` — Get the remote issue links (e.g., links to Confluence pages or external URLs) for an issue.
+- `jira_getRemoteIssueLink` — Get a single remote issue link by its id.
+- `jira_createOrUpdateRemoteIssueLink` — Create a remote issue link on an issue; updates instead of duplicating if globalId matches an existing link.
+- `jira_updateRemoteIssueLink` — Update a remote issue link by its id. Any fields not provided are set to null.
+- `jira_deleteRemoteIssueLink` — Delete a remote issue link by its id. This is irreversible.
+- `jira_deleteRemoteIssueLinkByGlobalId` — Delete a remote issue link by its global id. This is irreversible.
 - `jira_getIssueLinkTypes` — Get all issue link types available (e.g., "Blocks", "Relates", "Duplicate").
 - `jira_createIssueLinkType` — Create a new issue link type.
 - `jira_updateIssueLinkType` — Update an issue link type.
