@@ -738,6 +738,16 @@ server.tool(
 );
 
 server.tool(
+  "jira_findGroups",
+  `Search for groups by a substring match against group names in the ${jiraInstanceType}. Used for group-picker style autocomplete.`,
+  jiraToolSchemas.findGroups,
+  async ({ query, maxResults, exclude, userName }) => {
+    const result = await jiraService.findGroups(query, maxResults, exclude, userName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_createFilter",
   `Create a saved search filter in the ${jiraInstanceType}`,
   jiraToolSchemas.createFilter,
