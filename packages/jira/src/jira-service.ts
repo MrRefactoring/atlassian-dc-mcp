@@ -2,32 +2,44 @@ import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import {
   AttachmentService,
+  AvatarService,
   BacklogService,
   BoardService,
   ComponentService,
+  CustomFieldOptionService,
+  CustomFieldsService,
   DashboardService,
   EpicService,
+  FieldService,
   FilterService,
   GroupService,
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
+  IssuesecurityschemesService,
   IssuetypeService,
   MyselfService,
+  NotificationschemeService,
   OpenAPI,
+  PermissionschemeService,
   PriorityService,
   ProjectService,
   ProjectsService,
   ResolutionService,
   SearchService,
+  SecuritylevelService,
   SprintService,
   StatusService,
+  UniversalAvatarService,
   UserService,
   VersionService,
+  WorkflowService,
+  WorkflowschemeService,
 } from './jira-client/index.js';
 import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
 import { request as __request } from './jira-client/core/request.js';
 import type { StringList } from './jira-client/models/StringList.js';
+import type { FilePart } from './jira-client/models/FilePart.js';
 import { getDefaultPageSize, getMissingConfig, JIRA_PRODUCT } from './config.js';
 
 const DEFAULT_SEARCH_FIELDS = ['summary', 'description', 'status', 'assignee', 'reporter', 'priority', 'issuetype', 'labels', 'updated'];
@@ -830,6 +842,282 @@ export class JiraService {
     );
   }
 
+  async getPermissionSchemes(expand?: string) {
+    return handleApiOperation(
+      () => PermissionschemeService.getPermissionSchemes(expand),
+      'Error getting permission schemes'
+    );
+  }
+
+  async getPermissionScheme(schemeId: number, expand?: string) {
+    return handleApiOperation(
+      () => PermissionschemeService.getPermissionScheme(schemeId, expand),
+      'Error getting permission scheme'
+    );
+  }
+
+  async createPermissionScheme(name: string, description?: string, permissions?: Array<{ permission: string; holderType: string; holderParameter?: string }>) {
+    return handleApiOperation(
+      () => PermissionschemeService.createPermissionScheme(undefined, {
+        name,
+        description,
+        permissions: permissions?.map(({ permission, holderType, holderParameter }) => ({
+          permission,
+          holder: { type: holderType, parameter: holderParameter },
+        })),
+      }),
+      'Error creating permission scheme'
+    );
+  }
+
+  async updatePermissionScheme(schemeId: number, name?: string, description?: string, permissions?: Array<{ permission: string; holderType: string; holderParameter?: string }>) {
+    return handleApiOperation(
+      () => PermissionschemeService.updatePermissionScheme(schemeId, undefined, {
+        name,
+        description,
+        permissions: permissions?.map(({ permission, holderType, holderParameter }) => ({
+          permission,
+          holder: { type: holderType, parameter: holderParameter },
+        })),
+      }),
+      'Error updating permission scheme'
+    );
+  }
+
+  async deletePermissionScheme(schemeId: number) {
+    return handleApiOperation(
+      () => PermissionschemeService.deletePermissionScheme(schemeId),
+      'Error deleting permission scheme'
+    );
+  }
+
+  async getPermissionSchemeGrants(schemeId: number, expand?: string) {
+    return handleApiOperation(
+      () => PermissionschemeService.getPermissionSchemeGrants(schemeId, expand),
+      'Error getting permission scheme grants'
+    );
+  }
+
+  async createPermissionGrant(schemeId: number, permission: string, holderType: string, holderParameter?: string) {
+    return handleApiOperation(
+      () => PermissionschemeService.createPermissionGrant(schemeId, undefined, {
+        permission,
+        holder: { type: holderType, parameter: holderParameter },
+      }),
+      'Error creating permission grant'
+    );
+  }
+
+  async deletePermissionGrant(schemeId: number, permissionId: number) {
+    return handleApiOperation(
+      () => PermissionschemeService.deletePermissionSchemeEntity(permissionId, schemeId),
+      'Error deleting permission grant'
+    );
+  }
+
+  async getWorkflows(workflowName?: string) {
+    return handleApiOperation(
+      () => WorkflowService.getAllWorkflows(workflowName),
+      'Error getting workflows'
+    );
+  }
+
+  async getWorkflowScheme(schemeId: number, returnDraftIfExists?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.getById(schemeId, returnDraftIfExists),
+      'Error getting workflow scheme'
+    );
+  }
+
+  async getWorkflowSchemeDefault(schemeId: number, returnDraftIfExists?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.getDefault(schemeId, returnDraftIfExists),
+      'Error getting workflow scheme default workflow'
+    );
+  }
+
+  async getWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, returnDraftIfExists?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.getIssueType(issueType, schemeId, returnDraftIfExists),
+      'Error getting workflow scheme issue type mapping'
+    );
+  }
+
+  async getWorkflowSchemeWorkflowMapping(schemeId: number, workflowName?: string, returnDraftIfExists?: boolean) {
+    return handleApiOperation(
+      () => WorkflowschemeService.getWorkflow(schemeId, workflowName, returnDraftIfExists),
+      'Error getting workflow scheme workflow mapping'
+    );
+  }
+
+  async getNotificationSchemes(expand?: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => NotificationschemeService.getNotificationSchemes(expand, maxResults, startAt),
+      'Error getting notification schemes'
+    );
+  }
+
+  async getNotificationScheme(id: number, expand?: string) {
+    return handleApiOperation(
+      () => NotificationschemeService.getNotificationScheme(id, expand),
+      'Error getting notification scheme'
+    );
+  }
+
+  async getSecurityLevel(id: string) {
+    return handleApiOperation(
+      () => SecuritylevelService.getIssuesecuritylevel(id),
+      'Error getting security level'
+    );
+  }
+
+  async getIssueSecuritySchemes() {
+    return handleApiOperation(
+      () => IssuesecurityschemesService.getIssueSecuritySchemes(),
+      'Error getting issue security schemes'
+    );
+  }
+
+  async getIssueSecurityScheme(id: string) {
+    return handleApiOperation(
+      () => IssuesecurityschemesService.getIssueSecurityScheme(id),
+      'Error getting issue security scheme'
+    );
+  }
+
+  async getCustomFields(sortColumn?: string, types?: string[], search?: string, maxResults?: number, sortOrder?: string, screenIds?: string[], lastValueUpdate?: string, projectIds?: string[], startAt?: number) {
+    return handleApiOperation(
+      () => CustomFieldsService.getCustomFields(
+        sortColumn,
+        types?.join(','),
+        search,
+        maxResults !== undefined ? String(maxResults) : undefined,
+        sortOrder,
+        screenIds?.join(','),
+        lastValueUpdate,
+        projectIds?.join(','),
+        startAt !== undefined ? String(startAt) : undefined
+      ),
+      'Error getting custom fields'
+    );
+  }
+
+  async deleteCustomFields(ids: string[]) {
+    return handleApiOperation(
+      () => CustomFieldsService.bulkDeleteCustomFields(ids.join(',')),
+      'Error deleting custom fields'
+    );
+  }
+
+  async getCustomFieldOptions(customFieldId: string, maxResults?: number, issueTypeIds?: string[], query?: string, sortByOptionName?: boolean, useAllContexts?: boolean, page?: number, projectIds?: string[]) {
+    return handleApiOperation(
+      () => CustomFieldsService.getCustomFieldOptions(
+        customFieldId,
+        maxResults !== undefined ? String(maxResults) : undefined,
+        issueTypeIds?.join(','),
+        query,
+        sortByOptionName !== undefined ? String(sortByOptionName) : undefined,
+        useAllContexts !== undefined ? String(useAllContexts) : undefined,
+        page !== undefined ? String(page) : undefined,
+        projectIds?.join(',')
+      ),
+      'Error getting custom field options'
+    );
+  }
+
+  async getCustomFieldOption(id: string) {
+    return handleApiOperation(
+      () => CustomFieldOptionService.getCustomFieldOption(id),
+      'Error getting custom field option'
+    );
+  }
+
+  async createCustomField(name: string, type: string, description?: string, searcherKey?: string, issueTypeIds?: string[], projectIds?: number[]) {
+    return handleApiOperation(
+      () => FieldService.createCustomField({ name, type, description, searcherKey, issueTypeIds, projectIds }),
+      'Error creating custom field'
+    );
+  }
+
+  async createUser(name: string, emailAddress: string, displayName?: string, password?: string, notification?: string) {
+    return handleApiOperation(
+      () => UserService.createUser({ name, emailAddress, displayName, password, notification }),
+      'Error creating user'
+    );
+  }
+
+  async removeUser(key?: string, username?: string) {
+    return handleApiOperation(
+      () => UserService.removeUser(key, username),
+      'Error removing user'
+    );
+  }
+
+  async changeUserPassword(password: string, currentPassword?: string, key?: string, username?: string) {
+    return handleApiOperation(
+      () => UserService.changeUserPassword({ password, currentPassword }, key, username),
+      'Error changing user password'
+    );
+  }
+
+  async validateUserAnonymization(userKey?: string, expand?: string) {
+    return handleApiOperation(
+      () => UserService.validateUserAnonymization(expand, userKey),
+      'Error validating user anonymization'
+    );
+  }
+
+  async scheduleUserAnonymization(userKey?: string, newOwnerKey?: string) {
+    return handleApiOperation(
+      () => UserService.scheduleUserAnonymization({ userKey, newOwnerKey }),
+      'Error scheduling user anonymization'
+    );
+  }
+
+  async getUserAnonymizationProgress(taskId?: number) {
+    return handleApiOperation(
+      () => UserService.getProgress1(taskId),
+      'Error getting user anonymization progress'
+    );
+  }
+
+  async getSystemAvatars(type: string) {
+    return handleApiOperation(
+      () => AvatarService.getAllSystemAvatars(type),
+      'Error getting system avatars'
+    );
+  }
+
+  async getAvatars(type: string, owningObjectId: string) {
+    return handleApiOperation(
+      () => UniversalAvatarService.getAvatars(type, owningObjectId),
+      'Error getting avatars'
+    );
+  }
+
+  async uploadTemporaryAvatar(type: string, owningObjectId: string, fileName: string, contentBase64: string) {
+    return handleApiOperation(() => {
+      const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
+      return UniversalAvatarService.storeTemporaryAvatarUsingMultiPart2(type, owningObjectId, { file } as unknown as FilePart);
+    }, 'Error uploading temporary avatar');
+  }
+
+  async createAvatarFromTemporary(type: string, owningObjectId: string, cropperOffsetX?: number, cropperOffsetY?: number, cropperWidth?: number, needsCropping?: boolean, url?: string) {
+    return handleApiOperation(
+      () => UniversalAvatarService.createAvatarFromTemporary3(type, owningObjectId, {
+        cropperOffsetX, cropperOffsetY, cropperWidth, needsCropping, url,
+      }),
+      'Error creating avatar from temporary'
+    );
+  }
+
+  async deleteAvatar(id: number, type: string, owningObjectId: string) {
+    return handleApiOperation(
+      () => UniversalAvatarService.deleteAvatar1(id, type, owningObjectId),
+      'Error deleting avatar'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1327,5 +1615,175 @@ export const jiraToolSchemas = {
     rankBeforeEpic: z.string().optional().describe("Rank this epic before the epic with this id/key"),
     rankAfterEpic: z.string().optional().describe("Rank this epic after the epic with this id/key"),
     rankCustomFieldId: z.number().optional().describe("Id of the custom 'Rank' field, if not the default")
+  },
+  getPermissionSchemes: {
+    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'permissions' to include each scheme's permission grants")
+  },
+  getPermissionScheme: {
+    schemeId: z.number().describe("Id of the permission scheme"),
+    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'permissions' to include the scheme's permission grants")
+  },
+  createPermissionScheme: {
+    name: z.string().describe("Name of the new permission scheme"),
+    description: z.string().optional().describe("Description of the new permission scheme"),
+    permissions: z.array(z.object({
+      permission: z.string().describe("Permission key, e.g. 'ADMINISTER_PROJECTS' or 'BROWSE_PROJECTS'"),
+      holderType: z.string().describe("Type of the permission holder, e.g. 'group', 'projectRole', 'applicationRole', 'anyone', 'reporter', 'assignee'"),
+      holderParameter: z.string().optional().describe("Holder-specific identifier, e.g. group name or project role id")
+    })).optional().describe("Initial permission grants for the scheme")
+  },
+  updatePermissionScheme: {
+    schemeId: z.number().describe("Id of the permission scheme to update"),
+    name: z.string().optional().describe("New name for the scheme"),
+    description: z.string().optional().describe("New description for the scheme"),
+    permissions: z.array(z.object({
+      permission: z.string().describe("Permission key, e.g. 'ADMINISTER_PROJECTS' or 'BROWSE_PROJECTS'"),
+      holderType: z.string().describe("Type of the permission holder, e.g. 'group', 'projectRole', 'applicationRole', 'anyone', 'reporter', 'assignee'"),
+      holderParameter: z.string().optional().describe("Holder-specific identifier, e.g. group name or project role id")
+    })).optional().describe("Replaces all permission grants for the scheme. Omit to leave grants unchanged.")
+  },
+  deletePermissionScheme: {
+    schemeId: z.number().describe("Id of the permission scheme to delete")
+  },
+  getPermissionSchemeGrants: {
+    schemeId: z.number().describe("Id of the permission scheme"),
+    expand: z.string().optional().describe("Comma-separated expansions for the returned grants")
+  },
+  createPermissionGrant: {
+    schemeId: z.number().describe("Id of the permission scheme to add the grant to"),
+    permission: z.string().describe("Permission key, e.g. 'ADMINISTER_PROJECTS' or 'BROWSE_PROJECTS'"),
+    holderType: z.string().describe("Type of the permission holder, e.g. 'group', 'projectRole', 'applicationRole', 'anyone', 'reporter', 'assignee'"),
+    holderParameter: z.string().optional().describe("Holder-specific identifier, e.g. group name or project role id")
+  },
+  deletePermissionGrant: {
+    schemeId: z.number().describe("Id of the permission scheme"),
+    permissionId: z.number().describe("Id of the permission grant to delete")
+  },
+  getWorkflows: {
+    workflowName: z.string().optional().describe("Name of a specific workflow to return. Omit to return all workflows.")
+  },
+  getWorkflowScheme: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant of the scheme if one exists")
+  },
+  getWorkflowSchemeDefault: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's default workflow if a draft exists")
+  },
+  getWorkflowSchemeIssueTypeMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    issueType: z.string().describe("Id of the issue type to look up in the scheme's mapping"),
+    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's mapping if a draft exists")
+  },
+  getWorkflowSchemeWorkflowMapping: {
+    schemeId: z.number().describe("Id of the workflow scheme"),
+    workflowName: z.string().optional().describe("Name of a specific workflow to look up. Omit to return all workflow mappings."),
+    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's mapping if a draft exists")
+  },
+  getNotificationSchemes: {
+    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'all,field,group,user,projectRole,notificationSchemeEvents'"),
+    maxResults: z.number().optional().describe("Maximum number of notification schemes to return"),
+    startAt: z.number().optional().describe("Index of the first notification scheme to return")
+  },
+  getNotificationScheme: {
+    id: z.number().describe("Id of the notification scheme"),
+    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'all,field,group,user,projectRole,notificationSchemeEvents'")
+  },
+  getSecurityLevel: {
+    id: z.string().describe("Id of the issue security level")
+  },
+  getIssueSecuritySchemes: {},
+  getIssueSecurityScheme: {
+    id: z.string().describe("Id of the issue security scheme")
+  },
+  getCustomFields: {
+    sortColumn: z.string().optional().describe("Column to sort the returned custom fields by"),
+    types: z.array(z.string()).optional().describe("Custom field type keys to filter by"),
+    search: z.string().optional().describe("Query string used to search custom fields by name"),
+    maxResults: z.number().optional().describe("Maximum number of custom fields to return"),
+    sortOrder: z.string().optional().describe("Sort order, e.g. 'asc' or 'desc'"),
+    screenIds: z.array(z.string()).optional().describe("Screen ids to filter custom fields by"),
+    lastValueUpdate: z.string().optional().describe("Filter by the last value update"),
+    projectIds: z.array(z.string()).optional().describe("Project ids to filter custom fields by"),
+    startAt: z.number().optional().describe("Index of the first custom field to return")
+  },
+  deleteCustomFields: {
+    ids: z.array(z.string()).describe("Ids of the custom fields to delete")
+  },
+  getCustomFieldOptions: {
+    customFieldId: z.string().describe("Id of the custom field"),
+    maxResults: z.number().optional().describe("Maximum number of options to return"),
+    issueTypeIds: z.array(z.string()).optional().describe("Issue type ids to scope the returned options to"),
+    query: z.string().optional().describe("Query string used to filter options"),
+    sortByOptionName: z.boolean().optional().describe("Sort the returned options by their names"),
+    useAllContexts: z.boolean().optional().describe("Return options regardless of context, project ids, or issue type ids"),
+    page: z.number().optional().describe("Page of options to return"),
+    projectIds: z.array(z.string()).optional().describe("Project ids to scope the returned options to")
+  },
+  getCustomFieldOption: {
+    id: z.string().describe("Id of the custom field option")
+  },
+  createCustomField: {
+    name: z.string().describe("Name of the new custom field"),
+    type: z.string().describe("Custom field type key, e.g. 'com.atlassian.jira.plugin.system.customfieldtypes:textfield'"),
+    description: z.string().optional().describe("Description of the new custom field"),
+    searcherKey: z.string().optional().describe("Searcher key for the new custom field, e.g. 'com.atlassian.jira.plugin.system.customfieldtypes:textsearcher'"),
+    issueTypeIds: z.array(z.string()).optional().describe("Issue type ids to scope the field to"),
+    projectIds: z.array(z.number()).optional().describe("Project ids to scope the field to")
+  },
+  createUser: {
+    name: z.string().describe("Username of the new user"),
+    emailAddress: z.string().describe("Email address of the new user"),
+    displayName: z.string().optional().describe("Display name of the new user"),
+    password: z.string().optional().describe("Password for the new user. If omitted, a random password is generated."),
+    notification: z.string().optional().describe("Whether to notify the new user by email, e.g. 'true' or 'false'")
+  },
+  removeUser: {
+    key: z.string().optional().describe("Key of the user to remove"),
+    username: z.string().optional().describe("Username of the user to remove. Provide either key or username.")
+  },
+  changeUserPassword: {
+    password: z.string().describe("New password for the user"),
+    currentPassword: z.string().optional().describe("Current password, required when changing your own password"),
+    key: z.string().optional().describe("Key of the user whose password is being changed"),
+    username: z.string().optional().describe("Username of the user whose password is being changed. Provide either key or username.")
+  },
+  validateUserAnonymization: {
+    userKey: z.string().optional().describe("Key of the user to validate anonymization for"),
+    expand: z.string().optional().describe("Comma-separated expansions for the validation response")
+  },
+  scheduleUserAnonymization: {
+    userKey: z.string().optional().describe("Key of the user to anonymize"),
+    newOwnerKey: z.string().optional().describe("Key of the user who will own the anonymization audit log entries")
+  },
+  getUserAnonymizationProgress: {
+    taskId: z.number().optional().describe("Id of the anonymization task to check progress for")
+  },
+  getSystemAvatars: {
+    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'")
+  },
+  getAvatars: {
+    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
+    owningObjectId: z.string().describe("Id of the object that owns the avatars, e.g. a project id or username")
+  },
+  uploadTemporaryAvatar: {
+    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
+    owningObjectId: z.string().describe("Id of the object that will own the avatar, e.g. a project id or username"),
+    fileName: z.string().describe("File name of the avatar image, including extension (e.g. 'avatar.png')"),
+    contentBase64: z.string().describe("Avatar image content encoded as base64")
+  },
+  createAvatarFromTemporary: {
+    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
+    owningObjectId: z.string().describe("Id of the object that will own the avatar, e.g. a project id or username"),
+    cropperOffsetX: z.number().optional().describe("Horizontal crop offset returned by jira_uploadTemporaryAvatar"),
+    cropperOffsetY: z.number().optional().describe("Vertical crop offset returned by jira_uploadTemporaryAvatar"),
+    cropperWidth: z.number().optional().describe("Crop width returned by jira_uploadTemporaryAvatar"),
+    needsCropping: z.boolean().optional().describe("Whether the temporary avatar needs cropping"),
+    url: z.string().optional().describe("Url of the temporary avatar returned by jira_uploadTemporaryAvatar")
+  },
+  deleteAvatar: {
+    id: z.number().describe("Id of the avatar to delete"),
+    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
+    owningObjectId: z.string().describe("Id of the object that owns the avatar, e.g. a project id or username")
   }
 };
