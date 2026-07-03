@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { BitbucketService } from '../bitbucket-service.js';
-import { BuildsAndDeploymentsService, DeprecatedService, ProjectService, PullRequestsService, RepositoryService } from '../bitbucket-client/index.js';
+import { AuthenticationService, BuildsAndDeploymentsService, DeprecatedService, ProjectService, PullRequestsService, RepositoryService } from '../bitbucket-client/index.js';
 import { request as mockRequest } from '../bitbucket-client/core/request.js';
 
 // Mock the request function
@@ -91,6 +91,17 @@ jest.mock('../bitbucket-client/index.js', () => ({
     updateRepository: jest.fn(),
     forkRepository: jest.fn(),
     deleteRepository: jest.fn()
+  },
+  AuthenticationService: {
+    getAllAccessTokens: jest.fn(),
+    createAccessToken: jest.fn(),
+    getAllAccessTokens1: jest.fn(),
+    createAccessToken1: jest.fn(),
+    deleteById1: jest.fn(),
+    deleteById: jest.fn(),
+    getAllAccessTokens2: jest.fn(),
+    createAccessToken2: jest.fn(),
+    deleteById2: jest.fn()
   },
   OpenAPI: {
     BASE: '',
@@ -4621,6 +4632,192 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
+    });
+  });
+
+  describe('getAccessTokens', () => {
+    it('should get personal access tokens for a user', async () => {
+      const mockTokens = { values: [{ id: 1, name: 'my-token' }], size: 1, isLastPage: true };
+      (AuthenticationService.getAllAccessTokens2 as jest.Mock).mockResolvedValue(mockTokens);
+
+      const result = await bitbucketService.getAccessTokens('user', 'jsmith');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockTokens);
+      expect(AuthenticationService.getAllAccessTokens2).toHaveBeenCalledWith('jsmith', undefined, 25);
+    });
+
+    it('should get access tokens for a project', async () => {
+      const mockTokens = { values: [], size: 0, isLastPage: true };
+      (AuthenticationService.getAllAccessTokens as jest.Mock).mockResolvedValue(mockTokens);
+
+      const result = await bitbucketService.getAccessTokens('project', undefined, 'proj');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockTokens);
+      expect(AuthenticationService.getAllAccessTokens).toHaveBeenCalledWith('PROJ', undefined, 25);
+    });
+
+    it('should get access tokens for a repository, uppercasing/lowercasing keys and passing pagination', async () => {
+      const mockTokens = { values: [], size: 0, isLastPage: true };
+      (AuthenticationService.getAllAccessTokens1 as jest.Mock).mockResolvedValue(mockTokens);
+
+      const result = await bitbucketService.getAccessTokens('repo', undefined, 'proj', 'Test-Repo', 10, 5);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockTokens);
+      expect(AuthenticationService.getAllAccessTokens1).toHaveBeenCalledWith('PROJ', 'test-repo', 10, 5);
+    });
+
+    it('should fail when scope is user but userSlug is missing', async () => {
+      const result = await bitbucketService.getAccessTokens('user');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("userSlug is required");
+      expect(AuthenticationService.getAllAccessTokens2).not.toHaveBeenCalled();
+    });
+
+    it('should fail when scope is repo but repositorySlug is missing', async () => {
+      const result = await bitbucketService.getAccessTokens('repo', undefined, 'proj');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("projectKey and repositorySlug are required");
+      expect(AuthenticationService.getAllAccessTokens1).not.toHaveBeenCalled();
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (AuthenticationService.getAllAccessTokens as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.getAccessTokens('project', undefined, 'PROJ');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('createAccessToken', () => {
+    it('should create a personal access token for a user', async () => {
+      const mockRawToken = { token: 'BBDC-secret', id: 1, name: 'my-token' };
+      (AuthenticationService.createAccessToken2 as jest.Mock).mockResolvedValue(mockRawToken);
+
+      const result = await bitbucketService.createAccessToken('user', 'my-token', ['PROJECT_READ'], undefined, 'jsmith');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRawToken);
+      expect(AuthenticationService.createAccessToken2).toHaveBeenCalledWith('jsmith', {
+        name: 'my-token',
+        permissions: ['PROJECT_READ']
+      });
+    });
+
+    it('should create a project access token including expiryDays', async () => {
+      const mockRawToken = { token: 'BBDC-secret', id: 2, name: 'ci-token' };
+      (AuthenticationService.createAccessToken as jest.Mock).mockResolvedValue(mockRawToken);
+
+      const result = await bitbucketService.createAccessToken(
+        'project',
+        'ci-token',
+        ['PROJECT_WRITE'],
+        30,
+        undefined,
+        'proj'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRawToken);
+      expect(AuthenticationService.createAccessToken).toHaveBeenCalledWith('PROJ', {
+        name: 'ci-token',
+        permissions: ['PROJECT_WRITE'],
+        expiryDays: 30
+      });
+    });
+
+    it('should create a repository access token, normalizing project key and repo slug', async () => {
+      const mockRawToken = { token: 'BBDC-secret', id: 3, name: 'repo-token' };
+      (AuthenticationService.createAccessToken1 as jest.Mock).mockResolvedValue(mockRawToken);
+
+      const result = await bitbucketService.createAccessToken(
+        'repo',
+        'repo-token',
+        ['REPO_WRITE'],
+        undefined,
+        undefined,
+        'proj',
+        'Test-Repo'
+      );
+
+      expect(result.success).toBe(true);
+      expect(AuthenticationService.createAccessToken1).toHaveBeenCalledWith('PROJ', 'test-repo', {
+        name: 'repo-token',
+        permissions: ['REPO_WRITE']
+      });
+    });
+
+    it('should fail when scope is project but projectKey is missing', async () => {
+      const result = await bitbucketService.createAccessToken('project', 'token', ['PROJECT_READ']);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("projectKey is required");
+      expect(AuthenticationService.createAccessToken).not.toHaveBeenCalled();
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (AuthenticationService.createAccessToken2 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.createAccessToken('user', 'token', ['PROJECT_READ'], undefined, 'jsmith');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+    });
+  });
+
+  describe('deleteAccessToken', () => {
+    it('should delete a personal access token and return an ack', async () => {
+      (AuthenticationService.deleteById2 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.deleteAccessToken('user', '1', 'jsmith');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, tokenId: '1' });
+      expect(AuthenticationService.deleteById2).toHaveBeenCalledWith('1', 'jsmith');
+    });
+
+    it('should delete a project access token', async () => {
+      (AuthenticationService.deleteById as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.deleteAccessToken('project', '2', undefined, 'proj');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, tokenId: '2' });
+      expect(AuthenticationService.deleteById).toHaveBeenCalledWith('PROJ', '2');
+    });
+
+    it('should delete a repository access token, normalizing project key and repo slug', async () => {
+      (AuthenticationService.deleteById1 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await bitbucketService.deleteAccessToken('repo', '3', undefined, 'proj', 'Test-Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ deleted: true, tokenId: '3' });
+      expect(AuthenticationService.deleteById1).toHaveBeenCalledWith('PROJ', '3', 'test-repo');
+    });
+
+    it('should fail when scope is repo but projectKey is missing', async () => {
+      const result = await bitbucketService.deleteAccessToken('repo', '4', undefined, undefined, 'test-repo');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("projectKey and repositorySlug are required");
+      expect(AuthenticationService.deleteById1).not.toHaveBeenCalled();
+    });
+
+    it('should not overwrite the error when the delete call fails', async () => {
+      (AuthenticationService.deleteById2 as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.deleteAccessToken('user', '1', 'jsmith');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('API Error');
+      expect(result.data).toBeUndefined();
     });
   });
 });

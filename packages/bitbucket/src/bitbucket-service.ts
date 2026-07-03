@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { BuildsAndDeploymentsService, DeprecatedService, OpenAPI, ProjectService, PullRequestsService, RepositoryService } from './bitbucket-client/index.js';
+import { AuthenticationService, BuildsAndDeploymentsService, DeprecatedService, OpenAPI, ProjectService, PullRequestsService, RepositoryService } from './bitbucket-client/index.js';
+import type { RestAccessTokenRequest } from './bitbucket-client/index.js';
 import { request as __request } from './bitbucket-client/core/request.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { simplifyInboxPullRequests } from './inbox-pr-mapper.js';
@@ -21,6 +22,7 @@ function resolveToken(token: string | (() => string | undefined)) {
 }
 
 type DiffLineType = 'ADDED' | 'REMOVED' | 'CONTEXT';
+type AccessTokenScope = 'user' | 'project' | 'repo';
 
 /**
  * Build a Bitbucket DC inline comment anchor.
@@ -2441,6 +2443,126 @@ export class BitbucketService {
     return { ...result, data: { deleted: true, webhookId } };
   }
 
+  /**
+   * Get HTTP access tokens (PATs) for a user, project, or repository
+   * @param scope The token scope: 'user' for personal access tokens, 'project' for project-scoped tokens, 'repo' for repository-scoped tokens
+   * @param userSlug The user slug; required when scope is 'user'
+   * @param projectKey The project key; required when scope is 'project' or 'repo'
+   * @param repositorySlug The repository slug; required when scope is 'repo'
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (default: the package page size)
+   * @returns Promise with a page of access tokens
+   */
+  async getAccessTokens(
+    scope: AccessTokenScope,
+    userSlug?: string,
+    projectKey?: string,
+    repositorySlug?: string,
+    start?: number,
+    limit?: number
+  ) {
+    projectKey = projectKey?.toUpperCase();
+    repositorySlug = repositorySlug?.toLowerCase();
+    return handleApiOperation(
+      () => {
+        if (scope === 'user') {
+          if (!userSlug) throw new Error("userSlug is required when scope is 'user'");
+          return AuthenticationService.getAllAccessTokens2(userSlug, start, limit ?? this.getPageSize());
+        }
+        if (scope === 'project') {
+          if (!projectKey) throw new Error("projectKey is required when scope is 'project'");
+          return AuthenticationService.getAllAccessTokens(projectKey, start, limit ?? this.getPageSize());
+        }
+        if (!projectKey || !repositorySlug) throw new Error("projectKey and repositorySlug are required when scope is 'repo'");
+        return AuthenticationService.getAllAccessTokens1(projectKey, repositorySlug, start, limit ?? this.getPageSize());
+      },
+      'Error fetching access tokens'
+    );
+  }
+
+  /**
+   * Create an HTTP access token (PAT) for a user, project, or repository
+   * @param scope The token scope: 'user' for personal access tokens, 'project' for project-scoped tokens, 'repo' for repository-scoped tokens
+   * @param name The name of the new access token
+   * @param permissions The permissions to grant the token (e.g. ['REPO_READ', 'REPO_WRITE'] for repo scope, ['PROJECT_ADMIN'] for project scope)
+   * @param expiryDays Optional number of days until the token expires
+   * @param userSlug The user slug; required when scope is 'user'
+   * @param projectKey The project key; required when scope is 'project' or 'repo'
+   * @param repositorySlug The repository slug; required when scope is 'repo'
+   * @returns Promise with the created token, including its raw (secret) value — shown only once
+   */
+  async createAccessToken(
+    scope: AccessTokenScope,
+    name: string,
+    permissions: string[],
+    expiryDays?: number,
+    userSlug?: string,
+    projectKey?: string,
+    repositorySlug?: string
+  ) {
+    projectKey = projectKey?.toUpperCase();
+    repositorySlug = repositorySlug?.toLowerCase();
+    const requestBody: RestAccessTokenRequest = {
+      name,
+      permissions,
+      ...(expiryDays !== undefined ? { expiryDays } : {}),
+    };
+    return handleApiOperation(
+      () => {
+        if (scope === 'user') {
+          if (!userSlug) throw new Error("userSlug is required when scope is 'user'");
+          return AuthenticationService.createAccessToken2(userSlug, requestBody);
+        }
+        if (scope === 'project') {
+          if (!projectKey) throw new Error("projectKey is required when scope is 'project'");
+          return AuthenticationService.createAccessToken(projectKey, requestBody);
+        }
+        if (!projectKey || !repositorySlug) throw new Error("projectKey and repositorySlug are required when scope is 'repo'");
+        return AuthenticationService.createAccessToken1(projectKey, repositorySlug, requestBody);
+      },
+      'Error creating access token'
+    );
+  }
+
+  /**
+   * Delete an HTTP access token (PAT) from a user, project, or repository
+   * @param scope The token scope: 'user' for personal access tokens, 'project' for project-scoped tokens, 'repo' for repository-scoped tokens
+   * @param tokenId The ID of the token to delete
+   * @param userSlug The user slug; required when scope is 'user'
+   * @param projectKey The project key; required when scope is 'project' or 'repo'
+   * @param repositorySlug The repository slug; required when scope is 'repo'
+   * @returns Promise with a delete acknowledgement
+   */
+  async deleteAccessToken(
+    scope: AccessTokenScope,
+    tokenId: string,
+    userSlug?: string,
+    projectKey?: string,
+    repositorySlug?: string
+  ) {
+    projectKey = projectKey?.toUpperCase();
+    repositorySlug = repositorySlug?.toLowerCase();
+    const result = await handleApiOperation(
+      () => {
+        if (scope === 'user') {
+          if (!userSlug) throw new Error("userSlug is required when scope is 'user'");
+          return AuthenticationService.deleteById2(tokenId, userSlug);
+        }
+        if (scope === 'project') {
+          if (!projectKey) throw new Error("projectKey is required when scope is 'project'");
+          return AuthenticationService.deleteById(projectKey, tokenId);
+        }
+        if (!projectKey || !repositorySlug) throw new Error("projectKey and repositorySlug are required when scope is 'repo'");
+        return AuthenticationService.deleteById1(projectKey, tokenId, repositorySlug);
+      },
+      'Error deleting access token'
+    );
+    if (result.success) {
+      return { ...result, data: { deleted: true, tokenId } };
+    }
+    return result;
+  }
+
   private buildWebhookBody(
     name: string,
     url: string,
@@ -3065,5 +3187,29 @@ export const bitbucketToolSchemas = {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug"),
     webhookId: z.string().describe("The ID of the webhook to delete")
+  },
+  getAccessTokens: {
+    scope: z.enum(['user', 'project', 'repo']).describe("The token scope: 'user' for personal access tokens, 'project' for project-scoped tokens, 'repo' for repository-scoped tokens"),
+    userSlug: z.string().optional().describe("The user slug. Required when scope is 'user'."),
+    projectKey: z.string().optional().describe("The project key. Required when scope is 'project' or 'repo'."),
+    repositorySlug: z.string().optional().describe("The repository slug. Required when scope is 'repo'."),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+  },
+  createAccessToken: {
+    scope: z.enum(['user', 'project', 'repo']).describe("The token scope: 'user' for personal access tokens, 'project' for project-scoped tokens, 'repo' for repository-scoped tokens"),
+    name: z.string().describe("The name of the new access token"),
+    permissions: z.array(z.string()).describe("The permissions to grant the token, e.g. ['REPO_READ', 'REPO_WRITE', 'REPO_ADMIN'] for repo scope, ['PROJECT_READ', 'PROJECT_WRITE', 'PROJECT_ADMIN'] for project scope, or a mix of project/repo permissions for a personal (user) token"),
+    expiryDays: z.number().optional().describe("Optional number of days until the token expires. Omit for a non-expiring token, if allowed by the instance's token expiration policy."),
+    userSlug: z.string().optional().describe("The user slug. Required when scope is 'user'."),
+    projectKey: z.string().optional().describe("The project key. Required when scope is 'project' or 'repo'."),
+    repositorySlug: z.string().optional().describe("The repository slug. Required when scope is 'repo'.")
+  },
+  deleteAccessToken: {
+    scope: z.enum(['user', 'project', 'repo']).describe("The token scope: 'user' for personal access tokens, 'project' for project-scoped tokens, 'repo' for repository-scoped tokens"),
+    tokenId: z.string().describe("The ID of the token to delete"),
+    userSlug: z.string().optional().describe("The user slug. Required when scope is 'user'."),
+    projectKey: z.string().optional().describe("The project key. Required when scope is 'project' or 'repo'."),
+    repositorySlug: z.string().optional().describe("The repository slug. Required when scope is 'repo'.")
   }
 };
