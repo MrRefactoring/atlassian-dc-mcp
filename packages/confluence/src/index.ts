@@ -361,6 +361,26 @@ server.tool(
   }
 );
 
+server.tool(
+  "confluence_getAttachments",
+  `Get the attachments on a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getAttachments,
+  async ({ contentId, expand, filename, limit, start, mediaType }) => {
+    const result = await confluenceService.getAttachments(contentId, expand, filename, limit, start, mediaType);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_removeAttachment",
+  `Remove an attachment from a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.removeAttachment,
+  async ({ attachmentId, contentId }) => {
+    const result = await confluenceService.removeAttachment(attachmentId, contentId);
+    return formatToolResponse(result);
+  }
+);
+
 server.tool('confluence_searchSpace',
   `Search for spaces in ${confluenceInstanceType}`,
   confluenceToolSchemas.searchSpaces,
