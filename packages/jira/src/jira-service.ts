@@ -14,6 +14,7 @@ import {
   FilterService,
   GroupService,
   GroupsService,
+  GroupuserpickerService,
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
@@ -601,6 +602,13 @@ export class JiraService {
     return handleApiOperation(
       () => GroupsService.findGroups(maxResults?.toString(), query, exclude, userName),
       'Error finding groups'
+    );
+  }
+
+  async findUsersAndGroups(query: string, maxResults?: number, showAvatar?: boolean, issueTypeId?: string, projectId?: string, fieldId?: string) {
+    return handleApiOperation(
+      () => GroupuserpickerService.findUsersAndGroups(issueTypeId, maxResults?.toString(), query, showAvatar?.toString(), projectId, fieldId),
+      'Error finding users and groups'
     );
   }
 
@@ -1450,6 +1458,14 @@ export const jiraToolSchemas = {
     maxResults: z.number().optional().describe("Maximum number of matching groups to return"),
     exclude: z.string().optional().describe("Comma-separated group names to exclude from the results"),
     userName: z.string().optional().describe("Restrict results to groups containing this username, for context")
+  },
+  findUsersAndGroups: {
+    query: z.string().describe("Substring matched against username, display name, email address, or group name"),
+    maxResults: z.number().optional().describe("Maximum number of users to return (groups are not subject to this limit)"),
+    showAvatar: z.boolean().optional().describe("Whether to include avatar URLs for matched users"),
+    issueTypeId: z.string().optional().describe("Comma-separated issue type ids to further restrict the search"),
+    projectId: z.string().optional().describe("Comma-separated project ids to further restrict the search"),
+    fieldId: z.string().optional().describe("Id of the custom field this picker is being used for, e.g. for a custom user/group picker field")
   },
   createFilter: {
     name: z.string().describe("Filter name"),

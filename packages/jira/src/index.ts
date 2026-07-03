@@ -748,6 +748,16 @@ server.tool(
 );
 
 server.tool(
+  "jira_findUsersAndGroups",
+  `Search for users and groups matching a query, with match highlighting, in the ${jiraInstanceType}. Used for combined user/group-picker style autocomplete fields such as assignee, reporter, or a group-picker custom field.`,
+  jiraToolSchemas.findUsersAndGroups,
+  async ({ query, maxResults, showAvatar, issueTypeId, projectId, fieldId }) => {
+    const result = await jiraService.findUsersAndGroups(query, maxResults, showAvatar, issueTypeId, projectId, fieldId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_createFilter",
   `Create a saved search filter in the ${jiraInstanceType}`,
   jiraToolSchemas.createFilter,
