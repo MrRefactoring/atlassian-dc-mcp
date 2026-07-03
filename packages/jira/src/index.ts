@@ -1477,4 +1477,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getScreenTabs",
+  `Get all tabs for a screen in the ${jiraInstanceType}`,
+  jiraToolSchemas.getScreenTabs,
+  async ({ screenId, projectKey }) => {
+    const result = await jiraService.getScreenTabs(screenId, projectKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addScreenTab",
+  `Add a new tab to a screen in the ${jiraInstanceType}`,
+  jiraToolSchemas.addScreenTab,
+  async ({ screenId, name }) => {
+    const result = await jiraService.addScreenTab(screenId, name);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_renameScreenTab",
+  `Rename a tab on a screen in the ${jiraInstanceType}`,
+  jiraToolSchemas.renameScreenTab,
+  async ({ screenId, tabId, name }) => {
+    const result = await jiraService.renameScreenTab(screenId, tabId, name);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteScreenTab",
+  `Delete a tab from a screen in the ${jiraInstanceType}. The screen must have at least one tab remaining.`,
+  jiraToolSchemas.deleteScreenTab,
+  async ({ screenId, tabId }) => {
+    const result = await jiraService.deleteScreenTab(screenId, tabId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_moveScreenTab",
+  `Move a tab to a new position on a screen in the ${jiraInstanceType}`,
+  jiraToolSchemas.moveScreenTab,
+  async ({ screenId, tabId, pos }) => {
+    const result = await jiraService.moveScreenTab(screenId, tabId, pos);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
