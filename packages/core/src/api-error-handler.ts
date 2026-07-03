@@ -1,3 +1,5 @@
+import { logger } from './logger.js';
+
 /**
  * Utility for handling API errors consistently across services
  */
@@ -95,9 +97,12 @@ export async function handleApiOperation<T>(
       const canRetry = status !== undefined && isRetryableStatus(status) && attempt < maxRetries;
       if (canRetry) {
         const delayMs = computeDelayMs(attempt, baseDelayMs, maxDelayMs);
-        console.error(
-          `${errorPrefix}: retrying after ${status} (attempt ${attempt + 1}/${maxRetries}, waiting ${Math.round(delayMs)}ms)`
-        );
+        logger.warn(`${errorPrefix}: retrying after ${status}`, {
+          status,
+          attempt: attempt + 1,
+          maxRetries,
+          delayMs: Math.round(delayMs),
+        });
         await sleep(delayMs);
         continue;
       }
