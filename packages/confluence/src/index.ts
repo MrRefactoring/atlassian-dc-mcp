@@ -321,6 +321,46 @@ server.tool(
   }
 );
 
+server.tool(
+  "confluence_getContentWatchers",
+  `List the users watching a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentWatchers,
+  async ({ contentId, limit, start }) => {
+    const result = await confluenceService.getContentWatchers(contentId, limit, start);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_isWatchingContent",
+  `Check whether a user is watching a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.isWatchingContent,
+  async ({ contentId, key, username }) => {
+    const result = await confluenceService.isWatchingContent(contentId, key, username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_addContentWatcher",
+  `Add a watcher to a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.addContentWatcher,
+  async ({ contentId, key, username }) => {
+    const result = await confluenceService.addContentWatcher(contentId, key, username);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_removeContentWatcher",
+  `Remove a watcher from a piece of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.removeContentWatcher,
+  async ({ contentId, key, username }) => {
+    const result = await confluenceService.removeContentWatcher(contentId, key, username);
+    return formatToolResponse(result);
+  }
+);
+
 server.tool('confluence_searchSpace',
   `Search for spaces in ${confluenceInstanceType}`,
   confluenceToolSchemas.searchSpaces,

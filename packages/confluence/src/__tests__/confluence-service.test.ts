@@ -6,7 +6,9 @@ import {
   ContentPropertyService,
   ContentResourceService,
   ContentRestrictionsService,
+  ContentWatchersService,
   SearchService,
+  UserWatchService,
 } from '../confluence-client/index.js';
 
 const CONTENT_RESOURCE = ContentResourceService as unknown as Record<string, jest.Mock>;
@@ -15,6 +17,8 @@ const CONTENT_DESCENDANT = ContentDescendantService as unknown as Record<string,
 const CONTENT_LABELS = ContentLabelsService as unknown as Record<string, jest.Mock>;
 const CONTENT_PROPERTY = ContentPropertyService as unknown as Record<string, jest.Mock>;
 const CONTENT_RESTRICTIONS = ContentRestrictionsService as unknown as Record<string, jest.Mock>;
+const CONTENT_WATCHERS = ContentWatchersService as unknown as Record<string, jest.Mock>;
+const USER_WATCH = UserWatchService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -52,6 +56,14 @@ jest.mock('../confluence-client/index.js', () => ({
     byOperation: jest.fn(),
     forOperation: jest.fn(),
     updateRestrictions: jest.fn(),
+  },
+  ContentWatchersService: {
+    index: jest.fn(),
+  },
+  UserWatchService: {
+    isWatchingContent: jest.fn(),
+    addContentWatcher: jest.fn(),
+    removeContentWatcher: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -619,5 +631,47 @@ describe('ConfluenceService content restrictions', () => {
       undefined,
       restrictions
     );
+  });
+});
+
+describe('ConfluenceService content watchers', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('lists watchers with the default page-size limit', async () => {
+    CONTENT_WATCHERS.index.mockResolvedValue({ results: [] });
+
+    await service.getContentWatchers('123');
+
+    expect(CONTENT_WATCHERS.index).toHaveBeenCalledWith('123', '25', undefined);
+  });
+
+  it('checks the current user watch state when no user is given', async () => {
+    USER_WATCH.isWatchingContent.mockResolvedValue({ watching: true });
+
+    await service.isWatchingContent('123');
+
+    expect(USER_WATCH.isWatchingContent).toHaveBeenCalledWith('123', undefined, undefined);
+  });
+
+  it('adds a watcher for a named user', async () => {
+    USER_WATCH.addContentWatcher.mockResolvedValue({ watching: true });
+
+    await service.addContentWatcher('123', undefined, 'jblogs');
+
+    expect(USER_WATCH.addContentWatcher).toHaveBeenCalledWith('123', undefined, 'jblogs');
+  });
+
+  it('removes a watcher by user key', async () => {
+    USER_WATCH.removeContentWatcher.mockResolvedValue(undefined);
+
+    const result = await service.removeContentWatcher('123', 'user-key');
+
+    expect(USER_WATCH.removeContentWatcher).toHaveBeenCalledWith('123', 'user-key', undefined);
+    expect(result.success).toBe(true);
   });
 });

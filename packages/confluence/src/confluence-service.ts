@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
+import { ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, OpenAPI, SearchService, UserService, UserWatchService } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
@@ -353,6 +353,58 @@ export class ConfluenceService {
   }
 
   /**
+   * Get the paginated list of users watching a piece of content.
+   * Requires Confluence or Space administrator privileges.
+   * @param contentId The ID of the content
+   */
+  async getContentWatchers(contentId: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => ContentWatchersService.index(contentId, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting content watchers'
+    );
+  }
+
+  /**
+   * Check whether a user is watching a piece of content. Defaults to the current user when
+   * neither key nor username is provided.
+   * @param contentId The ID of the content
+   * @param key Optional user key
+   * @param username Optional username
+   */
+  async isWatchingContent(contentId: string, key?: string, username?: string) {
+    return handleApiOperation(
+      () => UserWatchService.isWatchingContent(contentId, key, username),
+      'Error checking content watch state'
+    );
+  }
+
+  /**
+   * Add a watcher to a piece of content. Defaults to the current user.
+   * @param contentId The ID of the content
+   * @param key Optional user key
+   * @param username Optional username
+   */
+  async addContentWatcher(contentId: string, key?: string, username?: string) {
+    return handleApiOperation(
+      () => UserWatchService.addContentWatcher(contentId, key, username),
+      'Error adding content watcher'
+    );
+  }
+
+  /**
+   * Remove a watcher from a piece of content. Defaults to the current user.
+   * @param contentId The ID of the content
+   * @param key Optional user key
+   * @param username Optional username
+   */
+  async removeContentWatcher(contentId: string, key?: string, username?: string) {
+    return handleApiOperation(
+      () => UserWatchService.removeContentWatcher(contentId, key, username),
+      'Error removing content watcher'
+    );
+  }
+
+  /**
    * Search for spaces by text
    * @param searchText Text to search for in space names or descriptions
    * @param limit Maximum number of results to return
@@ -533,6 +585,26 @@ export const confluenceToolSchemas = {
       }).describe("The users and groups the operation is restricted to")
     })).min(1).describe("Per-operation restrictions to set. Each entry overwrites the existing restrictions for that operation."),
     expand: z.string().optional().describe("Comma-separated list of properties to expand in the response. Defaults to restrictions.user,restrictions.group.")
+  },
+  getContentWatchers: {
+    contentId: z.string().describe("ID of the content to list watchers for (requires admin privileges)"),
+    limit: z.number().optional().describe("Maximum number of watchers to return"),
+    start: z.number().optional().describe("Start index for pagination")
+  },
+  isWatchingContent: {
+    contentId: z.string().describe("ID of the content"),
+    key: z.string().optional().describe("User key of the user to check. Omit to check the current user."),
+    username: z.string().optional().describe("Username of the user to check. Omit to check the current user.")
+  },
+  addContentWatcher: {
+    contentId: z.string().describe("ID of the content to watch"),
+    key: z.string().optional().describe("User key of the user to add as watcher. Omit to add the current user."),
+    username: z.string().optional().describe("Username of the user to add as watcher. Omit to add the current user.")
+  },
+  removeContentWatcher: {
+    contentId: z.string().describe("ID of the content to unwatch"),
+    key: z.string().optional().describe("User key of the user to remove. Omit to remove the current user."),
+    username: z.string().optional().describe("Username of the user to remove. Omit to remove the current user.")
   },
   searchSpaces: {
     searchText: z.string().describe("Text to search for in Confluence Data Center space names or descriptions. Quotes and backslashes are escaped for CQL; pass the literal search phrase only (do not pre-escape)."),
