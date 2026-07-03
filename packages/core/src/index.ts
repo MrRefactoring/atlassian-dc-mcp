@@ -1,6 +1,8 @@
+import { randomUUID } from 'node:crypto';
+import { createServer as createHttpServer } from 'node:http';
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 export * from './api-error-handler.js'
 export * from './pagination.js';
 export * from './config/index.js';
@@ -33,38 +35,64 @@ export function createMcpServer(options: {
   });
 }
 
-export async function connectServer(server: McpServer) {
-  // seems claude desktop does not support sse at the moment
-  // const app = express();
-  // let transport: SSEServerTransport | undefined;
-  //
-  // app.get("/sse", async (req, res) => {
-  //   transport = new SSEServerTransport("/messages", res);
-  //   await server.connect(transport);
-  // });
-  //
-  // app.post("/messages", async (req, res) => {
-  //   await transport?.handlePostMessage(req, res);
-  // });
-  //
-  // // const transport = new StdioServerTransport();
-  // // await server.connect(transport);
-  // const port = process.env.PORT || "3999";
-  // console.log(`Starting server on port ${port}`);
-  // await new Promise((resolve, reject) => {
-  //   app.listen(parseInt(port), (error) => {
-  //     if (error) {
-  //       reject(error);
-  //       return;
-  //     }
-  //
-  //     console.log(`Server listening on port ${port}`);
-  //     resolve(null);
-  //   });
-  // });
+export const HTTP_PORT_ENV_VAR = 'ATLASSIAN_DC_MCP_HTTP_PORT';
 
+/**
+ * Connects the server to a transport. By default this is stdio (what Claude
+ * Desktop and other local MCP hosts expect). Setting `ATLASSIAN_DC_MCP_HTTP_PORT`
+ * to a positive integer instead starts the MCP Streamable HTTP transport
+ * (the current spec's recommendation for remote/multi-client access) on that
+ * port and never touches stdio — the two are mutually exclusive per process.
+ */
+export async function connectServer(server: McpServer) {
+  const httpPort = parsePositiveInteger(process.env[HTTP_PORT_ENV_VAR]);
+  if (httpPort !== undefined) {
+    await connectStreamableHttp(server, httpPort);
+    return server;
+  }
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
   return server;
+}
+
+function parsePositiveInteger(value: string | undefined): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (!/^\d+$/.test(trimmed)) {
+    return undefined;
+  }
+  const parsed = Number.parseInt(trimmed, 10);
+  return parsed > 0 ? parsed : undefined;
+}
+
+async function connectStreamableHttp(server: McpServer, port: number): Promise<void> {
+  // Stateful mode: one long-lived transport demultiplexes many concurrent
+  // client sessions by the Mcp-Session-Id header, so — unlike the SDK's
+  // stateless example — the already-configured `server` (with all its tools,
+  // resources, and prompts already registered) is connected exactly once,
+  // not reconstructed per request.
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: () => randomUUID(),
+  });
+  await server.connect(transport);
+
+  const httpServer = createHttpServer((req, res) => {
+    transport.handleRequest(req, res).catch((error) => {
+      console.error('Streamable HTTP request failed:', error);
+      if (!res.headersSent) {
+        res.writeHead(500).end();
+      }
+    });
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    httpServer.once('error', reject);
+    httpServer.listen(port, () => {
+      console.error(`MCP server listening on Streamable HTTP at http://localhost:${port}/`);
+      resolve();
+    });
+  });
 }
