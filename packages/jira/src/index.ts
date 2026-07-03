@@ -1108,6 +1108,296 @@ server.tool(
 );
 
 server.tool(
+  "jira_getIssueTypeSchemes",
+  `Get all issue type schemes visible to the user in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueTypeSchemes,
+  async () => {
+    const result = await jiraService.getIssueTypeSchemes();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createIssueTypeScheme",
+  `Create a new issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.createIssueTypeScheme,
+  async ({ name, description, issueTypeIds, defaultIssueTypeId }) => {
+    const result = await jiraService.createIssueTypeScheme(name, description, issueTypeIds, defaultIssueTypeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueTypeScheme",
+  `Get a single issue type scheme by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueTypeScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.getIssueTypeScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateIssueTypeScheme",
+  `Update an issue type scheme's name, description, or issue types in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateIssueTypeScheme,
+  async ({ schemeId, name, description, issueTypeIds, defaultIssueTypeId }) => {
+    const result = await jiraService.updateIssueTypeScheme(schemeId, name, description, issueTypeIds, defaultIssueTypeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteIssueTypeScheme",
+  `Delete an issue type scheme in the ${jiraInstanceType}. Associated projects fall back to the default scheme.`,
+  jiraToolSchemas.deleteIssueTypeScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.deleteIssueTypeScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueTypeSchemeProjects",
+  `Get the projects associated with an issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueTypeSchemeProjects,
+  async ({ schemeId, expand }) => {
+    const result = await jiraService.getIssueTypeSchemeProjects(schemeId, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setIssueTypeSchemeProjects",
+  `Replace the project associations of an issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.setIssueTypeSchemeProjects,
+  async ({ schemeId, idsOrKeys }) => {
+    const result = await jiraService.setIssueTypeSchemeProjects(schemeId, idsOrKeys);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addIssueTypeSchemeProjects",
+  `Add project associations to an issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.addIssueTypeSchemeProjects,
+  async ({ schemeId, idsOrKeys }) => {
+    const result = await jiraService.addIssueTypeSchemeProjects(schemeId, idsOrKeys);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_removeIssueTypeSchemeProjects",
+  `Remove all project associations from an issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.removeIssueTypeSchemeProjects,
+  async ({ schemeId }) => {
+    const result = await jiraService.removeIssueTypeSchemeProjects(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_removeIssueTypeSchemeProject",
+  `Remove a single project association from an issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.removeIssueTypeSchemeProject,
+  async ({ schemeId, projIdOrKey }) => {
+    const result = await jiraService.removeIssueTypeSchemeProject(schemeId, projIdOrKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getPrioritySchemes",
+  `Get all priority schemes in the ${jiraInstanceType}`,
+  jiraToolSchemas.getPrioritySchemes,
+  async ({ maxResults, startAt }) => {
+    const result = await jiraService.getPrioritySchemes(maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createPriorityScheme",
+  `Create a new priority scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.createPriorityScheme,
+  async ({ name, description, defaultOptionId, optionIds }) => {
+    const result = await jiraService.createPriorityScheme(name, description, defaultOptionId, optionIds);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getPriorityScheme",
+  `Get a single priority scheme by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getPriorityScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.getPriorityScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updatePriorityScheme",
+  `Update a priority scheme's name, description, or priorities in the ${jiraInstanceType}`,
+  jiraToolSchemas.updatePriorityScheme,
+  async ({ schemeId, name, description, defaultOptionId, optionIds }) => {
+    const result = await jiraService.updatePriorityScheme(schemeId, name, description, defaultOptionId, optionIds);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deletePriorityScheme",
+  `Delete a priority scheme in the ${jiraInstanceType}. Projects using it fall back to the default priority scheme.`,
+  jiraToolSchemas.deletePriorityScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.deletePriorityScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getProjectCategories",
+  `Get all project categories in the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectCategories,
+  async () => {
+    const result = await jiraService.getProjectCategories();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createProjectCategory",
+  `Create a new project category in the ${jiraInstanceType}`,
+  jiraToolSchemas.createProjectCategory,
+  async ({ name, description }) => {
+    const result = await jiraService.createProjectCategory(name, description);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getProjectCategory",
+  `Get a single project category by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectCategory,
+  async ({ id }) => {
+    const result = await jiraService.getProjectCategory(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateProjectCategory",
+  `Update a project category's name or description in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateProjectCategory,
+  async ({ id, name, description }) => {
+    const result = await jiraService.updateProjectCategory(id, name, description);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteProjectCategory",
+  `Delete a project category in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteProjectCategory,
+  async ({ id }) => {
+    const result = await jiraService.deleteProjectCategory(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getRoleDefinitions",
+  `Get all global role definitions available in the ${jiraInstanceType}. This is the global role catalog, distinct from jira_getProjectRoles which returns roles for a specific project.`,
+  jiraToolSchemas.getRoleDefinitions,
+  async () => {
+    const result = await jiraService.getRoleDefinitions();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createRoleDefinition",
+  `Create a new global role definition in the ${jiraInstanceType}. The created role has no default actors assigned.`,
+  jiraToolSchemas.createRoleDefinition,
+  async ({ name, description }) => {
+    const result = await jiraService.createRoleDefinition(name, description);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getRoleDefinition",
+  `Get a single global role definition by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getRoleDefinition,
+  async ({ id }) => {
+    const result = await jiraService.getRoleDefinition(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateRoleDefinition",
+  `Fully update a global role definition's name and description in the ${jiraInstanceType}. Both fields must be given.`,
+  jiraToolSchemas.updateRoleDefinition,
+  async ({ id, name, description }) => {
+    const result = await jiraService.updateRoleDefinition(id, name, description);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_partialUpdateRoleDefinition",
+  `Partially update a global role definition's name or description in the ${jiraInstanceType}`,
+  jiraToolSchemas.partialUpdateRoleDefinition,
+  async ({ id, name, description }) => {
+    const result = await jiraService.partialUpdateRoleDefinition(id, name, description);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteRoleDefinition",
+  `Delete a global role definition in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteRoleDefinition,
+  async ({ id, swap }) => {
+    const result = await jiraService.deleteRoleDefinition(id, swap);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getRoleDefinitionActors",
+  `Get the default actors for a global role definition in the ${jiraInstanceType}`,
+  jiraToolSchemas.getRoleDefinitionActors,
+  async ({ id }) => {
+    const result = await jiraService.getRoleDefinitionActors(id);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addRoleDefinitionActors",
+  `Add default actors to a global role definition in the ${jiraInstanceType}`,
+  jiraToolSchemas.addRoleDefinitionActors,
+  async ({ id, users, groups }) => {
+    const result = await jiraService.addRoleDefinitionActors(id, users, groups);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteRoleDefinitionActor",
+  `Remove a default actor from a global role definition in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteRoleDefinitionActor,
+  async ({ id, user, group }) => {
+    const result = await jiraService.deleteRoleDefinitionActor(id, user, group);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_getPermissionSchemes",
   `Get all permission schemes in the ${jiraInstanceType}`,
   jiraToolSchemas.getPermissionSchemes,

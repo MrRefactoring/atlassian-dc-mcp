@@ -17,15 +17,19 @@ import {
   IssueLinkTypeService,
   IssueService,
   IssuesecurityschemesService,
+  IssuetypeschemeService,
   IssuetypeService,
   MyselfService,
   NotificationschemeService,
   OpenAPI,
   PermissionschemeService,
+  PriorityschemesService,
   PriorityService,
+  ProjectCategoryService,
   ProjectService,
   ProjectsService,
   ResolutionService,
+  RoleService,
   SearchService,
   SecuritylevelService,
   SprintService,
@@ -915,6 +919,212 @@ export class JiraService {
     );
   }
 
+  async getIssueTypeSchemes() {
+    return handleApiOperation(
+      () => IssuetypeschemeService.getAllIssueTypeSchemes(),
+      'Error getting issue type schemes'
+    );
+  }
+
+  async createIssueTypeScheme(name: string, description?: string, issueTypeIds?: string[], defaultIssueTypeId?: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.createIssueTypeScheme({ name, description, issueTypeIds, defaultIssueTypeId }),
+      'Error creating issue type scheme'
+    );
+  }
+
+  async getIssueTypeScheme(schemeId: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.getIssueTypeScheme(schemeId),
+      'Error getting issue type scheme'
+    );
+  }
+
+  async updateIssueTypeScheme(schemeId: string, name?: string, description?: string, issueTypeIds?: string[], defaultIssueTypeId?: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.updateIssueTypeScheme(schemeId, { name, description, issueTypeIds, defaultIssueTypeId }),
+      'Error updating issue type scheme'
+    );
+  }
+
+  async deleteIssueTypeScheme(schemeId: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.deleteIssueTypeScheme(schemeId),
+      'Error deleting issue type scheme'
+    );
+  }
+
+  async getIssueTypeSchemeProjects(schemeId: string, expand?: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.getAssociatedProjects(schemeId, expand),
+      'Error getting issue type scheme associated projects'
+    );
+  }
+
+  async setIssueTypeSchemeProjects(schemeId: string, idsOrKeys: string[]) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.setProjectAssociationsForScheme(schemeId, { idsOrKeys }),
+      'Error setting issue type scheme project associations'
+    );
+  }
+
+  async addIssueTypeSchemeProjects(schemeId: string, idsOrKeys: string[]) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.addProjectAssociationsToScheme(schemeId, { idsOrKeys }),
+      'Error adding issue type scheme project associations'
+    );
+  }
+
+  async removeIssueTypeSchemeProjects(schemeId: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.removeAllProjectAssociations(schemeId),
+      'Error removing issue type scheme project associations'
+    );
+  }
+
+  async removeIssueTypeSchemeProject(schemeId: string, projIdOrKey: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.removeProjectAssociation(projIdOrKey, schemeId),
+      'Error removing issue type scheme project association'
+    );
+  }
+
+  async getPrioritySchemes(maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => PriorityschemesService.getPrioritySchemes(maxResults, startAt),
+      'Error getting priority schemes'
+    );
+  }
+
+  async createPriorityScheme(name: string, description?: string, defaultOptionId?: string, optionIds?: string[]) {
+    return handleApiOperation(
+      () => PriorityschemesService.createPriorityScheme({ name, description, defaultOptionId, optionIds }),
+      'Error creating priority scheme'
+    );
+  }
+
+  async getPriorityScheme(schemeId: number) {
+    return handleApiOperation(
+      () => PriorityschemesService.getPriorityScheme(schemeId),
+      'Error getting priority scheme'
+    );
+  }
+
+  async updatePriorityScheme(schemeId: number, name?: string, description?: string, defaultOptionId?: string, optionIds?: string[]) {
+    return handleApiOperation(
+      () => PriorityschemesService.updatePriorityScheme(schemeId, { name, description, defaultOptionId, optionIds }),
+      'Error updating priority scheme'
+    );
+  }
+
+  async deletePriorityScheme(schemeId: number) {
+    return handleApiOperation(
+      () => PriorityschemesService.deletePriorityScheme(schemeId),
+      'Error deleting priority scheme'
+    );
+  }
+
+  async getProjectCategories() {
+    return handleApiOperation(
+      () => ProjectCategoryService.getAllProjectCategories(),
+      'Error getting project categories'
+    );
+  }
+
+  async createProjectCategory(name?: string, description?: string) {
+    return handleApiOperation(
+      () => ProjectCategoryService.createProjectCategory({ name, description }),
+      'Error creating project category'
+    );
+  }
+
+  async getProjectCategory(id: number) {
+    return handleApiOperation(
+      () => ProjectCategoryService.getProjectCategoryById(id),
+      'Error getting project category'
+    );
+  }
+
+  async updateProjectCategory(id: number, name?: string, description?: string) {
+    return handleApiOperation(
+      () => ProjectCategoryService.updateProjectCategory(id, { name, description }),
+      'Error updating project category'
+    );
+  }
+
+  async deleteProjectCategory(id: number) {
+    return handleApiOperation(
+      () => ProjectCategoryService.removeProjectCategory(id),
+      'Error deleting project category'
+    );
+  }
+
+  async getRoleDefinitions() {
+    return handleApiOperation(
+      () => RoleService.getProjectRoles1(),
+      'Error getting role definitions'
+    );
+  }
+
+  async createRoleDefinition(name: string, description?: string) {
+    return handleApiOperation(
+      () => RoleService.createProjectRole({ name, description }),
+      'Error creating role definition'
+    );
+  }
+
+  async getRoleDefinition(id: number) {
+    return handleApiOperation(
+      () => RoleService.getProjectRolesById(id),
+      'Error getting role definition'
+    );
+  }
+
+  async updateRoleDefinition(id: number, name: string, description: string) {
+    return handleApiOperation(
+      () => RoleService.fullyUpdateProjectRole(id, { name, description }),
+      'Error updating role definition'
+    );
+  }
+
+  async partialUpdateRoleDefinition(id: number, name?: string, description?: string) {
+    return handleApiOperation(
+      () => RoleService.partialUpdateProjectRole(id, { name, description }),
+      'Error partially updating role definition'
+    );
+  }
+
+  async deleteRoleDefinition(id: number, swap?: number) {
+    return handleApiOperation(
+      () => RoleService.deleteProjectRole(id, swap),
+      'Error deleting role definition'
+    );
+  }
+
+  async getRoleDefinitionActors(id: number) {
+    return handleApiOperation(
+      () => RoleService.getProjectRoleActorsForRole(id),
+      'Error getting role definition actors'
+    );
+  }
+
+  async addRoleDefinitionActors(id: number, users?: string[], groups?: string[]) {
+    return handleApiOperation(
+      () => RoleService.addProjectRoleActorsToRole(id, {
+        ...(users ? { user: users } : {}),
+        ...(groups ? { group: groups } : {}),
+      }),
+      'Error adding role definition actors'
+    );
+  }
+
+  async deleteRoleDefinitionActor(id: number, user?: string, group?: string) {
+    return handleApiOperation(
+      () => RoleService.deleteProjectRoleActorsFromRole(id, user, group),
+      'Error deleting role definition actor'
+    );
+  }
+
   async getWorkflows(workflowName?: string) {
     return handleApiOperation(
       () => WorkflowService.getAllWorkflows(workflowName),
@@ -1615,6 +1825,119 @@ export const jiraToolSchemas = {
     rankBeforeEpic: z.string().optional().describe("Rank this epic before the epic with this id/key"),
     rankAfterEpic: z.string().optional().describe("Rank this epic after the epic with this id/key"),
     rankCustomFieldId: z.number().optional().describe("Id of the custom 'Rank' field, if not the default")
+  },
+  getIssueTypeSchemes: {},
+  createIssueTypeScheme: {
+    name: z.string().describe("Name of the new issue type scheme"),
+    description: z.string().optional().describe("Description of the new issue type scheme"),
+    issueTypeIds: z.array(z.string()).optional().describe("Ids of the issue types to associate with the scheme"),
+    defaultIssueTypeId: z.string().optional().describe("Id of the default issue type. Must be one of issueTypeIds.")
+  },
+  getIssueTypeScheme: {
+    schemeId: z.string().describe("Id of the issue type scheme")
+  },
+  updateIssueTypeScheme: {
+    schemeId: z.string().describe("Id of the issue type scheme to update"),
+    name: z.string().optional().describe("New name for the scheme"),
+    description: z.string().optional().describe("New description for the scheme"),
+    issueTypeIds: z.array(z.string()).optional().describe("Replaces the issue types associated with the scheme"),
+    defaultIssueTypeId: z.string().optional().describe("Id of the default issue type. Must be one of issueTypeIds.")
+  },
+  deleteIssueTypeScheme: {
+    schemeId: z.string().describe("Id of the issue type scheme to delete")
+  },
+  getIssueTypeSchemeProjects: {
+    schemeId: z.string().describe("Id of the issue type scheme"),
+    expand: z.string().optional().describe("Comma-separated expansions for the returned projects")
+  },
+  setIssueTypeSchemeProjects: {
+    schemeId: z.string().describe("Id of the issue type scheme whose project associations are being replaced"),
+    idsOrKeys: z.array(z.string()).describe("Project ids or keys to associate with the scheme, replacing any existing associations")
+  },
+  addIssueTypeSchemeProjects: {
+    schemeId: z.string().describe("Id of the issue type scheme whose project associations are being added to"),
+    idsOrKeys: z.array(z.string()).describe("Project ids or keys to associate with the scheme, in addition to existing associations")
+  },
+  removeIssueTypeSchemeProjects: {
+    schemeId: z.string().describe("Id of the issue type scheme whose project associations should all be removed")
+  },
+  removeIssueTypeSchemeProject: {
+    schemeId: z.string().describe("Id of the issue type scheme"),
+    projIdOrKey: z.string().describe("Id or key of the project to un-associate from the scheme")
+  },
+  getPrioritySchemes: {
+    maxResults: z.number().optional().describe("Maximum number of priority schemes to return"),
+    startAt: z.number().optional().describe("Index of the first priority scheme to return")
+  },
+  createPriorityScheme: {
+    name: z.string().describe("Name of the new priority scheme"),
+    description: z.string().optional().describe("Description of the new priority scheme"),
+    defaultOptionId: z.string().optional().describe("Id of the priority to use as the scheme's default"),
+    optionIds: z.array(z.string()).optional().describe("Ids of the priorities included in the scheme")
+  },
+  getPriorityScheme: {
+    schemeId: z.number().describe("Id of the priority scheme")
+  },
+  updatePriorityScheme: {
+    schemeId: z.number().describe("Id of the priority scheme to update"),
+    name: z.string().optional().describe("New name for the scheme"),
+    description: z.string().optional().describe("New description for the scheme"),
+    defaultOptionId: z.string().optional().describe("Id of the priority to use as the scheme's default"),
+    optionIds: z.array(z.string()).optional().describe("Replaces the priorities included in the scheme")
+  },
+  deletePriorityScheme: {
+    schemeId: z.number().describe("Id of the priority scheme to delete")
+  },
+  getProjectCategories: {},
+  createProjectCategory: {
+    name: z.string().optional().describe("Name of the new project category"),
+    description: z.string().optional().describe("Description of the new project category")
+  },
+  getProjectCategory: {
+    id: z.number().describe("Id of the project category")
+  },
+  updateProjectCategory: {
+    id: z.number().describe("Id of the project category to update"),
+    name: z.string().optional().describe("New name for the project category"),
+    description: z.string().optional().describe("New description for the project category")
+  },
+  deleteProjectCategory: {
+    id: z.number().describe("Id of the project category to delete")
+  },
+  getRoleDefinitions: {},
+  createRoleDefinition: {
+    name: z.string().describe("Name of the new global role definition"),
+    description: z.string().optional().describe("Description of the new global role definition")
+  },
+  getRoleDefinition: {
+    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids.")
+  },
+  updateRoleDefinition: {
+    id: z.number().describe("Id of the global role definition to fully update"),
+    name: z.string().describe("New name for the role definition"),
+    description: z.string().describe("New description for the role definition")
+  },
+  partialUpdateRoleDefinition: {
+    id: z.number().describe("Id of the global role definition to partially update"),
+    name: z.string().optional().describe("New name for the role definition"),
+    description: z.string().optional().describe("New description for the role definition")
+  },
+  deleteRoleDefinition: {
+    id: z.number().describe("Id of the global role definition to delete"),
+    swap: z.number().optional().describe("Id of another role definition to migrate existing usages to before deleting")
+  },
+  getRoleDefinitionActors: {
+    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids.")
+  },
+  addRoleDefinitionActors: {
+    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids."),
+    users: z.array(z.string()).optional().describe("Usernames to add as default actors for this role"),
+    groups: z.array(z.string()).optional().describe("Group names to add as default actors for this role")
+  },
+  deleteRoleDefinitionActor: {
+    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids."),
+    user: z.string().optional().describe("Username of the default actor to remove"),
+    group: z.string().optional().describe("Group name of the default actor to remove")
   },
   getPermissionSchemes: {
     expand: z.string().optional().describe("Comma-separated expansions, e.g. 'permissions' to include each scheme's permission grants")

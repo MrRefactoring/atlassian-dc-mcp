@@ -20,14 +20,18 @@ import {
   IssueLinkTypeService,
   IssueService,
   IssuesecurityschemesService,
+  IssuetypeschemeService,
   IssuetypeService,
   NotificationschemeService,
   OpenAPI,
   PermissionschemeService,
+  PriorityschemesService,
   PriorityService,
+  ProjectCategoryService,
   ProjectService,
   ProjectsService,
   ResolutionService,
+  RoleService,
   SearchService,
   SecuritylevelService,
   SprintService,
@@ -188,6 +192,13 @@ jest.mock('../jira-client/index.js', () => ({
   ProjectsService: {
     searchForProjects: jest.fn(),
   },
+  ProjectCategoryService: {
+    getAllProjectCategories: jest.fn(),
+    createProjectCategory: jest.fn(),
+    getProjectCategoryById: jest.fn(),
+    updateProjectCategory: jest.fn(),
+    removeProjectCategory: jest.fn(),
+  },
   IssuetypeService: {
     getIssueAllTypes: jest.fn(),
   },
@@ -199,6 +210,36 @@ jest.mock('../jira-client/index.js', () => ({
   },
   StatusService: {
     getStatuses: jest.fn(),
+  },
+  RoleService: {
+    getProjectRoles1: jest.fn(),
+    createProjectRole: jest.fn(),
+    getProjectRolesById: jest.fn(),
+    fullyUpdateProjectRole: jest.fn(),
+    partialUpdateProjectRole: jest.fn(),
+    deleteProjectRole: jest.fn(),
+    getProjectRoleActorsForRole: jest.fn(),
+    addProjectRoleActorsToRole: jest.fn(),
+    deleteProjectRoleActorsFromRole: jest.fn(),
+  },
+  IssuetypeschemeService: {
+    getAllIssueTypeSchemes: jest.fn(),
+    createIssueTypeScheme: jest.fn(),
+    getIssueTypeScheme: jest.fn(),
+    updateIssueTypeScheme: jest.fn(),
+    deleteIssueTypeScheme: jest.fn(),
+    getAssociatedProjects: jest.fn(),
+    setProjectAssociationsForScheme: jest.fn(),
+    addProjectAssociationsToScheme: jest.fn(),
+    removeAllProjectAssociations: jest.fn(),
+    removeProjectAssociation: jest.fn(),
+  },
+  PriorityschemesService: {
+    getPrioritySchemes: jest.fn(),
+    createPriorityScheme: jest.fn(),
+    getPriorityScheme: jest.fn(),
+    updatePriorityScheme: jest.fn(),
+    deletePriorityScheme: jest.fn(),
   },
   PermissionschemeService: {
     getPermissionSchemes: jest.fn(),
@@ -1977,6 +2018,382 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The epic does not exist');
+    });
+  });
+
+  describe('issue type schemes', () => {
+    it('gets all issue type schemes', async () => {
+      const mockSchemes = { schemes: [{ id: '1', name: 'Default' }] };
+      (IssuetypeschemeService.getAllIssueTypeSchemes as jest.Mock).mockResolvedValue(mockSchemes);
+
+      const result = await jiraService.getIssueTypeSchemes();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchemes);
+      expect(IssuetypeschemeService.getAllIssueTypeSchemes).toHaveBeenCalledWith();
+    });
+
+    it('creates an issue type scheme', async () => {
+      const mockScheme = { id: '2', name: 'New Scheme' };
+      (IssuetypeschemeService.createIssueTypeScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.createIssueTypeScheme('New Scheme', 'A scheme', ['10000', '10001'], '10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(IssuetypeschemeService.createIssueTypeScheme).toHaveBeenCalledWith({
+        name: 'New Scheme',
+        description: 'A scheme',
+        issueTypeIds: ['10000', '10001'],
+        defaultIssueTypeId: '10000',
+      });
+    });
+
+    it('gets an issue type scheme by id', async () => {
+      const mockScheme = { id: '1', name: 'Default' };
+      (IssuetypeschemeService.getIssueTypeScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getIssueTypeScheme('1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(IssuetypeschemeService.getIssueTypeScheme).toHaveBeenCalledWith('1');
+    });
+
+    it('updates an issue type scheme', async () => {
+      const mockScheme = { id: '1', name: 'Renamed' };
+      (IssuetypeschemeService.updateIssueTypeScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.updateIssueTypeScheme('1', 'Renamed');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(IssuetypeschemeService.updateIssueTypeScheme).toHaveBeenCalledWith('1', {
+        name: 'Renamed',
+        description: undefined,
+        issueTypeIds: undefined,
+        defaultIssueTypeId: undefined,
+      });
+    });
+
+    it('deletes an issue type scheme', async () => {
+      (IssuetypeschemeService.deleteIssueTypeScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteIssueTypeScheme('1');
+
+      expect(result.success).toBe(true);
+      expect(IssuetypeschemeService.deleteIssueTypeScheme).toHaveBeenCalledWith('1');
+    });
+
+    it('gets projects associated with an issue type scheme', async () => {
+      const mockProjects = { values: [{ id: '10000', key: 'TEST' }] };
+      (IssuetypeschemeService.getAssociatedProjects as jest.Mock).mockResolvedValue(mockProjects);
+
+      const result = await jiraService.getIssueTypeSchemeProjects('1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProjects);
+      expect(IssuetypeschemeService.getAssociatedProjects).toHaveBeenCalledWith('1', undefined);
+    });
+
+    it('sets project associations for an issue type scheme', async () => {
+      (IssuetypeschemeService.setProjectAssociationsForScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setIssueTypeSchemeProjects('1', ['TEST']);
+
+      expect(result.success).toBe(true);
+      expect(IssuetypeschemeService.setProjectAssociationsForScheme).toHaveBeenCalledWith('1', { idsOrKeys: ['TEST'] });
+    });
+
+    it('adds project associations to an issue type scheme', async () => {
+      (IssuetypeschemeService.addProjectAssociationsToScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.addIssueTypeSchemeProjects('1', ['TEST']);
+
+      expect(result.success).toBe(true);
+      expect(IssuetypeschemeService.addProjectAssociationsToScheme).toHaveBeenCalledWith('1', { idsOrKeys: ['TEST'] });
+    });
+
+    it('removes all project associations from an issue type scheme', async () => {
+      (IssuetypeschemeService.removeAllProjectAssociations as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.removeIssueTypeSchemeProjects('1');
+
+      expect(result.success).toBe(true);
+      expect(IssuetypeschemeService.removeAllProjectAssociations).toHaveBeenCalledWith('1');
+    });
+
+    it('removes a single project association from an issue type scheme', async () => {
+      (IssuetypeschemeService.removeProjectAssociation as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.removeIssueTypeSchemeProject('1', 'TEST');
+
+      expect(result.success).toBe(true);
+      expect(IssuetypeschemeService.removeProjectAssociation).toHaveBeenCalledWith('TEST', '1');
+    });
+
+    it('handles errors', async () => {
+      (IssuetypeschemeService.getIssueTypeScheme as jest.Mock).mockRejectedValue(new Error('The scheme does not exist'));
+
+      const result = await jiraService.getIssueTypeScheme('999');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The scheme does not exist');
+    });
+  });
+
+  describe('priority schemes', () => {
+    it('gets all priority schemes', async () => {
+      const mockSchemes = { schemes: [{ id: 1, name: 'Default' }] };
+      (PriorityschemesService.getPrioritySchemes as jest.Mock).mockResolvedValue(mockSchemes);
+
+      const result = await jiraService.getPrioritySchemes();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchemes);
+      expect(PriorityschemesService.getPrioritySchemes).toHaveBeenCalledWith(undefined, undefined);
+    });
+
+    it('creates a priority scheme', async () => {
+      const mockScheme = { id: 2, name: 'New Scheme' };
+      (PriorityschemesService.createPriorityScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.createPriorityScheme('New Scheme', 'A scheme', '1', ['1', '2']);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PriorityschemesService.createPriorityScheme).toHaveBeenCalledWith({
+        name: 'New Scheme',
+        description: 'A scheme',
+        defaultOptionId: '1',
+        optionIds: ['1', '2'],
+      });
+    });
+
+    it('gets a priority scheme by id', async () => {
+      const mockScheme = { id: 1, name: 'Default' };
+      (PriorityschemesService.getPriorityScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getPriorityScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PriorityschemesService.getPriorityScheme).toHaveBeenCalledWith(1);
+    });
+
+    it('updates a priority scheme', async () => {
+      const mockScheme = { id: 1, name: 'Renamed' };
+      (PriorityschemesService.updatePriorityScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.updatePriorityScheme(1, 'Renamed');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(PriorityschemesService.updatePriorityScheme).toHaveBeenCalledWith(1, {
+        name: 'Renamed',
+        description: undefined,
+        defaultOptionId: undefined,
+        optionIds: undefined,
+      });
+    });
+
+    it('deletes a priority scheme', async () => {
+      (PriorityschemesService.deletePriorityScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deletePriorityScheme(1);
+
+      expect(result.success).toBe(true);
+      expect(PriorityschemesService.deletePriorityScheme).toHaveBeenCalledWith(1);
+    });
+
+    it('handles errors', async () => {
+      (PriorityschemesService.getPriorityScheme as jest.Mock).mockRejectedValue(new Error('The scheme does not exist'));
+
+      const result = await jiraService.getPriorityScheme(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The scheme does not exist');
+    });
+  });
+
+  describe('project categories', () => {
+    it('gets all project categories', async () => {
+      const mockCategories = [{ id: '1', name: 'Category 1' }];
+      (ProjectCategoryService.getAllProjectCategories as jest.Mock).mockResolvedValue(mockCategories);
+
+      const result = await jiraService.getProjectCategories();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCategories);
+      expect(ProjectCategoryService.getAllProjectCategories).toHaveBeenCalledWith();
+    });
+
+    it('creates a project category', async () => {
+      const mockCategory = { id: '2', name: 'New Category' };
+      (ProjectCategoryService.createProjectCategory as jest.Mock).mockResolvedValue(mockCategory);
+
+      const result = await jiraService.createProjectCategory('New Category', 'A category');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCategory);
+      expect(ProjectCategoryService.createProjectCategory).toHaveBeenCalledWith({
+        name: 'New Category',
+        description: 'A category',
+      });
+    });
+
+    it('gets a project category by id', async () => {
+      const mockCategory = { id: '1', name: 'Category 1' };
+      (ProjectCategoryService.getProjectCategoryById as jest.Mock).mockResolvedValue(mockCategory);
+
+      const result = await jiraService.getProjectCategory(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCategory);
+      expect(ProjectCategoryService.getProjectCategoryById).toHaveBeenCalledWith(1);
+    });
+
+    it('updates a project category', async () => {
+      const mockCategory = { id: '1', name: 'Renamed' };
+      (ProjectCategoryService.updateProjectCategory as jest.Mock).mockResolvedValue(mockCategory);
+
+      const result = await jiraService.updateProjectCategory(1, 'Renamed');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCategory);
+      expect(ProjectCategoryService.updateProjectCategory).toHaveBeenCalledWith(1, {
+        name: 'Renamed',
+        description: undefined,
+      });
+    });
+
+    it('deletes a project category', async () => {
+      (ProjectCategoryService.removeProjectCategory as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteProjectCategory(1);
+
+      expect(result.success).toBe(true);
+      expect(ProjectCategoryService.removeProjectCategory).toHaveBeenCalledWith(1);
+    });
+
+    it('handles errors', async () => {
+      (ProjectCategoryService.getProjectCategoryById as jest.Mock).mockRejectedValue(new Error('The category does not exist'));
+
+      const result = await jiraService.getProjectCategory(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The category does not exist');
+    });
+  });
+
+  describe('role definitions', () => {
+    it('gets all role definitions', async () => {
+      const mockRoles = [{ id: 10, name: 'Administrators' }];
+      (RoleService.getProjectRoles1 as jest.Mock).mockResolvedValue(mockRoles);
+
+      const result = await jiraService.getRoleDefinitions();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRoles);
+      expect(RoleService.getProjectRoles1).toHaveBeenCalledWith();
+    });
+
+    it('creates a role definition', async () => {
+      const mockRole = { id: 11, name: 'New Role' };
+      (RoleService.createProjectRole as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.createRoleDefinition('New Role', 'A role');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(RoleService.createProjectRole).toHaveBeenCalledWith({ name: 'New Role', description: 'A role' });
+    });
+
+    it('gets a role definition by id', async () => {
+      const mockRole = { id: 10, name: 'Administrators' };
+      (RoleService.getProjectRolesById as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.getRoleDefinition(10);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(RoleService.getProjectRolesById).toHaveBeenCalledWith(10);
+    });
+
+    it('fully updates a role definition', async () => {
+      const mockRole = { id: 10, name: 'Renamed', description: 'Updated' };
+      (RoleService.fullyUpdateProjectRole as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.updateRoleDefinition(10, 'Renamed', 'Updated');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(RoleService.fullyUpdateProjectRole).toHaveBeenCalledWith(10, { name: 'Renamed', description: 'Updated' });
+    });
+
+    it('partially updates a role definition', async () => {
+      const mockRole = { id: 10, name: 'Renamed' };
+      (RoleService.partialUpdateProjectRole as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.partialUpdateRoleDefinition(10, 'Renamed');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(RoleService.partialUpdateProjectRole).toHaveBeenCalledWith(10, { name: 'Renamed', description: undefined });
+    });
+
+    it('deletes a role definition', async () => {
+      (RoleService.deleteProjectRole as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteRoleDefinition(10, 11);
+
+      expect(result.success).toBe(true);
+      expect(RoleService.deleteProjectRole).toHaveBeenCalledWith(10, 11);
+    });
+
+    it('gets role definition actors', async () => {
+      const mockActors = { id: 10, actors: [] };
+      (RoleService.getProjectRoleActorsForRole as jest.Mock).mockResolvedValue(mockActors);
+
+      const result = await jiraService.getRoleDefinitionActors(10);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockActors);
+      expect(RoleService.getProjectRoleActorsForRole).toHaveBeenCalledWith(10);
+    });
+
+    it('adds role definition actors', async () => {
+      const mockActors = { id: 10, actors: [] };
+      (RoleService.addProjectRoleActorsToRole as jest.Mock).mockResolvedValue(mockActors);
+
+      const result = await jiraService.addRoleDefinitionActors(10, ['jsmith'], ['jira-admins']);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockActors);
+      expect(RoleService.addProjectRoleActorsToRole).toHaveBeenCalledWith(10, {
+        user: ['jsmith'],
+        group: ['jira-admins'],
+      });
+    });
+
+    it('deletes a role definition actor', async () => {
+      const mockActors = { id: 10, actors: [] };
+      (RoleService.deleteProjectRoleActorsFromRole as jest.Mock).mockResolvedValue(mockActors);
+
+      const result = await jiraService.deleteRoleDefinitionActor(10, 'jsmith');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockActors);
+      expect(RoleService.deleteProjectRoleActorsFromRole).toHaveBeenCalledWith(10, 'jsmith', undefined);
+    });
+
+    it('handles errors', async () => {
+      (RoleService.getProjectRolesById as jest.Mock).mockRejectedValue(new Error('The role does not exist'));
+
+      const result = await jiraService.getRoleDefinition(999);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The role does not exist');
     });
   });
 
