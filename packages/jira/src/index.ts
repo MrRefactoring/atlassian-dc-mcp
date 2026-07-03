@@ -1857,4 +1857,134 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getAllScreens",
+  `Get a paginated, searchable list of field screens in the ${jiraInstanceType}`,
+  jiraToolSchemas.getAllScreens,
+  async ({ search, expand, maxResults, startAt }) => {
+    const result = await jiraService.getAllScreens(search, expand, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addFieldToDefaultScreen",
+  `Add a field or custom field to the default screen's default tab in the ${jiraInstanceType}`,
+  jiraToolSchemas.addFieldToDefaultScreen,
+  async ({ fieldId }) => {
+    const result = await jiraService.addFieldToDefaultScreen(fieldId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getScreenAvailableFields",
+  `Get fields available to add to a screen (ones not already present on any tab) in the ${jiraInstanceType}`,
+  jiraToolSchemas.getScreenAvailableFields,
+  async ({ screenId }) => {
+    const result = await jiraService.getScreenAvailableFields(screenId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getScreenTabs",
+  `Get all tabs for a screen in the ${jiraInstanceType}`,
+  jiraToolSchemas.getScreenTabs,
+  async ({ screenId, projectKey }) => {
+    const result = await jiraService.getScreenTabs(screenId, projectKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addScreenTab",
+  `Add a new tab to a screen in the ${jiraInstanceType}`,
+  jiraToolSchemas.addScreenTab,
+  async ({ screenId, name }) => {
+    const result = await jiraService.addScreenTab(screenId, name);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_renameScreenTab",
+  `Rename a tab on a screen in the ${jiraInstanceType}`,
+  jiraToolSchemas.renameScreenTab,
+  async ({ screenId, tabId, name }) => {
+    const result = await jiraService.renameScreenTab(screenId, tabId, name);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteScreenTab",
+  `Delete a tab from a screen in the ${jiraInstanceType}. The screen must have at least one tab remaining.`,
+  jiraToolSchemas.deleteScreenTab,
+  async ({ screenId, tabId }) => {
+    const result = await jiraService.deleteScreenTab(screenId, tabId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_moveScreenTab",
+  `Move a tab to a new position on a screen in the ${jiraInstanceType}`,
+  jiraToolSchemas.moveScreenTab,
+  async ({ screenId, tabId, pos }) => {
+    const result = await jiraService.moveScreenTab(screenId, tabId, pos);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getScreenTabFields",
+  `Get all fields on a screen tab in the ${jiraInstanceType}`,
+  jiraToolSchemas.getScreenTabFields,
+  async ({ screenId, tabId, projectKey }) => {
+    const result = await jiraService.getScreenTabFields(screenId, tabId, projectKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addFieldToScreenTab",
+  `Add a field to a screen tab in the ${jiraInstanceType}`,
+  jiraToolSchemas.addFieldToScreenTab,
+  async ({ screenId, tabId, fieldId }) => {
+    const result = await jiraService.addFieldToScreenTab(screenId, tabId, fieldId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_removeFieldFromScreenTab",
+  `Remove a field from a screen tab in the ${jiraInstanceType}`,
+  jiraToolSchemas.removeFieldFromScreenTab,
+  async ({ screenId, tabId, fieldId }) => {
+    const result = await jiraService.removeFieldFromScreenTab(screenId, tabId, fieldId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_moveScreenTabField",
+  `Move a field's position on a screen tab in the ${jiraInstanceType}`,
+  jiraToolSchemas.moveScreenTabField,
+  async ({ screenId, tabId, fieldId, after, position }) => {
+    const result = await jiraService.moveScreenTabField(screenId, tabId, fieldId, after, position);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateScreenTabFieldShowWhenEmpty",
+  `Update whether a field on a screen tab shows a 'no value' indicator when empty in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateScreenTabFieldShowWhenEmpty,
+  async ({ screenId, tabId, fieldId, showWhenEmpty }) => {
+    const result = await jiraService.updateScreenTabFieldShowWhenEmpty(screenId, tabId, fieldId, showWhenEmpty);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);
