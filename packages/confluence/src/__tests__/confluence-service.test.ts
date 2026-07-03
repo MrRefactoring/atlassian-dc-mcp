@@ -80,6 +80,10 @@ jest.mock('../confluence-client/index.js', () => ({
     createPrivateSpace: jest.fn(),
     update4: jest.fn(),
     delete5: jest.fn(),
+    contents: jest.fn(),
+    contentsWithType1: jest.fn(),
+    archive: jest.fn(),
+    restore: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -815,6 +819,51 @@ describe('ConfluenceService space CRUD', () => {
     const result = await service.deleteSpace('DEV');
 
     expect(SPACE.delete5).toHaveBeenCalledWith('DEV');
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('ConfluenceService space content & archival lifecycle', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets all space content when no type is given', async () => {
+    SPACE.contents.mockResolvedValue({ results: [] });
+
+    await service.getSpaceContent('DEV', undefined, 'history', 'root');
+
+    expect(SPACE.contents).toHaveBeenCalledWith('DEV', 'history', 'root', '25', undefined);
+    expect(SPACE.contentsWithType1).not.toHaveBeenCalled();
+  });
+
+  it('gets space content filtered by type', async () => {
+    SPACE.contentsWithType1.mockResolvedValue({ results: [] });
+
+    await service.getSpaceContent('DEV', 'page', undefined, undefined, 10, 5);
+
+    expect(SPACE.contentsWithType1).toHaveBeenCalledWith('DEV', 'page', undefined, undefined, '10', '5');
+    expect(SPACE.contents).not.toHaveBeenCalled();
+  });
+
+  it('archives a space', async () => {
+    SPACE.archive.mockResolvedValue(undefined);
+
+    const result = await service.archiveSpace('DEV');
+
+    expect(SPACE.archive).toHaveBeenCalledWith('DEV');
+    expect(result.success).toBe(true);
+  });
+
+  it('restores a space', async () => {
+    SPACE.restore.mockResolvedValue(undefined);
+
+    const result = await service.restoreSpace('DEV');
+
+    expect(SPACE.restore).toHaveBeenCalledWith('DEV');
     expect(result.success).toBe(true);
   });
 });
