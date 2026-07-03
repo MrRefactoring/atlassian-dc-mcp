@@ -4,6 +4,7 @@ import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { JiraService } from '../jira-service.js';
 import {
+  ApplicationroleService,
   AttachmentService,
   AvatarService,
   BacklogService,
@@ -16,6 +17,8 @@ import {
   FieldService,
   FilterService,
   GroupService,
+  GroupsService,
+  GroupuserpickerService,
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
@@ -24,6 +27,7 @@ import {
   IssuetypeService,
   JqlService,
   MypermissionsService,
+  MypreferencesService,
   NotificationschemeService,
   OpenAPI,
   PermissionsService,
@@ -168,6 +172,12 @@ jest.mock('../jira-client/index.js', () => ({
     addUserToGroup: jest.fn(),
     removeUserFromGroup: jest.fn(),
   },
+  GroupsService: {
+    findGroups: jest.fn(),
+  },
+  GroupuserpickerService: {
+    findUsersAndGroups: jest.fn(),
+  },
   VersionService: {
     createVersion: jest.fn(),
     getPaginatedVersions: jest.fn(),
@@ -257,6 +267,15 @@ jest.mock('../jira-client/index.js', () => ({
     getPermissionSchemeGrants: jest.fn(),
     createPermissionGrant: jest.fn(),
     deletePermissionSchemeEntity: jest.fn(),
+  },
+  ApplicationroleService: {
+    getAll: jest.fn(),
+    get4: jest.fn(),
+  },
+  MypreferencesService: {
+    getPreference: jest.fn(),
+    setPreference: jest.fn(),
+    removePreference: jest.fn(),
   },
   WorkflowService: {
     getAllWorkflows: jest.fn(),
@@ -1502,6 +1521,28 @@ describe('JiraService', () => {
       expect(GroupService.removeUserFromGroup).toHaveBeenCalledWith('developers', 'john.doe');
     });
 
+    it('finds groups matching a query', async () => {
+      const mockSuggestions = { groups: [{ name: 'developers', html: '<b>dev</b>elopers' }] };
+      (GroupsService.findGroups as jest.Mock).mockResolvedValue(mockSuggestions);
+
+      const result = await jiraService.findGroups('dev', 10);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSuggestions);
+      expect(GroupsService.findGroups).toHaveBeenCalledWith('10', 'dev', undefined, undefined);
+    });
+
+    it('finds users and groups matching a query', async () => {
+      const mockMatches = { users: { users: [{ name: 'john.doe' }] }, groups: { groups: [{ name: 'developers' }] } };
+      (GroupuserpickerService.findUsersAndGroups as jest.Mock).mockResolvedValue(mockMatches);
+
+      const result = await jiraService.findUsersAndGroups('jo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockMatches);
+      expect(GroupuserpickerService.findUsersAndGroups).toHaveBeenCalledWith(undefined, undefined, 'jo', undefined, undefined, undefined);
+    });
+
     it('handles errors', async () => {
       (UserService.getUser1 as jest.Mock).mockRejectedValue(new Error('The requested user is not found'));
 
@@ -2524,6 +2565,39 @@ describe('JiraService', () => {
     });
   });
 
+  describe('application roles', () => {
+    it('gets all application roles', async () => {
+      const mockRoles = [{ key: 'jira-software', name: 'JIRA Software' }];
+      (ApplicationroleService.getAll as jest.Mock).mockResolvedValue(mockRoles);
+
+      const result = await jiraService.getApplicationRoles();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRoles);
+      expect(ApplicationroleService.getAll).toHaveBeenCalledWith();
+    });
+
+    it('gets a single application role by key', async () => {
+      const mockRole = { key: 'jira-software', name: 'JIRA Software' };
+      (ApplicationroleService.get4 as jest.Mock).mockResolvedValue(mockRole);
+
+      const result = await jiraService.getApplicationRole('jira-software');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockRole);
+      expect(ApplicationroleService.get4).toHaveBeenCalledWith('jira-software');
+    });
+
+    it('handles errors', async () => {
+      (ApplicationroleService.getAll as jest.Mock).mockRejectedValue(new Error('The current user is not an administrator'));
+
+      const result = await jiraService.getApplicationRoles();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The current user is not an administrator');
+    });
+  });
+
   describe('workflows and workflow schemes', () => {
     it('gets all workflows', async () => {
       const mockWorkflows = [{ name: 'jira' }];
@@ -3038,6 +3112,45 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Not authenticated');
+    });
+  });
+
+  describe('my preferences', () => {
+    it('gets a preference by key', async () => {
+      (MypreferencesService.getPreference as jest.Mock).mockResolvedValue('dark');
+
+      const result = await jiraService.getMyPreference('theme');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe('dark');
+      expect(MypreferencesService.getPreference).toHaveBeenCalledWith('theme');
+    });
+
+    it('sets a preference by key', async () => {
+      (MypreferencesService.setPreference as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setMyPreference('theme', 'dark');
+
+      expect(result.success).toBe(true);
+      expect(MypreferencesService.setPreference).toHaveBeenCalledWith('theme', 'dark');
+    });
+
+    it('deletes a preference by key', async () => {
+      (MypreferencesService.removePreference as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteMyPreference('theme');
+
+      expect(result.success).toBe(true);
+      expect(MypreferencesService.removePreference).toHaveBeenCalledWith('theme');
+    });
+
+    it('handles errors', async () => {
+      (MypreferencesService.getPreference as jest.Mock).mockRejectedValue(new Error('Key not found.'));
+
+      const result = await jiraService.getMyPreference('missing');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Key not found.');
     });
   });
 

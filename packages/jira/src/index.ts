@@ -738,6 +738,26 @@ server.tool(
 );
 
 server.tool(
+  "jira_findGroups",
+  `Search for groups by a substring match against group names in the ${jiraInstanceType}. Used for group-picker style autocomplete.`,
+  jiraToolSchemas.findGroups,
+  async ({ query, maxResults, exclude, userName }) => {
+    const result = await jiraService.findGroups(query, maxResults, exclude, userName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_findUsersAndGroups",
+  `Search for users and groups matching a query, with match highlighting, in the ${jiraInstanceType}. Used for combined user/group-picker style autocomplete fields such as assignee, reporter, or a group-picker custom field.`,
+  jiraToolSchemas.findUsersAndGroups,
+  async ({ query, maxResults, showAvatar, issueTypeId, projectId, fieldId }) => {
+    const result = await jiraService.findUsersAndGroups(query, maxResults, showAvatar, issueTypeId, projectId, fieldId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_createFilter",
   `Create a saved search filter in the ${jiraInstanceType}`,
   jiraToolSchemas.createFilter,
@@ -1478,6 +1498,26 @@ server.tool(
 );
 
 server.tool(
+  "jira_getApplicationRoles",
+  `Get all application roles (e.g. jira-software, jira-servicedesk) in the ${jiraInstanceType}. Read-only catalog of licensed applications.`,
+  jiraToolSchemas.getApplicationRoles,
+  async () => {
+    const result = await jiraService.getApplicationRoles();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getApplicationRole",
+  `Get a single application role by key from the ${jiraInstanceType}. Use jira_getApplicationRoles to find valid keys.`,
+  jiraToolSchemas.getApplicationRole,
+  async ({ key }) => {
+    const result = await jiraService.getApplicationRole(key);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_getWorkflows",
   `Get all workflows (or a workflow by name) in the ${jiraInstanceType}`,
   jiraToolSchemas.getWorkflows,
@@ -1783,6 +1823,36 @@ server.tool(
   jiraToolSchemas.validateProjectKey,
   async ({ key }) => {
     const result = await jiraService.validateProjectKey(key);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getMyPreference",
+  `Get a preference value for the current user by key in the ${jiraInstanceType}`,
+  jiraToolSchemas.getMyPreference,
+  async ({ key }) => {
+    const result = await jiraService.getMyPreference(key);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setMyPreference",
+  `Set a preference value for the current user by key in the ${jiraInstanceType}`,
+  jiraToolSchemas.setMyPreference,
+  async ({ key, value }) => {
+    const result = await jiraService.setMyPreference(key, value);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteMyPreference",
+  `Remove a preference value for the current user by key in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteMyPreference,
+  async ({ key }) => {
+    const result = await jiraService.deleteMyPreference(key);
     return formatToolResponse(result);
   }
 );
