@@ -300,6 +300,13 @@ jest.mock('../jira-client/index.js', () => ({
     getDefault: jest.fn(),
     getIssueType: jest.fn(),
     getWorkflow: jest.fn(),
+    createScheme: jest.fn(),
+    update: jest.fn(),
+    deleteScheme: jest.fn(),
+    setIssueType: jest.fn(),
+    deleteIssueType: jest.fn(),
+    updateWorkflowMapping: jest.fn(),
+    deleteWorkflowMapping: jest.fn(),
   },
   NotificationschemeService: {
     getNotificationSchemes: jest.fn(),
@@ -2983,6 +2990,159 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The workflow scheme does not exist');
+    });
+
+    it('creates a workflow scheme', async () => {
+      const mockScheme = { id: 2, name: 'New Scheme' };
+      (WorkflowschemeService.createScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.createWorkflowScheme('New Scheme', 'A new scheme', 'jira', { '10001': 'jira' });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.createScheme).toHaveBeenCalledWith({
+        name: 'New Scheme',
+        description: 'A new scheme',
+        defaultWorkflow: 'jira',
+        issueTypeMappings: { '10001': 'jira' },
+      });
+    });
+
+    it('handles errors creating a workflow scheme', async () => {
+      (WorkflowschemeService.createScheme as jest.Mock).mockRejectedValue(new Error('A scheme with that name already exists'));
+
+      const result = await jiraService.createWorkflowScheme('New Scheme');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('A scheme with that name already exists');
+    });
+
+    it('updates a workflow scheme', async () => {
+      const mockScheme = { id: 2, name: 'Renamed Scheme' };
+      (WorkflowschemeService.update as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.updateWorkflowScheme(2, 'Renamed Scheme');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.update).toHaveBeenCalledWith(2, {
+        name: 'Renamed Scheme',
+        description: undefined,
+        defaultWorkflow: undefined,
+        issueTypeMappings: undefined,
+        updateDraftIfNeeded: undefined,
+      });
+    });
+
+    it('handles errors updating a workflow scheme', async () => {
+      (WorkflowschemeService.update as jest.Mock).mockRejectedValue(new Error('The requested scheme does not exist'));
+
+      const result = await jiraService.updateWorkflowScheme(999, 'Renamed Scheme');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The requested scheme does not exist');
+    });
+
+    it('deletes a workflow scheme', async () => {
+      (WorkflowschemeService.deleteScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteWorkflowScheme(2);
+
+      expect(result.success).toBe(true);
+      expect(WorkflowschemeService.deleteScheme).toHaveBeenCalledWith(2);
+    });
+
+    it('handles errors deleting a workflow scheme', async () => {
+      (WorkflowschemeService.deleteScheme as jest.Mock).mockRejectedValue(new Error('The requested scheme is active'));
+
+      const result = await jiraService.deleteWorkflowScheme(2);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The requested scheme is active');
+    });
+
+    it('sets a workflow scheme issue type mapping', async () => {
+      const mockScheme = { id: 2, issueTypeMappings: { '10001': 'jira' } };
+      (WorkflowschemeService.setIssueType as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.setWorkflowSchemeIssueTypeMapping(2, '10001', 'jira');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.setIssueType).toHaveBeenCalledWith('10001', 2, { issueType: '10001', workflow: 'jira', updateDraftIfNeeded: undefined });
+    });
+
+    it('handles errors setting a workflow scheme issue type mapping', async () => {
+      (WorkflowschemeService.setIssueType as jest.Mock).mockRejectedValue(new Error('The requested issue type does not exist'));
+
+      const result = await jiraService.setWorkflowSchemeIssueTypeMapping(2, '99999', 'jira');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The requested issue type does not exist');
+    });
+
+    it('deletes a workflow scheme issue type mapping', async () => {
+      const mockScheme = { id: 2 };
+      (WorkflowschemeService.deleteIssueType as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.deleteWorkflowSchemeIssueTypeMapping(2, '10001');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.deleteIssueType).toHaveBeenCalledWith('10001', 2, undefined);
+    });
+
+    it('handles errors deleting a workflow scheme issue type mapping', async () => {
+      (WorkflowschemeService.deleteIssueType as jest.Mock).mockRejectedValue(new Error('The requested mapping does not exist'));
+
+      const result = await jiraService.deleteWorkflowSchemeIssueTypeMapping(2, '99999');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The requested mapping does not exist');
+    });
+
+    it('sets a workflow scheme workflow mapping', async () => {
+      const mockScheme = { id: 2 };
+      (WorkflowschemeService.updateWorkflowMapping as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.setWorkflowSchemeWorkflowMapping(2, 'jira', ['10001'], true, undefined, 'jira');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.updateWorkflowMapping).toHaveBeenCalledWith(
+        2,
+        { workflow: 'jira', issueTypes: ['10001'], defaultMapping: true, updateDraftIfNeeded: undefined },
+        'jira'
+      );
+    });
+
+    it('handles errors setting a workflow scheme workflow mapping', async () => {
+      (WorkflowschemeService.updateWorkflowMapping as jest.Mock).mockRejectedValue(new Error('The currently authenticated user does not have permission'));
+
+      const result = await jiraService.setWorkflowSchemeWorkflowMapping(2, 'jira');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The currently authenticated user does not have permission');
+    });
+
+    it('deletes a workflow scheme workflow mapping', async () => {
+      const mockScheme = { id: 2 };
+      (WorkflowschemeService.deleteWorkflowMapping as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.deleteWorkflowSchemeWorkflowMapping(2, 'jira');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(WorkflowschemeService.deleteWorkflowMapping).toHaveBeenCalledWith(2, undefined, 'jira');
+    });
+
+    it('handles errors deleting a workflow scheme workflow mapping', async () => {
+      (WorkflowschemeService.deleteWorkflowMapping as jest.Mock).mockRejectedValue(new Error('The requested scheme or workflow does not exist'));
+
+      const result = await jiraService.deleteWorkflowSchemeWorkflowMapping(2, 'missing-workflow');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The requested scheme or workflow does not exist');
     });
   });
 
