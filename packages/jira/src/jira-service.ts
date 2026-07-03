@@ -1146,6 +1146,41 @@ export class JiraService {
     );
   }
 
+  async getScreenTabs(screenId: number, projectKey?: string) {
+    return handleApiOperation(
+      () => ScreensService.getAllTabs(screenId, projectKey),
+      'Error getting screen tabs'
+    );
+  }
+
+  async addScreenTab(screenId: number, name: string) {
+    return handleApiOperation(
+      () => ScreensService.addTab(screenId, { name }),
+      'Error adding screen tab'
+    );
+  }
+
+  async renameScreenTab(screenId: number, tabId: number, name: string) {
+    return handleApiOperation(
+      () => ScreensService.renameTab(tabId, screenId, { name }),
+      'Error renaming screen tab'
+    );
+  }
+
+  async deleteScreenTab(screenId: number, tabId: number) {
+    return handleApiOperation(
+      () => ScreensService.deleteTab(tabId, screenId),
+      'Error deleting screen tab'
+    );
+  }
+
+  async moveScreenTab(screenId: number, tabId: number, pos: number) {
+    return handleApiOperation(
+      () => ScreensService.moveTab(tabId, screenId, pos),
+      'Error moving screen tab'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1825,5 +1860,27 @@ export const jiraToolSchemas = {
   },
   getScreenAvailableFields: {
     screenId: z.number().describe("Id of the screen")
+  },
+  getScreenTabs: {
+    screenId: z.number().describe("Id of the screen"),
+    projectKey: z.string().optional().describe("Key of the project to scope the returned tabs to")
+  },
+  addScreenTab: {
+    screenId: z.number().describe("Id of the screen to add the tab to"),
+    name: z.string().describe("Name of the new tab")
+  },
+  renameScreenTab: {
+    screenId: z.number().describe("Id of the screen"),
+    tabId: z.number().describe("Id of the tab to rename"),
+    name: z.string().describe("New name for the tab")
+  },
+  deleteScreenTab: {
+    screenId: z.number().describe("Id of the screen"),
+    tabId: z.number().describe("Id of the tab to delete. The screen must have at least one tab remaining.")
+  },
+  moveScreenTab: {
+    screenId: z.number().describe("Id of the screen"),
+    tabId: z.number().describe("Id of the tab to move"),
+    pos: z.number().describe("Zero-based position to move the tab to")
   }
 };
