@@ -168,7 +168,7 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-The server registers 84 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
+The server registers 93 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
 #### Content — CRUD & search (CQL)
 
@@ -295,3 +295,15 @@ The server registers 84 tools, grouped below by area. All tools operate against 
 #### Content body conversion
 
 - `confluence_convertContentBody` — Convert a content body between representations (storage, view, export_view, styled_view, editor)
+
+#### Webhooks
+
+- `confluence_findWebhooks` — Find webhooks (requires administrator permission)
+- `confluence_createWebhook` — Create a webhook (requires administrator permission)
+- `confluence_getWebhook` — Get a webhook by ID (requires administrator permission)
+- `confluence_updateWebhook` — Update an existing webhook (requires administrator permission)
+- `confluence_deleteWebhook` — Delete a webhook (requires administrator permission)
+- `confluence_getWebhookLatestInvocation` — Get the latest invocation of a webhook (requires administrator permission)
+- `confluence_getWebhookStatistics` — Get invocation statistics for a webhook (requires administrator permission)
+- `confluence_getWebhookStatisticsSummary` — Get the invocation statistics summary for a webhook (requires administrator permission)
+- `confluence_testWebhook` — Test connectivity to a webhook endpoint URL (requires administrator permission)

@@ -1016,6 +1016,109 @@ server.tool(
   }
 );
 
+// Add Confluence webhook tools
+server.tool(
+  "confluence_findWebhooks",
+  `Find webhooks in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.findWebhooks,
+  async ({ limit, start, event, statistics }) => {
+    const result = await confluenceService.findWebhooks(limit, start, event, statistics);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_createWebhook",
+  `Create a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.createWebhook,
+  async ({ name, url, events, active, secret }) => {
+    const result = await confluenceService.createWebhook({
+      name,
+      url,
+      events,
+      active,
+      configuration: secret ? { secret } : undefined
+    });
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getWebhook",
+  `Get a webhook by ID in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.getWebhook,
+  async ({ webhookId, statistics }) => {
+    const result = await confluenceService.getWebhook(webhookId, statistics);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_updateWebhook",
+  `Update an existing webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.updateWebhook,
+  async ({ webhookId, name, url, events, active, secret }) => {
+    const result = await confluenceService.updateWebhook(webhookId, {
+      name,
+      url,
+      events,
+      active,
+      configuration: secret ? { secret } : undefined
+    });
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_deleteWebhook",
+  `Delete a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.deleteWebhook,
+  async ({ webhookId }) => {
+    const result = await confluenceService.deleteWebhook(webhookId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getWebhookLatestInvocation",
+  `Get the latest invocation of a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.getWebhookLatestInvocation,
+  async ({ webhookId, outcomes, event }) => {
+    const result = await confluenceService.getWebhookLatestInvocation(webhookId, outcomes, event);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getWebhookStatistics",
+  `Get invocation statistics for a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.getWebhookStatistics,
+  async ({ webhookId, event }) => {
+    const result = await confluenceService.getWebhookStatistics(webhookId, event);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getWebhookStatisticsSummary",
+  `Get the invocation statistics summary for a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.getWebhookStatisticsSummary,
+  async ({ webhookId }) => {
+    const result = await confluenceService.getWebhookStatisticsSummary(webhookId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_testWebhook",
+  `Test connectivity to a webhook endpoint URL in ${confluenceInstanceType}. Requires administrator permission.`,
+  confluenceToolSchemas.testWebhook,
+  async ({ url }) => {
+    const result = await confluenceService.testWebhook(url);
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "confluence-page",
   new ResourceTemplate("confluence://page/{pageId}", { list: undefined }),
