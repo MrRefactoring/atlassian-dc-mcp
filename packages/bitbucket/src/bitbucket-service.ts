@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AuthenticationService, BuildsAndDeploymentsService, DeprecatedService, OpenAPI, PermissionManagementService, ProjectService, PullRequestsService, RepositoryService } from './bitbucket-client/index.js';
+import { AuthenticationService, BuildsAndDeploymentsService, DeprecatedService, OpenAPI, PermissionManagementService, ProjectService, PullRequestsService, RepositoryService, SecurityService } from './bitbucket-client/index.js';
 import type { RestAccessTokenRequest } from './bitbucket-client/index.js';
 import { request as __request } from './bitbucket-client/core/request.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
@@ -2767,6 +2767,87 @@ export class BitbucketService {
     return result;
   }
 
+  /**
+   * Get SSH keys for a user
+   * @param userName Optional username to retrieve keys for. Defaults to the currently authenticated user; retrieving another user's keys requires ADMIN permission.
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (defaults to the package page size)
+   * @returns Promise with the page of SSH keys
+   */
+  async getSshKeys(userName?: string, start?: number, limit?: number) {
+    return handleApiOperation(
+      () => AuthenticationService.getSshKeys(userName, undefined, start, limit ?? this.getPageSize()),
+      'Error fetching SSH keys'
+    );
+  }
+
+  /**
+   * Add an SSH key for a user
+   * @param text The public key text (e.g. 'ssh-rsa AAAA... comment')
+   * @param userName Optional username to add the key for. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.
+   * @returns Promise with the created SSH key
+   */
+  async addSshKey(text: string, userName?: string) {
+    return handleApiOperation(
+      () => AuthenticationService.addSshKey(userName, { text }),
+      'Error adding SSH key'
+    );
+  }
+
+  /**
+   * Delete an SSH key by ID
+   * @param keyId The ID of the SSH key to delete
+   * @returns Promise with a delete acknowledgement
+   */
+  async deleteSshKey(keyId: string) {
+    const result = await handleApiOperation(
+      () => AuthenticationService.deleteSshKey(keyId),
+      'Error deleting SSH key'
+    );
+    return { ...result, data: { deleted: true, keyId } };
+  }
+
+  /**
+   * Get GPG keys for a user
+   * @param user Optional username to retrieve keys for. Defaults to the currently authenticated user; retrieving another user's keys requires ADMIN permission.
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (defaults to the package page size)
+   * @returns Promise with the page of GPG keys
+   */
+  async getGpgKeys(user?: string, start?: number, limit?: number) {
+    return handleApiOperation(
+      () => SecurityService.getKeysForUser(user, start, limit ?? this.getPageSize()),
+      'Error fetching GPG keys'
+    );
+  }
+
+  /**
+   * Add a GPG key for a user
+   * @param text The ASCII-armored GPG public key text
+   * @param user Optional username to add the key for. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.
+   * @returns Promise with the created GPG key
+   */
+  async addGpgKey(text: string, user?: string) {
+    const requestBody: any = { text };
+    return handleApiOperation(
+      () => SecurityService.addKey(user, requestBody),
+      'Error adding GPG key'
+    );
+  }
+
+  /**
+   * Delete a GPG key by ID or fingerprint
+   * @param fingerprintOrId The GPG key ID or fingerprint to delete
+   * @returns Promise with a delete acknowledgement
+   */
+  async deleteGpgKey(fingerprintOrId: string) {
+    const result = await handleApiOperation(
+      () => SecurityService.deleteKey(fingerprintOrId),
+      'Error deleting GPG key'
+    );
+    return { ...result, data: { deleted: true, fingerprintOrId } };
+  }
+
   async validateSetup(): Promise<void> {
     await __request(OpenAPI, {
       method: 'GET',
@@ -3443,5 +3524,29 @@ export const bitbucketToolSchemas = {
     repositorySlug: z.string().describe("The repository slug"),
     user: z.string().optional().describe("Username whose repository permissions should be revoked"),
     group: z.string().optional().describe("Group name whose repository permissions should be revoked. At least one of user or group must be provided.")
+  },
+  getSshKeys: {
+    userName: z.string().optional().describe("Username to retrieve SSH keys for. Defaults to the currently authenticated user; retrieving another user's keys requires ADMIN permission."),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return (defaults to the package page size)")
+  },
+  addSshKey: {
+    text: z.string().describe("The public key text (e.g. 'ssh-rsa AAAA... comment')"),
+    userName: z.string().optional().describe("Username to add the SSH key for. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.")
+  },
+  deleteSshKey: {
+    keyId: z.string().describe("The ID of the SSH key to delete")
+  },
+  getGpgKeys: {
+    user: z.string().optional().describe("Username to retrieve GPG keys for. Defaults to the currently authenticated user; retrieving another user's keys requires ADMIN permission."),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return (defaults to the package page size)")
+  },
+  addGpgKey: {
+    text: z.string().describe("The ASCII-armored GPG public key text"),
+    user: z.string().optional().describe("Username to add the GPG key for. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.")
+  },
+  deleteGpgKey: {
+    fingerprintOrId: z.string().describe("The GPG key ID or fingerprint to delete")
   }
 };

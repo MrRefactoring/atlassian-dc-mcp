@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { BitbucketService } from '../bitbucket-service.js';
-import { AuthenticationService, BuildsAndDeploymentsService, DeprecatedService, PermissionManagementService, ProjectService, PullRequestsService, RepositoryService } from '../bitbucket-client/index.js';
+import { AuthenticationService, BuildsAndDeploymentsService, DeprecatedService, PermissionManagementService, ProjectService, PullRequestsService, RepositoryService, SecurityService } from '../bitbucket-client/index.js';
 import { request as mockRequest } from '../bitbucket-client/core/request.js';
 
 // Mock the request function
@@ -113,7 +113,15 @@ jest.mock('../bitbucket-client/index.js', () => ({
     deleteById: jest.fn(),
     getAllAccessTokens2: jest.fn(),
     createAccessToken2: jest.fn(),
-    deleteById2: jest.fn()
+    deleteById2: jest.fn(),
+    getSshKeys: jest.fn(),
+    addSshKey: jest.fn(),
+    deleteSshKey: jest.fn()
+  },
+  SecurityService: {
+    getKeysForUser: jest.fn(),
+    addKey: jest.fn(),
+    deleteKey: jest.fn()
   },
   OpenAPI: {
     BASE: '',
@@ -4996,6 +5004,172 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
       expect(result.data).toBeUndefined();
+    });
+  });
+
+  describe('SSH keys', () => {
+    describe('getSshKeys', () => {
+      it('should get SSH keys with the default page size', async () => {
+        const mockData = { size: 1, isLastPage: true, values: [{ id: 1, text: 'ssh-rsa AAAA... me@host' }] };
+        (AuthenticationService.getSshKeys as jest.Mock).mockResolvedValue(mockData);
+
+        const result = await bitbucketService.getSshKeys();
+
+        expect(result.success).toBe(true);
+        expect(result.data).toBe(mockData);
+        expect(AuthenticationService.getSshKeys).toHaveBeenCalledWith(undefined, undefined, undefined, 25);
+      });
+
+      it('should get SSH keys for a specific user with explicit pagination', async () => {
+        (AuthenticationService.getSshKeys as jest.Mock).mockResolvedValue({ values: [] });
+
+        await bitbucketService.getSshKeys('someuser', 10, 5);
+
+        expect(AuthenticationService.getSshKeys).toHaveBeenCalledWith('someuser', undefined, 10, 5);
+      });
+
+      it('should handle errors when fetching SSH keys', async () => {
+        (AuthenticationService.getSshKeys as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+        const result = await bitbucketService.getSshKeys();
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+      });
+    });
+
+    describe('addSshKey', () => {
+      it('should add an SSH key for the current user', async () => {
+        const mockData = { id: 1, text: 'ssh-rsa AAAA... me@host' };
+        (AuthenticationService.addSshKey as jest.Mock).mockResolvedValue(mockData);
+
+        const result = await bitbucketService.addSshKey('ssh-rsa AAAA... me@host');
+
+        expect(result.success).toBe(true);
+        expect(result.data).toBe(mockData);
+        expect(AuthenticationService.addSshKey).toHaveBeenCalledWith(undefined, { text: 'ssh-rsa AAAA... me@host' });
+      });
+
+      it('should add an SSH key for a specified user', async () => {
+        (AuthenticationService.addSshKey as jest.Mock).mockResolvedValue({});
+
+        await bitbucketService.addSshKey('ssh-rsa AAAA... me@host', 'someuser');
+
+        expect(AuthenticationService.addSshKey).toHaveBeenCalledWith('someuser', { text: 'ssh-rsa AAAA... me@host' });
+      });
+
+      it('should handle errors when adding an SSH key', async () => {
+        (AuthenticationService.addSshKey as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+        const result = await bitbucketService.addSshKey('bad-key');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+      });
+    });
+
+    describe('deleteSshKey', () => {
+      it('should delete an SSH key and return an ack', async () => {
+        (AuthenticationService.deleteSshKey as jest.Mock).mockResolvedValue(undefined);
+
+        const result = await bitbucketService.deleteSshKey('42');
+
+        expect(result.success).toBe(true);
+        expect(result.data).toEqual({ deleted: true, keyId: '42' });
+        expect(AuthenticationService.deleteSshKey).toHaveBeenCalledWith('42');
+      });
+
+      it('should preserve the error field when delete fails', async () => {
+        (AuthenticationService.deleteSshKey as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+        const result = await bitbucketService.deleteSshKey('42');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+      });
+    });
+  });
+
+  describe('GPG keys', () => {
+    describe('getGpgKeys', () => {
+      it('should get GPG keys with the default page size', async () => {
+        const mockData = { size: 1, isLastPage: true, values: [{ id: '00000000000004d2', fingerprint: '43:51:43' }] };
+        (SecurityService.getKeysForUser as jest.Mock).mockResolvedValue(mockData);
+
+        const result = await bitbucketService.getGpgKeys();
+
+        expect(result.success).toBe(true);
+        expect(result.data).toBe(mockData);
+        expect(SecurityService.getKeysForUser).toHaveBeenCalledWith(undefined, undefined, 25);
+      });
+
+      it('should get GPG keys for a specific user with explicit pagination', async () => {
+        (SecurityService.getKeysForUser as jest.Mock).mockResolvedValue({ values: [] });
+
+        await bitbucketService.getGpgKeys('someuser', 10, 5);
+
+        expect(SecurityService.getKeysForUser).toHaveBeenCalledWith('someuser', 10, 5);
+      });
+
+      it('should handle errors when fetching GPG keys', async () => {
+        (SecurityService.getKeysForUser as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+        const result = await bitbucketService.getGpgKeys();
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+      });
+    });
+
+    describe('addGpgKey', () => {
+      it('should add a GPG key for the current user', async () => {
+        const mockData = { id: '00000000000004d2', fingerprint: '43:51:43' };
+        (SecurityService.addKey as jest.Mock).mockResolvedValue(mockData);
+
+        const result = await bitbucketService.addGpgKey('-----BEGIN PGP PUBLIC KEY BLOCK-----');
+
+        expect(result.success).toBe(true);
+        expect(result.data).toBe(mockData);
+        expect(SecurityService.addKey).toHaveBeenCalledWith(undefined, { text: '-----BEGIN PGP PUBLIC KEY BLOCK-----' });
+      });
+
+      it('should add a GPG key for a specified user', async () => {
+        (SecurityService.addKey as jest.Mock).mockResolvedValue({});
+
+        await bitbucketService.addGpgKey('-----BEGIN PGP PUBLIC KEY BLOCK-----', 'someuser');
+
+        expect(SecurityService.addKey).toHaveBeenCalledWith('someuser', { text: '-----BEGIN PGP PUBLIC KEY BLOCK-----' });
+      });
+
+      it('should handle errors when adding a GPG key', async () => {
+        (SecurityService.addKey as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+        const result = await bitbucketService.addGpgKey('bad-key');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+      });
+    });
+
+    describe('deleteGpgKey', () => {
+      it('should delete a GPG key and return an ack', async () => {
+        (SecurityService.deleteKey as jest.Mock).mockResolvedValue(undefined);
+
+        const result = await bitbucketService.deleteGpgKey('00000000000004d2');
+
+        expect(result.success).toBe(true);
+        expect(result.data).toEqual({ deleted: true, fingerprintOrId: '00000000000004d2' });
+        expect(SecurityService.deleteKey).toHaveBeenCalledWith('00000000000004d2');
+      });
+
+      it('should preserve the error field when delete fails', async () => {
+        (SecurityService.deleteKey as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+        const result = await bitbucketService.deleteGpgKey('00000000000004d2');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+      });
     });
   });
 });

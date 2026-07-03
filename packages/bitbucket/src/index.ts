@@ -859,6 +859,56 @@ server.tool(
 );
 
 server.tool(
+  "bitbucket_getSshKeys",
+  "List the SSH keys for a user. Defaults to the currently authenticated user; retrieving another user's keys requires ADMIN permission.",
+  bitbucketToolSchemas.getSshKeys,
+  async ({ userName, start, limit }) => {
+    const result = await bitbucketService.getSshKeys(userName, start, limit);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_addSshKey",
+  "Add an SSH public key for a user. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.",
+  bitbucketToolSchemas.addSshKey,
+  async ({ text, userName }) => {
+    const result = await bitbucketService.addSshKey(text, userName);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_deleteSshKey",
+  "Delete an SSH key by its ID. Requires ADMIN permission.",
+  bitbucketToolSchemas.deleteSshKey,
+  async ({ keyId }) => {
+    const result = await bitbucketService.deleteSshKey(keyId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_getGpgKeys",
+  "List the GPG keys for a user. Defaults to the currently authenticated user; retrieving another user's keys requires ADMIN permission.",
+  bitbucketToolSchemas.getGpgKeys,
+  async ({ user, start, limit }) => {
+    const result = await bitbucketService.getGpgKeys(user, start, limit);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_addGpgKey",
+  "Add an ASCII-armored GPG public key for a user. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.",
+  bitbucketToolSchemas.addGpgKey,
+  async ({ text, user }) => {
+    const result = await bitbucketService.addGpgKey(text, user);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "bitbucket_setProjectGroupPermission",
   "Grant or change a group's permission level on a Bitbucket project (PROJECT_READ, PROJECT_WRITE, or PROJECT_ADMIN). Requires PROJECT_ADMIN permission (or higher) for the project.",
   bitbucketToolSchemas.setProjectGroupPermission,
@@ -914,6 +964,16 @@ server.tool(
   bitbucketToolSchemas.revokeRepoPermission,
   async ({ projectKey, repositorySlug, user, group }) => {
     const result = await bitbucketService.revokeRepoPermission(projectKey, repositorySlug, user, group);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "bitbucket_deleteGpgKey",
+  "Delete a GPG key by its ID or fingerprint.",
+  bitbucketToolSchemas.deleteGpgKey,
+  async ({ fingerprintOrId }) => {
+    const result = await bitbucketService.deleteGpgKey(fingerprintOrId);
     return formatToolResponse(result);
   }
 );
