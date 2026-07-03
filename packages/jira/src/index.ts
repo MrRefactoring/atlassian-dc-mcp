@@ -1527,4 +1527,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getScreenTabFields",
+  `Get all fields on a screen tab in the ${jiraInstanceType}`,
+  jiraToolSchemas.getScreenTabFields,
+  async ({ screenId, tabId, projectKey }) => {
+    const result = await jiraService.getScreenTabFields(screenId, tabId, projectKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addFieldToScreenTab",
+  `Add a field to a screen tab in the ${jiraInstanceType}`,
+  jiraToolSchemas.addFieldToScreenTab,
+  async ({ screenId, tabId, fieldId }) => {
+    const result = await jiraService.addFieldToScreenTab(screenId, tabId, fieldId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_removeFieldFromScreenTab",
+  `Remove a field from a screen tab in the ${jiraInstanceType}`,
+  jiraToolSchemas.removeFieldFromScreenTab,
+  async ({ screenId, tabId, fieldId }) => {
+    const result = await jiraService.removeFieldFromScreenTab(screenId, tabId, fieldId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_moveScreenTabField",
+  `Move a field's position on a screen tab in the ${jiraInstanceType}`,
+  jiraToolSchemas.moveScreenTabField,
+  async ({ screenId, tabId, fieldId, after, position }) => {
+    const result = await jiraService.moveScreenTabField(screenId, tabId, fieldId, after, position);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateScreenTabFieldShowWhenEmpty",
+  `Update whether a field on a screen tab shows a 'no value' indicator when empty in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateScreenTabFieldShowWhenEmpty,
+  async ({ screenId, tabId, fieldId, showWhenEmpty }) => {
+    const result = await jiraService.updateScreenTabFieldShowWhenEmpty(screenId, tabId, fieldId, showWhenEmpty);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

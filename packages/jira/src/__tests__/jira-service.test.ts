@@ -2590,6 +2590,69 @@ describe('JiraService', () => {
     });
   });
 
+  describe('screen tab fields', () => {
+    it('gets all fields for a tab', async () => {
+      const mockFields = [{ id: 'summary', name: 'Summary' }];
+      (ScreensService.getAllFields as jest.Mock).mockResolvedValue(mockFields);
+
+      const result = await jiraService.getScreenTabFields(1, 10, 'TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockFields);
+      expect(ScreensService.getAllFields).toHaveBeenCalledWith(10, 1, 'TEST');
+    });
+
+    it('adds a field to a tab', async () => {
+      const mockField = { id: 'customfield_10001', name: 'Story Points' };
+      (ScreensService.addField as jest.Mock).mockResolvedValue(mockField);
+
+      const result = await jiraService.addFieldToScreenTab(1, 10, 'customfield_10001');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockField);
+      expect(ScreensService.addField).toHaveBeenCalledWith(10, 1, { fieldId: 'customfield_10001' });
+    });
+
+    it('removes a field from a tab', async () => {
+      (ScreensService.removeField as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.removeFieldFromScreenTab(1, 10, 'customfield_10001');
+
+      expect(result.success).toBe(true);
+      expect(ScreensService.removeField).toHaveBeenCalledWith(10, 1, 'customfield_10001');
+    });
+
+    it('moves a field on a tab', async () => {
+      (ScreensService.moveField as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.moveScreenTabField(1, 10, 'customfield_10001', undefined, 'Last');
+
+      expect(result.success).toBe(true);
+      expect(ScreensService.moveField).toHaveBeenCalledWith(10, 1, 'customfield_10001', {
+        after: undefined,
+        position: 'Last',
+      });
+    });
+
+    it("updates a field's show-when-empty indicator", async () => {
+      (ScreensService.updateShowWhenEmptyIndicator as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.updateScreenTabFieldShowWhenEmpty(1, 10, 'customfield_10001', true);
+
+      expect(result.success).toBe(true);
+      expect(ScreensService.updateShowWhenEmptyIndicator).toHaveBeenCalledWith(10, 1, true, 'customfield_10001');
+    });
+
+    it('handles errors', async () => {
+      (ScreensService.addField as jest.Mock).mockRejectedValue(new Error('Field does not exist'));
+
+      const result = await jiraService.addFieldToScreenTab(1, 10, 'not-a-field');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Field does not exist');
+    });
+  });
+
   describe('constructor base URL resolution', () => {
     it('builds BASE from host + default /rest when apiBasePath is missing', () => {
       new JiraService('jira.example.com', 'test-token');
