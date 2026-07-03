@@ -1737,4 +1737,54 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getMyPermissions",
+  `Get the permissions the currently logged in user has in the ${jiraInstanceType}, optionally scoped to a project or issue`,
+  jiraToolSchemas.getMyPermissions,
+  async ({ projectKey, projectId, issueKey, issueId }) => {
+    const result = await jiraService.getMyPermissions(projectKey, projectId, issueKey, issueId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getAllPermissions",
+  `Get the full catalog of permission types present in the ${jiraInstanceType} — global, project, and plugin-added`,
+  jiraToolSchemas.getAllPermissions,
+  async () => {
+    const result = await jiraService.getAllPermissions();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getJqlAutocompleteData",
+  `Get the reserved words, visible field names, and function names available for building JQL queries in the ${jiraInstanceType}`,
+  jiraToolSchemas.getJqlAutocompleteData,
+  async () => {
+    const result = await jiraService.getJqlAutocompleteData();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getJqlFieldAutocomplete",
+  `Get value autocomplete suggestions for a JQL field while building a query in the ${jiraInstanceType}. Useful before calling jira_searchIssues to discover valid field values.`,
+  jiraToolSchemas.getJqlFieldAutocomplete,
+  async ({ fieldName, fieldValue, predicateName, predicateValue }) => {
+    const result = await jiraService.getJqlFieldAutocomplete(fieldName, fieldValue, predicateName, predicateValue);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_validateProjectKey",
+  `Validate a candidate project key in the ${jiraInstanceType} before creating a new project. Returns any validation errors; an empty result means the key is valid.`,
+  jiraToolSchemas.validateProjectKey,
+  async ({ key }) => {
+    const result = await jiraService.validateProjectKey(key);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

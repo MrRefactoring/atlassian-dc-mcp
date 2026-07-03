@@ -22,14 +22,18 @@ import {
   IssuesecurityschemesService,
   IssuetypeschemeService,
   IssuetypeService,
+  JqlService,
+  MypermissionsService,
   NotificationschemeService,
   OpenAPI,
+  PermissionsService,
   PermissionschemeService,
   PriorityschemesService,
   PriorityService,
   ProjectCategoryService,
   ProjectService,
   ProjectsService,
+  ProjectvalidateService,
   ResolutionService,
   RoleService,
   SearchService,
@@ -199,6 +203,9 @@ jest.mock('../jira-client/index.js', () => ({
     updateProjectCategory: jest.fn(),
     removeProjectCategory: jest.fn(),
   },
+  ProjectvalidateService: {
+    getProject1: jest.fn(),
+  },
   IssuetypeService: {
     getIssueAllTypes: jest.fn(),
   },
@@ -284,6 +291,16 @@ jest.mock('../jira-client/index.js', () => ({
   },
   AvatarService: {
     getAllSystemAvatars: jest.fn(),
+  },
+  MypermissionsService: {
+    getPermissions: jest.fn(),
+  },
+  PermissionsService: {
+    getAllPermissions: jest.fn(),
+  },
+  JqlService: {
+    getAutoComplete: jest.fn(),
+    getFieldAutoCompleteForQueryString: jest.fn(),
   },
   UniversalAvatarService: {
     getAvatars: jest.fn(),
@@ -2882,6 +2899,145 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Invalid avatar type');
+    });
+  });
+
+  describe('getMyPermissions', () => {
+    it('gets permissions for the logged in user with no context', async () => {
+      const mockPermissions = { permissions: { ADMINISTER: { id: '0', key: 'ADMINISTER', name: 'Administer', havePermission: true } } };
+      (MypermissionsService.getPermissions as jest.Mock).mockResolvedValue(mockPermissions);
+
+      const result = await jiraService.getMyPermissions();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPermissions);
+      expect(MypermissionsService.getPermissions).toHaveBeenCalledWith(undefined, undefined, undefined, undefined);
+    });
+
+    it('gets permissions scoped to a project and issue', async () => {
+      const mockPermissions = { permissions: {} };
+      (MypermissionsService.getPermissions as jest.Mock).mockResolvedValue(mockPermissions);
+
+      const result = await jiraService.getMyPermissions('TEST', '10000', 'TEST-1', '10001');
+
+      expect(result.success).toBe(true);
+      expect(MypermissionsService.getPermissions).toHaveBeenCalledWith('10001', 'TEST', 'TEST-1', '10000');
+    });
+
+    it('handles errors', async () => {
+      (MypermissionsService.getPermissions as jest.Mock).mockRejectedValue(new Error('Not authenticated'));
+
+      const result = await jiraService.getMyPermissions();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authenticated');
+    });
+  });
+
+  describe('getAllPermissions', () => {
+    it('gets the full permission catalog', async () => {
+      const mockPermissions = {
+        permissions: {
+          ADMINISTER: { id: '0', key: 'ADMINISTER', name: 'Administer Jira', type: 'GLOBAL' },
+          BROWSE: { id: '10', key: 'BROWSE', name: 'Browse Projects', type: 'PROJECT' },
+        },
+      };
+      (PermissionsService.getAllPermissions as jest.Mock).mockResolvedValue(mockPermissions);
+
+      const result = await jiraService.getAllPermissions();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPermissions);
+      expect(PermissionsService.getAllPermissions).toHaveBeenCalledWith();
+    });
+
+    it('handles errors', async () => {
+      (PermissionsService.getAllPermissions as jest.Mock).mockRejectedValue(new Error('Not authenticated'));
+
+      const result = await jiraService.getAllPermissions();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authenticated');
+    });
+  });
+
+  describe('getJqlAutocompleteData', () => {
+    it('gets JQL reserved words and function names', async () => {
+      const mockAutoComplete = {
+        jqlReservedWords: ['AND', 'OR', 'NOT'],
+        visibleFieldNames: ['assignee', 'status'],
+        visibleFunctionNames: ['currentUser()', 'now()'],
+      };
+      (JqlService.getAutoComplete as jest.Mock).mockResolvedValue(mockAutoComplete);
+
+      const result = await jiraService.getJqlAutocompleteData();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockAutoComplete);
+      expect(JqlService.getAutoComplete).toHaveBeenCalledWith();
+    });
+
+    it('handles errors', async () => {
+      (JqlService.getAutoComplete as jest.Mock).mockRejectedValue(new Error('Not authenticated'));
+
+      const result = await jiraService.getJqlAutocompleteData();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authenticated');
+    });
+  });
+
+  describe('getJqlFieldAutocomplete', () => {
+    it('gets value suggestions for a JQL field', async () => {
+      const mockSuggestions = { results: [{ value: 'In Progress', displayName: 'In Progress' }] };
+      (JqlService.getFieldAutoCompleteForQueryString as jest.Mock).mockResolvedValue(mockSuggestions);
+
+      const result = await jiraService.getJqlFieldAutocomplete('status', 'In', 'in', undefined);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSuggestions);
+      expect(JqlService.getFieldAutoCompleteForQueryString).toHaveBeenCalledWith(undefined, 'in', 'status', 'In');
+    });
+
+    it('handles errors', async () => {
+      (JqlService.getFieldAutoCompleteForQueryString as jest.Mock).mockRejectedValue(new Error('Bad request'));
+
+      const result = await jiraService.getJqlFieldAutocomplete('status');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Bad request');
+    });
+  });
+
+  describe('validateProjectKey', () => {
+    it('returns an empty error collection for a valid key', async () => {
+      const mockValidation = { errorMessages: [], errors: {} };
+      (ProjectvalidateService.getProject1 as jest.Mock).mockResolvedValue(mockValidation);
+
+      const result = await jiraService.validateProjectKey('TEST');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockValidation);
+      expect(ProjectvalidateService.getProject1).toHaveBeenCalledWith('TEST');
+    });
+
+    it('returns validation errors for an invalid key', async () => {
+      const mockValidation = { errorMessages: [], errors: { projectKey: 'A project with that key already exists.' } };
+      (ProjectvalidateService.getProject1 as jest.Mock).mockResolvedValue(mockValidation);
+
+      const result = await jiraService.validateProjectKey('EXIST');
+
+      expect(result.success).toBe(true);
+      expect(result.data?.errors).toEqual({ projectKey: 'A project with that key already exists.' });
+    });
+
+    it('handles errors', async () => {
+      (ProjectvalidateService.getProject1 as jest.Mock).mockRejectedValue(new Error('Not authenticated'));
+
+      const result = await jiraService.validateProjectKey('TEST');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authenticated');
     });
   });
 
