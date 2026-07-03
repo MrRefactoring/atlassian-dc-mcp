@@ -55,6 +55,9 @@ import { request as __request } from '../jira-client/core/request.js';
 
 jest.mock('../jira-client/core/request.js', () => ({
   request: jest.fn(),
+  resolve: jest.fn(async (_options: unknown, resolver: unknown) =>
+    typeof resolver === 'function' ? (resolver as () => unknown)() : resolver
+  ),
 }));
 
 jest.mock('../jira-client/index.js', () => ({
@@ -1217,6 +1220,69 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(true);
       expect(AttachmentService.removeAttachment).toHaveBeenCalledWith('10001');
+    });
+
+    describe('getAttachmentContent', () => {
+      let fetchSpy: jest.SpiedFunction<typeof fetch>;
+
+      beforeEach(() => {
+        fetchSpy = jest.spyOn(global, 'fetch');
+      });
+
+      afterEach(() => {
+        fetchSpy.mockRestore();
+      });
+
+      it('downloads and base64-encodes the attachment content', async () => {
+        const mockAttachment = {
+          id: '10001',
+          filename: 'test.txt',
+          mimeType: 'text/plain',
+          size: 5,
+          content: 'https://jira.example.com/secure/attachment/10001/test.txt',
+        };
+        (AttachmentService.getAttachment as jest.Mock).mockResolvedValue(mockAttachment);
+        fetchSpy.mockResolvedValue({
+          ok: true,
+          arrayBuffer: async () => Buffer.from('hello'),
+        } as unknown as Response);
+
+        const result = await jiraService.getAttachmentContent('10001');
+
+        expect(result.success).toBe(true);
+        expect(result.data).toEqual({
+          filename: 'test.txt',
+          mimeType: 'text/plain',
+          size: 5,
+          contentBase64: Buffer.from('hello').toString('base64'),
+        });
+        expect(fetchSpy).toHaveBeenCalledWith(mockAttachment.content, expect.objectContaining({
+          headers: { Authorization: 'Bearer test-token' },
+        }));
+      });
+
+      it('fails when the attachment metadata has no content URL', async () => {
+        (AttachmentService.getAttachment as jest.Mock).mockResolvedValue({ id: '10001', filename: 'test.txt' });
+
+        const result = await jiraService.getAttachmentContent('10001');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Attachment metadata did not include a content URL');
+        expect(fetchSpy).not.toHaveBeenCalled();
+      });
+
+      it('fails when the download request is not ok', async () => {
+        (AttachmentService.getAttachment as jest.Mock).mockResolvedValue({
+          id: '10001',
+          content: 'https://jira.example.com/secure/attachment/10001/test.txt',
+        });
+        fetchSpy.mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' } as unknown as Response);
+
+        const result = await jiraService.getAttachmentContent('10001');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Failed to download attachment content: 404 Not Found');
+      });
     });
 
     it('handles errors when attachments are disabled', async () => {

@@ -53,7 +53,7 @@ import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
 import type { MoveFieldBean } from './jira-client/models/MoveFieldBean.js';
 import type { ProjectInputBean } from './jira-client/models/ProjectInputBean.js';
 import type { ProjectUpdateBean } from './jira-client/models/ProjectUpdateBean.js';
-import { request as __request } from './jira-client/core/request.js';
+import { request as __request, resolve as __resolveAuth } from './jira-client/core/request.js';
 import type { StringList } from './jira-client/models/StringList.js';
 import type { FilePart } from './jira-client/models/FilePart.js';
 import { getDefaultPageSize, getMissingConfig, JIRA_PRODUCT } from './config.js';
@@ -432,6 +432,30 @@ export class JiraService {
 
   async getAttachment(attachmentId: string) {
     return handleApiOperation(() => AttachmentService.getAttachment(attachmentId), 'Error getting attachment');
+  }
+
+  async getAttachmentContent(attachmentId: string) {
+    return handleApiOperation(async () => {
+      const meta = await AttachmentService.getAttachment(attachmentId) as Record<string, any>;
+      const contentUrl = meta?.content;
+      if (!contentUrl) {
+        throw new Error('Attachment metadata did not include a content URL');
+      }
+      const token = await __resolveAuth({ method: 'GET', url: contentUrl }, OpenAPI.TOKEN);
+      const response = await fetch(contentUrl, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to download attachment content: ${response.status} ${response.statusText}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      return {
+        filename: meta.filename,
+        mimeType: meta.mimeType,
+        size: meta.size,
+        contentBase64: Buffer.from(arrayBuffer).toString('base64'),
+      };
+    }, 'Error downloading attachment content');
   }
 
   async deleteAttachment(attachmentId: string) {
@@ -1759,6 +1783,9 @@ export const jiraToolSchemas = {
   getAttachmentMeta: {},
   getAttachment: {
     attachmentId: z.string().describe("Id of the attachment")
+  },
+  getAttachmentContent: {
+    attachmentId: z.string().describe("Id of the attachment to download")
   },
   deleteAttachment: {
     attachmentId: z.string().describe("Id of the attachment to delete")

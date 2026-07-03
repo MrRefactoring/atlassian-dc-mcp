@@ -173,7 +173,7 @@ pnpm dev
 
 ### Available Tools
 
-This server exposes 201 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 202 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -223,6 +223,7 @@ This server exposes 201 tools, grouped below by area. Every tool name is prefixe
 - `jira_addIssueAttachment` — Attach a file to an issue. Provide file content as base64.
 - `jira_getAttachmentMeta` — Get attachment capabilities (enabled/disabled, max upload size) of the instance.
 - `jira_getAttachment` — Get metadata (including download URI) for an attachment.
+- `jira_getAttachmentContent` — Download the raw content of an attachment as base64.
 - `jira_deleteAttachment` — Delete an attachment from an issue. This is irreversible.
 
 #### Issue links & link types
