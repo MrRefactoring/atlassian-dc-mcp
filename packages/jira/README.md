@@ -177,6 +177,16 @@ Or for development with auto-reload:
 pnpm dev
 ```
 
+### Resources
+
+Besides tools, this server exposes one MCP resource template so an issue can be referenced directly by URI instead of via a tool call:
+
+- `jira://issue/{issueKey}` — the same data as `jira_getIssue`, addressable as a resource (e.g. `jira://issue/PROJ-123`).
+
+### Prompts
+
+- `jira_triageIssue` (`issueKey`) — guides triaging a single issue: gather its details, comments, and available transitions, then recommend a priority, assignee, and next status.
+
 ### Available Tools
 
 This server exposes 208 tools, grouped below by area. Every tool name is prefixed with `jira_`.

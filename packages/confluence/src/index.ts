@@ -3,6 +3,12 @@ import { ConfluenceService, ConfluenceContent, ConfluenceSpace, confluenceToolSc
 import { shapeConfluenceMutationAck } from './confluence-response-mapper.js';
 import { getConfluenceRuntimeConfig, getDefaultPageSize } from './config.js';
 import { createRequire } from 'node:module';
+import { z } from 'zod';
+import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
+
+function firstValue(value: string | string[]): string {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json');
@@ -612,6 +618,58 @@ server.tool(
     const result = await confluenceService.deleteAttachmentVersion(contentId, attachmentId, version);
     return formatToolResponse(result);
   }
+);
+
+server.registerResource(
+  "confluence-page",
+  new ResourceTemplate("confluence://page/{pageId}", { list: undefined }),
+  {
+    title: "Confluence page",
+    description: `A content item (page, blog post, ...) in ${confluenceInstanceType}, addressable by its content ID (e.g. confluence://page/123456).`,
+    mimeType: "application/json",
+  },
+  async (uri, { pageId }) => {
+    const result = await confluenceService.getContent(firstValue(pageId));
+    return {
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: 'application/json',
+          text: JSON.stringify(result),
+        },
+      ],
+    };
+  }
+);
+
+server.registerPrompt(
+  "confluence_buildCqlQuery",
+  {
+    title: "Build a CQL query for Confluence search",
+    description: `Turns a natural-language content request into a valid CQL (Confluence Query Language) query for confluence_searchContent in ${confluenceInstanceType}.`,
+    argsSchema: {
+      request: z.string().describe(
+        "A natural-language description of what to find, e.g. 'pages about onboarding updated in the last month in the ENG space'"
+      ),
+    },
+  },
+  ({ request }) => ({
+    messages: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `Translate this request into a CQL query: "${request}"
+
+Common CQL fields: type (page, blogpost, attachment, comment), space, title, text, label, creator, contributor, created, lastmodified, ancestor.
+Operators: =, !=, ~, !~, in, not in, and, or, not. Relative dates use forms like now("-1m") or now("-7d").
+Example: type=page and space=ENG and lastmodified >= now("-30d") and title ~ "onboarding"
+
+Produce the CQL string, then call confluence_searchContent with it and summarize the results.`,
+        },
+      },
+    ],
+  })
 );
 
 await connectServer(server);
