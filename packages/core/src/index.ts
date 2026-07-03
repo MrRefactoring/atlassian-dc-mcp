@@ -3,12 +3,14 @@ import { createServer as createHttpServer } from 'node:http';
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { logger } from './logger.js';
 export * from './api-error-handler.js'
 export * from './pagination.js';
 export * from './config/index.js';
 export { runSetup, runSetupCli } from './setup-cli.js';
 export { describeValidationError } from './setup/describe-error.js';
 export { parseSetupArgs, printSetupHelp, SetupArgsError, type ParsedSetupArgs } from './setup/args.js';
+export { logger, type Logger, type LogLevel, type LogFields, LOG_LEVEL_ENV_VAR } from './logger.js';
 
 // Helper function to format tool responses
 export const formatToolResponse = (result: unknown) => ({
@@ -20,7 +22,7 @@ export const formatToolResponse = (result: unknown) => ({
 
 // Error handler helper
 export const handleError = (error: Error) => {
-  console.error("Server error:", error);
+  logger.error('Server error', { error });
   process.exit(1);
 };
 
@@ -51,6 +53,7 @@ export async function connectServer(server: McpServer) {
     return server;
   }
 
+  logger.debug('Connecting via stdio transport');
   const transport = new StdioServerTransport();
   await server.connect(transport);
   return server;
@@ -69,6 +72,7 @@ function parsePositiveInteger(value: string | undefined): number | undefined {
 }
 
 async function connectStreamableHttp(server: McpServer, port: number): Promise<void> {
+  logger.debug('Connecting via Streamable HTTP transport', { port });
   // Stateful mode: one long-lived transport demultiplexes many concurrent
   // client sessions by the Mcp-Session-Id header, so — unlike the SDK's
   // stateless example — the already-configured `server` (with all its tools,
@@ -81,7 +85,7 @@ async function connectStreamableHttp(server: McpServer, port: number): Promise<v
 
   const httpServer = createHttpServer((req, res) => {
     transport.handleRequest(req, res).catch((error) => {
-      console.error('Streamable HTTP request failed:', error);
+      logger.error('Streamable HTTP request failed', { error });
       if (!res.headersSent) {
         res.writeHead(500).end();
       }
@@ -91,7 +95,7 @@ async function connectStreamableHttp(server: McpServer, port: number): Promise<v
   await new Promise<void>((resolve, reject) => {
     httpServer.once('error', reject);
     httpServer.listen(port, () => {
-      console.error(`MCP server listening on Streamable HTTP at http://localhost:${port}/`);
+      logger.info(`MCP server listening on Streamable HTTP at http://localhost:${port}/`, { port });
       resolve();
     });
   });

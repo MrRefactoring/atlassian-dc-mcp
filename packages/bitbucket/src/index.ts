@@ -1,4 +1,4 @@
-import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from 'datacenter-mcp-core';
+import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig, logger } from 'datacenter-mcp-core';
 import { BitbucketService, bitbucketToolSchemas } from './bitbucket-service.js';
 import { getBitbucketRuntimeConfig, getDefaultPageSize } from './config.js';
 import { createRequire } from 'node:module';
@@ -16,7 +16,7 @@ initializeRuntimeConfig();
 
 const missingVars = BitbucketService.validateConfig();
 if (missingVars.length > 0) {
-  console.error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  logger.error(`Missing required environment variables: ${missingVars.join(', ')}`, { missingVars });
   process.exit(1);
 }
 

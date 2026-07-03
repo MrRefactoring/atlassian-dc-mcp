@@ -5,14 +5,14 @@ function apiError(status: number, statusText: string, body: any = {}) {
 }
 
 describe('handleApiOperation', () => {
-  let consoleErrorSpy: jest.SpyInstance;
+  let stderrSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
   });
 
   afterEach(() => {
-    consoleErrorSpy.mockRestore();
+    stderrSpy.mockRestore();
   });
 
   it('returns success with the resolved data', async () => {
@@ -58,8 +58,10 @@ describe('handleApiOperation', () => {
 
     expect(result).toEqual({ success: true, data: 'ok' });
     expect(operation).toHaveBeenCalledTimes(3);
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
-    expect(consoleErrorSpy.mock.calls[0][0]).toMatch(/retrying after 429 \(attempt 1\/3/);
+    expect(stderrSpy).toHaveBeenCalledTimes(2);
+    const firstLogEntry = JSON.parse(stderrSpy.mock.calls[0][0] as string);
+    expect(firstLogEntry.message).toMatch(/retrying after 429/);
+    expect(firstLogEntry).toMatchObject({ level: 'warn', status: 429, attempt: 1, maxRetries: 3 });
   });
 
   it('retries 5xx server errors the same way as 429', async () => {

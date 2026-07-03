@@ -133,6 +133,14 @@ ATLASSIAN_DC_MCP_HTTP_PORT=3000 npx jira-datacenter-mcp
 
 The transport is stateful: it demultiplexes many concurrent client sessions by the `Mcp-Session-Id` header over one long-lived process, so exposing it beyond localhost needs your own reverse proxy / TLS termination and network access control — the transport itself does not add authentication on top of the Atlassian credentials already configured for the server.
 
+## Logging
+
+The stdio transport reserves stdout exclusively for JSON-RPC protocol messages, so all logging — at any level, on any transport — goes to stderr as one JSON object per line (`{"timestamp", "level", "message", ...fields}`), safe to capture separately from the protocol stream. Levels are `debug` < `info` < `warn` < `error`; the default is `info`. Set `ATLASSIAN_DC_MCP_LOG_LEVEL` to change it:
+
+```bash
+ATLASSIAN_DC_MCP_LOG_LEVEL=debug npx jira-datacenter-mcp
+```
+
 ## Claude Desktop Configuration
 
 [Official Anthropic quick start guide](https://modelcontextprotocol.io/docs/getting-started/intro)
