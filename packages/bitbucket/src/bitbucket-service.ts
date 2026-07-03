@@ -2414,6 +2414,33 @@ export class BitbucketService {
   }
 
   /**
+   * Get the participants of a pull request — everyone who has interacted with it (author, reviewers,
+   * and anyone else who has commented or approved), as opposed to just the requested reviewers.
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param pullRequestId The pull request ID
+   * @param start Optional pagination start
+   * @param limit Optional pagination limit (defaults to the package page size)
+   * @returns Promise with the page of pull request participants
+   */
+  async getPullRequestParticipants(
+    projectKey: string,
+    repositorySlug: string,
+    pullRequestId: string,
+    start?: number,
+    limit?: number
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+    return handleApiOperation(
+      () => PullRequestsService.listParticipants(
+        projectKey, pullRequestId, repositorySlug, start, limit ?? this.getPageSize()
+      ),
+      'Error fetching pull request participants'
+    );
+  }
+
+  /**
    * Update an existing project (the project key is never changed)
    * @param key The project key
    * @param name Optional new project name
@@ -3485,6 +3512,13 @@ export const bitbucketToolSchemas = {
     repositorySlug: z.string().describe("The repository slug"),
     pullRequestId: z.string().describe("The pull request ID"),
     userSlug: z.string().describe("The username/name of the reviewer to remove. The user remains a participant but loses the REVIEWER role.")
+  },
+  getPullRequestParticipants: {
+    projectKey: z.string().describe("The project key"),
+    repositorySlug: z.string().describe("The repository slug"),
+    pullRequestId: z.string().describe("The pull request ID"),
+    start: z.number().optional().describe("Start number for pagination"),
+    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
   },
   getRequiredReviewers: {
     projectKey: z.string().describe("The project key"),
