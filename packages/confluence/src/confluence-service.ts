@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ChildContentService, ContentDescendantService, ContentLabelsService, ContentResourceService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
+import { ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, OpenAPI, SearchService, UserService } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
@@ -249,6 +249,68 @@ export class ConfluenceService {
   }
 
   /**
+   * Get the paginated list of properties stored on a piece of content.
+   * @param contentId The ID of the content
+   */
+  async getContentProperties(contentId: string, expand?: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => ContentPropertyService.findAll(contentId, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting content properties'
+    );
+  }
+
+  /**
+   * Get a single content property by key.
+   * @param contentId The ID of the content
+   * @param key The property key
+   */
+  async getContentProperty(contentId: string, key: string, expand?: string) {
+    return handleApiOperation(
+      () => ContentPropertyService.findByKey(contentId, key, expand),
+      'Error getting content property'
+    );
+  }
+
+  /**
+   * Create a new content property.
+   * @param contentId The ID of the content
+   * @param key The property key
+   * @param value The JSON value to store
+   */
+  async createContentProperty(contentId: string, key: string, value: unknown) {
+    return handleApiOperation(
+      () => ContentPropertyService.create1(contentId, { key, value }),
+      'Error creating content property'
+    );
+  }
+
+  /**
+   * Update an existing content property. The version number must be the current version + 1.
+   * @param contentId The ID of the content
+   * @param key The property key
+   * @param value The new JSON value
+   * @param version The new version number
+   */
+  async updateContentProperty(contentId: string, key: string, value: unknown, version: number) {
+    return handleApiOperation(
+      () => ContentPropertyService.update1(contentId, key, undefined, { key, value, version: { number: version } }),
+      'Error updating content property'
+    );
+  }
+
+  /**
+   * Delete a content property by key.
+   * @param contentId The ID of the content
+   * @param key The property key
+   */
+  async deleteContentProperty(contentId: string, key: string) {
+    return handleApiOperation(
+      () => ContentPropertyService.delete2(contentId, key),
+      'Error deleting content property'
+    );
+  }
+
+  /**
    * Search for spaces by text
    * @param searchText Text to search for in space names or descriptions
    * @param limit Maximum number of results to return
@@ -374,6 +436,32 @@ export const confluenceToolSchemas = {
   deleteContentLabel: {
     contentId: z.string().describe("ID of the content to remove the label from"),
     name: z.string().describe("Name of the label to remove")
+  },
+  getContentProperties: {
+    contentId: z.string().describe("ID of the content to fetch properties for"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. content,version). Defaults to version."),
+    limit: z.number().optional().describe("Maximum number of properties to return"),
+    start: z.number().optional().describe("Start index for pagination")
+  },
+  getContentProperty: {
+    contentId: z.string().describe("ID of the content"),
+    key: z.string().describe("Key of the content property to fetch"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. content,version). Defaults to version.")
+  },
+  createContentProperty: {
+    contentId: z.string().describe("ID of the content to store the property on"),
+    key: z.string().describe("Key of the content property to create"),
+    value: z.any().describe("JSON value to store for the property (object, array, string, number or boolean)")
+  },
+  updateContentProperty: {
+    contentId: z.string().describe("ID of the content"),
+    key: z.string().describe("Key of the content property to update"),
+    value: z.any().describe("New JSON value for the property"),
+    version: z.number().describe("New version number (must be the current version + 1)")
+  },
+  deleteContentProperty: {
+    contentId: z.string().describe("ID of the content"),
+    key: z.string().describe("Key of the content property to delete")
   },
   searchSpaces: {
     searchText: z.string().describe("Text to search for in Confluence Data Center space names or descriptions. Quotes and backslashes are escaped for CQL; pass the literal search phrase only (do not pre-escape)."),
