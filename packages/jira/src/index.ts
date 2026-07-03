@@ -254,6 +254,46 @@ server.tool(
 );
 
 server.tool(
+  "jira_getProjectPropertyKeys",
+  `Get the keys of all entity properties stored on a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectPropertyKeys,
+  async ({ projectIdOrKey }) => {
+    const result = await jiraService.getProjectPropertyKeys(projectIdOrKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getProjectProperty",
+  `Get a single entity property value from a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.getProjectProperty,
+  async ({ projectIdOrKey, propertyKey }) => {
+    const result = await jiraService.getProjectProperty(projectIdOrKey, propertyKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setProjectProperty",
+  `Set an entity property (arbitrary JSON key/value metadata) on a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.setProjectProperty,
+  async ({ projectIdOrKey, propertyKey, value }) => {
+    const result = await jiraService.setProjectProperty(projectIdOrKey, propertyKey, value);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteProjectProperty",
+  `Delete an entity property from a project in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteProjectProperty,
+  async ({ projectIdOrKey, propertyKey }) => {
+    const result = await jiraService.deleteProjectProperty(projectIdOrKey, propertyKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_getIssueTypes",
   `Get all issue types available in the ${jiraInstanceType}`,
   jiraToolSchemas.getIssueTypes,
@@ -349,6 +389,46 @@ server.tool(
   jiraToolSchemas.deleteIssueComment,
   async ({ issueKey, commentId }) => {
     const result = await jiraService.deleteIssueComment(issueKey, commentId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getCommentPropertyKeys",
+  `Get the keys of all entity properties stored on a comment in the ${jiraInstanceType}`,
+  jiraToolSchemas.getCommentPropertyKeys,
+  async ({ commentId }) => {
+    const result = await jiraService.getCommentPropertyKeys(commentId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getCommentProperty",
+  `Get a single entity property value from a comment in the ${jiraInstanceType}`,
+  jiraToolSchemas.getCommentProperty,
+  async ({ commentId, propertyKey }) => {
+    const result = await jiraService.getCommentProperty(commentId, propertyKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setCommentProperty",
+  `Set an entity property (arbitrary JSON key/value metadata) on a comment in the ${jiraInstanceType}`,
+  jiraToolSchemas.setCommentProperty,
+  async ({ commentId, propertyKey, value }) => {
+    const result = await jiraService.setCommentProperty(commentId, propertyKey, value);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteCommentProperty",
+  `Delete an entity property from a comment in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteCommentProperty,
+  async ({ commentId, propertyKey }) => {
+    const result = await jiraService.deleteCommentProperty(commentId, propertyKey);
     return formatToolResponse(result);
   }
 );
@@ -1059,6 +1139,46 @@ server.tool(
   jiraToolSchemas.rankIssues,
   async ({ issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId }) => {
     const result = await jiraService.rankIssues(issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssuePropertyKeys",
+  `Get the keys of all entity properties stored on an issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssuePropertyKeys,
+  async ({ issueKey }) => {
+    const result = await jiraService.getIssuePropertyKeys(issueKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueProperty",
+  `Get a single entity property value from an issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueProperty,
+  async ({ issueKey, propertyKey }) => {
+    const result = await jiraService.getIssueProperty(issueKey, propertyKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setIssueProperty",
+  `Set an entity property (arbitrary JSON key/value metadata) on an issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.setIssueProperty,
+  async ({ issueKey, propertyKey, value }) => {
+    const result = await jiraService.setIssueProperty(issueKey, propertyKey, value);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteIssueProperty",
+  `Delete an entity property from an issue in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteIssueProperty,
+  async ({ issueKey, propertyKey }) => {
+    const result = await jiraService.deleteIssueProperty(issueKey, propertyKey);
     return formatToolResponse(result);
   }
 );
