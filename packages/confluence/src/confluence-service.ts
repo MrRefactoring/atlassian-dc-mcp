@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService } from './confluence-client/index.js';
+import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluence-client/index.js';
 import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -55,6 +55,16 @@ export interface SpacePermissionsForSubjectInput {
   userKey?: string;
   groupName?: string;
   operations?: OperationDescriptionInput[];
+}
+
+export interface WebhookInput {
+  name: string;
+  url: string;
+  events: string[];
+  active?: boolean;
+  configuration?: {
+    secret?: string;
+  };
 }
 
 function resolveCredential(value: string | (() => string | undefined) | undefined) {
@@ -1145,6 +1155,86 @@ export class ConfluenceService {
     );
   }
 
+  /**
+   * Find webhooks. Requires administrator permission.
+   */
+  async findWebhooks(limit?: number, start?: number, event?: string, statistics?: boolean) {
+    return handleApiOperation(
+      () => WebhooksService.findWebhooks(
+        (limit ?? this.getPageSize()).toString(),
+        start?.toString(),
+        event,
+        statistics?.toString()
+      ),
+      'Error finding webhooks'
+    );
+  }
+
+  /**
+   * Create a webhook. Requires administrator permission.
+   */
+  async createWebhook(webhook: WebhookInput) {
+    return handleApiOperation(() => WebhooksService.createWebhook(webhook), 'Error creating webhook');
+  }
+
+  /**
+   * Get a webhook by ID. Requires administrator permission.
+   */
+  async getWebhook(webhookId: string, statistics?: boolean) {
+    return handleApiOperation(() => WebhooksService.getWebhook(webhookId, statistics), 'Error getting webhook');
+  }
+
+  /**
+   * Update an existing webhook. Requires administrator permission.
+   */
+  async updateWebhook(webhookId: string, webhook: WebhookInput) {
+    return handleApiOperation(() => WebhooksService.updateWebhook(webhookId, webhook), 'Error updating webhook');
+  }
+
+  /**
+   * Delete a webhook. Requires administrator permission.
+   */
+  async deleteWebhook(webhookId: string) {
+    return handleApiOperation(() => WebhooksService.deleteWebhook(webhookId), 'Error deleting webhook');
+  }
+
+  /**
+   * Get the latest invocation of a webhook, optionally filtered by outcome and/or event. Requires administrator permission.
+   */
+  async getWebhookLatestInvocation(webhookId: string, outcomes?: string, event?: string) {
+    return handleApiOperation(
+      () => WebhooksService.getLatestInvocation(webhookId, outcomes, event),
+      'Error getting webhook latest invocation'
+    );
+  }
+
+  /**
+   * Get invocation statistics for a webhook. Requires administrator permission.
+   */
+  async getWebhookStatistics(webhookId: string, event?: string) {
+    return handleApiOperation(
+      () => WebhooksService.getStatistics(webhookId, event),
+      'Error getting webhook statistics'
+    );
+  }
+
+  /**
+   * Get the invocation statistics summary for a webhook. Requires administrator permission.
+   */
+  async getWebhookStatisticsSummary(webhookId: string) {
+    return handleApiOperation(
+      () => WebhooksService.getStatisticsSummary(webhookId),
+      'Error getting webhook statistics summary'
+    );
+  }
+
+  /**
+   * Test connectivity to a webhook endpoint URL. Requires administrator permission.
+   */
+  async testWebhook(url: string) {
+    return handleApiOperation(() => WebhooksService.testWebhook(url), 'Error testing webhook');
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -1637,5 +1727,48 @@ export const confluenceToolSchemas = {
     value: z.string().describe("The body content to convert"),
     representation: z.enum(['storage', 'editor', 'view', 'export_view', 'styled_view']).describe("The representation of the supplied value"),
     expand: z.string().optional().describe("Comma-separated list of properties to expand on the response")
+  },
+  findWebhooks: {
+    limit: z.number().optional().describe("Maximum number of webhooks to return"),
+    start: z.number().optional().describe("Start index for pagination"),
+    event: z.string().optional().describe("Filter by webhook event ID (e.g. page_created)"),
+    statistics: z.boolean().optional().describe("Include invocation statistics for each webhook")
+  },
+  createWebhook: {
+    name: z.string().describe("Name for the webhook"),
+    url: z.string().describe("The endpoint URL the webhook will POST event payloads to"),
+    events: z.array(z.string()).min(1).describe("Events to subscribe to, e.g. ['page_created', 'page_updated', 'page_removed']"),
+    active: z.boolean().optional().describe("Whether the webhook is enabled. Defaults to true."),
+    secret: z.string().optional().describe("Optional secret used to sign webhook payloads for verification")
+  },
+  getWebhook: {
+    webhookId: z.string().describe("ID of the webhook to fetch"),
+    statistics: z.boolean().optional().describe("Include invocation statistics. Defaults to false.")
+  },
+  updateWebhook: {
+    webhookId: z.string().describe("ID of the webhook to update"),
+    name: z.string().describe("Name for the webhook"),
+    url: z.string().describe("The endpoint URL the webhook will POST event payloads to"),
+    events: z.array(z.string()).min(1).describe("Events to subscribe to, e.g. ['page_created', 'page_updated', 'page_removed']"),
+    active: z.boolean().optional().describe("Whether the webhook is enabled"),
+    secret: z.string().optional().describe("Optional secret used to sign webhook payloads for verification")
+  },
+  deleteWebhook: {
+    webhookId: z.string().describe("ID of the webhook to delete")
+  },
+  getWebhookLatestInvocation: {
+    webhookId: z.string().describe("ID of the webhook"),
+    outcomes: z.string().optional().describe("Filter by outcome: SUCCESS, FAILURE or ERROR. Omit for all outcomes."),
+    event: z.string().optional().describe("Filter to the last invocation of a specific event")
+  },
+  getWebhookStatistics: {
+    webhookId: z.string().describe("ID of the webhook"),
+    event: z.string().optional().describe("Filter statistics to a specific event")
+  },
+  getWebhookStatisticsSummary: {
+    webhookId: z.string().describe("ID of the webhook")
+  },
+  testWebhook: {
+    url: z.string().describe("The endpoint URL to test connectivity against")
   }
 };
