@@ -89,6 +89,7 @@ Notes:
 - If a higher-priority source shadows the value setup is about to save, setup prints a warning naming the env var so you can unset it.
 - Atlassian API requests time out after 30 seconds by default. Set `ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS` to a positive millisecond value to override it.
 - Transient failures (HTTP 429 and 5xx) are retried automatically with exponential backoff and jitter (up to 3 retries) before a tool call reports an error. 4xx client errors (bad input, auth, not found, ...) are never retried.
+- `datacenter-mcp-core` exports a `paginateAll` helper for auto-paginating naturally small, bounded startAt-paged endpoints (e.g. a project's versions, a page's labels) internally in a service method, so callers get one fully-assembled list instead of hand-rolling a startAt loop. It's not used for open-ended search endpoints (JQL/CQL, repository listings), which stay single-page and agent-driven so a broad query can't flood the conversation with an unbounded amount of data.
 - Each product also accepts `*_USERNAME`/`*_PASSWORD` for Basic auth, as an alternative to `*_API_TOKEN` (useful for older instances without personal access tokens). If both are set, Basic auth takes precedence over the Bearer token.
 
 ## Claude Desktop Configuration
