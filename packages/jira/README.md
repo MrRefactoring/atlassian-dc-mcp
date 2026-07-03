@@ -189,7 +189,7 @@ Besides tools, this server exposes one MCP resource template so an issue can be 
 
 ### Available Tools
 
-This server exposes 230 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 234 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -208,7 +208,9 @@ This server exposes 230 tools, grouped below by area. Every tool name is prefixe
 - `jira_createIssues` — Create multiple issues in a single bulk request.
 - `jira_archiveIssues` — Bulk archive issues by keys or JQL.
 - `jira_archiveIssue` — Archive a single issue.
+- `jira_restoreIssue` — Restore a previously archived issue.
 - `jira_rankIssues` — Reorder (rank) issues relative to another issue, as used on Agile boards/backlogs.
+- `jira_notifyIssue` — Send a manual email notification about an issue to specific users, groups, or roles.
 
 #### Issue comments
 
@@ -216,6 +218,8 @@ This server exposes 230 tools, grouped below by area. Every tool name is prefixe
 - `jira_postIssueComment` — Post a comment on an issue.
 - `jira_updateIssueComment` — Update the text of an existing comment.
 - `jira_deleteIssueComment` — Delete a comment. This is irreversible.
+- `jira_setCommentPinned` — Pin or unpin a comment.
+- `jira_getPinnedComments` — Get all pinned comments for an issue.
 
 #### Issue watchers & votes
 
