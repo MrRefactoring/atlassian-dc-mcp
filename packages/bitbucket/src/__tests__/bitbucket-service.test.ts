@@ -97,6 +97,7 @@ jest.mock('../bitbucket-client/index.js', () => ({
     createRepository: jest.fn(),
     updateRepository: jest.fn(),
     forkRepository: jest.fn(),
+    getForkedRepositories: jest.fn(),
     deleteRepository: jest.fn(),
     getUsersWithAnyPermission1: jest.fn(),
     getGroupsWithAnyPermission1: jest.fn(),
@@ -4142,6 +4143,26 @@ describe('BitbucketService', () => {
       await bitbucketService.forkRepository('TEST', 'test-repo');
 
       expect(ProjectService.forkRepository).toHaveBeenCalledWith('TEST', 'test-repo', {});
+    });
+
+    it('should get the direct forks of a repository with default limit', async () => {
+      const mockData = { values: [{ slug: 'my-fork' }], isLastPage: true };
+      (ProjectService.getForkedRepositories as jest.Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.getRepositoryForks('test', 'Test-Repo');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(ProjectService.getForkedRepositories).toHaveBeenCalledWith('TEST', 'test-repo', undefined, 25);
+    });
+
+    it('should handle errors when getting repository forks', async () => {
+      (ProjectService.getForkedRepositories as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      const result = await bitbucketService.getRepositoryForks('TEST', 'test-repo');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
     });
 
     it('should delete a repository and return an ack', async () => {

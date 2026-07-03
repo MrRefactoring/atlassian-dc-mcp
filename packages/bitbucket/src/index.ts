@@ -627,6 +627,16 @@ server.tool(
 );
 
 server.tool(
+  "bitbucket_getRepositoryForks",
+  "List the direct forks of a Bitbucket repository. Only looks one level deep — forks of forks are not included. Only repositories the authenticated user has REPO_READ on are returned.",
+  bitbucketToolSchemas.getRepositoryForks,
+  async ({ projectKey, repositorySlug, start, limit }) => {
+    const result = await bitbucketService.getRepositoryForks(projectKey, repositorySlug, start, limit);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "bitbucket_updateProject",
   "Update an existing Bitbucket project's name or description. Requires PROJECT_ADMIN permission. The project key is never changed. Only the provided fields are updated.",
   bitbucketToolSchemas.updateProject,

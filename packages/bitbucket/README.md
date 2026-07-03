@@ -183,7 +183,7 @@ pnpm dev
 
 ### Available Tools
 
-This server registers 106 tools, grouped below by area.
+This server registers 107 tools, grouped below by area.
 
 #### Projects & Repositories
 
@@ -198,6 +198,7 @@ This server registers 106 tools, grouped below by area.
 - `bitbucket_updateRepository` — Rename a repository or change its description, default branch, or project (requires `REPO_ADMIN`).
 - `bitbucket_deleteRepository` — Schedule a repository for deletion (requires `REPO_ADMIN`; irreversible).
 - `bitbucket_forkRepository` — Fork an existing repository into another (or the user's personal) project.
+- `bitbucket_getRepositoryForks` — List the direct forks of a repository (one level deep only).
 - `bitbucket_browseRepository` — Browse a repository path: list a directory, read a file's content, or fetch blame.
 - `bitbucket_getFileContent` — Get the raw text content of a file at a given ref or commit.
 - `bitbucket_editFile` — Create or edit a file and commit the change in one call, with optimistic conflict detection.
