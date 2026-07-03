@@ -41,10 +41,14 @@ jobs:
               const path = `packages/${dir}/CHANGELOG.md`
               if (!fs.existsSync(path)) continue
               const changelog = fs.readFileSync(path, 'utf8')
-              const re = new RegExp(`^# \\[${escaped}\\][^\\n]*\\n([\\s\\S]*?)(?=\\n# \\[|(?![\\s\\S]))`, 'm')
+              const re = new RegExp(`^## ${escaped}[^\\n]*\\n([\\s\\S]*?)(?=\\n#{1,2}(?!#)|(?![\\s\\S]))`, 'm')
               const match = changelog.match(re)
-              const body = match ? match[1].trim() : ''
-              if (body) sections.push(`### ${name}\n\n${body}`)
+              // Strip the one-time "All notable changes..." preamble that sits
+              // between the migrated legacy changelog and the first changesets entry.
+              const body = match
+                ? match[1].replace(/All notable changes to this project will be documented in this file\.\s*\nSee \[Conventional Commits\]\([^)]*\) for commit guidelines\.\s*/, '').trim()
+                : ''
+              if (body) sections.push(`## ${name}\n\n${body}`)
             }
 
             const body = sections.length
