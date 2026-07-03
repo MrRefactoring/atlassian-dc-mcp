@@ -17,6 +17,7 @@ import {
   IssueLinkTypeService,
   IssueService,
   IssuesecurityschemesService,
+  IssuetypeschemeService,
   IssuetypeService,
   MyselfService,
   NotificationschemeService,
@@ -915,6 +916,76 @@ export class JiraService {
     );
   }
 
+  async getIssueTypeSchemes() {
+    return handleApiOperation(
+      () => IssuetypeschemeService.getAllIssueTypeSchemes(),
+      'Error getting issue type schemes'
+    );
+  }
+
+  async createIssueTypeScheme(name: string, description?: string, issueTypeIds?: string[], defaultIssueTypeId?: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.createIssueTypeScheme({ name, description, issueTypeIds, defaultIssueTypeId }),
+      'Error creating issue type scheme'
+    );
+  }
+
+  async getIssueTypeScheme(schemeId: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.getIssueTypeScheme(schemeId),
+      'Error getting issue type scheme'
+    );
+  }
+
+  async updateIssueTypeScheme(schemeId: string, name?: string, description?: string, issueTypeIds?: string[], defaultIssueTypeId?: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.updateIssueTypeScheme(schemeId, { name, description, issueTypeIds, defaultIssueTypeId }),
+      'Error updating issue type scheme'
+    );
+  }
+
+  async deleteIssueTypeScheme(schemeId: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.deleteIssueTypeScheme(schemeId),
+      'Error deleting issue type scheme'
+    );
+  }
+
+  async getIssueTypeSchemeProjects(schemeId: string, expand?: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.getAssociatedProjects(schemeId, expand),
+      'Error getting issue type scheme associated projects'
+    );
+  }
+
+  async setIssueTypeSchemeProjects(schemeId: string, idsOrKeys: string[]) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.setProjectAssociationsForScheme(schemeId, { idsOrKeys }),
+      'Error setting issue type scheme project associations'
+    );
+  }
+
+  async addIssueTypeSchemeProjects(schemeId: string, idsOrKeys: string[]) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.addProjectAssociationsToScheme(schemeId, { idsOrKeys }),
+      'Error adding issue type scheme project associations'
+    );
+  }
+
+  async removeIssueTypeSchemeProjects(schemeId: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.removeAllProjectAssociations(schemeId),
+      'Error removing issue type scheme project associations'
+    );
+  }
+
+  async removeIssueTypeSchemeProject(schemeId: string, projIdOrKey: string) {
+    return handleApiOperation(
+      () => IssuetypeschemeService.removeProjectAssociation(projIdOrKey, schemeId),
+      'Error removing issue type scheme project association'
+    );
+  }
+
   async getWorkflows(workflowName?: string) {
     return handleApiOperation(
       () => WorkflowService.getAllWorkflows(workflowName),
@@ -1615,6 +1686,45 @@ export const jiraToolSchemas = {
     rankBeforeEpic: z.string().optional().describe("Rank this epic before the epic with this id/key"),
     rankAfterEpic: z.string().optional().describe("Rank this epic after the epic with this id/key"),
     rankCustomFieldId: z.number().optional().describe("Id of the custom 'Rank' field, if not the default")
+  },
+  getIssueTypeSchemes: {},
+  createIssueTypeScheme: {
+    name: z.string().describe("Name of the new issue type scheme"),
+    description: z.string().optional().describe("Description of the new issue type scheme"),
+    issueTypeIds: z.array(z.string()).optional().describe("Ids of the issue types to associate with the scheme"),
+    defaultIssueTypeId: z.string().optional().describe("Id of the default issue type. Must be one of issueTypeIds.")
+  },
+  getIssueTypeScheme: {
+    schemeId: z.string().describe("Id of the issue type scheme")
+  },
+  updateIssueTypeScheme: {
+    schemeId: z.string().describe("Id of the issue type scheme to update"),
+    name: z.string().optional().describe("New name for the scheme"),
+    description: z.string().optional().describe("New description for the scheme"),
+    issueTypeIds: z.array(z.string()).optional().describe("Replaces the issue types associated with the scheme"),
+    defaultIssueTypeId: z.string().optional().describe("Id of the default issue type. Must be one of issueTypeIds.")
+  },
+  deleteIssueTypeScheme: {
+    schemeId: z.string().describe("Id of the issue type scheme to delete")
+  },
+  getIssueTypeSchemeProjects: {
+    schemeId: z.string().describe("Id of the issue type scheme"),
+    expand: z.string().optional().describe("Comma-separated expansions for the returned projects")
+  },
+  setIssueTypeSchemeProjects: {
+    schemeId: z.string().describe("Id of the issue type scheme whose project associations are being replaced"),
+    idsOrKeys: z.array(z.string()).describe("Project ids or keys to associate with the scheme, replacing any existing associations")
+  },
+  addIssueTypeSchemeProjects: {
+    schemeId: z.string().describe("Id of the issue type scheme whose project associations are being added to"),
+    idsOrKeys: z.array(z.string()).describe("Project ids or keys to associate with the scheme, in addition to existing associations")
+  },
+  removeIssueTypeSchemeProjects: {
+    schemeId: z.string().describe("Id of the issue type scheme whose project associations should all be removed")
+  },
+  removeIssueTypeSchemeProject: {
+    schemeId: z.string().describe("Id of the issue type scheme"),
+    projIdOrKey: z.string().describe("Id or key of the project to un-associate from the scheme")
   },
   getPermissionSchemes: {
     expand: z.string().optional().describe("Comma-separated expansions, e.g. 'permissions' to include each scheme's permission grants")
