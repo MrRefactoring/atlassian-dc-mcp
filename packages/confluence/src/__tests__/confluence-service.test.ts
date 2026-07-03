@@ -1,11 +1,15 @@
 import { ConfluenceService, escapeSearchTextForCql } from '../confluence-service.js';
 import { ContentResourceService, SearchService } from '../confluence-client/index.js';
 
+const CONTENT_RESOURCE = ContentResourceService as unknown as Record<string, jest.Mock>;
+
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
     getContentById: jest.fn(),
     createContent: jest.fn(),
     update2: jest.fn(),
+    delete3: jest.fn(),
+    getHistory: jest.fn(),
   },
   SearchService: {
     search1: jest.fn(),
@@ -342,5 +346,50 @@ describe('ConfluenceService token optimization paths', () => {
       'highlight',
       'type=space AND title ~ "docs"'
     );
+  });
+});
+
+describe('ConfluenceService content lifecycle (delete + history)', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('deletes content without a status (trash)', async () => {
+    CONTENT_RESOURCE.delete3.mockResolvedValue(undefined);
+
+    const result = await service.deleteContent('123');
+
+    expect(CONTENT_RESOURCE.delete3).toHaveBeenCalledWith('123', undefined);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards the status selector when purging trashed content', async () => {
+    CONTENT_RESOURCE.delete3.mockResolvedValue(undefined);
+
+    await service.deleteContent('123', 'trashed');
+
+    expect(CONTENT_RESOURCE.delete3).toHaveBeenCalledWith('123', 'trashed');
+  });
+
+  it('gets content history with an expand list', async () => {
+    CONTENT_RESOURCE.getHistory.mockResolvedValue({ latest: true });
+
+    const result = await service.getContentHistory('123', 'contributors');
+
+    expect(CONTENT_RESOURCE.getHistory).toHaveBeenCalledWith('123', 'contributors');
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual({ latest: true });
+  });
+
+  it('forwards API errors via handleApiOperation', async () => {
+    CONTENT_RESOURCE.delete3.mockRejectedValue(new Error('boom'));
+
+    const result = await service.deleteContent('123');
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
   });
 });

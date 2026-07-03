@@ -141,6 +141,26 @@ server.tool(
   }
 );
 
+server.tool(
+  "confluence_deleteContent",
+  `Delete (trash or purge) content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.deleteContent,
+  async ({ contentId, status }) => {
+    const result = await confluenceService.deleteContent(contentId, status);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getContentHistory",
+  `Get the version history of content in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getContentHistory,
+  async ({ contentId, expand }) => {
+    const result = await confluenceService.getContentHistory(contentId, expand);
+    return formatToolResponse(result);
+  }
+);
+
 server.tool('confluence_searchSpace',
   `Search for spaces in ${confluenceInstanceType}`,
   confluenceToolSchemas.searchSpaces,
