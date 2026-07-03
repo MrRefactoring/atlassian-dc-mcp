@@ -486,6 +486,16 @@ server.tool(
 );
 
 server.tool(
+  "jira_getAttachmentContent",
+  `Download the raw content of an attachment from the ${jiraInstanceType} as base64. Fetches the file behind the attachment's download URI.`,
+  jiraToolSchemas.getAttachmentContent,
+  async ({ attachmentId }) => {
+    const result = await jiraService.getAttachmentContent(attachmentId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_deleteAttachment",
   `Delete an attachment from a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
   jiraToolSchemas.deleteAttachment,
