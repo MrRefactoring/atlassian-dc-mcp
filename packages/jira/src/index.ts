@@ -1447,4 +1447,34 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getAllScreens",
+  `Get a paginated, searchable list of field screens in the ${jiraInstanceType}`,
+  jiraToolSchemas.getAllScreens,
+  async ({ search, expand, maxResults, startAt }) => {
+    const result = await jiraService.getAllScreens(search, expand, maxResults, startAt);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addFieldToDefaultScreen",
+  `Add a field or custom field to the default screen's default tab in the ${jiraInstanceType}`,
+  jiraToolSchemas.addFieldToDefaultScreen,
+  async ({ fieldId }) => {
+    const result = await jiraService.addFieldToDefaultScreen(fieldId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getScreenAvailableFields",
+  `Get fields available to add to a screen (ones not already present on any tab) in the ${jiraInstanceType}`,
+  jiraToolSchemas.getScreenAvailableFields,
+  async ({ screenId }) => {
+    const result = await jiraService.getScreenAvailableFields(screenId);
+    return formatToolResponse(result);
+  }
+);
+
 await connectServer(server);

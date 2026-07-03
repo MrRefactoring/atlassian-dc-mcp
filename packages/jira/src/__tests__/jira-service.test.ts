@@ -28,6 +28,7 @@ import {
   ProjectService,
   ProjectsService,
   ResolutionService,
+  ScreensService,
   SearchService,
   SecuritylevelService,
   SprintService,
@@ -249,6 +250,21 @@ jest.mock('../jira-client/index.js', () => ({
     storeTemporaryAvatarUsingMultiPart2: jest.fn(),
     createAvatarFromTemporary3: jest.fn(),
     deleteAvatar1: jest.fn(),
+  },
+  ScreensService: {
+    getAllScreens: jest.fn(),
+    addFieldToDefaultScreen: jest.fn(),
+    getFieldsToAdd: jest.fn(),
+    getAllTabs: jest.fn(),
+    addTab: jest.fn(),
+    renameTab: jest.fn(),
+    deleteTab: jest.fn(),
+    getAllFields: jest.fn(),
+    addField: jest.fn(),
+    removeField: jest.fn(),
+    moveField: jest.fn(),
+    updateShowWhenEmptyIndicator: jest.fn(),
+    moveTab: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -2465,6 +2481,48 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Invalid avatar type');
+    });
+  });
+
+  describe('screens and default screen fields', () => {
+    it('gets all screens with filters', async () => {
+      const mockScreens = { values: [{ id: 1, name: 'Default Screen' }] };
+      (ScreensService.getAllScreens as jest.Mock).mockResolvedValue(mockScreens);
+
+      const result = await jiraService.getAllScreens('Default', 'names', 25, 0);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScreens);
+      expect(ScreensService.getAllScreens).toHaveBeenCalledWith('Default', 'names', '25', '0');
+    });
+
+    it('adds a field to the default screen', async () => {
+      (ScreensService.addFieldToDefaultScreen as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.addFieldToDefaultScreen('customfield_10001');
+
+      expect(result.success).toBe(true);
+      expect(ScreensService.addFieldToDefaultScreen).toHaveBeenCalledWith('customfield_10001');
+    });
+
+    it('gets available fields for a screen', async () => {
+      const mockFields = [{ id: 'customfield_10002', name: 'Epic Link' }];
+      (ScreensService.getFieldsToAdd as jest.Mock).mockResolvedValue(mockFields);
+
+      const result = await jiraService.getScreenAvailableFields(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockFields);
+      expect(ScreensService.getFieldsToAdd).toHaveBeenCalledWith(1);
+    });
+
+    it('handles errors', async () => {
+      (ScreensService.getAllScreens as jest.Mock).mockRejectedValue(new Error('Not authorized'));
+
+      const result = await jiraService.getAllScreens();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authorized');
     });
   });
 
