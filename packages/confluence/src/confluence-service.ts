@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService } from './confluence-client/index.js';
+import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ContentBlueprintService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService } from './confluence-client/index.js';
 import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -18,6 +18,7 @@ export interface ConfluenceContent {
   id?: string;
   type: string;
   title: string;
+  status?: string;
   space: {
     key: string;
   };
@@ -1103,6 +1104,32 @@ export class ConfluenceService {
     );
   }
 
+  /**
+   * Publish a shared draft created from a content blueprint (template), turning it into live content.
+   * @param draftId The ID of the draft (also used as the ID of the published content)
+   * @param content The content to publish, with status "current" and the same ID as the draft
+   * @param expand Optional comma-separated list of properties to expand on the response
+   */
+  async publishBlueprintSharedDraft(draftId: string, content: ConfluenceContent, expand?: string) {
+    return handleApiOperation(
+      () => ContentBlueprintService.publishSharedDraft(draftId, expand, 'draft', content),
+      'Error publishing shared blueprint draft'
+    );
+  }
+
+  /**
+   * Publish a legacy draft created from a content blueprint (template), turning it into live content.
+   * @param draftId The ID of the draft (also used as the ID of the published content)
+   * @param content The content to publish, with status "current" and the same ID as the draft
+   * @param expand Optional comma-separated list of properties to expand on the response
+   */
+  async publishBlueprintLegacyDraft(draftId: string, content: ConfluenceContent, expand?: string) {
+    return handleApiOperation(
+      () => ContentBlueprintService.publishLegacyDraft(draftId, expand, 'draft', content),
+      'Error publishing legacy blueprint draft'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -1573,5 +1600,21 @@ export const confluenceToolSchemas = {
     limit: z.number().optional().describe("Maximum number of users to return"),
     start: z.number().optional().describe("Start index for pagination"),
     expand: z.string().optional().describe("Comma-separated list of properties to expand on the users (e.g. status)")
+  },
+  publishBlueprintSharedDraft: {
+    draftId: z.string().describe("ID of the shared draft (created from a content blueprint/template) to publish"),
+    title: z.string().describe("Title of the published content"),
+    spaceKey: z.string().describe("Space key where the content will be published"),
+    content: z.string().describe("Content body in Confluence Data Center \"storage\" format (confluence XML)"),
+    parentId: z.string().optional().describe("ID of the parent page (if publishing as a child page)"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the response")
+  },
+  publishBlueprintLegacyDraft: {
+    draftId: z.string().describe("ID of the legacy draft (created from a content blueprint/template) to publish"),
+    title: z.string().describe("Title of the published content"),
+    spaceKey: z.string().describe("Space key where the content will be published"),
+    content: z.string().describe("Content body in Confluence Data Center \"storage\" format (confluence XML)"),
+    parentId: z.string().optional().describe("ID of the parent page (if publishing as a child page)"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the response")
   }
 };
