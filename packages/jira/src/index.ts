@@ -1108,6 +1108,106 @@ server.tool(
 );
 
 server.tool(
+  "jira_getIssueTypeSchemes",
+  `Get all issue type schemes visible to the user in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueTypeSchemes,
+  async () => {
+    const result = await jiraService.getIssueTypeSchemes();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createIssueTypeScheme",
+  `Create a new issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.createIssueTypeScheme,
+  async ({ name, description, issueTypeIds, defaultIssueTypeId }) => {
+    const result = await jiraService.createIssueTypeScheme(name, description, issueTypeIds, defaultIssueTypeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueTypeScheme",
+  `Get a single issue type scheme by id from the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueTypeScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.getIssueTypeScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_updateIssueTypeScheme",
+  `Update an issue type scheme's name, description, or issue types in the ${jiraInstanceType}`,
+  jiraToolSchemas.updateIssueTypeScheme,
+  async ({ schemeId, name, description, issueTypeIds, defaultIssueTypeId }) => {
+    const result = await jiraService.updateIssueTypeScheme(schemeId, name, description, issueTypeIds, defaultIssueTypeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteIssueTypeScheme",
+  `Delete an issue type scheme in the ${jiraInstanceType}. Associated projects fall back to the default scheme.`,
+  jiraToolSchemas.deleteIssueTypeScheme,
+  async ({ schemeId }) => {
+    const result = await jiraService.deleteIssueTypeScheme(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIssueTypeSchemeProjects",
+  `Get the projects associated with an issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIssueTypeSchemeProjects,
+  async ({ schemeId, expand }) => {
+    const result = await jiraService.getIssueTypeSchemeProjects(schemeId, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setIssueTypeSchemeProjects",
+  `Replace the project associations of an issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.setIssueTypeSchemeProjects,
+  async ({ schemeId, idsOrKeys }) => {
+    const result = await jiraService.setIssueTypeSchemeProjects(schemeId, idsOrKeys);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_addIssueTypeSchemeProjects",
+  `Add project associations to an issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.addIssueTypeSchemeProjects,
+  async ({ schemeId, idsOrKeys }) => {
+    const result = await jiraService.addIssueTypeSchemeProjects(schemeId, idsOrKeys);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_removeIssueTypeSchemeProjects",
+  `Remove all project associations from an issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.removeIssueTypeSchemeProjects,
+  async ({ schemeId }) => {
+    const result = await jiraService.removeIssueTypeSchemeProjects(schemeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_removeIssueTypeSchemeProject",
+  `Remove a single project association from an issue type scheme in the ${jiraInstanceType}`,
+  jiraToolSchemas.removeIssueTypeSchemeProject,
+  async ({ schemeId, projIdOrKey }) => {
+    const result = await jiraService.removeIssueTypeSchemeProject(schemeId, projIdOrKey);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
   "jira_getPermissionSchemes",
   `Get all permission schemes in the ${jiraInstanceType}`,
   jiraToolSchemas.getPermissionSchemes,

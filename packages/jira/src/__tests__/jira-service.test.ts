@@ -20,6 +20,7 @@ import {
   IssueLinkTypeService,
   IssueService,
   IssuesecurityschemesService,
+  IssuetypeschemeService,
   IssuetypeService,
   NotificationschemeService,
   OpenAPI,
@@ -199,6 +200,18 @@ jest.mock('../jira-client/index.js', () => ({
   },
   StatusService: {
     getStatuses: jest.fn(),
+  },
+  IssuetypeschemeService: {
+    getAllIssueTypeSchemes: jest.fn(),
+    createIssueTypeScheme: jest.fn(),
+    getIssueTypeScheme: jest.fn(),
+    updateIssueTypeScheme: jest.fn(),
+    deleteIssueTypeScheme: jest.fn(),
+    getAssociatedProjects: jest.fn(),
+    setProjectAssociationsForScheme: jest.fn(),
+    addProjectAssociationsToScheme: jest.fn(),
+    removeAllProjectAssociations: jest.fn(),
+    removeProjectAssociation: jest.fn(),
   },
   PermissionschemeService: {
     getPermissionSchemes: jest.fn(),
@@ -1977,6 +1990,127 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The epic does not exist');
+    });
+  });
+
+  describe('issue type schemes', () => {
+    it('gets all issue type schemes', async () => {
+      const mockSchemes = { schemes: [{ id: '1', name: 'Default' }] };
+      (IssuetypeschemeService.getAllIssueTypeSchemes as jest.Mock).mockResolvedValue(mockSchemes);
+
+      const result = await jiraService.getIssueTypeSchemes();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSchemes);
+      expect(IssuetypeschemeService.getAllIssueTypeSchemes).toHaveBeenCalledWith();
+    });
+
+    it('creates an issue type scheme', async () => {
+      const mockScheme = { id: '2', name: 'New Scheme' };
+      (IssuetypeschemeService.createIssueTypeScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.createIssueTypeScheme('New Scheme', 'A scheme', ['10000', '10001'], '10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(IssuetypeschemeService.createIssueTypeScheme).toHaveBeenCalledWith({
+        name: 'New Scheme',
+        description: 'A scheme',
+        issueTypeIds: ['10000', '10001'],
+        defaultIssueTypeId: '10000',
+      });
+    });
+
+    it('gets an issue type scheme by id', async () => {
+      const mockScheme = { id: '1', name: 'Default' };
+      (IssuetypeschemeService.getIssueTypeScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.getIssueTypeScheme('1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(IssuetypeschemeService.getIssueTypeScheme).toHaveBeenCalledWith('1');
+    });
+
+    it('updates an issue type scheme', async () => {
+      const mockScheme = { id: '1', name: 'Renamed' };
+      (IssuetypeschemeService.updateIssueTypeScheme as jest.Mock).mockResolvedValue(mockScheme);
+
+      const result = await jiraService.updateIssueTypeScheme('1', 'Renamed');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockScheme);
+      expect(IssuetypeschemeService.updateIssueTypeScheme).toHaveBeenCalledWith('1', {
+        name: 'Renamed',
+        description: undefined,
+        issueTypeIds: undefined,
+        defaultIssueTypeId: undefined,
+      });
+    });
+
+    it('deletes an issue type scheme', async () => {
+      (IssuetypeschemeService.deleteIssueTypeScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteIssueTypeScheme('1');
+
+      expect(result.success).toBe(true);
+      expect(IssuetypeschemeService.deleteIssueTypeScheme).toHaveBeenCalledWith('1');
+    });
+
+    it('gets projects associated with an issue type scheme', async () => {
+      const mockProjects = { values: [{ id: '10000', key: 'TEST' }] };
+      (IssuetypeschemeService.getAssociatedProjects as jest.Mock).mockResolvedValue(mockProjects);
+
+      const result = await jiraService.getIssueTypeSchemeProjects('1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProjects);
+      expect(IssuetypeschemeService.getAssociatedProjects).toHaveBeenCalledWith('1', undefined);
+    });
+
+    it('sets project associations for an issue type scheme', async () => {
+      (IssuetypeschemeService.setProjectAssociationsForScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setIssueTypeSchemeProjects('1', ['TEST']);
+
+      expect(result.success).toBe(true);
+      expect(IssuetypeschemeService.setProjectAssociationsForScheme).toHaveBeenCalledWith('1', { idsOrKeys: ['TEST'] });
+    });
+
+    it('adds project associations to an issue type scheme', async () => {
+      (IssuetypeschemeService.addProjectAssociationsToScheme as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.addIssueTypeSchemeProjects('1', ['TEST']);
+
+      expect(result.success).toBe(true);
+      expect(IssuetypeschemeService.addProjectAssociationsToScheme).toHaveBeenCalledWith('1', { idsOrKeys: ['TEST'] });
+    });
+
+    it('removes all project associations from an issue type scheme', async () => {
+      (IssuetypeschemeService.removeAllProjectAssociations as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.removeIssueTypeSchemeProjects('1');
+
+      expect(result.success).toBe(true);
+      expect(IssuetypeschemeService.removeAllProjectAssociations).toHaveBeenCalledWith('1');
+    });
+
+    it('removes a single project association from an issue type scheme', async () => {
+      (IssuetypeschemeService.removeProjectAssociation as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.removeIssueTypeSchemeProject('1', 'TEST');
+
+      expect(result.success).toBe(true);
+      expect(IssuetypeschemeService.removeProjectAssociation).toHaveBeenCalledWith('TEST', '1');
+    });
+
+    it('handles errors', async () => {
+      (IssuetypeschemeService.getIssueTypeScheme as jest.Mock).mockRejectedValue(new Error('The scheme does not exist'));
+
+      const result = await jiraService.getIssueTypeScheme('999');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The scheme does not exist');
     });
   });
 
