@@ -26,6 +26,7 @@ import {
   ProjectService,
   ProjectsService,
   ResolutionService,
+  ScreensService,
   SearchService,
   SecuritylevelService,
   SprintService,
@@ -37,6 +38,7 @@ import {
   WorkflowschemeService,
 } from './jira-client/index.js';
 import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
+import type { MoveFieldBean } from './jira-client/models/MoveFieldBean.js';
 import { request as __request } from './jira-client/core/request.js';
 import type { StringList } from './jira-client/models/StringList.js';
 import type { FilePart } from './jira-client/models/FilePart.js';
@@ -1118,6 +1120,32 @@ export class JiraService {
     );
   }
 
+  async getAllScreens(search?: string, expand?: string, maxResults?: number, startAt?: number) {
+    return handleApiOperation(
+      () => ScreensService.getAllScreens(
+        search,
+        expand,
+        maxResults !== undefined ? String(maxResults) : undefined,
+        startAt !== undefined ? String(startAt) : undefined
+      ),
+      'Error getting screens'
+    );
+  }
+
+  async addFieldToDefaultScreen(fieldId: string) {
+    return handleApiOperation(
+      () => ScreensService.addFieldToDefaultScreen(fieldId),
+      'Error adding field to default screen'
+    );
+  }
+
+  async getScreenAvailableFields(screenId: number) {
+    return handleApiOperation(
+      () => ScreensService.getFieldsToAdd(screenId),
+      'Error getting available fields for screen'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -1785,5 +1813,17 @@ export const jiraToolSchemas = {
     id: z.number().describe("Id of the avatar to delete"),
     type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
     owningObjectId: z.string().describe("Id of the object that owns the avatar, e.g. a project id or username")
+  },
+  getAllScreens: {
+    search: z.string().optional().describe("Query string used to search screens by name"),
+    expand: z.string().optional().describe("Comma-separated expansions for the returned screens"),
+    maxResults: z.number().optional().describe("Maximum number of screens to return"),
+    startAt: z.number().optional().describe("Index of the first screen to return")
+  },
+  addFieldToDefaultScreen: {
+    fieldId: z.string().describe("Id of the field or custom field to add to the default screen's default tab")
+  },
+  getScreenAvailableFields: {
+    screenId: z.number().describe("Id of the screen")
   }
 };
