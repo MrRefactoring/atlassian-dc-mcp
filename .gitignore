@@ -1,8 +1,5 @@
 # Dependencies
 node_modules/
-npm-debug.log
-yarn-debug.log
-yarn-error.log
 
 # Build output
 dist/
@@ -28,9 +25,6 @@ Thumbs.db
 # Logs
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Test coverage
 coverage/
@@ -38,9 +32,6 @@ coverage/
 # Temporary files
 tmp/
 temp/
-
-# Optional npm cache directory
-.npm
 
 # Optional eslint cache
 .eslintcache
@@ -51,9 +42,6 @@ temp/
 # Output of 'npm pack'
 *.tgz
 
-# Yarn Integrity file
-.yarn-integrity
-.aider*
 .mcpregistry_*
 
 # Claude
