@@ -11,12 +11,17 @@
   "files": [
     "dist"
   ],
-  "description": "Shared utilities for the Atlassian Data Center MCP servers. Not affiliated with Atlassian.",
+  "description": "Shared runtime for the Atlassian Data Center MCP servers (Jira, Confluence, Bitbucket). Not affiliated with Atlassian.",
   "keywords": [
     "mcp",
+    "mcp-server",
     "atlassian",
     "data-center",
-    "model-context-protocol"
+    "model-context-protocol",
+    "claude",
+    "anthropic",
+    "ai",
+    "llm"
   ],
   "repository": {
     "type": "git",

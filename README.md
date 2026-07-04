@@ -1,13 +1,24 @@
 [![MSeeP.ai Security Assessment Badge](https://mseep.net/pr/b1ff-atlassian-dc-mcp-badge.png)](https://mseep.ai/app/b1ff-atlassian-dc-mcp)
 
 [![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/2a87ecc6-e53a-4a21-b63e-ede9b6a2bc4a)
+[![npm jira-datacenter-mcp](https://img.shields.io/npm/v/jira-datacenter-mcp.svg?label=jira-datacenter-mcp)](https://www.npmjs.com/package/jira-datacenter-mcp)
+[![npm confluence-datacenter-mcp](https://img.shields.io/npm/v/confluence-datacenter-mcp.svg?label=confluence-datacenter-mcp)](https://www.npmjs.com/package/confluence-datacenter-mcp)
+[![npm bitbucket-datacenter-mcp](https://img.shields.io/npm/v/bitbucket-datacenter-mcp.svg?label=bitbucket-datacenter-mcp)](https://www.npmjs.com/package/bitbucket-datacenter-mcp)
+[![License: MIT](https://img.shields.io/npm/l/jira-datacenter-mcp.svg)](LICENSE)
 
 # Atlassian Data Center MCP
 
 > **Note:** This is a community-maintained project and is **not affiliated with, endorsed by, or supported by Atlassian**.
 > Use at your own discretion.
 
-This project provides a Model Context Protocol (MCP) integration for Atlassian Data Center products, including Jira, Confluence, and Bitbucket.
+[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers that connect **Claude Desktop**, **Claude Code**, **Cursor**, and any other MCP-compatible AI assistant to self-hosted **Atlassian Data Center** instances — **Jira**, **Confluence**, and **Bitbucket** (also known by their older name, Atlassian *Server*). Search and create Jira issues, read and edit Confluence pages, and browse Bitbucket repositories and pull requests, all from your AI assistant, without granting it direct API credentials.
+
+| Package | Version | Description |
+|---------|---------|--------------|
+| [`jira-datacenter-mcp`](https://www.npmjs.com/package/jira-datacenter-mcp) | [![npm](https://img.shields.io/npm/v/jira-datacenter-mcp.svg)](https://www.npmjs.com/package/jira-datacenter-mcp) | MCP server for Jira Data Center / Server |
+| [`confluence-datacenter-mcp`](https://www.npmjs.com/package/confluence-datacenter-mcp) | [![npm](https://img.shields.io/npm/v/confluence-datacenter-mcp.svg)](https://www.npmjs.com/package/confluence-datacenter-mcp) | MCP server for Confluence Data Center / Server |
+| [`bitbucket-datacenter-mcp`](https://www.npmjs.com/package/bitbucket-datacenter-mcp) | [![npm](https://img.shields.io/npm/v/bitbucket-datacenter-mcp.svg)](https://www.npmjs.com/package/bitbucket-datacenter-mcp) | MCP server for Bitbucket Data Center / Server |
+| [`datacenter-mcp-core`](https://www.npmjs.com/package/datacenter-mcp-core) | [![npm](https://img.shields.io/npm/v/datacenter-mcp-core.svg)](https://www.npmjs.com/package/datacenter-mcp-core) | Shared runtime used by the three servers above (not used directly) |
 
 ## Quick Setup
 
