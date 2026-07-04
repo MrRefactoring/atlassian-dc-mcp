@@ -1,7 +1,7 @@
 import { describeValidationError } from 'datacenter-mcp-core';
 import { runSetupCli } from 'datacenter-mcp-core/setup-cli';
 import { CONFLUENCE_PRODUCT } from './config.js';
-import { ConfluenceService } from './confluence-service.js';
+import { ConfluenceService } from './confluenceService.js';
 
 await runSetupCli(CONFLUENCE_PRODUCT, {
   validateCredentials: async ({ host, apiBasePath, token, username, password }) => {

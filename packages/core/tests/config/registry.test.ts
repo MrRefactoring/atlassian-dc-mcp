@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import { buildDefaultRegistry, DefaultConfigRegistry } from '../../src/config/registry.js';
-import { HomeFileSource, getHomeFilePath } from '../../src/config/sources/home-file.js';
-import { MacosKeychainSource } from '../../src/config/sources/macos-keychain.js';
+import { HomeFileSource, getHomeFilePath } from '../../src/config/sources/homeFile.js';
+import { MacosKeychainSource } from '../../src/config/sources/macosKeychain.js';
 import type {
   ConfigKey,
   ProductDefinition,

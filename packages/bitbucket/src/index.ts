@@ -1,5 +1,5 @@
 import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig, logger } from 'datacenter-mcp-core';
-import { BitbucketService, bitbucketToolSchemas } from './bitbucket-service.js';
+import { BitbucketService, bitbucketToolSchemas } from './bitbucketService.js';
 import { getBitbucketRuntimeConfig, getDefaultPageSize } from './config.js';
 import { createRequire } from 'node:module';
 import { z } from 'zod';

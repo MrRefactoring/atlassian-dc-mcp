@@ -5,7 +5,7 @@ import {
   SpacePropertyService,
   SpacePermissionsService,
 } from '../src/confluence-client/index.js';
-import { ConfluenceService } from '../src/confluence-service.js';
+import { ConfluenceService } from '../src/confluenceService.js';
 
 const SPACE = SpaceService as unknown as Record<string, Mock>;
 const SPACE_PROPERTY = SpacePropertyService as unknown as Record<string, Mock>;

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { AttachmentsService } from '../src/confluence-client/index.js';
-import { ConfluenceService } from '../src/confluence-service.js';
+import { ConfluenceService } from '../src/confluenceService.js';
 
 const ATTACHMENTS = AttachmentsService as unknown as Record<string, Mock>;
 

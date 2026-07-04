@@ -11,7 +11,7 @@ import {
   ContentWatchersService,
   UserWatchService,
 } from '../src/confluence-client/index.js';
-import { ConfluenceService } from '../src/confluence-service.js';
+import { ConfluenceService } from '../src/confluenceService.js';
 
 const CONTENT_RESOURCE = ContentResourceService as unknown as Record<string, Mock>;
 const CHILD_CONTENT = ChildContentService as unknown as Record<string, Mock>;

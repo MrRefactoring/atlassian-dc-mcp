@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { JiraService } from '../src/jira-service.js';
+import { JiraService } from '../src/jiraService.js';
 import {
   CommentService,
   IssueService,

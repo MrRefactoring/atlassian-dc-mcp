@@ -6,10 +6,10 @@ import type {
   WritableSource,
 } from './source.js';
 import { isWritableSource } from './source.js';
-import { ProcessEnvSource } from './sources/process-env.js';
-import { EnvFileSource } from './sources/env-file.js';
-import { HomeFileSource } from './sources/home-file.js';
-import { MacosKeychainSource } from './sources/macos-keychain.js';
+import { ProcessEnvSource } from './sources/processEnv.js';
+import { EnvFileSource } from './sources/envFile.js';
+import { HomeFileSource } from './sources/homeFile.js';
+import { MacosKeychainSource } from './sources/macosKeychain.js';
 
 export interface ResolvedValue {
   value: string | undefined;
