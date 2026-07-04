@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ClusterInformationService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, LongTaskService, OpenAPI, SearchService, ServerInformationService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluence-client/index.js';
+import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, BackupAndRestoreService, ChildContentService, ClusterInformationService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, InstanceMetricsService, LongTaskService, OpenAPI, SearchService, ServerInformationService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluence-client/index.js';
 import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -1271,6 +1271,50 @@ export class ConfluenceService {
     );
   }
 
+  /**
+   * Start a new site backup job. Settings are passed through as-is to the API;
+   * see the target instance's REST API documentation for supported fields.
+   */
+  async triggerSiteBackup(settings?: Record<string, unknown>) {
+    return handleApiOperation(
+      () => BackupAndRestoreService.createSiteBackupJob(settings),
+      'Error triggering site backup'
+    );
+  }
+
+  /**
+   * Get a backup/restore job by ID. The caller must be a system administrator or the job's owner.
+   */
+  async getBackupRestoreJob(jobId: string) {
+    return handleApiOperation(() => BackupAndRestoreService.getJob(jobId), 'Error getting backup/restore job');
+  }
+
+  /**
+   * Find backup/restore jobs visible to the calling user, optionally filtered.
+   */
+  async findBackupRestoreJobs(
+    owner?: string,
+    spaceKey?: string,
+    fromDate?: string,
+    jobStates?: string,
+    toDate?: string,
+    jobOperation?: string,
+    limit?: number,
+    jobScope?: string,
+  ) {
+    return handleApiOperation(
+      () => BackupAndRestoreService.findJobs(owner, spaceKey, fromDate, jobStates, toDate, jobOperation, limit?.toString(), jobScope),
+      'Error finding backup/restore jobs'
+    );
+  }
+
+  /**
+   * Get simple metrics about this Confluence instance (e.g. content and user counts).
+   */
+  async getInstanceMetrics() {
+    return handleApiOperation(() => InstanceMetricsService.index1(), 'Error getting instance metrics');
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -1820,5 +1864,22 @@ export const confluenceToolSchemas = {
     expand: z.string().optional().describe("Comma-separated list of properties to expand on the tasks"),
     limit: z.number().optional().describe("Maximum number of tasks to return"),
     start: z.number().optional().describe("Start index for pagination")
-  }
+  },
+  triggerSiteBackup: {
+    settings: z.record(z.any()).optional().describe("Site backup settings, passed through as-is to the API. Consult the target instance's REST API documentation for supported fields.")
+  },
+  getBackupRestoreJob: {
+    jobId: z.string().describe("ID of the backup/restore job to fetch. Caller must be a system administrator or the job's owner.")
+  },
+  findBackupRestoreJobs: {
+    owner: z.string().optional().describe("Filter by the username of the user who created the job"),
+    spaceKey: z.string().optional().describe("Filter by the key of the space the job applies to"),
+    fromDate: z.string().optional().describe("Minimum job creation date, format yyyy-MM-ddTHH:mm:ss.SSSZ"),
+    jobStates: z.string().optional().describe("Comma-separated list of job states to filter by: QUEUED, PROCESSING, FINISHED, CANCELLING, CANCELLED, FAILED"),
+    toDate: z.string().optional().describe("Maximum job creation date, format yyyy-MM-ddTHH:mm:ss.SSSZ"),
+    jobOperation: z.enum(['BACKUP', 'RESTORE']).optional().describe("Filter by job operation"),
+    limit: z.number().optional().describe("Maximum number of jobs to return"),
+    jobScope: z.enum(['SPACE', 'SITE']).optional().describe("Filter by job scope")
+  },
+  getInstanceMetrics: {}
 };

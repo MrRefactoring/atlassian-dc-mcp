@@ -4,6 +4,7 @@ import {
   AdminUserService,
   AdminUsersService,
   AttachmentsService,
+  BackupAndRestoreService,
   ChildContentService,
   ClusterInformationService,
   ContentBlueprintService,
@@ -15,6 +16,7 @@ import {
   ContentRestrictionsService,
   ContentWatchersService,
   GroupService,
+  InstanceMetricsService,
   LongTaskService,
   OpenAPI,
   SearchService,
@@ -52,6 +54,8 @@ const WEBHOOKS = WebhooksService as unknown as Record<string, jest.Mock>;
 const SERVER_INFORMATION = ServerInformationService as unknown as Record<string, jest.Mock>;
 const CLUSTER_INFORMATION = ClusterInformationService as unknown as Record<string, jest.Mock>;
 const LONG_TASK = LongTaskService as unknown as Record<string, jest.Mock>;
+const BACKUP_AND_RESTORE = BackupAndRestoreService as unknown as Record<string, jest.Mock>;
+const INSTANCE_METRICS = InstanceMetricsService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -200,6 +204,14 @@ jest.mock('../confluence-client/index.js', () => ({
   LongTaskService: {
     getTask: jest.fn(),
     getTasks: jest.fn(),
+  },
+  BackupAndRestoreService: {
+    createSiteBackupJob: jest.fn(),
+    getJob: jest.fn(),
+    findJobs: jest.fn(),
+  },
+  InstanceMetricsService: {
+    index1: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -2105,6 +2117,92 @@ describe('ConfluenceService long-running tasks', () => {
     LONG_TASK.getTasks.mockRejectedValue(new Error('boom'));
 
     const result = await service.getLongRunningTasks();
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ConfluenceService backup/restore and instance metrics', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('triggers a site backup job', async () => {
+    BACKUP_AND_RESTORE.createSiteBackupJob.mockResolvedValue({ id: 'job-1' });
+
+    const result = await service.triggerSiteBackup({ attachments: true });
+
+    expect(BACKUP_AND_RESTORE.createSiteBackupJob).toHaveBeenCalledWith({ attachments: true });
+    expect(result.success).toBe(true);
+  });
+
+  it('triggers a site backup job with no settings', async () => {
+    BACKUP_AND_RESTORE.createSiteBackupJob.mockResolvedValue({ id: 'job-1' });
+
+    await service.triggerSiteBackup();
+
+    expect(BACKUP_AND_RESTORE.createSiteBackupJob).toHaveBeenCalledWith(undefined);
+  });
+
+  it('forwards API errors when triggering a site backup', async () => {
+    BACKUP_AND_RESTORE.createSiteBackupJob.mockRejectedValue(new Error('boom'));
+
+    const result = await service.triggerSiteBackup();
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets a backup/restore job by ID', async () => {
+    BACKUP_AND_RESTORE.getJob.mockResolvedValue({ id: 'job-1', status: 'FINISHED' });
+
+    const result = await service.getBackupRestoreJob('job-1');
+
+    expect(BACKUP_AND_RESTORE.getJob).toHaveBeenCalledWith('job-1');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting a backup/restore job', async () => {
+    BACKUP_AND_RESTORE.getJob.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getBackupRestoreJob('job-1');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('finds backup/restore jobs with filters', async () => {
+    BACKUP_AND_RESTORE.findJobs.mockResolvedValue([]);
+
+    await service.findBackupRestoreJobs('jdoe', 'ENG', '2024-01-01T00:00:00.000Z', 'FINISHED', '2024-02-01T00:00:00.000Z', 'BACKUP', 10, 'SITE');
+
+    expect(BACKUP_AND_RESTORE.findJobs).toHaveBeenCalledWith(
+      'jdoe', 'ENG', '2024-01-01T00:00:00.000Z', 'FINISHED', '2024-02-01T00:00:00.000Z', 'BACKUP', '10', 'SITE'
+    );
+  });
+
+  it('forwards API errors when finding backup/restore jobs', async () => {
+    BACKUP_AND_RESTORE.findJobs.mockRejectedValue(new Error('boom'));
+
+    const result = await service.findBackupRestoreJobs();
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets instance metrics', async () => {
+    INSTANCE_METRICS.index1.mockResolvedValue({ userCount: 10 });
+
+    const result = await service.getInstanceMetrics();
+
+    expect(INSTANCE_METRICS.index1).toHaveBeenCalledWith();
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting instance metrics', async () => {
+    INSTANCE_METRICS.index1.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getInstanceMetrics();
 
     expect(result.success).toBe(false);
   });
