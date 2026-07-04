@@ -1,4 +1,5 @@
-import { shapeConfluenceMutationAck } from '../confluence-response-mapper.js';
+import { describe, expect, it } from 'vitest';
+import { shapeConfluenceMutationAck } from '../src/confluence-response-mapper.js';
 
 describe('shapeConfluenceMutationAck', () => {
   it('returns a compact acknowledgement with a resolved content URL', () => {
