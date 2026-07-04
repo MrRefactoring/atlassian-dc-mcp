@@ -5,6 +5,7 @@ import {
   AdminUsersService,
   AttachmentsService,
   ChildContentService,
+  ClusterInformationService,
   ContentBlueprintService,
   ContentBodyService,
   ContentDescendantService,
@@ -48,6 +49,7 @@ const CONTENT_BLUEPRINT = ContentBlueprintService as unknown as Record<string, j
 const CONTENT_BODY = ContentBodyService as unknown as Record<string, jest.Mock>;
 const WEBHOOKS = WebhooksService as unknown as Record<string, jest.Mock>;
 const SERVER_INFORMATION = ServerInformationService as unknown as Record<string, jest.Mock>;
+const CLUSTER_INFORMATION = ClusterInformationService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -189,6 +191,9 @@ jest.mock('../confluence-client/index.js', () => ({
   },
   ServerInformationService: {
     index2: jest.fn(),
+  },
+  ClusterInformationService: {
+    getClusterNodeStatuses: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -2018,6 +2023,40 @@ describe('ConfluenceService.getServerInfo', () => {
     SERVER_INFORMATION.index2.mockRejectedValue(new Error('boom'));
 
     const result = await service.getServerInfo();
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ConfluenceService.getClusterNodes', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets cluster node statuses with the given pagination', async () => {
+    CLUSTER_INFORMATION.getClusterNodeStatuses.mockResolvedValue({ results: [] });
+
+    await service.getClusterNodes(10, 0);
+
+    expect(CLUSTER_INFORMATION.getClusterNodeStatuses).toHaveBeenCalledWith('10', '0');
+  });
+
+  it('gets cluster node statuses without pagination', async () => {
+    CLUSTER_INFORMATION.getClusterNodeStatuses.mockResolvedValue({ results: [] });
+
+    const result = await service.getClusterNodes();
+
+    expect(CLUSTER_INFORMATION.getClusterNodeStatuses).toHaveBeenCalledWith(undefined, undefined);
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting cluster node statuses', async () => {
+    CLUSTER_INFORMATION.getClusterNodeStatuses.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getClusterNodes();
 
     expect(result.success).toBe(false);
   });
