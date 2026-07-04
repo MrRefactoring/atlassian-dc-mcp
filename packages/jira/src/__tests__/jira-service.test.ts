@@ -27,6 +27,7 @@ import {
   IssuetypeschemeService,
   IssuetypeService,
   JqlService,
+  LicenseValidatorService,
   MypermissionsService,
   MypreferencesService,
   NotificationschemeService,
@@ -44,6 +45,7 @@ import {
   ScreensService,
   SearchService,
   SecuritylevelService,
+  ServerInfoService,
   SprintService,
   StatusService,
   UniversalAvatarService,
@@ -388,6 +390,12 @@ jest.mock('../jira-client/index.js', () => ({
     moveField: jest.fn(),
     updateShowWhenEmptyIndicator: jest.fn(),
     moveTab: jest.fn(),
+  },
+  ServerInfoService: {
+    getServerInfo: jest.fn(),
+  },
+  LicenseValidatorService: {
+    validate: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -4212,6 +4220,48 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Field does not exist');
+    });
+  });
+
+  describe('server info and license', () => {
+    it('gets server info', async () => {
+      const mockInfo = { version: '9.4.0', buildNumber: 940000, deploymentType: 'Server' };
+      (ServerInfoService.getServerInfo as jest.Mock).mockResolvedValue(mockInfo);
+
+      const result = await jiraService.getServerInfo();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockInfo);
+      expect(ServerInfoService.getServerInfo).toHaveBeenCalledWith();
+    });
+
+    it('handles errors getting server info', async () => {
+      (ServerInfoService.getServerInfo as jest.Mock).mockRejectedValue(new Error('Unavailable'));
+
+      const result = await jiraService.getServerInfo();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Unavailable');
+    });
+
+    it('validates a license string', async () => {
+      const mockResult = { errors: {}, licenseString: 'AAAB...' };
+      (LicenseValidatorService.validate as jest.Mock).mockResolvedValue(mockResult);
+
+      const result = await jiraService.validateLicense('AAAB...');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockResult);
+      expect(LicenseValidatorService.validate).toHaveBeenCalledWith('AAAB...');
+    });
+
+    it('handles errors validating a license string', async () => {
+      (LicenseValidatorService.validate as jest.Mock).mockRejectedValue(new Error('Invalid license'));
+
+      const result = await jiraService.validateLicense('bad-license');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid license');
     });
   });
 

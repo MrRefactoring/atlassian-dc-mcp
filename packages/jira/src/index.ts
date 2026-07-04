@@ -2403,6 +2403,26 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getServerInfo",
+  `Get general information about the current ${jiraInstanceType} server, including version, build number, and deployment type`,
+  jiraToolSchemas.getServerInfo,
+  async () => {
+    const result = await jiraService.getServerInfo();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_validateLicense",
+  `Validate a license string against the current ${jiraInstanceType} server installation`,
+  jiraToolSchemas.validateLicense,
+  async ({ licenseString }) => {
+    const result = await jiraService.validateLicense(licenseString);
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "jira-issue",
   new ResourceTemplate("jira://issue/{issueKey}", { list: undefined }),

@@ -24,6 +24,7 @@ import {
   IssuetypeschemeService,
   IssuetypeService,
   JqlService,
+  LicenseValidatorService,
   MypermissionsService,
   MypreferencesService,
   MyselfService,
@@ -42,6 +43,7 @@ import {
   ScreensService,
   SearchService,
   SecuritylevelService,
+  ServerInfoService,
   SprintService,
   StatusService,
   UniversalAvatarService,
@@ -1885,6 +1887,20 @@ export class JiraService {
     );
   }
 
+  async getServerInfo() {
+    return handleApiOperation(
+      () => ServerInfoService.getServerInfo(),
+      'Error getting server info'
+    );
+  }
+
+  async validateLicense(licenseString: string) {
+    return handleApiOperation(
+      () => LicenseValidatorService.validate(licenseString),
+      'Error validating license'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -2976,5 +2992,9 @@ export const jiraToolSchemas = {
     tabId: z.number().describe("Id of the tab"),
     fieldId: z.string().describe("Id of the field"),
     showWhenEmpty: z.boolean().describe("Whether to show a 'no value' indicator for this field on the screen when it is empty")
-  }
+  },
+  validateLicense: {
+    licenseString: z.string().describe("The license string to validate against the current server installation")
+  },
+  getServerInfo: {}
 };
