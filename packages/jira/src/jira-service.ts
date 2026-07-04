@@ -7,6 +7,7 @@ import {
   AvatarService,
   BacklogService,
   BoardService,
+  ClusterService,
   CommentService,
   ComponentService,
   CustomFieldOptionService,
@@ -18,6 +19,8 @@ import {
   GroupService,
   GroupsService,
   GroupuserpickerService,
+  IndexService,
+  IndexSnapshotService,
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
@@ -39,6 +42,7 @@ import {
   ProjectService,
   ProjectsService,
   ProjectvalidateService,
+  ReindexService,
   ResolutionService,
   RoleService,
   ScreensService,
@@ -1931,6 +1935,147 @@ export class JiraService {
     );
   }
 
+  async getClusterNodes() {
+    return handleApiOperation(
+      () => ClusterService.getAllNodes(),
+      'Error getting cluster nodes'
+    );
+  }
+
+  async deleteClusterNode(nodeId: string) {
+    return handleApiOperation(
+      () => ClusterService.deleteNode(nodeId),
+      'Error deleting cluster node'
+    );
+  }
+
+  async setClusterNodeOffline(nodeId: string) {
+    return handleApiOperation(
+      () => ClusterService.changeNodeStateToOffline(nodeId),
+      'Error setting cluster node offline'
+    );
+  }
+
+  /** @deprecated Lucene-specific; planned for removal in Jira 11. */
+  async requestClusterNodeIndexSnapshot(nodeId: string) {
+    return handleApiOperation(
+      () => ClusterService.requestCurrentIndexFromNode(nodeId),
+      'Error requesting cluster node index snapshot'
+    );
+  }
+
+  async approveClusterUpgrade() {
+    return handleApiOperation(
+      () => ClusterService.approveUpgrade(),
+      'Error approving cluster upgrade'
+    );
+  }
+
+  async cancelClusterUpgrade() {
+    return handleApiOperation(
+      () => ClusterService.cancelUpgrade(),
+      'Error cancelling cluster upgrade'
+    );
+  }
+
+  async retryClusterUpgrade() {
+    return handleApiOperation(
+      () => ClusterService.acknowledgeErrors(),
+      'Error retrying cluster upgrade'
+    );
+  }
+
+  async startClusterUpgrade() {
+    return handleApiOperation(
+      () => ClusterService.setReadyToUpgrade(),
+      'Error starting cluster upgrade'
+    );
+  }
+
+  async getClusterUpgradeState() {
+    return handleApiOperation(
+      () => ClusterService.getState(),
+      'Error getting cluster upgrade state'
+    );
+  }
+
+  async getIndexSummary() {
+    return handleApiOperation(
+      () => IndexService.getIndexSummary(),
+      'Error getting index summary'
+    );
+  }
+
+  async listIndexSnapshots() {
+    return handleApiOperation(
+      () => IndexSnapshotService.listIndexSnapshot(),
+      'Error listing index snapshots'
+    );
+  }
+
+  async createIndexSnapshot() {
+    return handleApiOperation(
+      () => IndexSnapshotService.createIndexSnapshot(),
+      'Error creating index snapshot'
+    );
+  }
+
+  async getIndexSnapshotStatus() {
+    return handleApiOperation(
+      () => IndexSnapshotService.isIndexSnapshotRunning(),
+      'Error getting index snapshot status'
+    );
+  }
+
+  async getReindexInfo(taskId?: number) {
+    return handleApiOperation(
+      () => ReindexService.getReindexInfo(taskId),
+      'Error getting reindex info'
+    );
+  }
+
+  async startReindex(indexChangeHistory = false, type?: string, indexWorklogs = false, indexComments = false) {
+    return handleApiOperation(
+      () => ReindexService.reindex(indexChangeHistory, type, indexWorklogs, indexComments),
+      'Error starting reindex'
+    );
+  }
+
+  async reindexIssues(issueIds?: string[], indexChangeHistory = false, indexWorklogs = false, indexComments = false) {
+    return handleApiOperation(
+      () => ReindexService.reindexIssues(issueIds, indexChangeHistory, indexWorklogs, indexComments),
+      'Error reindexing issues'
+    );
+  }
+
+  async getReindexProgress(taskId?: number) {
+    return handleApiOperation(
+      () => ReindexService.getReindexProgress(taskId),
+      'Error getting reindex progress'
+    );
+  }
+
+  async processReindexRequests() {
+    return handleApiOperation(
+      () => ReindexService.processRequests(),
+      'Error processing reindex requests'
+    );
+  }
+
+  async getReindexRequestsProgress(requestIds?: number[]) {
+    return handleApiOperation(
+      () => ReindexService.getProgressBulk(requestIds),
+      'Error getting reindex requests progress'
+    );
+  }
+
+  async getReindexRequestProgress(requestId: number) {
+    return handleApiOperation(
+      () => ReindexService.getProgress(requestId),
+      'Error getting reindex request progress'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -3036,5 +3181,49 @@ export const jiraToolSchemas = {
   setApplicationProperty: {
     id: z.string().describe("Property key to update, e.g. 'jira.clone.prefix'"),
     value: z.string().describe("New value for the property")
+  },
+  getClusterNodes: {},
+  deleteClusterNode: {
+    nodeId: z.string().describe("Id of the node to delete. The node must be OFFLINE.")
+  },
+  setClusterNodeOffline: {
+    nodeId: z.string().describe("Id of the node to change state. The node must be reporting as active but not alive.")
+  },
+  requestClusterNodeIndexSnapshot: {
+    nodeId: z.string().describe("Id of the node to request an index snapshot from")
+  },
+  approveClusterUpgrade: {},
+  cancelClusterUpgrade: {},
+  retryClusterUpgrade: {},
+  startClusterUpgrade: {},
+  getClusterUpgradeState: {},
+  getIndexSummary: {},
+  listIndexSnapshots: {},
+  createIndexSnapshot: {},
+  getIndexSnapshotStatus: {},
+  getReindexInfo: {
+    taskId: z.number().optional().describe("Id of a specific reindex task to get information for. When omitted, returns the active or most recent reindex.")
+  },
+  startReindex: {
+    indexChangeHistory: z.boolean().optional().describe("Whether to reindex change history (default false)"),
+    type: z.string().optional().describe("Type of reindex to perform, e.g. 'BACKGROUND_PREFERRED', 'FOREGROUND', or 'BACKGROUND'"),
+    indexWorklogs: z.boolean().optional().describe("Whether to reindex worklogs (default false)"),
+    indexComments: z.boolean().optional().describe("Whether to reindex comments (default false)")
+  },
+  reindexIssues: {
+    issueIds: z.array(z.string()).optional().describe("Ids of the issues to reindex"),
+    indexChangeHistory: z.boolean().optional().describe("Whether to reindex change history (default false)"),
+    indexWorklogs: z.boolean().optional().describe("Whether to reindex worklogs (default false)"),
+    indexComments: z.boolean().optional().describe("Whether to reindex comments (default false)")
+  },
+  getReindexProgress: {
+    taskId: z.number().optional().describe("Id of a specific reindex task to get progress for. When omitted, returns the active or most recent reindex.")
+  },
+  processReindexRequests: {},
+  getReindexRequestsProgress: {
+    requestIds: z.array(z.number()).optional().describe("Ids of the reindex requests to get progress for")
+  },
+  getReindexRequestProgress: {
+    requestId: z.number().describe("Id of the reindex request to get progress for")
   }
 };

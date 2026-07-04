@@ -2453,6 +2453,206 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getClusterNodes",
+  `Get all nodes in the cluster in the ${jiraInstanceType}`,
+  jiraToolSchemas.getClusterNodes,
+  async () => {
+    const result = await jiraService.getClusterNodes();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteClusterNode",
+  `Delete an OFFLINE node from the cluster in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteClusterNode,
+  async ({ nodeId }) => {
+    const result = await jiraService.deleteClusterNode(nodeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setClusterNodeOffline",
+  `Change a cluster node's state to OFFLINE in the ${jiraInstanceType}`,
+  jiraToolSchemas.setClusterNodeOffline,
+  async ({ nodeId }) => {
+    const result = await jiraService.setClusterNodeOffline(nodeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_requestClusterNodeIndexSnapshot",
+  `Request an index snapshot from a cluster node in the ${jiraInstanceType} (deprecated, Lucene-specific, planned for removal in Jira 11)`,
+  jiraToolSchemas.requestClusterNodeIndexSnapshot,
+  async ({ nodeId }) => {
+    const result = await jiraService.requestClusterNodeIndexSnapshot(nodeId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_approveClusterUpgrade",
+  `Approve an ongoing zero-downtime cluster upgrade in the ${jiraInstanceType}`,
+  jiraToolSchemas.approveClusterUpgrade,
+  async () => {
+    const result = await jiraService.approveClusterUpgrade();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_cancelClusterUpgrade",
+  `Cancel an ongoing zero-downtime cluster upgrade in the ${jiraInstanceType}`,
+  jiraToolSchemas.cancelClusterUpgrade,
+  async () => {
+    const result = await jiraService.cancelClusterUpgrade();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_retryClusterUpgrade",
+  `Retry a failed zero-downtime cluster upgrade in the ${jiraInstanceType}`,
+  jiraToolSchemas.retryClusterUpgrade,
+  async () => {
+    const result = await jiraService.retryClusterUpgrade();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_startClusterUpgrade",
+  `Start a zero-downtime cluster upgrade in the ${jiraInstanceType}`,
+  jiraToolSchemas.startClusterUpgrade,
+  async () => {
+    const result = await jiraService.startClusterUpgrade();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getClusterUpgradeState",
+  `Get the current state of the zero-downtime cluster upgrade in the ${jiraInstanceType}`,
+  jiraToolSchemas.getClusterUpgradeState,
+  async () => {
+    const result = await jiraService.getClusterUpgradeState();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIndexSummary",
+  `Get a summary of the issue index condition of the current node in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIndexSummary,
+  async () => {
+    const result = await jiraService.getIndexSummary();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_listIndexSnapshots",
+  `List available index snapshots (absolute paths with timestamps) in the ${jiraInstanceType}`,
+  jiraToolSchemas.listIndexSnapshots,
+  async () => {
+    const result = await jiraService.listIndexSnapshots();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createIndexSnapshot",
+  `Start creating an index snapshot, if none is already in progress, in the ${jiraInstanceType}`,
+  jiraToolSchemas.createIndexSnapshot,
+  async () => {
+    const result = await jiraService.createIndexSnapshot();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getIndexSnapshotStatus",
+  `Check whether index snapshot creation is currently running in the ${jiraInstanceType}`,
+  jiraToolSchemas.getIndexSnapshotStatus,
+  async () => {
+    const result = await jiraService.getIndexSnapshotStatus();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getReindexInfo",
+  `Get information on the active or most recent system reindex in the ${jiraInstanceType}`,
+  jiraToolSchemas.getReindexInfo,
+  async ({ taskId }) => {
+    const result = await jiraService.getReindexInfo(taskId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_startReindex",
+  `Kick off a full system reindex in the ${jiraInstanceType}. Requires admin permissions.`,
+  jiraToolSchemas.startReindex,
+  async ({ indexChangeHistory, type, indexWorklogs, indexComments }) => {
+    const result = await jiraService.startReindex(indexChangeHistory, type, indexWorklogs, indexComments);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_reindexIssues",
+  `Synchronously reindex one or more individual issues in the ${jiraInstanceType}`,
+  jiraToolSchemas.reindexIssues,
+  async ({ issueIds, indexChangeHistory, indexWorklogs, indexComments }) => {
+    const result = await jiraService.reindexIssues(issueIds, indexChangeHistory, indexWorklogs, indexComments);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getReindexProgress",
+  `Get progress information on the active or most recent system reindex in the ${jiraInstanceType}`,
+  jiraToolSchemas.getReindexProgress,
+  async ({ taskId }) => {
+    const result = await jiraService.getReindexProgress(taskId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_processReindexRequests",
+  `Execute any pending reindex requests in the ${jiraInstanceType}`,
+  jiraToolSchemas.processReindexRequests,
+  async () => {
+    const result = await jiraService.processReindexRequests();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getReindexRequestsProgress",
+  `Get the progress of multiple reindex requests in the ${jiraInstanceType}`,
+  jiraToolSchemas.getReindexRequestsProgress,
+  async ({ requestIds }) => {
+    const result = await jiraService.getReindexRequestsProgress(requestIds);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getReindexRequestProgress",
+  `Get the progress of a single reindex request in the ${jiraInstanceType}`,
+  jiraToolSchemas.getReindexRequestProgress,
+  async ({ requestId }) => {
+    const result = await jiraService.getReindexRequestProgress(requestId);
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "jira-issue",
   new ResourceTemplate("jira://issue/{issueKey}", { list: undefined }),
