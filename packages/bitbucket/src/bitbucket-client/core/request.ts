@@ -2,12 +2,12 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import { ApiError } from './ApiError.js';
-import type { ApiRequestOptions } from './ApiRequestOptions.js';
-import type { ApiResult } from './ApiResult.js';
-import { CancelablePromise } from './CancelablePromise.js';
-import type { OnCancel } from './CancelablePromise.js';
-import type { OpenAPIConfig } from './OpenAPI.js';
+import { ApiError } from './apiError.js';
+import type { ApiRequestOptions } from './apiRequestOptions.js';
+import type { ApiResult } from './apiResult.js';
+import { CancelablePromise } from './cancelablePromise.js';
+import type { OnCancel } from './cancelablePromise.js';
+import type { OpenAPIConfig } from './openAPI.js';
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 const REQUEST_TIMEOUT_MS_ENV_VAR = 'ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS';

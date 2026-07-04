@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { IssueLinkTypeJsonBean } from './IssueLinkTypeJsonBean.js';
-import type { IssueRefJsonBean } from './IssueRefJsonBean.js';
+import type { IssueLinkTypeJsonBean } from './issueLinkTypeJsonBean.js';
+import type { IssueRefJsonBean } from './issueRefJsonBean.js';
 export type issueLinks = {
     id?: string;
     inwardIssue?: IssueRefJsonBean;

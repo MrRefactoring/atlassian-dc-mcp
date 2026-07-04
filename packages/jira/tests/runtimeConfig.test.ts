@@ -5,7 +5,7 @@ import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getJiraRuntimeConfig } from '../src/config.js';
 import { JiraService } from '../src/jiraService.js';
-import { OpenAPI } from '../src/jira-client/core/OpenAPI.js';
+import { OpenAPI } from '../src/jira-client/core/openAPI.js';
 import { getHeaders } from '../src/jira-client/core/request.js';
 
 describe('Jira runtime config integration', () => {

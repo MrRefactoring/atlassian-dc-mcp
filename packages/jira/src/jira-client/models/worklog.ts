@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { UserJsonBean } from './UserJsonBean.js';
-import type { VisibilityJsonBean } from './VisibilityJsonBean.js';
+import type { UserJsonBean } from './userJsonBean.js';
+import type { VisibilityJsonBean } from './visibilityJsonBean.js';
 export type worklog = {
     author?: UserJsonBean;
     comment?: string;

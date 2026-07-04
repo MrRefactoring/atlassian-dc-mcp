@@ -61,14 +61,14 @@ import {
   WorkflowschemeService,
   WorklogService,
 } from './jira-client/index.js';
-import type { VersionMoveBean } from './jira-client/models/VersionMoveBean.js';
-import type { MoveFieldBean } from './jira-client/models/MoveFieldBean.js';
-import type { ProjectInputBean } from './jira-client/models/ProjectInputBean.js';
-import type { ProjectUpdateBean } from './jira-client/models/ProjectUpdateBean.js';
-import type { RemoteIssueLinkCreateOrUpdateRequest } from './jira-client/models/RemoteIssueLinkCreateOrUpdateRequest.js';
+import type { VersionMoveBean } from './jira-client/models/versionMoveBean.js';
+import type { MoveFieldBean } from './jira-client/models/moveFieldBean.js';
+import type { ProjectInputBean } from './jira-client/models/projectInputBean.js';
+import type { ProjectUpdateBean } from './jira-client/models/projectUpdateBean.js';
+import type { RemoteIssueLinkCreateOrUpdateRequest } from './jira-client/models/remoteIssueLinkCreateOrUpdateRequest.js';
 import { request as __request, resolve as __resolveAuth } from './jira-client/core/request.js';
-import type { StringList } from './jira-client/models/StringList.js';
-import type { FilePart } from './jira-client/models/FilePart.js';
+import type { StringList } from './jira-client/models/stringList.js';
+import type { FilePart } from './jira-client/models/filePart.js';
 import { getDefaultPageSize, getMissingConfig, JIRA_PRODUCT } from './config.js';
 
 const DEFAULT_SEARCH_FIELDS = ['summary', 'description', 'status', 'assignee', 'reporter', 'priority', 'issuetype', 'labels', 'updated'];
