@@ -10,6 +10,7 @@ import {
   AvatarService,
   BacklogService,
   BoardService,
+  ClusterService,
   CommentService,
   ComponentService,
   CustomFieldOptionService,
@@ -21,6 +22,8 @@ import {
   GroupService,
   GroupsService,
   GroupuserpickerService,
+  IndexService,
+  IndexSnapshotService,
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
@@ -41,6 +44,7 @@ import {
   ProjectService,
   ProjectsService,
   ProjectvalidateService,
+  ReindexService,
   ResolutionService,
   RoleService,
   ScreensService,
@@ -402,6 +406,34 @@ jest.mock('../jira-client/index.js', () => ({
   },
   LicenseValidatorService: {
     validate: jest.fn(),
+  },
+  ClusterService: {
+    getAllNodes: jest.fn(),
+    deleteNode: jest.fn(),
+    changeNodeStateToOffline: jest.fn(),
+    requestCurrentIndexFromNode: jest.fn(),
+    approveUpgrade: jest.fn(),
+    cancelUpgrade: jest.fn(),
+    acknowledgeErrors: jest.fn(),
+    setReadyToUpgrade: jest.fn(),
+    getState: jest.fn(),
+  },
+  IndexService: {
+    getIndexSummary: jest.fn(),
+  },
+  IndexSnapshotService: {
+    listIndexSnapshot: jest.fn(),
+    createIndexSnapshot: jest.fn(),
+    isIndexSnapshotRunning: jest.fn(),
+  },
+  ReindexService: {
+    getReindexInfo: jest.fn(),
+    reindex: jest.fn(),
+    reindexIssues: jest.fn(),
+    getReindexProgress: jest.fn(),
+    processRequests: jest.fn(),
+    getProgressBulk: jest.fn(),
+    getProgress: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -4318,6 +4350,253 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Not authorized');
+    });
+  });
+
+  describe('cluster', () => {
+    it('gets all cluster nodes', async () => {
+      const mockNodes = [{ nodeId: 'node1', state: 'ACTIVE' }];
+      (ClusterService.getAllNodes as jest.Mock).mockResolvedValue(mockNodes);
+
+      const result = await jiraService.getClusterNodes();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockNodes);
+      expect(ClusterService.getAllNodes).toHaveBeenCalledWith();
+    });
+
+    it('deletes a cluster node', async () => {
+      (ClusterService.deleteNode as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteClusterNode('node1');
+
+      expect(result.success).toBe(true);
+      expect(ClusterService.deleteNode).toHaveBeenCalledWith('node1');
+    });
+
+    it('sets a cluster node offline', async () => {
+      (ClusterService.changeNodeStateToOffline as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setClusterNodeOffline('node1');
+
+      expect(result.success).toBe(true);
+      expect(ClusterService.changeNodeStateToOffline).toHaveBeenCalledWith('node1');
+    });
+
+    it('requests a cluster node index snapshot', async () => {
+      (ClusterService.requestCurrentIndexFromNode as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.requestClusterNodeIndexSnapshot('node1');
+
+      expect(result.success).toBe(true);
+      expect(ClusterService.requestCurrentIndexFromNode).toHaveBeenCalledWith('node1');
+    });
+
+    it('approves a cluster upgrade', async () => {
+      (ClusterService.approveUpgrade as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.approveClusterUpgrade();
+
+      expect(result.success).toBe(true);
+      expect(ClusterService.approveUpgrade).toHaveBeenCalledWith();
+    });
+
+    it('cancels a cluster upgrade', async () => {
+      (ClusterService.cancelUpgrade as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.cancelClusterUpgrade();
+
+      expect(result.success).toBe(true);
+      expect(ClusterService.cancelUpgrade).toHaveBeenCalledWith();
+    });
+
+    it('retries a cluster upgrade', async () => {
+      (ClusterService.acknowledgeErrors as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.retryClusterUpgrade();
+
+      expect(result.success).toBe(true);
+      expect(ClusterService.acknowledgeErrors).toHaveBeenCalledWith();
+    });
+
+    it('starts a cluster upgrade', async () => {
+      (ClusterService.setReadyToUpgrade as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.startClusterUpgrade();
+
+      expect(result.success).toBe(true);
+      expect(ClusterService.setReadyToUpgrade).toHaveBeenCalledWith();
+    });
+
+    it('gets cluster upgrade state', async () => {
+      const mockState = { state: 'STABLE' };
+      (ClusterService.getState as jest.Mock).mockResolvedValue(mockState);
+
+      const result = await jiraService.getClusterUpgradeState();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockState);
+      expect(ClusterService.getState).toHaveBeenCalledWith();
+    });
+
+    it('handles errors', async () => {
+      (ClusterService.getAllNodes as jest.Mock).mockRejectedValue(new Error('Not authorized'));
+
+      const result = await jiraService.getClusterNodes();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authorized');
+    });
+  });
+
+  describe('index and index snapshots', () => {
+    it('gets the index summary', async () => {
+      const mockSummary = { nodeId: 'node1', issueIndex: { indexReadable: true } };
+      (IndexService.getIndexSummary as jest.Mock).mockResolvedValue(mockSummary);
+
+      const result = await jiraService.getIndexSummary();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSummary);
+      expect(IndexService.getIndexSummary).toHaveBeenCalledWith();
+    });
+
+    it('lists index snapshots', async () => {
+      const mockSnapshots = { snapshots: ['/var/jira/snapshot1'] };
+      (IndexSnapshotService.listIndexSnapshot as jest.Mock).mockResolvedValue(mockSnapshots);
+
+      const result = await jiraService.listIndexSnapshots();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSnapshots);
+      expect(IndexSnapshotService.listIndexSnapshot).toHaveBeenCalledWith();
+    });
+
+    it('creates an index snapshot', async () => {
+      const mockSnapshot = { filePath: '/var/jira/snapshot2' };
+      (IndexSnapshotService.createIndexSnapshot as jest.Mock).mockResolvedValue(mockSnapshot);
+
+      const result = await jiraService.createIndexSnapshot();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSnapshot);
+      expect(IndexSnapshotService.createIndexSnapshot).toHaveBeenCalledWith();
+    });
+
+    it('gets index snapshot creation status', async () => {
+      const mockStatus = { running: false };
+      (IndexSnapshotService.isIndexSnapshotRunning as jest.Mock).mockResolvedValue(mockStatus);
+
+      const result = await jiraService.getIndexSnapshotStatus();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockStatus);
+      expect(IndexSnapshotService.isIndexSnapshotRunning).toHaveBeenCalledWith();
+    });
+
+    it('handles errors', async () => {
+      (IndexService.getIndexSummary as jest.Mock).mockRejectedValue(new Error('Forbidden'));
+
+      const result = await jiraService.getIndexSummary();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Forbidden');
+    });
+  });
+
+  describe('reindex', () => {
+    it('gets reindex info', async () => {
+      const mockInfo = { currentProgress: 100, submittedTime: 123 };
+      (ReindexService.getReindexInfo as jest.Mock).mockResolvedValue(mockInfo);
+
+      const result = await jiraService.getReindexInfo(42);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockInfo);
+      expect(ReindexService.getReindexInfo).toHaveBeenCalledWith(42);
+    });
+
+    it('starts a reindex with defaults', async () => {
+      const mockInfo = { currentProgress: 0 };
+      (ReindexService.reindex as jest.Mock).mockResolvedValue(mockInfo);
+
+      const result = await jiraService.startReindex();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockInfo);
+      expect(ReindexService.reindex).toHaveBeenCalledWith(false, undefined, false, false);
+    });
+
+    it('starts a reindex with explicit options', async () => {
+      (ReindexService.reindex as jest.Mock).mockResolvedValue({});
+
+      await jiraService.startReindex(true, 'FOREGROUND', true, true);
+
+      expect(ReindexService.reindex).toHaveBeenCalledWith(true, 'FOREGROUND', true, true);
+    });
+
+    it('reindexes individual issues', async () => {
+      const mockInfo = { currentProgress: 100 };
+      (ReindexService.reindexIssues as jest.Mock).mockResolvedValue(mockInfo);
+
+      const result = await jiraService.reindexIssues(['TEST-1', 'TEST-2']);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockInfo);
+      expect(ReindexService.reindexIssues).toHaveBeenCalledWith(['TEST-1', 'TEST-2'], false, false, false);
+    });
+
+    it('gets reindex progress', async () => {
+      const mockProgress = { currentProgress: 50 };
+      (ReindexService.getReindexProgress as jest.Mock).mockResolvedValue(mockProgress);
+
+      const result = await jiraService.getReindexProgress(42);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProgress);
+      expect(ReindexService.getReindexProgress).toHaveBeenCalledWith(42);
+    });
+
+    it('processes pending reindex requests', async () => {
+      const mockIds = [1, 2, 3];
+      (ReindexService.processRequests as jest.Mock).mockResolvedValue(mockIds);
+
+      const result = await jiraService.processReindexRequests();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockIds);
+      expect(ReindexService.processRequests).toHaveBeenCalledWith();
+    });
+
+    it('gets progress of multiple reindex requests', async () => {
+      const mockProgress = [{ id: 1 }, { id: 2 }];
+      (ReindexService.getProgressBulk as jest.Mock).mockResolvedValue(mockProgress);
+
+      const result = await jiraService.getReindexRequestsProgress([1, 2]);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProgress);
+      expect(ReindexService.getProgressBulk).toHaveBeenCalledWith([1, 2]);
+    });
+
+    it('gets progress of a single reindex request', async () => {
+      const mockProgress = { id: 1, currentProgress: 100 };
+      (ReindexService.getProgress as jest.Mock).mockResolvedValue(mockProgress);
+
+      const result = await jiraService.getReindexRequestProgress(1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProgress);
+      expect(ReindexService.getProgress).toHaveBeenCalledWith(1);
+    });
+
+    it('handles errors', async () => {
+      (ReindexService.getReindexInfo as jest.Mock).mockRejectedValue(new Error('No re-indexing task found'));
+
+      const result = await jiraService.getReindexInfo();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('No re-indexing task found');
     });
   });
 

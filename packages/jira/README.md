@@ -189,7 +189,7 @@ Besides tools, this server exposes one MCP resource template so an issue can be 
 
 ### Available Tools
 
-This server exposes 239 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 259 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -524,3 +524,32 @@ Arbitrary JSON key/value metadata attachable to issues, projects, and comments.
 - `jira_getApplicationProperty` — Get an application property by key.
 - `jira_getAdvancedSettings` — Get all advanced settings application properties (General Configuration > Advanced Settings).
 - `jira_setApplicationProperty` — Update an application property's value.
+
+#### Cluster administration
+
+- `jira_getClusterNodes` — Get all nodes in the cluster.
+- `jira_deleteClusterNode` — Delete an OFFLINE node from the cluster.
+- `jira_setClusterNodeOffline` — Change a cluster node's state to OFFLINE.
+- `jira_requestClusterNodeIndexSnapshot` — Request an index snapshot from a cluster node (deprecated, Lucene-specific, planned for removal in Jira 11).
+- `jira_approveClusterUpgrade` — Approve an ongoing zero-downtime cluster upgrade.
+- `jira_cancelClusterUpgrade` — Cancel an ongoing zero-downtime cluster upgrade.
+- `jira_retryClusterUpgrade` — Retry a failed zero-downtime cluster upgrade.
+- `jira_startClusterUpgrade` — Start a zero-downtime cluster upgrade.
+- `jira_getClusterUpgradeState` — Get the current state of the zero-downtime cluster upgrade.
+
+#### Index & index snapshots
+
+- `jira_getIndexSummary` — Get a summary of the issue index condition of the current node.
+- `jira_listIndexSnapshots` — List available index snapshots (absolute paths with timestamps).
+- `jira_createIndexSnapshot` — Start creating an index snapshot, if none is already in progress.
+- `jira_getIndexSnapshotStatus` — Check whether index snapshot creation is currently running.
+
+#### Reindex
+
+- `jira_getReindexInfo` — Get information on the active or most recent system reindex.
+- `jira_startReindex` — Kick off a full system reindex. Requires admin permissions.
+- `jira_reindexIssues` — Synchronously reindex one or more individual issues.
+- `jira_getReindexProgress` — Get progress information on the active or most recent system reindex.
+- `jira_processReindexRequests` — Execute any pending reindex requests.
+- `jira_getReindexRequestsProgress` — Get the progress of multiple reindex requests.
+- `jira_getReindexRequestProgress` — Get the progress of a single reindex request.
