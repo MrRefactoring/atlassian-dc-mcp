@@ -1162,6 +1162,47 @@ server.tool(
   }
 );
 
+// Add Confluence backup/restore and instance metrics tools
+server.tool(
+  "confluence_triggerSiteBackup",
+  `Start a new site backup job in ${confluenceInstanceType}. Requires permission to create site backups.`,
+  confluenceToolSchemas.triggerSiteBackup,
+  async ({ settings }) => {
+    const result = await confluenceService.triggerSiteBackup(settings);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getBackupRestoreJob",
+  `Get a backup/restore job by ID in ${confluenceInstanceType}. Caller must be a system administrator or the job's owner.`,
+  confluenceToolSchemas.getBackupRestoreJob,
+  async ({ jobId }) => {
+    const result = await confluenceService.getBackupRestoreJob(jobId);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_findBackupRestoreJobs",
+  `Find backup/restore jobs visible to the calling user in ${confluenceInstanceType}, optionally filtered`,
+  confluenceToolSchemas.findBackupRestoreJobs,
+  async ({ owner, spaceKey, fromDate, jobStates, toDate, jobOperation, limit, jobScope }) => {
+    const result = await confluenceService.findBackupRestoreJobs(owner, spaceKey, fromDate, jobStates, toDate, jobOperation, limit, jobScope);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getInstanceMetrics",
+  `Get simple metrics about the ${confluenceInstanceType} (e.g. content and user counts)`,
+  confluenceToolSchemas.getInstanceMetrics,
+  async () => {
+    const result = await confluenceService.getInstanceMetrics();
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "confluence-page",
   new ResourceTemplate("confluence://page/{pageId}", { list: undefined }),

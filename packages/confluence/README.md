@@ -168,7 +168,7 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-The server registers 97 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
+The server registers 101 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
 #### Content — CRUD & search (CQL)
 
@@ -320,3 +320,10 @@ The server registers 97 tools, grouped below by area. All tools operate against 
 
 - `confluence_getLongRunningTask` — Get information about a single long-running background task (e.g. space export, reindex) by ID
 - `confluence_getLongRunningTasks` — Get all tracked long-running background tasks
+
+#### Backup/restore and instance metrics
+
+- `confluence_triggerSiteBackup` — Start a new site backup job (requires permission to create site backups)
+- `confluence_getBackupRestoreJob` — Get a backup/restore job by ID (caller must be a system administrator or the job's owner)
+- `confluence_findBackupRestoreJobs` — Find backup/restore jobs visible to the calling user, optionally filtered by owner, space, date range, state, operation or scope
+- `confluence_getInstanceMetrics` — Get simple metrics about the instance (e.g. content and user counts)
