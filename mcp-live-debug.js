@@ -101,7 +101,7 @@ class WatchManager {
 
     if (this.isShuttingDown) return;
 
-    this.runProcess = spawn('node', ['./build/index.js'], {
+    this.runProcess = spawn('node', ['./dist/index.js'], {
       stdio: 'inherit',
       cwd: this.packageDir,
       env: {

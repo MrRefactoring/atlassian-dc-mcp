@@ -1866,7 +1866,7 @@ export const confluenceToolSchemas = {
     start: z.number().optional().describe("Start index for pagination")
   },
   triggerSiteBackup: {
-    settings: z.record(z.any()).optional().describe("Site backup settings, passed through as-is to the API. Consult the target instance's REST API documentation for supported fields.")
+    settings: z.record(z.string(), z.any()).optional().describe("Site backup settings, passed through as-is to the API. Consult the target instance's REST API documentation for supported fields.")
   },
   getBackupRestoreJob: {
     jobId: z.string().describe("ID of the backup/restore job to fetch. Caller must be a system administrator or the job's owner.")

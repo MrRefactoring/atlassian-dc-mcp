@@ -7,7 +7,6 @@ import { logger } from './logger.js';
 export * from './api-error-handler.js'
 export * from './pagination.js';
 export * from './config/index.js';
-export { runSetup, runSetupCli } from './setup-cli.js';
 export { describeValidationError } from './setup/describe-error.js';
 export { parseSetupArgs, printSetupHelp, SetupArgsError, type ParsedSetupArgs } from './setup/args.js';
 export { logger, type Logger, type LogLevel, type LogFields, LOG_LEVEL_ENV_VAR } from './logger.js';

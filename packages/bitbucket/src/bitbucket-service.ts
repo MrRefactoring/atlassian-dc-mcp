@@ -3993,7 +3993,7 @@ export const bitbucketToolSchemas = {
   updatePullRequestSettings: {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug"),
-    settings: z.record(z.any()).describe("Settings to update; only the provided keys are changed. Known keys: mergeConfig, requiredApprovers, requiredAllApprovers, requiredAllTasksComplete, requiredSuccessfulBuilds, 'com.atlassian.bitbucket.server.bundled-hooks.requiredApproversMergeHook', 'com.atlassian.bitbucket.server.bitbucket-build.requiredBuildsMergeCheck'")
+    settings: z.record(z.string(), z.any()).describe("Settings to update; only the provided keys are changed. Known keys: mergeConfig, requiredApprovers, requiredAllApprovers, requiredAllTasksComplete, requiredSuccessfulBuilds, 'com.atlassian.bitbucket.server.bundled-hooks.requiredApproversMergeHook', 'com.atlassian.bitbucket.server.bitbucket-build.requiredBuildsMergeCheck'")
   },
   getAutoDeclineSettings: {
     projectKey: z.string().describe("The project key"),
@@ -4048,6 +4048,6 @@ export const bitbucketToolSchemas = {
     projectKey: z.string().describe("The project key"),
     repositorySlug: z.string().describe("The repository slug"),
     hookKey: z.string().describe("The hook key"),
-    settings: z.record(z.any()).describe("The raw settings document for the hook. Structure is decided by the hook's plugin.")
+    settings: z.record(z.string(), z.any()).describe("The raw settings document for the hook. Structure is decided by the hook's plugin.")
   }
 };
