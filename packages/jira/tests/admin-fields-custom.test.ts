@@ -59,7 +59,7 @@ describe('JiraService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockFields);
       expect(CustomFieldsService.getCustomFields).toHaveBeenCalledWith(
-        undefined, 'textfield', 'Story', '25', undefined, undefined, undefined, undefined, '0'
+        undefined, 'textfield', 'Story', '25', undefined, undefined, undefined, undefined, '0',
       );
     });
 
@@ -81,7 +81,7 @@ describe('JiraService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockOptions);
       expect(CustomFieldsService.getCustomFieldOptions).toHaveBeenCalledWith(
-        'customfield_10001', undefined, undefined, undefined, undefined, undefined, undefined, undefined
+        'customfield_10001', undefined, undefined, undefined, undefined, undefined, undefined, undefined,
       );
     });
 
@@ -102,7 +102,7 @@ describe('JiraService', () => {
 
       const result = await jiraService.createCustomField(
         'Story Points',
-        'com.atlassian.jira.plugin.system.customfieldtypes:float'
+        'com.atlassian.jira.plugin.system.customfieldtypes:float',
       );
 
       expect(result.success).toBe(true);
@@ -221,7 +221,7 @@ describe('JiraService', () => {
 
     it('handles errors', async () => {
       (ScreensService.deleteTab as Mock).mockRejectedValue(
-        new Error('Tab can not be deleted, there has to be at least one tab left')
+        new Error('Tab can not be deleted, there has to be at least one tab left'),
       );
 
       const result = await jiraService.deleteScreenTab(1, 10);
@@ -274,7 +274,7 @@ describe('JiraService', () => {
       });
     });
 
-    it("updates a field's show-when-empty indicator", async () => {
+    it('updates a field\'s show-when-empty indicator', async () => {
       (ScreensService.updateShowWhenEmptyIndicator as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.updateScreenTabFieldShowWhenEmpty(1, 10, 'customfield_10001', true);

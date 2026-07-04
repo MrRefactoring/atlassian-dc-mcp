@@ -1,9 +1,10 @@
+import type {
+  BitbucketPRApiResponse } from './pr-comment-mapper.js';
 import {
-  BitbucketPRApiResponse,
   filterPullRequestComments,
   getCommentSummary,
   type PullRequestCommentOptions,
-  simplifyBitbucketPRComments
+  simplifyBitbucketPRComments,
 } from './pr-comment-mapper.js';
 import { getChangesSummary, simplifyBitbucketPRChanges } from './pr-changes-mapper.js';
 
@@ -14,6 +15,7 @@ function getLink(links: any): string | undefined {
   const selfLinks = links?.self;
   if (Array.isArray(selfLinks)) {
     const link = selfLinks.find(item => typeof item?.href === 'string');
+
     return link?.href;
   }
 
@@ -31,7 +33,7 @@ function hasSummary(value: any): value is { summary: unknown; isLastPage?: boole
 export function shapePullRequestCommentsResponse(
   response: BitbucketPRApiResponse,
   output: BitbucketOutputMode = 'compact',
-  options: PullRequestCommentOptions = {}
+  options: PullRequestCommentOptions = {},
 ): Record<string, any> {
   const filteredResponse = filterPullRequestComments(response, options);
 
@@ -49,10 +51,10 @@ export function shapePullRequestCommentsResponse(
     summary: hasSummary(compact)
       ? compact.summary
       : {
-          totalActivities: Array.isArray(filteredResponse.values) ? filteredResponse.values.length : 0,
-          commentCount: getCommentSummary(filteredResponse, options).length,
-          unresolvedCount: 0,
-        },
+        totalActivities: Array.isArray(filteredResponse.values) ? filteredResponse.values.length : 0,
+        commentCount: getCommentSummary(filteredResponse, options).length,
+        unresolvedCount: 0,
+      },
     items: getCommentSummary(filteredResponse, options),
   };
 }
@@ -75,19 +77,20 @@ export function shapePullRequestChangesResponse(response: any, output: Bitbucket
     summary: hasSummary(compact)
       ? compact.summary
       : {
-          totalChanges: Array.isArray(response?.values) ? response.values.length : 0,
-          additions: 0,
-          deletions: 0,
-          modifications: 0,
-          moves: 0,
-          filesWithComments: 0,
-        },
+        totalChanges: Array.isArray(response?.values) ? response.values.length : 0,
+        additions: 0,
+        deletions: 0,
+        modifications: 0,
+        moves: 0,
+        filesWithComments: 0,
+      },
     items: getChangesSummary(response),
   };
 }
 
 export function shapePullRequestAck(pullRequest: any): Record<string, any> {
   const link = getLink(pullRequest?.links);
+
   return {
     ...(pullRequest?.id !== undefined ? { id: pullRequest.id } : {}),
     ...(pullRequest?.version !== undefined ? { version: pullRequest.version } : {}),
@@ -102,6 +105,7 @@ export function shapePullRequestAck(pullRequest: any): Record<string, any> {
 
 export function shapePullRequestCommentAck(comment: any): Record<string, any> {
   const link = getLink(comment?.links);
+
   return {
     ...(comment?.id !== undefined ? { id: comment.id } : {}),
     ...(comment?.parent?.id !== undefined ? { parentId: comment.parent.id } : {}),
@@ -109,18 +113,18 @@ export function shapePullRequestCommentAck(comment: any): Record<string, any> {
     pending: comment?.state === 'PENDING',
     ...(typeof comment?.anchor?.path === 'string'
       ? {
-          anchor: {
-            path: comment.anchor.path,
-            ...(comment.anchor.line !== undefined ? { line: comment.anchor.line } : {}),
-            ...(typeof comment.anchor.lineType === 'string' ? { lineType: comment.anchor.lineType } : {}),
-            ...(comment.anchor.multilineMarker
-              ? {
-                  startLine: comment.anchor.multilineMarker.startLine,
-                  startLineType: comment.anchor.multilineMarker.startLineType,
-                }
-              : {}),
-          },
-        }
+        anchor: {
+          path: comment.anchor.path,
+          ...(comment.anchor.line !== undefined ? { line: comment.anchor.line } : {}),
+          ...(typeof comment.anchor.lineType === 'string' ? { lineType: comment.anchor.lineType } : {}),
+          ...(comment.anchor.multilineMarker
+            ? {
+              startLine: comment.anchor.multilineMarker.startLine,
+              startLineType: comment.anchor.multilineMarker.startLineType,
+            }
+            : {}),
+        },
+      }
       : {}),
     ...(link ? { link } : {}),
   };

@@ -95,7 +95,7 @@ describe('ConfluenceService.searchSpaces', () => {
       '10',
       '0',
       'none',
-      'type=space AND title ~ "my space"'
+      'type=space AND title ~ "my space"',
     );
   });
 
@@ -111,7 +111,7 @@ describe('ConfluenceService.searchSpaces', () => {
       '5',
       undefined,
       'none',
-      'type=space AND title ~ "say \\"hello\\""'
+      'type=space AND title ~ "say \\"hello\\""',
     );
   });
 
@@ -127,7 +127,7 @@ describe('ConfluenceService.searchSpaces', () => {
       '5',
       undefined,
       'none',
-      'type=space AND title ~ "path\\\\to\\\\space"'
+      'type=space AND title ~ "path\\\\to\\\\space"',
     );
   });
 
@@ -324,7 +324,7 @@ describe('ConfluenceService content properties', () => {
       '123',
       'my-key',
       undefined,
-      { key: 'my-key', value: 'new-value', version: { number: 2 } }
+      { key: 'my-key', value: 'new-value', version: { number: 2 } },
     );
   });
 
@@ -376,7 +376,7 @@ describe('ConfluenceService content restrictions', () => {
       'restrictions.user',
       undefined,
       undefined,
-      restrictions
+      restrictions,
     );
   });
 });

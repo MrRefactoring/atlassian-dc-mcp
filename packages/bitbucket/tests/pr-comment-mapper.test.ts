@@ -4,7 +4,7 @@ import {
   simplifyBitbucketPRComments,
   getCommentSummary,
   type BitbucketPRApiResponse,
-  type SimplifiedPRResponse
+  type SimplifiedPRResponse,
 } from '../src/pr-comment-mapper.js';
 import { formatToolResponse } from 'datacenter-mcp-core';
 
@@ -45,10 +45,10 @@ function createUser(name: string, id: number, displayName: string) {
     displayName,
     id,
     slug: name,
-    type: "NORMAL",
+    type: 'NORMAL',
     links: {
-      self: [{ href: `https://bitbucket.company.local/users/${name}` }]
-    }
+      self: [{ href: `https://bitbucket.company.local/users/${name}` }],
+    },
   };
 }
 
@@ -57,30 +57,30 @@ function createComment(overrides: Partial<TestComment> = {}): TestComment {
     properties: { repositoryId: 1001 },
     id: 2001,
     version: 0,
-    text: "This needs review",
+    text: 'This needs review',
     author: createUser('testuser1', 101, 'User A'),
     createdDate: 1600000000000,
     updatedDate: 1600000000000,
     comments: [],
     anchor: {
-      fromHash: "abc123def456789012345678901234567890abcd",
-      toHash: "def456abc789012345678901234567890123cdef",
+      fromHash: 'abc123def456789012345678901234567890abcd',
+      toHash: 'def456abc789012345678901234567890123cdef',
       line: 6,
-      lineType: "ADDED",
-      fileType: "TO",
-      path: "config.yml",
-      diffType: "EFFECTIVE",
-      orphaned: false
+      lineType: 'ADDED',
+      fileType: 'TO',
+      path: 'config.yml',
+      diffType: 'EFFECTIVE',
+      orphaned: false,
     },
     threadResolved: false,
-    severity: "NORMAL",
-    state: "OPEN",
+    severity: 'NORMAL',
+    state: 'OPEN',
     permittedOperations: {
       editable: false,
       transitionable: true,
-      deletable: false
+      deletable: false,
     },
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -95,18 +95,18 @@ describe('PR Comment Mapper', () => {
         id: 1001,
         createdDate: 1600000000000,
         user: createUser('testuser1', 101, 'User A'),
-        action: "COMMENTED",
-        commentAction: "ADDED",
-        comment: createComment()
+        action: 'COMMENTED',
+        commentAction: 'ADDED',
+        comment: createComment(),
       },
       {
         id: 1002,
         createdDate: 1600000001000,
         user: createUser('testuser2', 102, 'User B'),
-        action: "OPENED"
-      }
+        action: 'OPENED',
+      },
     ],
-    start: 0
+    start: 0,
   };
   const [baseCommentActivity, openedActivity] = validPRResponse.values ?? [];
 
@@ -121,48 +121,48 @@ describe('PR Comment Mapper', () => {
             id: 1001,
             createdDate: 1600000000000,
             user: {
-              name: "testuser1",
-              displayName: "User A"
+              name: 'testuser1',
+              displayName: 'User A',
             },
-            action: "COMMENTED",
-            commentAction: "ADDED",
+            action: 'COMMENTED',
+            commentAction: 'ADDED',
             comment: {
               id: 2001,
-              text: "This needs review",
+              text: 'This needs review',
               author: {
-                name: "testuser1",
-                displayName: "User A"
+                name: 'testuser1',
+                displayName: 'User A',
               },
               createdDate: 1600000000000,
               anchor: {
                 line: 6,
-                path: "config.yml",
-                fileType: "TO"
+                path: 'config.yml',
+                fileType: 'TO',
               },
               comments: [],
               threadResolved: false,
-              state: "OPEN"
-            }
+              state: 'OPEN',
+            },
           },
           {
             id: 1002,
             createdDate: 1600000001000,
             user: {
-              name: "testuser2",
-              displayName: "User B"
+              name: 'testuser2',
+              displayName: 'User B',
             },
-            action: "OPENED"
-          }
+            action: 'OPENED',
+          },
         ],
         summary: {
           totalActivities: 2,
           prAuthor: {
-            name: "testuser2",
-            displayName: "User B"
+            name: 'testuser2',
+            displayName: 'User B',
           },
           commentCount: 1,
-          unresolvedCount: 1
-        }
+          unresolvedCount: 1,
+        },
       };
 
       expect(result).toEqual(expectedResult);
@@ -176,8 +176,8 @@ describe('PR Comment Mapper', () => {
             id: 1001,
             createdDate: 1600000000000,
             user: createUser('testuser1', 101, 'User A'),
-            action: "COMMENTED",
-            commentAction: "ADDED",
+            action: 'COMMENTED',
+            commentAction: 'ADDED',
             comment: createComment({
               anchor: { line: 'not-a-number' } as unknown as TestComment['anchor'],
             }),
@@ -190,9 +190,9 @@ describe('PR Comment Mapper', () => {
       expect(result.activities[0]).toEqual({
         id: 1001,
         createdDate: 1600000000000,
-        user: { name: "testuser1", displayName: "User A" },
-        action: "COMMENTED",
-        commentAction: "ADDED",
+        user: { name: 'testuser1', displayName: 'User A' },
+        action: 'COMMENTED',
+        commentAction: 'ADDED',
         // no `comment` key: isComment() rejects the malformed anchor
       });
     });
@@ -205,57 +205,57 @@ describe('PR Comment Mapper', () => {
             id: 1001,
             createdDate: 1600000000000,
             user: createUser('testuser1', 101, 'User A'),
-            action: "COMMENTED",
-            commentAction: "ADDED",
+            action: 'COMMENTED',
+            commentAction: 'ADDED',
             comment: createComment({
               comments: [
                 createComment({
                   id: 2002,
-                  text: "Author reply",
+                  text: 'Author reply',
                   author: createUser('author1', 103, 'Author One'),
                   anchor: undefined,
                   comments: [
                     createComment({
                       id: 2003,
-                      text: "Reviewer follow-up",
+                      text: 'Reviewer follow-up',
                       author: createUser('reviewer2', 104, 'Reviewer Two'),
-                      anchor: undefined
-                    })
-                  ]
-                })
-              ]
-            })
-          }
-        ]
+                      anchor: undefined,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          },
+        ],
       };
 
       const result = simplifyBitbucketPRComments(threadedResponse) as SimplifiedPRResponse;
       expect(result.activities[0].comment?.comments).toEqual([
         {
           id: 2002,
-          text: "Author reply",
+          text: 'Author reply',
           author: {
-            name: "author1",
-            displayName: "Author One"
+            name: 'author1',
+            displayName: 'Author One',
           },
           createdDate: 1600000000000,
           comments: [
             {
               id: 2003,
-              text: "Reviewer follow-up",
+              text: 'Reviewer follow-up',
               author: {
-                name: "reviewer2",
-                displayName: "Reviewer Two"
+                name: 'reviewer2',
+                displayName: 'Reviewer Two',
               },
               createdDate: 1600000000000,
               comments: [],
               threadResolved: false,
-              state: "OPEN"
-            }
+              state: 'OPEN',
+            },
           ],
           threadResolved: false,
-          state: "OPEN"
-        }
+          state: 'OPEN',
+        },
       ]);
     });
 
@@ -280,9 +280,9 @@ describe('PR Comment Mapper', () => {
                   text: 'Resolved reply',
                   anchor: undefined,
                   threadResolved: true,
-                })
-              ]
-            })
+                }),
+              ],
+            }),
           },
           baseCommentActivity!,
         ],
@@ -296,16 +296,16 @@ describe('PR Comment Mapper', () => {
           createdDate: 1600000001000,
           user: {
             name: 'testuser2',
-            displayName: 'User B'
+            displayName: 'User B',
           },
-          action: 'OPENED'
+          action: 'OPENED',
         },
         {
           id: 1001,
           createdDate: 1600000000000,
           user: {
             name: 'testuser1',
-            displayName: 'User A'
+            displayName: 'User A',
           },
           action: 'COMMENTED',
           commentAction: 'ADDED',
@@ -314,19 +314,19 @@ describe('PR Comment Mapper', () => {
             text: 'This needs review',
             author: {
               name: 'testuser1',
-              displayName: 'User A'
+              displayName: 'User A',
             },
             createdDate: 1600000000000,
             anchor: {
               line: 6,
               path: 'config.yml',
-              fileType: 'TO'
+              fileType: 'TO',
             },
             comments: [],
             threadResolved: false,
-            state: 'OPEN'
-          }
-        }
+            state: 'OPEN',
+          },
+        },
       ]);
       expect(result.summary.commentCount).toBe(1);
       expect(getCommentSummary(resolvedThreadResponse)).toEqual(['User A on config.yml:6: This needs review']);
@@ -352,10 +352,10 @@ describe('PR Comment Mapper', () => {
                   text: 'Resolved reply',
                   anchor: undefined,
                   threadResolved: true,
-                })
-              ]
-            })
-          }
+                }),
+              ],
+            }),
+          },
         ],
       };
 
@@ -366,13 +366,13 @@ describe('PR Comment Mapper', () => {
         text: 'Resolved thread root',
         author: {
           name: 'testuser1',
-          displayName: 'User A'
+          displayName: 'User A',
         },
         createdDate: 1600000000000,
         anchor: {
           line: 6,
           path: 'config.yml',
-          fileType: 'TO'
+          fileType: 'TO',
         },
         comments: [
           {
@@ -380,19 +380,19 @@ describe('PR Comment Mapper', () => {
             text: 'Resolved reply',
             author: {
               name: 'testuser1',
-              displayName: 'User A'
+              displayName: 'User A',
             },
             createdDate: 1600000000000,
             comments: [],
             threadResolved: true,
-            state: 'OPEN'
-          }
+            state: 'OPEN',
+          },
         ],
         threadResolved: true,
-        state: 'OPEN'
+        state: 'OPEN',
       });
       expect(getCommentSummary(resolvedThreadResponse, { includeResolved: true })).toEqual([
-        'User A on config.yml:6: Resolved thread root'
+        'User A on config.yml:6: Resolved thread root',
       ]);
     });
 
@@ -404,36 +404,36 @@ describe('PR Comment Mapper', () => {
             id: 1001,
             createdDate: 1600000000000,
             user: createUser('testuser1', 101, 'User A'),
-            action: "COMMENTED",
-            commentAction: "ADDED",
+            action: 'COMMENTED',
+            commentAction: 'ADDED',
             comment: createComment({
               comments: [
                 { id: 'bad-comment-id' } as unknown as TestComment,
                 createComment({
                   id: 2002,
-                  text: "Valid reply",
-                  anchor: undefined
-                })
-              ]
-            })
-          }
-        ]
+                  text: 'Valid reply',
+                  anchor: undefined,
+                }),
+              ],
+            }),
+          },
+        ],
       };
 
       const result = simplifyBitbucketPRComments(malformedNestedResponse) as SimplifiedPRResponse;
       expect(result.activities[0].comment?.comments).toEqual([
         {
           id: 2002,
-          text: "Valid reply",
+          text: 'Valid reply',
           author: {
-            name: "testuser1",
-            displayName: "User A"
+            name: 'testuser1',
+            displayName: 'User A',
           },
           createdDate: 1600000000000,
           comments: [],
           threadResolved: false,
-          state: "OPEN"
-        }
+          state: 'OPEN',
+        },
       ]);
     });
 
@@ -441,8 +441,8 @@ describe('PR Comment Mapper', () => {
       const rootComment = createComment();
       const childComment = createComment({
         id: 2002,
-        text: "Child reply",
-        anchor: undefined
+        text: 'Child reply',
+        anchor: undefined,
       });
 
       rootComment.comments = [childComment];
@@ -457,28 +457,28 @@ describe('PR Comment Mapper', () => {
             id: 1001,
             createdDate: 1600000000000,
             user: createUser('testuser1', 101, 'User A'),
-            action: "COMMENTED",
-            commentAction: "ADDED",
-            comment: rootComment
-          }
+            action: 'COMMENTED',
+            commentAction: 'ADDED',
+            comment: rootComment,
+          },
         ],
-        start: 0
+        start: 0,
       };
 
       const result = simplifyBitbucketPRComments(cyclicResponse) as SimplifiedPRResponse;
       expect(result.activities[0].comment?.comments).toEqual([
         {
           id: 2002,
-          text: "Child reply",
+          text: 'Child reply',
           author: {
-            name: "testuser1",
-            displayName: "User A"
+            name: 'testuser1',
+            displayName: 'User A',
           },
           createdDate: 1600000000000,
           comments: [],
           threadResolved: false,
-          state: "OPEN"
-        }
+          state: 'OPEN',
+        },
       ]);
 
       expect(() => formatToolResponse(result)).not.toThrow();
@@ -495,8 +495,8 @@ describe('PR Comment Mapper', () => {
         summary: {
           totalActivities: 0,
           commentCount: 0,
-          unresolvedCount: 0
-        }
+          unresolvedCount: 0,
+        },
       };
 
       expect(result).toEqual(expectedResult);
@@ -508,7 +508,7 @@ describe('PR Comment Mapper', () => {
         limit: 100,
         isLastPage: true,
         values: [],
-        start: 0
+        start: 0,
       };
 
       const result = simplifyBitbucketPRComments(emptyResponse) as SimplifiedPRResponse;
@@ -519,8 +519,8 @@ describe('PR Comment Mapper', () => {
         summary: {
           totalActivities: 0,
           commentCount: 0,
-          unresolvedCount: 0
-        }
+          unresolvedCount: 0,
+        },
       };
 
       expect(result).toEqual(expectedResult);
@@ -541,9 +541,9 @@ describe('PR Comment Mapper', () => {
       const summary = getCommentSummary(validPRResponse);
       expect(Array.isArray(summary)).toBe(true);
       expect(summary).toHaveLength(1);
-      expect(summary[0]).toContain("User A");
-      expect(summary[0]).toContain("config.yml");
-      expect(summary[0]).toContain("This needs review");
+      expect(summary[0]).toContain('User A');
+      expect(summary[0]).toContain('config.yml');
+      expect(summary[0]).toContain('This needs review');
     });
 
     it('should handle malformed input gracefully', () => {
@@ -558,7 +558,7 @@ describe('PR Comment Mapper', () => {
         limit: 100,
         isLastPage: true,
         values: [],
-        start: 0
+        start: 0,
       };
       const summary = getCommentSummary(emptyResponse);
       expect(Array.isArray(summary)).toBe(true);
@@ -578,9 +578,9 @@ describe('PR Comment Mapper', () => {
             user: createUser('reviewer4', 106, 'Reviewer Four'),
             action: 'COMMENTED',
             commentAction: 'ADDED',
-            comment: createComment({ id: 2006, threadResolved: true })
-          }
-        ]
+            comment: createComment({ id: 2006, threadResolved: true }),
+          },
+        ],
       };
 
       expect(filterPullRequestComments(response).values).toEqual([openedActivity!]);

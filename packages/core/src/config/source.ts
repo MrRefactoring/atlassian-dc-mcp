@@ -34,5 +34,6 @@ export function getNonEmptyValue(value: string | undefined): string | undefined 
     return undefined;
   }
   const trimmed = value.trim();
+
   return trimmed.length > 0 ? trimmed : undefined;
 }

@@ -219,7 +219,7 @@ describe('ConfluenceService token optimization paths', () => {
       '25',
       undefined,
       'none',
-      'type=page'
+      'type=page',
     );
   });
 
@@ -235,7 +235,7 @@ describe('ConfluenceService token optimization paths', () => {
       '5',
       '10',
       'highlight',
-      'type=space AND title ~ "docs"'
+      'type=space AND title ~ "docs"',
     );
   });
 });

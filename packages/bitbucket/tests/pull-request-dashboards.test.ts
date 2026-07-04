@@ -3,7 +3,7 @@ import { BitbucketService } from '../src/bitbucket-service.js';
 import { request } from '../src/bitbucket-client/core/request.js';
 
 vi.mock('../src/bitbucket-client/core/request.js', () => ({
-  request: vi.fn()
+  request: vi.fn(),
 }));
 
 const mockRequest = vi.mocked(request);
@@ -12,8 +12,8 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -29,10 +29,10 @@ describe('BitbucketService', () => {
       const mockData = {
         values: [
           { id: 1, title: 'PR 1', state: 'OPEN' },
-          { id: 2, title: 'PR 2', state: 'OPEN' }
+          { id: 2, title: 'PR 2', state: 'OPEN' },
         ],
         size: 2,
-        isLastPage: true
+        isLastPage: true,
       };
       mockRequest.mockResolvedValue(mockData);
 
@@ -56,7 +56,7 @@ describe('BitbucketService', () => {
           errors: {
             401: 'The currently authenticated user is not permitted to access the dashboard.',
           },
-        }
+        },
       );
     });
 
@@ -64,7 +64,7 @@ describe('BitbucketService', () => {
       const mockData = {
         values: [{ id: 1, title: 'My PR', state: 'OPEN' }],
         size: 1,
-        isLastPage: true
+        isLastPage: true,
       };
       mockRequest.mockResolvedValue(mockData);
 
@@ -74,7 +74,7 @@ describe('BitbucketService', () => {
         undefined,
         'NEWEST',
         0,
-        5
+        5,
       );
 
       expect(result.success).toBe(true);
@@ -95,7 +95,7 @@ describe('BitbucketService', () => {
           errors: {
             401: 'The currently authenticated user is not permitted to access the dashboard.',
           },
-        }
+        },
       );
     });
 
@@ -103,7 +103,7 @@ describe('BitbucketService', () => {
       const mockData = {
         values: [{ id: 3, title: 'Merged PR', state: 'MERGED' }],
         size: 1,
-        isLastPage: true
+        isLastPage: true,
       };
       mockRequest.mockResolvedValue(mockData);
 
@@ -111,7 +111,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.getDashboardPullRequests(
         'PARTICIPANT',
         'MERGED',
-        closedSince
+        closedSince,
       );
 
       expect(result.success).toBe(true);
@@ -132,7 +132,7 @@ describe('BitbucketService', () => {
           errors: {
             401: 'The currently authenticated user is not permitted to access the dashboard.',
           },
-        }
+        },
       );
     });
 
@@ -180,7 +180,7 @@ describe('BitbucketService', () => {
           method: 'GET',
           url: '/api/latest/inbox/pull-requests',
           query: { start: undefined, limit: 25 },
-        })
+        }),
       );
     });
 
@@ -212,7 +212,7 @@ describe('BitbucketService', () => {
         expect.any(Object),
         expect.objectContaining({
           query: { start: 25, limit: 10 },
-        })
+        }),
       );
     });
 

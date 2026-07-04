@@ -117,7 +117,7 @@ function simplifyPath(path: PathInfo): SimplifiedPath {
   return {
     name: path.name,
     path: path.toString,
-    ...(path.extension && { extension: path.extension })
+    ...(path.extension && { extension: path.extension }),
   };
 }
 
@@ -126,7 +126,7 @@ function simplifyChange(change: PRChange): SimplifiedChange {
     contentId: change.contentId,
     path: simplifyPath(change.path),
     type: change.type,
-    gitChangeType: change.properties.gitChangeType
+    gitChangeType: change.properties.gitChangeType,
   };
 
   // Add source path for moves/renames
@@ -181,9 +181,9 @@ export function simplifyBitbucketPRChanges(response: any): SimplifiedPRChangesRe
       deletions,
       modifications,
       moves,
-      filesWithComments
+      filesWithComments,
     },
-    isLastPage: response.isLastPage
+    isLastPage: response.isLastPage,
   };
 }
 
@@ -193,9 +193,9 @@ export function getChangesSummary(response: any): string[] {
   for (const change of response.values || []) {
     if (isPRChange(change)) {
       const action = change.type === 'ADD' ? 'Added' :
-                    change.type === 'DELETE' ? 'Deleted' :
-                    change.type === 'MODIFY' ? 'Modified' :
-                    change.type === 'MOVE' ? 'Moved' : change.type;
+        change.type === 'DELETE' ? 'Deleted' :
+          change.type === 'MODIFY' ? 'Modified' :
+            change.type === 'MOVE' ? 'Moved' : change.type;
 
       let summary = `${action}: ${change.path.toString}`;
 

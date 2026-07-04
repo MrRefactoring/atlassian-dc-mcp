@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { createServer as createHttpServer } from 'node:http';
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { logger } from './logger.js';
-export * from './api-error-handler.js'
+
+export * from './api-error-handler.js';
 export * from './pagination.js';
 export * from './config/index.js';
 export { describeValidationError } from './setup/describe-error.js';
@@ -15,8 +16,8 @@ export { logger, type Logger, type LogLevel, type LogFields, LOG_LEVEL_ENV_VAR }
 export const formatToolResponse = (result: unknown) => ({
   content: [{
     type: 'text' as const,
-    text: JSON.stringify(result)
-  }]
+    text: JSON.stringify(result),
+  }],
 });
 
 // Error handler helper
@@ -32,7 +33,7 @@ export function createMcpServer(options: {
 }) {
   return new McpServer({
     name: options.name,
-    version: options.version
+    version: options.version,
   });
 }
 
@@ -49,12 +50,14 @@ export async function connectServer(server: McpServer) {
   const httpPort = parsePositiveInteger(process.env[HTTP_PORT_ENV_VAR]);
   if (httpPort !== undefined) {
     await connectStreamableHttp(server, httpPort);
+
     return server;
   }
 
   logger.debug('Connecting via stdio transport');
   const transport = new StdioServerTransport();
   await server.connect(transport);
+
   return server;
 }
 
@@ -67,6 +70,7 @@ function parsePositiveInteger(value: string | undefined): number | undefined {
     return undefined;
   }
   const parsed = Number.parseInt(trimmed, 10);
+
   return parsed > 0 ? parsed : undefined;
 }
 

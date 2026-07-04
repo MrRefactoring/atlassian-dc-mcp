@@ -40,6 +40,7 @@ export function describeValidationError(error: unknown): string {
   if (cause?.code) {
     const hint = NETWORK_CODE_HINTS[cause.code] ?? 'network error';
     const detail = cause.message ?? err?.message ?? 'unknown';
+
     return `${hint} (${cause.code}: ${detail})`;
   }
 
@@ -52,6 +53,7 @@ function formatApiError(error: ApiLikeError): string {
   const hint = status.startsWith('401') || status.startsWith('403')
     ? ' Check the host, API base path, and API token.'
     : '';
+
   return `${url}returned ${status}.${hint}`.trim();
 }
 

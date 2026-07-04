@@ -20,6 +20,7 @@ describe('logger', () => {
 
   function lastEntry(): Record<string, unknown> {
     const raw = writeSpy.mock.calls[writeSpy.mock.calls.length - 1][0] as string;
+
     return JSON.parse(raw);
   }
 

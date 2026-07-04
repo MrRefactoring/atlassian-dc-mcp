@@ -16,18 +16,18 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
     deleteById2: vi.fn(),
     addSshKey: vi.fn(),
     deleteSshKey: vi.fn(),
-    getSshKeys: vi.fn()
+    getSshKeys: vi.fn(),
   },
   SecurityService: {
     addKey: vi.fn(),
     deleteKey: vi.fn(),
-    getKeysForUser: vi.fn()
+    getKeysForUser: vi.fn(),
   },
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -76,7 +76,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.getAccessTokens('user');
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain("userSlug is required");
+      expect(result.error).toContain('userSlug is required');
       expect(AuthenticationService.getAllAccessTokens2).not.toHaveBeenCalled();
     });
 
@@ -84,7 +84,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.getAccessTokens('repo', undefined, 'proj');
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain("projectKey and repositorySlug are required");
+      expect(result.error).toContain('projectKey and repositorySlug are required');
       expect(AuthenticationService.getAllAccessTokens1).not.toHaveBeenCalled();
     });
 
@@ -109,7 +109,7 @@ describe('BitbucketService', () => {
       expect(result.data).toBe(mockRawToken);
       expect(AuthenticationService.createAccessToken2).toHaveBeenCalledWith('jsmith', {
         name: 'my-token',
-        permissions: ['PROJECT_READ']
+        permissions: ['PROJECT_READ'],
       });
     });
 
@@ -123,7 +123,7 @@ describe('BitbucketService', () => {
         ['PROJECT_WRITE'],
         30,
         undefined,
-        'proj'
+        'proj',
       );
 
       expect(result.success).toBe(true);
@@ -131,7 +131,7 @@ describe('BitbucketService', () => {
       expect(AuthenticationService.createAccessToken).toHaveBeenCalledWith('PROJ', {
         name: 'ci-token',
         permissions: ['PROJECT_WRITE'],
-        expiryDays: 30
+        expiryDays: 30,
       });
     });
 
@@ -146,13 +146,13 @@ describe('BitbucketService', () => {
         undefined,
         undefined,
         'proj',
-        'Test-Repo'
+        'Test-Repo',
       );
 
       expect(result.success).toBe(true);
       expect(AuthenticationService.createAccessToken1).toHaveBeenCalledWith('PROJ', 'test-repo', {
         name: 'repo-token',
-        permissions: ['REPO_WRITE']
+        permissions: ['REPO_WRITE'],
       });
     });
 
@@ -160,7 +160,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.createAccessToken('project', 'token', ['PROJECT_READ']);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain("projectKey is required");
+      expect(result.error).toContain('projectKey is required');
       expect(AuthenticationService.createAccessToken).not.toHaveBeenCalled();
     });
 
@@ -209,7 +209,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.deleteAccessToken('repo', '4', undefined, undefined, 'test-repo');
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain("projectKey and repositorySlug are required");
+      expect(result.error).toContain('projectKey and repositorySlug are required');
       expect(AuthenticationService.deleteById1).not.toHaveBeenCalled();
     });
 

@@ -81,7 +81,7 @@ describe('ConfluenceService attachments', () => {
       undefined,
       undefined,
       undefined,
-      expect.objectContaining({ comment: 'a comment', minorEdit: true, hidden: undefined })
+      expect.objectContaining({ comment: 'a comment', minorEdit: true, hidden: undefined }),
     );
     const formData = (AttachmentsService.createAttachments as Mock).mock.calls[0][4];
     expect(formData.file).toBeInstanceOf(File);
@@ -98,7 +98,7 @@ describe('ConfluenceService attachments', () => {
       'version',
       'true',
       'current',
-      expect.anything()
+      expect.anything(),
     );
   });
 
@@ -126,7 +126,7 @@ describe('ConfluenceService attachments', () => {
     expect(AttachmentsService.updateData).toHaveBeenCalledWith(
       'att1',
       '123',
-      expect.objectContaining({ comment: 'updated' })
+      expect.objectContaining({ comment: 'updated' }),
     );
     const formData = (AttachmentsService.updateData as Mock).mock.calls[0][2];
     expect(formData.file.name).toBe('notes-v2.txt');

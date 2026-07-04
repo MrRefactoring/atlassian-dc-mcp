@@ -9,7 +9,7 @@ import { OpenAPI } from '../src/bitbucket-client/index.js';
 import { request } from '../src/bitbucket-client/core/request.js';
 
 vi.mock('../src/bitbucket-client/core/request.js', () => ({
-  request: vi.fn()
+  request: vi.fn(),
 }));
 
 const mockRequest = vi.mocked(request);
@@ -18,8 +18,8 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -140,8 +140,8 @@ describe('BitbucketService', () => {
         expect.objectContaining({
           method: 'GET',
           url: '/api/latest/users/{userSlug}',
-          path: { userSlug: 'jsmith' }
-        })
+          path: { userSlug: 'jsmith' },
+        }),
       );
     });
 
@@ -158,8 +158,8 @@ describe('BitbucketService', () => {
         expect.objectContaining({
           method: 'GET',
           url: '/api/latest/users',
-          query: { filter: 'John' }
-        })
+          query: { filter: 'John' },
+        }),
       );
     });
 

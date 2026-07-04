@@ -5,7 +5,7 @@ import { RepositoryService } from '../src/bitbucket-client/index.js';
 import { request } from '../src/bitbucket-client/core/request.js';
 
 vi.mock('../src/bitbucket-client/core/request.js', () => ({
-  request: vi.fn()
+  request: vi.fn(),
 }));
 
 const mockRequest = vi.mocked(request);
@@ -22,13 +22,13 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
     createRestrictions1: vi.fn(),
     deleteRestriction1: vi.fn(),
     getRestriction1: vi.fn(),
-    getRestrictions1: vi.fn()
+    getRestrictions1: vi.fn(),
   },
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -50,7 +50,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'feature/login',
-        'refs/heads/master'
+        'refs/heads/master',
       );
 
       expect(result.success).toBe(true);
@@ -58,7 +58,7 @@ describe('BitbucketService', () => {
       expect(RepositoryService.createBranch).toHaveBeenCalledWith(
         mockProjectKey,
         mockRepositorySlug,
-        { name: 'feature/login', startPoint: 'refs/heads/master' }
+        { name: 'feature/login', startPoint: 'refs/heads/master' },
       );
     });
 
@@ -68,7 +68,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'feature/login',
-        'refs/heads/master'
+        'refs/heads/master',
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
@@ -82,7 +82,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.deleteBranch(
         mockProjectKey,
         mockRepositorySlug,
-        'refs/heads/feature/login'
+        'refs/heads/feature/login',
       );
 
       expect(result.success).toBe(true);
@@ -90,7 +90,7 @@ describe('BitbucketService', () => {
       expect(RepositoryService.deleteBranch).toHaveBeenCalledWith(
         mockProjectKey,
         mockRepositorySlug,
-        { name: 'refs/heads/feature/login' }
+        { name: 'refs/heads/feature/login' },
       );
     });
 
@@ -101,7 +101,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'refs/heads/feature/login',
-        true
+        true,
       );
 
       expect(result.success).toBe(true);
@@ -109,7 +109,7 @@ describe('BitbucketService', () => {
       expect(RepositoryService.deleteBranch).toHaveBeenCalledWith(
         mockProjectKey,
         mockRepositorySlug,
-        { name: 'refs/heads/feature/login', dryRun: true }
+        { name: 'refs/heads/feature/login', dryRun: true },
       );
     });
 
@@ -118,7 +118,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.deleteBranch(
         mockProjectKey,
         mockRepositorySlug,
-        'refs/heads/feature/login'
+        'refs/heads/feature/login',
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
@@ -130,16 +130,16 @@ describe('BitbucketService', () => {
       const mockBranchesData = {
         values: [
           { id: 'refs/heads/main', displayId: 'main', isDefault: true },
-          { id: 'refs/heads/feature', displayId: 'feature', isDefault: false }
+          { id: 'refs/heads/feature', displayId: 'feature', isDefault: false },
         ],
         size: 2,
-        isLastPage: true
+        isLastPage: true,
       };
       (RepositoryService.getBranches as Mock).mockResolvedValue(mockBranchesData);
 
       const result = await bitbucketService.getBranches(
         mockProjectKey,
-        mockRepositorySlug
+        mockRepositorySlug,
       );
 
       expect(result.success).toBe(true);
@@ -154,7 +154,7 @@ describe('BitbucketService', () => {
         undefined, // filterText
         undefined, // base
         undefined, // start
-        25
+        25,
       );
     });
 
@@ -168,7 +168,7 @@ describe('BitbucketService', () => {
         'feat',
         'MODIFICATION',
         10,
-        50
+        50,
       );
 
       expect(RepositoryService.getBranches).toHaveBeenCalledWith(
@@ -181,7 +181,7 @@ describe('BitbucketService', () => {
         'feat',
         undefined,
         10,
-        50
+        50,
       );
     });
 
@@ -191,7 +191,7 @@ describe('BitbucketService', () => {
 
       const result = await bitbucketService.getBranches(
         mockProjectKey,
-        mockRepositorySlug
+        mockRepositorySlug,
       );
 
       expect(result.success).toBe(false);
@@ -207,7 +207,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.getFileContent(
         mockProjectKey,
         mockRepositorySlug,
-        'src/index.ts'
+        'src/index.ts',
       );
 
       expect(result.success).toBe(true);
@@ -216,7 +216,7 @@ describe('BitbucketService', () => {
         'src/index.ts',
         mockProjectKey,
         mockRepositorySlug,
-        undefined
+        undefined,
       );
     });
 
@@ -228,14 +228,14 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'README.md',
-        'refs/heads/main'
+        'refs/heads/main',
       );
 
       expect(RepositoryService.streamRaw).toHaveBeenCalledWith(
         'README.md',
         mockProjectKey,
         mockRepositorySlug,
-        'refs/heads/main'
+        'refs/heads/main',
       );
     });
 
@@ -246,7 +246,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.getFileContent(
         mockProjectKey,
         mockRepositorySlug,
-        'missing.txt'
+        'missing.txt',
       );
 
       expect(result.success).toBe(false);
@@ -265,7 +265,7 @@ describe('BitbucketService', () => {
         'docs/new.md',
         '# Hello',
         'add file',
-        'master'
+        'master',
       );
 
       expect(result.success).toBe(true);
@@ -274,7 +274,7 @@ describe('BitbucketService', () => {
         'docs/new.md',
         mockProjectKey,
         mockRepositorySlug,
-        { content: '# Hello', message: 'add file', branch: 'master' }
+        { content: '# Hello', message: 'add file', branch: 'master' },
       );
     });
 
@@ -288,13 +288,13 @@ describe('BitbucketService', () => {
         'edit readme',
         'feature/x',
         'oldsha',
-        'master'
+        'master',
       );
       expect(RepositoryService.editFile).toHaveBeenCalledWith(
         'README.md',
         mockProjectKey,
         mockRepositorySlug,
-        { content: 'updated', message: 'edit readme', branch: 'feature/x', sourceCommitId: 'oldsha', sourceBranch: 'master' }
+        { content: 'updated', message: 'edit readme', branch: 'feature/x', sourceCommitId: 'oldsha', sourceBranch: 'master' },
       );
     });
 
@@ -306,7 +306,7 @@ describe('BitbucketService', () => {
         'README.md',
         'x',
         'msg',
-        'master'
+        'master',
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
@@ -320,7 +320,7 @@ describe('BitbucketService', () => {
 
       const result = await bitbucketService.browseRepository(
         mockProjectKey,
-        mockRepositorySlug
+        mockRepositorySlug,
       );
 
       expect(result.success).toBe(true);
@@ -333,7 +333,7 @@ describe('BitbucketService', () => {
         undefined, // at
         undefined, // size
         undefined, // blame
-        undefined  // type
+        undefined,  // type
       );
     });
 
@@ -347,7 +347,7 @@ describe('BitbucketService', () => {
         'src/index.ts',
         'refs/heads/main',
         true,
-        true
+        true,
       );
 
       expect(RepositoryService.getContent1).toHaveBeenCalledWith(
@@ -358,7 +358,7 @@ describe('BitbucketService', () => {
         'refs/heads/main',
         undefined,
         'true', // blame
-        'true'  // type
+        'true',  // type
       );
     });
 
@@ -369,7 +369,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.browseRepository(
         mockProjectKey,
         mockRepositorySlug,
-        'src'
+        'src',
       );
 
       expect(result.success).toBe(false);
@@ -384,14 +384,14 @@ describe('BitbucketService', () => {
 
       const result = await bitbucketService.getDefaultBranch(
         mockProjectKey,
-        mockRepositorySlug
+        mockRepositorySlug,
       );
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockBranch);
       expect(RepositoryService.getDefaultBranch1).toHaveBeenCalledWith(
         mockProjectKey,
-        mockRepositorySlug
+        mockRepositorySlug,
       );
     });
 
@@ -401,7 +401,7 @@ describe('BitbucketService', () => {
 
       const result = await bitbucketService.getDefaultBranch(
         mockProjectKey,
-        mockRepositorySlug
+        mockRepositorySlug,
       );
 
       expect(result.success).toBe(false);
@@ -432,7 +432,7 @@ describe('BitbucketService', () => {
             401: 'The currently authenticated user has insufficient permissions to view the branch model configuration.',
             404: 'The specified repository does not exist.',
           },
-        }
+        },
       );
     });
 
@@ -450,7 +450,7 @@ describe('BitbucketService', () => {
       mockRequest.mockResolvedValue(mockData);
 
       const result = await bitbucketService.setBranchModel(
-        'test', 'Test-Repo', { refId: 'refs/heads/develop' }
+        'test', 'Test-Repo', { refId: 'refs/heads/develop' },
       );
 
       expect(result.success).toBe(true);
@@ -468,7 +468,7 @@ describe('BitbucketService', () => {
             401: 'The currently authenticated user has insufficient permissions to configure the branch model.',
             404: 'The specified repository does not exist.',
           },
-        }
+        },
       );
     });
 
@@ -480,7 +480,7 @@ describe('BitbucketService', () => {
         'test-repo',
         { refId: 'refs/heads/develop', useDefault: false },
         { refId: 'refs/heads/master', useDefault: false },
-        [{ id: 'FEATURE', prefix: 'feature/', enabled: true }]
+        [{ id: 'FEATURE', prefix: 'feature/', enabled: true }],
       );
 
       expect(mockRequest).toHaveBeenCalledWith(
@@ -492,7 +492,7 @@ describe('BitbucketService', () => {
             production: { refId: 'refs/heads/master', useDefault: false },
             types: [{ id: 'FEATURE', prefix: 'feature/', enabled: true }],
           },
-        })
+        }),
       );
     });
 
@@ -522,7 +522,7 @@ describe('BitbucketService', () => {
             401: 'The currently authenticated user has insufficient permissions to reset the branch model configuration.',
             404: 'The specified repository does not exist.',
           },
-        }
+        },
       );
     });
 
@@ -546,7 +546,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(RepositoryService.getRestrictions1).toHaveBeenCalledWith(
-        'TEST', 'test-repo', 'BRANCH', 'refs/heads/master', 'no-deletes', undefined, 25
+        'TEST', 'test-repo', 'BRANCH', 'refs/heads/master', 'no-deletes', undefined, 25,
       );
     });
 
@@ -555,7 +555,7 @@ describe('BitbucketService', () => {
       (RepositoryService.createRestrictions1 as Mock).mockResolvedValue(mockData);
 
       const result = await bitbucketService.createBranchRestriction(
-        'test', 'Test-Repo', 'no-deletes', 'BRANCH', 'refs/heads/master', 'master', ['admin'], ['devs'], [7]
+        'test', 'Test-Repo', 'no-deletes', 'BRANCH', 'refs/heads/master', 'master', ['admin'], ['devs'], [7],
       );
 
       expect(result.success).toBe(true);
@@ -565,7 +565,7 @@ describe('BitbucketService', () => {
         matcher: { id: 'refs/heads/master', displayId: 'master', type: { id: 'BRANCH' } },
         userSlugs: ['admin'],
         groupNames: ['devs'],
-        accessKeyIds: [7]
+        accessKeyIds: [7],
       }]);
     });
 
@@ -576,7 +576,7 @@ describe('BitbucketService', () => {
 
       expect(RepositoryService.createRestrictions1).toHaveBeenCalledWith('TEST', 'test-repo', [{
         type: 'read-only',
-        matcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } }
+        matcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
       }]);
     });
 

@@ -1,187 +1,187 @@
 import { describe, it, expect } from 'vitest';
 import {
   simplifyBitbucketPRChanges,
-  getChangesSummary
+  getChangesSummary,
 } from '../src/pr-changes-mapper.js';
 
 describe('PR Changes Mapper', () => {
   // Test data based on the example from the issue description
   const validPRChangesResponse = {
-    "fromHash": "abc123def456789012345678901234567890abcd",
-    "toHash": "def456abc789012345678901234567890123cdef",
-    "properties": {
-      "changeScope": "ALL"
+    'fromHash': 'abc123def456789012345678901234567890abcd',
+    'toHash': 'def456abc789012345678901234567890123cdef',
+    'properties': {
+      'changeScope': 'ALL',
     },
-    "values": [
+    'values': [
       {
-        "contentId": "content123456789abcdef0123456789abcdef01234",
-        "fromContentId": "content123456789abcdef0123456789abcdef01234",
-        "path": {
-          "components": [
-            "src",
-            "MyProject",
-            "Handlers",
-            "Api",
-            "ImageProcessor",
-            "ImageHandler.cs"
+        'contentId': 'content123456789abcdef0123456789abcdef01234',
+        'fromContentId': 'content123456789abcdef0123456789abcdef01234',
+        'path': {
+          'components': [
+            'src',
+            'MyProject',
+            'Handlers',
+            'Api',
+            'ImageProcessor',
+            'ImageHandler.cs',
           ],
-          "parent": "src/MyProject/Handlers/Api/ImageProcessor",
-          "name": "ImageHandler.cs",
-          "extension": "cs",
-          "toString": "src/MyProject/Handlers/Api/ImageProcessor/ImageHandler.cs"
+          'parent': 'src/MyProject/Handlers/Api/ImageProcessor',
+          'name': 'ImageHandler.cs',
+          'extension': 'cs',
+          'toString': 'src/MyProject/Handlers/Api/ImageProcessor/ImageHandler.cs',
         },
-        "percentUnchanged": -1,
-        "type": "DELETE",
-        "nodeType": "FILE",
-        "srcExecutable": false,
-        "links": {
-          "self": [
-            null
-          ]
+        'percentUnchanged': -1,
+        'type': 'DELETE',
+        'nodeType': 'FILE',
+        'srcExecutable': false,
+        'links': {
+          'self': [
+            null,
+          ],
         },
-        "properties": {
-          "gitChangeType": "DELETE"
-        }
+        'properties': {
+          'gitChangeType': 'DELETE',
+        },
       },
       {
-        "contentId": "content456789abcdef0123456789abcdef012345678",
-        "fromContentId": "0000000000000000000000000000000000000000",
-        "path": {
-          "components": [
-            "src",
-            "MyProject",
-            "Handlers",
-            "Api",
-            "ProcessorService",
-            "ProcessorHandler.cs"
+        'contentId': 'content456789abcdef0123456789abcdef012345678',
+        'fromContentId': '0000000000000000000000000000000000000000',
+        'path': {
+          'components': [
+            'src',
+            'MyProject',
+            'Handlers',
+            'Api',
+            'ProcessorService',
+            'ProcessorHandler.cs',
           ],
-          "parent": "src/MyProject/Handlers/Api/ProcessorService",
-          "name": "ProcessorHandler.cs",
-          "extension": "cs",
-          "toString": "src/MyProject/Handlers/Api/ProcessorService/ProcessorHandler.cs"
+          'parent': 'src/MyProject/Handlers/Api/ProcessorService',
+          'name': 'ProcessorHandler.cs',
+          'extension': 'cs',
+          'toString': 'src/MyProject/Handlers/Api/ProcessorService/ProcessorHandler.cs',
         },
-        "executable": false,
-        "percentUnchanged": -1,
-        "type": "ADD",
-        "nodeType": "FILE",
-        "links": {
-          "self": [
-            null
-          ]
+        'executable': false,
+        'percentUnchanged': -1,
+        'type': 'ADD',
+        'nodeType': 'FILE',
+        'links': {
+          'self': [
+            null,
+          ],
         },
-        "properties": {
-          "gitChangeType": "ADD"
-        }
+        'properties': {
+          'gitChangeType': 'ADD',
+        },
       },
       {
-        "contentId": "content789abcdef0123456789abcdef0123456789ab",
-        "fromContentId": "content987654321fedcba0987654321fedcba098765",
-        "path": {
-          "components": [
-            "src",
-            "MyProject",
-            "Extensions",
-            "DatabaseExtensions.cs"
+        'contentId': 'content789abcdef0123456789abcdef0123456789ab',
+        'fromContentId': 'content987654321fedcba0987654321fedcba098765',
+        'path': {
+          'components': [
+            'src',
+            'MyProject',
+            'Extensions',
+            'DatabaseExtensions.cs',
           ],
-          "parent": "src/MyProject/Extensions",
-          "name": "DatabaseExtensions.cs",
-          "extension": "cs",
-          "toString": "src/MyProject/Extensions/DatabaseExtensions.cs"
+          'parent': 'src/MyProject/Extensions',
+          'name': 'DatabaseExtensions.cs',
+          'extension': 'cs',
+          'toString': 'src/MyProject/Extensions/DatabaseExtensions.cs',
         },
-        "executable": false,
-        "percentUnchanged": -1,
-        "type": "MODIFY",
-        "nodeType": "FILE",
-        "srcExecutable": false,
-        "links": {
-          "self": [
-            null
-          ]
+        'executable': false,
+        'percentUnchanged': -1,
+        'type': 'MODIFY',
+        'nodeType': 'FILE',
+        'srcExecutable': false,
+        'links': {
+          'self': [
+            null,
+          ],
         },
-        "properties": {
-          "gitChangeType": "MODIFY"
-        }
+        'properties': {
+          'gitChangeType': 'MODIFY',
+        },
       },
       {
-        "contentId": "contentabcdef0123456789abcdef0123456789abcd",
-        "fromContentId": "0000000000000000000000000000000000000000",
-        "path": {
-          "components": [
-            "src",
-            "MyProject",
-            "Services",
-            "EventHandlers",
-            "RequestHandler.cs"
+        'contentId': 'contentabcdef0123456789abcdef0123456789abcd',
+        'fromContentId': '0000000000000000000000000000000000000000',
+        'path': {
+          'components': [
+            'src',
+            'MyProject',
+            'Services',
+            'EventHandlers',
+            'RequestHandler.cs',
           ],
-          "parent": "src/MyProject/Services/EventHandlers",
-          "name": "RequestHandler.cs",
-          "extension": "cs",
-          "toString": "src/MyProject/Services/EventHandlers/RequestHandler.cs"
+          'parent': 'src/MyProject/Services/EventHandlers',
+          'name': 'RequestHandler.cs',
+          'extension': 'cs',
+          'toString': 'src/MyProject/Services/EventHandlers/RequestHandler.cs',
         },
-        "executable": false,
-        "percentUnchanged": -1,
-        "type": "ADD",
-        "nodeType": "FILE",
-        "links": {
-          "self": [
-            null
-          ]
+        'executable': false,
+        'percentUnchanged': -1,
+        'type': 'ADD',
+        'nodeType': 'FILE',
+        'links': {
+          'self': [
+            null,
+          ],
         },
-        "properties": {
-          "orphanedComments": 0,
-          "gitChangeType": "ADD",
-          "activeComments": 1
-        }
+        'properties': {
+          'orphanedComments': 0,
+          'gitChangeType': 'ADD',
+          'activeComments': 1,
+        },
       },
       {
-        "contentId": "contentdef0123456789abcdef0123456789abcdef01",
-        "fromContentId": "contentfedcba9876543210fedcba9876543210fedcb",
-        "path": {
-          "components": [
-            "tests",
-            "MyProject.Tests",
-            "Handlers",
-            "Api",
-            "ProcessorHandlerTests.cs"
+        'contentId': 'contentdef0123456789abcdef0123456789abcdef01',
+        'fromContentId': 'contentfedcba9876543210fedcba9876543210fedcb',
+        'path': {
+          'components': [
+            'tests',
+            'MyProject.Tests',
+            'Handlers',
+            'Api',
+            'ProcessorHandlerTests.cs',
           ],
-          "parent": "tests/MyProject.Tests/Handlers/Api",
-          "name": "ProcessorHandlerTests.cs",
-          "extension": "cs",
-          "toString": "tests/MyProject.Tests/Handlers/Api/ProcessorHandlerTests.cs"
+          'parent': 'tests/MyProject.Tests/Handlers/Api',
+          'name': 'ProcessorHandlerTests.cs',
+          'extension': 'cs',
+          'toString': 'tests/MyProject.Tests/Handlers/Api/ProcessorHandlerTests.cs',
         },
-        "executable": false,
-        "percentUnchanged": 54,
-        "type": "MOVE",
-        "nodeType": "FILE",
-        "srcPath": {
-          "components": [
-            "tests",
-            "MyProject.Tests",
-            "Handlers",
-            "Api",
-            "ImageHandlerTests.cs"
+        'executable': false,
+        'percentUnchanged': 54,
+        'type': 'MOVE',
+        'nodeType': 'FILE',
+        'srcPath': {
+          'components': [
+            'tests',
+            'MyProject.Tests',
+            'Handlers',
+            'Api',
+            'ImageHandlerTests.cs',
           ],
-          "parent": "tests/MyProject.Tests/Handlers/Api",
-          "name": "ImageHandlerTests.cs",
-          "extension": "cs",
-          "toString": "tests/MyProject.Tests/Handlers/Api/ImageHandlerTests.cs"
+          'parent': 'tests/MyProject.Tests/Handlers/Api',
+          'name': 'ImageHandlerTests.cs',
+          'extension': 'cs',
+          'toString': 'tests/MyProject.Tests/Handlers/Api/ImageHandlerTests.cs',
         },
-        "srcExecutable": false,
-        "links": {
-          "self": [
-            null
-          ]
+        'srcExecutable': false,
+        'links': {
+          'self': [
+            null,
+          ],
         },
-        "properties": {
-          "gitChangeType": "RENAME"
-        }
-      }
+        'properties': {
+          'gitChangeType': 'RENAME',
+        },
+      },
     ],
-    "size": 5,
-    "isLastPage": true,
-    "start": 0,
-    "limit": 25,
-    "nextPageStart": null
+    'size': 5,
+    'isLastPage': true,
+    'start': 0,
+    'limit': 25,
+    'nextPageStart': null,
   };
 
   describe('simplifyBitbucketPRChanges', () => {
@@ -198,57 +198,57 @@ describe('PR Changes Mapper', () => {
             path: {
               name: 'ImageHandler.cs',
               path: 'src/MyProject/Handlers/Api/ImageProcessor/ImageHandler.cs',
-              extension: 'cs'
+              extension: 'cs',
             },
             type: 'DELETE',
-            gitChangeType: 'DELETE'
+            gitChangeType: 'DELETE',
           },
           {
             contentId: 'content456789abcdef0123456789abcdef012345678',
             path: {
               name: 'ProcessorHandler.cs',
               path: 'src/MyProject/Handlers/Api/ProcessorService/ProcessorHandler.cs',
-              extension: 'cs'
+              extension: 'cs',
             },
             type: 'ADD',
-            gitChangeType: 'ADD'
+            gitChangeType: 'ADD',
           },
           {
             contentId: 'content789abcdef0123456789abcdef0123456789ab',
             path: {
               name: 'DatabaseExtensions.cs',
               path: 'src/MyProject/Extensions/DatabaseExtensions.cs',
-              extension: 'cs'
+              extension: 'cs',
             },
             type: 'MODIFY',
-            gitChangeType: 'MODIFY'
+            gitChangeType: 'MODIFY',
           },
           {
             contentId: 'contentabcdef0123456789abcdef0123456789abcd',
             path: {
               name: 'RequestHandler.cs',
               path: 'src/MyProject/Services/EventHandlers/RequestHandler.cs',
-              extension: 'cs'
+              extension: 'cs',
             },
             type: 'ADD',
             gitChangeType: 'ADD',
-            comments: 1
+            comments: 1,
           },
           {
             contentId: 'contentdef0123456789abcdef0123456789abcdef01',
             path: {
               name: 'ProcessorHandlerTests.cs',
               path: 'tests/MyProject.Tests/Handlers/Api/ProcessorHandlerTests.cs',
-              extension: 'cs'
+              extension: 'cs',
             },
             srcPath: {
               name: 'ImageHandlerTests.cs',
               path: 'tests/MyProject.Tests/Handlers/Api/ImageHandlerTests.cs',
-              extension: 'cs'
+              extension: 'cs',
             },
             type: 'MOVE',
-            gitChangeType: 'RENAME'
-          }
+            gitChangeType: 'RENAME',
+          },
         ],
         summary: {
           totalChanges: 5,
@@ -256,9 +256,9 @@ describe('PR Changes Mapper', () => {
           deletions: 1,
           modifications: 1,
           moves: 1,
-          filesWithComments: 1
+          filesWithComments: 1,
         },
-        isLastPage: true
+        isLastPage: true,
       };
 
       expect(result).toEqual(expectedResult);
@@ -274,25 +274,25 @@ describe('PR Changes Mapper', () => {
 
     it('should handle empty values array', () => {
       const emptyResponse = {
-        "fromHash": "abc123",
-        "toHash": "def456",
-        "properties": {
-          "changeScope": "ALL"
+        'fromHash': 'abc123',
+        'toHash': 'def456',
+        'properties': {
+          'changeScope': 'ALL',
         },
-        "values": [],
-        "size": 0,
-        "isLastPage": true,
-        "start": 0,
-        "limit": 25,
-        "nextPageStart": null
+        'values': [],
+        'size': 0,
+        'isLastPage': true,
+        'start': 0,
+        'limit': 25,
+        'nextPageStart': null,
       };
 
       const result = simplifyBitbucketPRChanges(emptyResponse);
 
       const expectedResult = {
-        fromHash: "abc123",
-        toHash: "def456",
-        changeScope: "ALL",
+        fromHash: 'abc123',
+        toHash: 'def456',
+        changeScope: 'ALL',
         changes: [],
         summary: {
           totalChanges: 0,
@@ -300,9 +300,9 @@ describe('PR Changes Mapper', () => {
           deletions: 0,
           modifications: 0,
           moves: 0,
-          filesWithComments: 0
+          filesWithComments: 0,
         },
-        isLastPage: true
+        isLastPage: true,
       };
 
       expect(result).toEqual(expectedResult);
@@ -326,21 +326,21 @@ describe('PR Changes Mapper', () => {
         ...validPRChangesResponse,
         values: [
           {
-            "contentId": "test123",
-            "fromContentId": "test456",
-            "path": {
-              "components": ["test"],
-              "parent": "",
-              "name": "test.txt",
-              "extension": "txt",
-              "toString": "test.txt"
+            'contentId': 'test123',
+            'fromContentId': 'test456',
+            'path': {
+              'components': ['test'],
+              'parent': '',
+              'name': 'test.txt',
+              'extension': 'txt',
+              'toString': 'test.txt',
             },
-            "type": "ADD",
-            "properties": {
-              "gitChangeType": "ADD"
-            }
-          }
-        ]
+            'type': 'ADD',
+            'properties': {
+              'gitChangeType': 'ADD',
+            },
+          },
+        ],
       };
 
       const result = simplifyBitbucketPRChanges(responseWithMissingFields);
@@ -351,16 +351,16 @@ describe('PR Changes Mapper', () => {
         changeScope: 'ALL',
         changes: [
           {
-            contentId: "test123",
+            contentId: 'test123',
             path: {
-              name: "test.txt",
-              path: "test.txt",
-              extension: "txt"
+              name: 'test.txt',
+              path: 'test.txt',
+              extension: 'txt',
             },
-            type: "ADD",
-            gitChangeType: "ADD"
+            type: 'ADD',
+            gitChangeType: 'ADD',
             // Note: no 'comments' or 'srcPath' properties as they are optional and missing
-          }
+          },
         ],
         summary: {
           totalChanges: 1,
@@ -368,9 +368,9 @@ describe('PR Changes Mapper', () => {
           deletions: 0,
           modifications: 0,
           moves: 0,
-          filesWithComments: 0
+          filesWithComments: 0,
         },
-        isLastPage: true
+        isLastPage: true,
       };
 
       expect(result).toEqual(expectedResult);
@@ -400,17 +400,17 @@ describe('PR Changes Mapper', () => {
 
     it('should handle empty values array', () => {
       const emptyResponse = {
-        "fromHash": "abc123",
-        "toHash": "def456",
-        "properties": {
-          "changeScope": "ALL"
+        'fromHash': 'abc123',
+        'toHash': 'def456',
+        'properties': {
+          'changeScope': 'ALL',
         },
-        "values": [],
-        "size": 0,
-        "isLastPage": true,
-        "start": 0,
-        "limit": 25,
-        "nextPageStart": null
+        'values': [],
+        'size': 0,
+        'isLastPage': true,
+        'start': 0,
+        'limit': 25,
+        'nextPageStart': null,
       };
 
       const summary = getChangesSummary(emptyResponse);

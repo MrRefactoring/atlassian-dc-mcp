@@ -39,12 +39,15 @@ export class DotenvFileCache {
       throw error;
     }
 
-    if (this.entry && this.entry.filePath === filePath && this.entry.mtimeMs === stats.mtimeMs) {
-      return this.entry.values;
+    const { entry } = this;
+
+    if (entry?.filePath === filePath && entry.mtimeMs === stats.mtimeMs) {
+      return entry.values;
     }
 
     const values = dotenv.parse(fs.readFileSync(filePath));
     this.entry = { filePath, mtimeMs: stats.mtimeMs, values };
+
     return values;
   }
 

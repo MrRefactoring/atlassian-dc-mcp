@@ -11,6 +11,7 @@ function makeOnCancel(): OnCancel {
     isRejected: { get: () => false },
     isCancelled: { get: () => false },
   });
+
   return onCancel;
 }
 

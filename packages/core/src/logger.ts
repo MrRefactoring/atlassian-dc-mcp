@@ -31,6 +31,7 @@ function isLogLevel(value: string): value is LogLevel {
 
 function resolveMinLevel(): LogLevel {
   const raw = process.env[LOG_LEVEL_ENV_VAR]?.trim().toLowerCase();
+
   return raw && isLogLevel(raw) ? raw : 'info';
 }
 
@@ -38,6 +39,7 @@ function serializeValue(value: unknown): unknown {
   if (value instanceof Error) {
     return { name: value.name, message: value.message, stack: value.stack };
   }
+
   return value;
 }
 

@@ -56,26 +56,33 @@ class FakeKeychain extends MacosKeychainSource {
     };
     super(deps);
   }
+
   override isAvailable(): boolean {
     return this.available;
   }
+
   override read(_p: ProductDefinition, key: ConfigKey): string | undefined {
     if (key === 'password') return this.passwordStore;
+
     return key === 'token' ? this.store : undefined;
   }
+
   override write(_p: ProductDefinition, key: ConfigKey, v: string): void {
     if (key === 'password') {
       this.passwordWriteCalls++;
       this.passwordStore = v;
+
       return;
     }
     this.writeCalls++;
     this.store = v;
   }
+
   override clear(_p: ProductDefinition, key: ConfigKey): void {
     if (key === 'password') {
       this.passwordClearCalls++;
       this.passwordStore = undefined;
+
       return;
     }
     this.clearCalls++;
@@ -89,22 +96,26 @@ class FakeHomeFile extends HomeFileSource {
     confluence: {},
     bitbucket: {},
   };
+
   writes: Array<[string, ConfigKey, string]> = [];
   clears: Array<[string, ConfigKey]> = [];
   override read(product: ProductDefinition, key: ConfigKey): string | undefined {
     return this.values[product.id]?.[key];
   }
+
   override write(product: ProductDefinition, key: ConfigKey, value: string): void {
     this.values[product.id] = this.values[product.id] ?? {};
     this.values[product.id][key] = value;
     this.writes.push([product.id, key, value]);
   }
+
   override clear(product: ProductDefinition, key: ConfigKey): void {
     if (this.values[product.id]) {
       delete this.values[product.id][key];
     }
     this.clears.push([product.id, key]);
   }
+
   override describeForProduct(product: ProductDefinition): string {
     return `home-file-fake(${product.id})`;
   }
@@ -117,6 +128,7 @@ class StubCredentialValidator {
 
   returns(result: CredentialValidationResult): this {
     this.fallback = result;
+
     return this;
   }
 
@@ -126,12 +138,14 @@ class StubCredentialValidator {
 
   enqueue(...results: CredentialValidationResult[]): this {
     this.queue.push(...results);
+
     return this;
   }
 
   asFn(): ValidateCredentials {
     return async (ctx) => {
       this.calls.push(ctx);
+
       return this.queue.shift() ?? this.fallback;
     };
   }
@@ -144,6 +158,7 @@ function scriptedConfirms(script: Record<string, boolean>): ConfirmStub {
     for (const [prefix, answer] of Object.entries(script)) {
       if (message.startsWith(prefix)) return answer;
     }
+
     return fallbackDefault ?? false;
   };
 }
@@ -167,15 +182,18 @@ function makePrompts(
   confirms?: ConfirmStub,
 ): SetupPrompts {
   const filled = { ...standardAnswers, ...answers };
+
   return {
     input: async (opts) => {
       if (opts.message.startsWith('Host')) return filled.host;
       if (opts.message.startsWith('API base path')) return filled.apiBasePath;
       if (opts.message.startsWith('Username')) return filled.username;
+
       return filled.pageSize;
     },
     password: async (opts) => {
       if (opts.message.startsWith('API token')) return filled.token;
+
       return filled.password;
     },
     confirm: async (opts) => (confirms ?? ((_m, d) => d ?? false))(opts.message, opts.default),
@@ -313,9 +331,11 @@ describe('runSetup', () => {
     const confirms: ConfirmStub = (message) => {
       if (message.startsWith('Try again')) {
         retryPromptsShown++;
+
         return true;
       }
       if (message.startsWith('Save configuration anyway')) return true;
+
       return false;
     };
     const registry = makeRegistry(keychain, home);
@@ -371,6 +391,7 @@ describe('runSetup', () => {
           inputCalls.push(opts.message);
           if (opts.message.startsWith('API base path')) return '/rest/api/2';
           if (opts.message.startsWith('Username')) return '';
+
           return '25';
         },
         password: passwordCalls,
@@ -513,14 +534,17 @@ describe('runSetup', () => {
     function nonInteractivePrompts(): SetupPrompts & { inputCalls: string[]; passwordCalls: number } {
       const inputCalls: string[] = [];
       let passwordCalls = 0;
+
       return Object.assign(
         {
           input: async (opts: { message: string }) => {
             inputCalls.push(opts.message);
+
             return '';
           },
           password: async () => {
             passwordCalls++;
+
             return '';
           },
           confirm: async () => false,

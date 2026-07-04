@@ -13,13 +13,13 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
     streamChanges: vi.fn(),
     streamCommits: vi.fn(),
     getComments: vi.fn(),
-    createComment: vi.fn()
+    createComment: vi.fn(),
   },
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -47,7 +47,7 @@ describe('BitbucketService', () => {
         undefined, // orderBy
         undefined, // filterText
         undefined, // start
-        25
+        25,
       );
     });
 
@@ -60,7 +60,7 @@ describe('BitbucketService', () => {
         'MODIFICATION',
         'rel',
         5,
-        50
+        50,
       );
     });
 
@@ -84,7 +84,7 @@ describe('BitbucketService', () => {
       expect(RepositoryService.getTag).toHaveBeenCalledWith(
         mockProjectKey,
         'v1',
-        mockRepositorySlug
+        mockRepositorySlug,
       );
     });
 
@@ -105,7 +105,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'v2',
-        'refs/heads/master'
+        'refs/heads/master',
       );
 
       expect(result.success).toBe(true);
@@ -113,7 +113,7 @@ describe('BitbucketService', () => {
       expect(RepositoryService.createTagForRepository).toHaveBeenCalledWith(
         mockProjectKey,
         mockRepositorySlug,
-        { name: 'v2', startPoint: 'refs/heads/master' }
+        { name: 'v2', startPoint: 'refs/heads/master' },
       );
     });
 
@@ -124,12 +124,12 @@ describe('BitbucketService', () => {
         mockRepositorySlug,
         'v2',
         'abc123',
-        'Release 2'
+        'Release 2',
       );
       expect(RepositoryService.createTagForRepository).toHaveBeenCalledWith(
         mockProjectKey,
         mockRepositorySlug,
-        { name: 'v2', startPoint: 'abc123', message: 'Release 2' }
+        { name: 'v2', startPoint: 'abc123', message: 'Release 2' },
       );
     });
 
@@ -139,7 +139,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'v2',
-        'refs/heads/master'
+        'refs/heads/master',
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
@@ -159,7 +159,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         'abc123',
         mockRepositorySlug,
-        undefined
+        undefined,
       );
     });
 
@@ -170,7 +170,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         'abc123',
         mockRepositorySlug,
-        'src/app.js'
+        'src/app.js',
       );
     });
 
@@ -204,7 +204,7 @@ describe('BitbucketService', () => {
         undefined, // autoSrcPath
         undefined, // whitespace
         undefined, // withComments
-        undefined  // since
+        undefined,  // since
       );
     });
 
@@ -217,7 +217,7 @@ describe('BitbucketService', () => {
         'src/app.js',
         '5',
         'ignore-all',
-        'src/old.js'
+        'src/old.js',
       );
       expect(RepositoryService.streamDiff).toHaveBeenCalledWith(
         'abc123',
@@ -232,7 +232,7 @@ describe('BitbucketService', () => {
         undefined,
         'ignore-all',
         undefined,
-        undefined
+        undefined,
       );
     });
 
@@ -253,7 +253,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'refs/heads/feature',
-        'refs/heads/master'
+        'refs/heads/master',
       );
 
       expect(result.success).toBe(true);
@@ -265,7 +265,7 @@ describe('BitbucketService', () => {
         'refs/heads/feature',
         'refs/heads/master',
         undefined, // start
-        25
+        25,
       );
       expect(RepositoryService.streamChanges).not.toHaveBeenCalled();
     });
@@ -282,7 +282,7 @@ describe('BitbucketService', () => {
         'OTHER/repo',
         'changes',
         10,
-        50
+        50,
       );
 
       expect(RepositoryService.streamChanges).toHaveBeenCalledWith(
@@ -292,7 +292,7 @@ describe('BitbucketService', () => {
         'refs/heads/feature',
         'refs/heads/master',
         10,
-        50
+        50,
       );
     });
 
@@ -302,7 +302,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'a',
-        'b'
+        'b',
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
@@ -325,7 +325,7 @@ describe('BitbucketService', () => {
         'src/app.js',
         undefined, // since
         undefined, // start
-        25
+        25,
       );
     });
 
@@ -339,7 +339,7 @@ describe('BitbucketService', () => {
         'src/app.js',
         'def456',
         5,
-        50
+        50,
       );
     });
 
@@ -365,7 +365,7 @@ describe('BitbucketService', () => {
         'abc123',
         mockRepositorySlug,
         undefined,
-        { text: 'nice' }
+        { text: 'nice' },
       );
     });
 
@@ -378,14 +378,14 @@ describe('BitbucketService', () => {
         'fix this',
         'src/app.js',
         12,
-        'ADDED'
+        'ADDED',
       );
       expect(RepositoryService.createComment).toHaveBeenCalledWith(
         mockProjectKey,
         'abc123',
         mockRepositorySlug,
         undefined,
-        { text: 'fix this', anchor: { path: 'src/app.js', line: 12, lineType: 'ADDED', fileType: 'TO' } }
+        { text: 'fix this', anchor: { path: 'src/app.js', line: 12, lineType: 'ADDED', fileType: 'TO' } },
       );
     });
 
@@ -397,14 +397,14 @@ describe('BitbucketService', () => {
         'abc123',
         'note',
         'src/app.js',
-        3
+        3,
       );
       expect(RepositoryService.createComment).toHaveBeenCalledWith(
         mockProjectKey,
         'abc123',
         mockRepositorySlug,
         undefined,
-        { text: 'note', anchor: { path: 'src/app.js', line: 3, lineType: 'CONTEXT', fileType: 'TO' } }
+        { text: 'note', anchor: { path: 'src/app.js', line: 3, lineType: 'CONTEXT', fileType: 'TO' } },
       );
     });
 

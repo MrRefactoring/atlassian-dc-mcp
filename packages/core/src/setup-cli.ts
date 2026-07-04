@@ -89,6 +89,7 @@ export async function runSetupCli(
       process.stderr.write(`${error.message}\n\n`);
       printSetupHelp(product.id, (m) => process.stderr.write(`${m}\n`));
       exit(1);
+
       return;
     }
     throw error;
@@ -97,6 +98,7 @@ export async function runSetupCli(
   if (args.help) {
     printSetupHelp(product.id, (m) => process.stdout.write(`${m}\n`));
     exit(0);
+
     return;
   }
 
@@ -150,6 +152,7 @@ async function collectAnswersWithValidation(
     } catch (error) {
       if (isUserCancel(error)) {
         exit(130);
+
         return undefined;
       }
       throw error;
@@ -166,6 +169,7 @@ async function collectAnswersWithValidation(
         continue;
       }
       exit(1);
+
       return undefined;
     }
 
@@ -182,6 +186,7 @@ async function collectAnswersWithValidation(
     });
     if (result.ok) {
       log(result.detail ? `Validation succeeded: ${result.detail}` : 'Validation succeeded.');
+
       return answers;
     }
 
@@ -195,6 +200,7 @@ async function collectAnswersWithValidation(
       return answers;
     }
     exit(1);
+
     return undefined;
   }
 }
@@ -233,6 +239,7 @@ async function runNonInteractive(
       log(`Validation failed: ${message}`);
     }
     exit(1);
+
     return undefined;
   }
 
@@ -247,6 +254,7 @@ async function runNonInteractive(
     if (!result.ok) {
       log(`Validation failed: ${result.message}`);
       exit(1);
+
       return undefined;
     }
     log(result.detail ? `Validation succeeded: ${result.detail}` : 'Validation succeeded.');
@@ -262,11 +270,13 @@ function resolveSecretNonInteractive(
   if (fromArgs) {
     return { toWrite: fromArgs, forValidation: fromArgs };
   }
+
   return { toWrite: undefined, forValidation: existing };
 }
 
 function answersAsDefaults(answers: PromptResult): PromptDefaults {
   const pageSize = Number.parseInt(answers.defaultPageSize, 10);
+
   return {
     host: answers.host,
     apiBasePath: answers.apiBasePath,
@@ -295,6 +305,7 @@ async function offerRetryAfterFailure(
     message: 'Save configuration anyway?',
     default: false,
   });
+
   return saveAnyway ? 'save-anyway' : 'abort';
 }
 
@@ -304,6 +315,7 @@ function readCurrentConfig(
 ): ProductRuntimeConfig {
   const pageSizeRaw = registry.resolve(product, 'defaultPageSize').value;
   const pageSize = parsePositiveInteger(pageSizeRaw) ?? FALLBACK_PAGE_SIZE;
+
   return {
     host: registry.resolve(product, 'host').value,
     apiBasePath: registry.resolve(product, 'apiBasePath').value,
@@ -323,6 +335,7 @@ function parsePositiveInteger(value: string | undefined): number | undefined {
     return undefined;
   }
   const parsed = Number.parseInt(trimmed, 10);
+
   return parsed > 0 ? parsed : undefined;
 }
 
@@ -333,6 +346,7 @@ function requireHomeFile(registry: ConfigRegistry): HomeFileSource {
   if (!homeFile) {
     throw new Error('No writable source available for non-secret fields');
   }
+
   return homeFile;
 }
 
@@ -388,6 +402,7 @@ async function promptForValues(
     message: 'Password for Basic auth (leave blank if using a token):',
     keepExistingMessage: 'Keep existing password?',
   }, defaults.password, args?.password);
+
   return {
     host: host.trim(),
     apiBasePath: apiBasePath.trim(),
@@ -422,6 +437,7 @@ async function promptForSecret(
     return { toWrite: undefined, forValidation: undefined };
   }
   const keepExisting = await prompts.confirm({ message: opts.keepExistingMessage, default: true });
+
   return {
     toWrite: undefined,
     forValidation: keepExisting ? existing : undefined,
@@ -521,6 +537,7 @@ async function writeSecret(
       if (writer instanceof MacosKeychainSource) {
         homeFile.clear(product, key);
       }
+
       return writer;
     }
   }
@@ -537,6 +554,7 @@ async function tryWrite(
 ): Promise<boolean> {
   try {
     writer.write(product, key, value);
+
     return true;
   } catch (error) {
     const stderr = (error as { stderr?: string | Buffer }).stderr?.toString() ?? '';
@@ -557,6 +575,7 @@ async function tryWrite(
         { cause: error },
       );
     }
+
     return false;
   }
 }
@@ -586,6 +605,7 @@ function warnIfShadowed(
 
 function priorityOf(registry: ConfigRegistry, sourceId: string): number {
   const match = registry.sources.find((s) => s.id === sourceId);
+
   return match?.priority ?? 0;
 }
 
@@ -624,11 +644,13 @@ function describeWriter(
 ): string {
   if (writer instanceof MacosKeychainSource) {
     const account = profile ? `${product.id}-${profile}-${key}` : `${product.id}-${key}`;
+
     return `macOS Keychain (service atlassian-dc-mcp, account ${account})`;
   }
   if (writer instanceof HomeFileSource) {
     return writer.describeForProduct(product);
   }
+
   return writer.describe();
 }
 
@@ -653,6 +675,7 @@ function readable(value: string | number | undefined): string {
   if (value === undefined || value === '') {
     return '(not set)';
   }
+
   return String(value);
 }
 
@@ -661,6 +684,7 @@ function maskSecret(secret: string | undefined): string {
     return '(not set)';
   }
   const last4 = secret.slice(-4);
+
   return `••••${last4}`;
 }
 
@@ -669,5 +693,6 @@ function isUserCancel(error: unknown): boolean {
     return false;
   }
   const err = error as { name?: string; message?: string };
+
   return err.name === 'ExitPromptError' || /force closed/i.test(err.message ?? '');
 }

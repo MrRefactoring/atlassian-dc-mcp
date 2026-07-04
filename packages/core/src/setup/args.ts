@@ -60,6 +60,7 @@ function trimToUndefined(value: string | undefined): string | undefined {
     return undefined;
   }
   const trimmed = value.trim();
+
   return trimmed.length === 0 ? undefined : trimmed;
 }
 
@@ -85,7 +86,7 @@ export function printSetupHelp(productId: string, log: (message: string) => void
     'An existing token is reused when --token is omitted; omit it entirely for anonymous access.',
     'An existing password is reused when --password is omitted, following the same rule as --token.',
     'Without --profile, the default (unsuffixed) home file and Keychain entry are used; set',
-    `ATLASSIAN_DC_MCP_PROFILE=<name> when running the server so it reads back the same profile.`,
+    'ATLASSIAN_DC_MCP_PROFILE=<name> when running the server so it reads back the same profile.',
   ];
   for (const line of lines) {
     log(line);
