@@ -9,13 +9,20 @@
     "dist",
     "bin"
   ],
-  "description": "Community-maintained MCP server for Atlassian Jira Data Center. Not affiliated with Atlassian.",
+  "description": "Community-maintained MCP server connecting Claude and other AI assistants to Atlassian Jira Data Center. Not affiliated with Atlassian.",
   "keywords": [
     "mcp",
+    "mcp-server",
     "atlassian",
     "jira",
+    "jira-server",
     "data-center",
-    "model-context-protocol"
+    "model-context-protocol",
+    "claude",
+    "claude-desktop",
+    "anthropic",
+    "ai",
+    "llm"
   ],
   "repository": {
     "type": "git",
