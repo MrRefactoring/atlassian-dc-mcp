@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ClusterInformationService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, ServerInformationService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluence-client/index.js';
+import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ClusterInformationService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, LongTaskService, OpenAPI, SearchService, ServerInformationService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluence-client/index.js';
 import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -1254,6 +1254,23 @@ export class ConfluenceService {
     );
   }
 
+  /**
+   * Get information about a single long-running background task (e.g. space export, reindex) by ID.
+   */
+  async getLongRunningTask(id: string, expand?: string) {
+    return handleApiOperation(() => LongTaskService.getTask(id, expand), 'Error getting long-running task');
+  }
+
+  /**
+   * Get a paginated list of all tracked long-running background tasks.
+   */
+  async getLongRunningTasks(expand?: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => LongTaskService.getTasks(expand, limit?.toString(), start?.toString()),
+      'Error getting long-running tasks'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -1793,6 +1810,15 @@ export const confluenceToolSchemas = {
   getServerInfo: {},
   getClusterNodes: {
     limit: z.number().optional().describe("Maximum number of node statuses to return"),
+    start: z.number().optional().describe("Start index for pagination")
+  },
+  getLongRunningTask: {
+    id: z.string().describe("The key of the long-running task to fetch"),
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the task")
+  },
+  getLongRunningTasks: {
+    expand: z.string().optional().describe("Comma-separated list of properties to expand on the tasks"),
+    limit: z.number().optional().describe("Maximum number of tasks to return"),
     start: z.number().optional().describe("Start index for pagination")
   }
 };

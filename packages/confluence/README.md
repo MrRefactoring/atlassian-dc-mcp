@@ -168,7 +168,7 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-The server registers 95 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
+The server registers 97 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
 #### Content — CRUD & search (CQL)
 
@@ -315,3 +315,8 @@ The server registers 95 tools, grouped below by area. All tools operate against 
 #### Cluster information
 
 - `confluence_getClusterNodes` — Get the status of each node in a Confluence cluster (requires permission to view cluster information)
+
+#### Long-running tasks
+
+- `confluence_getLongRunningTask` — Get information about a single long-running background task (e.g. space export, reindex) by ID
+- `confluence_getLongRunningTasks` — Get all tracked long-running background tasks

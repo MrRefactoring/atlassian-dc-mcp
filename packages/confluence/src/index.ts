@@ -1141,6 +1141,27 @@ server.tool(
   }
 );
 
+// Add Confluence long-running task tools
+server.tool(
+  "confluence_getLongRunningTask",
+  `Get information about a single long-running background task (e.g. space export, reindex) in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getLongRunningTask,
+  async ({ id, expand }) => {
+    const result = await confluenceService.getLongRunningTask(id, expand);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "confluence_getLongRunningTasks",
+  `Get all tracked long-running background tasks (e.g. space export, reindex) in ${confluenceInstanceType}`,
+  confluenceToolSchemas.getLongRunningTasks,
+  async ({ expand, limit, start }) => {
+    const result = await confluenceService.getLongRunningTasks(expand, limit, start);
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "confluence-page",
   new ResourceTemplate("confluence://page/{pageId}", { list: undefined }),
