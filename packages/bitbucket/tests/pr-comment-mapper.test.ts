@@ -1,10 +1,11 @@
+import { describe, it, expect } from 'vitest';
 import {
   filterPullRequestComments,
   simplifyBitbucketPRComments,
   getCommentSummary,
   type BitbucketPRApiResponse,
   type SimplifiedPRResponse
-} from '../pr-comment-mapper.js';
+} from '../src/pr-comment-mapper.js';
 import { formatToolResponse } from 'datacenter-mcp-core';
 
 interface TestComment {
