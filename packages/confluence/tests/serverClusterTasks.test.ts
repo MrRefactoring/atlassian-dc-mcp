@@ -6,7 +6,7 @@ import {
   LongTaskService,
   BackupAndRestoreService,
   InstanceMetricsService,
-} from '../src/confluence-client/index.js';
+} from '../src/confluenceClient/index.js';
 import { ConfluenceService } from '../src/confluenceService.js';
 
 const SERVER_INFORMATION = ServerInformationService as unknown as Record<string, Mock>;
@@ -15,7 +15,7 @@ const LONG_TASK = LongTaskService as unknown as Record<string, Mock>;
 const BACKUP_AND_RESTORE = BackupAndRestoreService as unknown as Record<string, Mock>;
 const INSTANCE_METRICS = InstanceMetricsService as unknown as Record<string, Mock>;
 
-vi.mock('../src/confluence-client/index.js', () => ({
+vi.mock('../src/confluenceClient/index.js', () => ({
   ServerInformationService: {
     index2: vi.fn(),
   },

@@ -4,14 +4,14 @@ import {
   ContentBlueprintService,
   ContentBodyService,
   WebhooksService,
-} from '../src/confluence-client/index.js';
+} from '../src/confluenceClient/index.js';
 import { ConfluenceService } from '../src/confluenceService.js';
 
 const CONTENT_BLUEPRINT = ContentBlueprintService as unknown as Record<string, Mock>;
 const CONTENT_BODY = ContentBodyService as unknown as Record<string, Mock>;
 const WEBHOOKS = WebhooksService as unknown as Record<string, Mock>;
 
-vi.mock('../src/confluence-client/index.js', () => ({
+vi.mock('../src/confluenceClient/index.js', () => ({
   ContentBlueprintService: {
     publishSharedDraft: vi.fn(),
     publishLegacyDraft: vi.fn(),

@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { AuthenticationService, BuildsAndDeploymentsService, DeprecatedService, OpenAPI, PermissionManagementService, ProjectService, PullRequestsService, RepositoryService, SecurityService } from './bitbucket-client/index.js';
-import type { RestAccessTokenRequest } from './bitbucket-client/index.js';
-import { request as __request } from './bitbucket-client/core/request.js';
+import { AuthenticationService, BuildsAndDeploymentsService, DeprecatedService, OpenAPI, PermissionManagementService, ProjectService, PullRequestsService, RepositoryService, SecurityService } from './bitbucketClient/index.js';
+import type { RestAccessTokenRequest } from './bitbucketClient/index.js';
+import { request as __request } from './bitbucketClient/core/request.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { simplifyInboxPullRequests } from './inboxPrMapper.js';
 import { BITBUCKET_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';

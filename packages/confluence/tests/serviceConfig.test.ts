@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { OpenAPI } from '../src/confluence-client/index.js';
+import { OpenAPI } from '../src/confluenceClient/index.js';
 import { ConfluenceService, escapeSearchTextForCql } from '../src/confluenceService.js';
 
-vi.mock('../src/confluence-client/index.js', () => ({
+vi.mock('../src/confluenceClient/index.js', () => ({
   OpenAPI: {
     BASE: '',
     TOKEN: '',

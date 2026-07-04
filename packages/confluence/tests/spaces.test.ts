@@ -4,14 +4,14 @@ import {
   SpaceService,
   SpacePropertyService,
   SpacePermissionsService,
-} from '../src/confluence-client/index.js';
+} from '../src/confluenceClient/index.js';
 import { ConfluenceService } from '../src/confluenceService.js';
 
 const SPACE = SpaceService as unknown as Record<string, Mock>;
 const SPACE_PROPERTY = SpacePropertyService as unknown as Record<string, Mock>;
 const SPACE_PERMISSIONS = SpacePermissionsService as unknown as Record<string, Mock>;
 
-vi.mock('../src/confluence-client/index.js', () => ({
+vi.mock('../src/confluenceClient/index.js', () => ({
   SpaceService: {
     space: vi.fn(),
     spaces: vi.fn(),

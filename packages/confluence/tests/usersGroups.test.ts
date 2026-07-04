@@ -7,7 +7,7 @@ import {
   AdminUserService,
   AdminGroupService,
   AdminUsersService,
-} from '../src/confluence-client/index.js';
+} from '../src/confluenceClient/index.js';
 import { ConfluenceService } from '../src/confluenceService.js';
 
 const USER = UserService as unknown as Record<string, Mock>;
@@ -17,7 +17,7 @@ const ADMIN_USER = AdminUserService as unknown as Record<string, Mock>;
 const ADMIN_GROUP = AdminGroupService as unknown as Record<string, Mock>;
 const ADMIN_USERS = AdminUsersService as unknown as Record<string, Mock>;
 
-vi.mock('../src/confluence-client/index.js', () => ({
+vi.mock('../src/confluenceClient/index.js', () => ({
   UserService: {
     getCurrent: vi.fn(),
     getAnonymous: vi.fn(),

@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
-import type { OnCancel } from '../src/jira-client/core/cancelablePromise.js';
-import { sendRequest } from '../src/jira-client/core/request.js';
-import type { OpenAPIConfig } from '../src/jira-client/core/openAPI.js';
+import type { OnCancel } from '../src/jiraClient/core/cancelablePromise.js';
+import { sendRequest } from '../src/jiraClient/core/request.js';
+import type { OpenAPIConfig } from '../src/jiraClient/core/openAPI.js';
 
 function makeOnCancel(): OnCancel {
   const onCancel = vi.fn() as unknown as OnCancel;

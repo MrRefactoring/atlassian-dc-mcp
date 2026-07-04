@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { BitbucketService } from '../src/bitbucketService.js';
-import { PermissionManagementService, PullRequestsService } from '../src/bitbucket-client/index.js';
-import { request } from '../src/bitbucket-client/core/request.js';
+import { PermissionManagementService, PullRequestsService } from '../src/bitbucketClient/index.js';
+import { request } from '../src/bitbucketClient/core/request.js';
 
-vi.mock('../src/bitbucket-client/core/request.js', () => ({
+vi.mock('../src/bitbucketClient/core/request.js', () => ({
   request: vi.fn(),
 }));
 
 const mockRequest = vi.mocked(request);
 
-vi.mock('../src/bitbucket-client/index.js', () => ({
+vi.mock('../src/bitbucketClient/index.js', () => ({
   PermissionManagementService: {
     getGroupsWithAnyPermission2: vi.fn(),
     getUsersWithAnyPermission2: vi.fn(),

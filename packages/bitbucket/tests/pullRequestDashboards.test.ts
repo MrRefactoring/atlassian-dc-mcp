@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BitbucketService } from '../src/bitbucketService.js';
-import { request } from '../src/bitbucket-client/core/request.js';
+import { request } from '../src/bitbucketClient/core/request.js';
 
-vi.mock('../src/bitbucket-client/core/request.js', () => ({
+vi.mock('../src/bitbucketClient/core/request.js', () => ({
   request: vi.fn(),
 }));
 
 const mockRequest = vi.mocked(request);
 
-vi.mock('../src/bitbucket-client/index.js', () => ({
+vi.mock('../src/bitbucketClient/index.js', () => ({
   OpenAPI: {
     BASE: '',
     TOKEN: '',
