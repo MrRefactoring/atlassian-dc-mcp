@@ -14,7 +14,7 @@ describe('shapeConfluenceMutationAck', () => {
           base: 'https://confluence.example.com',
           webui: '/pages/viewpage.action?pageId=123',
         },
-      })
+      }),
     ).toEqual({
       id: '123',
       type: 'page',

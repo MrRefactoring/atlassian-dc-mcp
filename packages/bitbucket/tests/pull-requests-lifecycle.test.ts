@@ -13,13 +13,13 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
     assignParticipantRole: vi.fn(),
     unassignParticipantRole: vi.fn(),
     listParticipants: vi.fn(),
-    updateStatus: vi.fn()
+    updateStatus: vi.fn(),
   },
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -41,7 +41,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.canMergePullRequest(
         mockProjectKey,
         mockRepositorySlug,
-        mockPullRequestId
+        mockPullRequestId,
       );
 
       expect(result.success).toBe(true);
@@ -49,7 +49,7 @@ describe('BitbucketService', () => {
       expect(PullRequestsService.canMerge).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
-        mockRepositorySlug
+        mockRepositorySlug,
       );
     });
 
@@ -60,7 +60,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.canMergePullRequest(
         mockProjectKey,
         mockRepositorySlug,
-        mockPullRequestId
+        mockPullRequestId,
       );
 
       expect(result.success).toBe(false);
@@ -76,7 +76,7 @@ describe('BitbucketService', () => {
         title: 'Test PR',
         state: 'MERGED',
         fromRef: { id: 'refs/heads/feature-branch' },
-        toRef: { id: 'refs/heads/main' }
+        toRef: { id: 'refs/heads/main' },
       };
       (PullRequestsService.merge as Mock).mockResolvedValue(mockMergedPR);
 
@@ -84,7 +84,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        1
+        1,
       );
 
       expect(result.success).toBe(true);
@@ -102,7 +102,7 @@ describe('BitbucketService', () => {
         mockPullRequestId,
         mockRepositorySlug,
         '1',
-        {}
+        {},
       );
     });
 
@@ -116,7 +116,7 @@ describe('BitbucketService', () => {
         mockPullRequestId,
         1,
         'Custom merge message',
-        'squash'
+        'squash',
       );
 
       expect(PullRequestsService.merge).toHaveBeenCalledWith(
@@ -124,7 +124,7 @@ describe('BitbucketService', () => {
         mockPullRequestId,
         mockRepositorySlug,
         '1',
-        { message: 'Custom merge message', strategyId: 'squash' }
+        { message: 'Custom merge message', strategyId: 'squash' },
       );
     });
 
@@ -139,7 +139,7 @@ describe('BitbucketService', () => {
         1,
         undefined,
         undefined,
-        'full'
+        'full',
       );
 
       expect(result.success).toBe(true);
@@ -154,7 +154,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        1
+        1,
       );
 
       expect(result.success).toBe(false);
@@ -168,7 +168,7 @@ describe('BitbucketService', () => {
         id: 1,
         version: 2,
         title: 'Test PR',
-        state: 'DECLINED'
+        state: 'DECLINED',
       };
       (PullRequestsService.decline as Mock).mockResolvedValue(mockDeclinedPR);
 
@@ -176,7 +176,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        1
+        1,
       );
 
       expect(result.success).toBe(true);
@@ -192,7 +192,7 @@ describe('BitbucketService', () => {
         mockPullRequestId,
         mockRepositorySlug,
         '1',
-        {}
+        {},
       );
     });
 
@@ -205,7 +205,7 @@ describe('BitbucketService', () => {
         mockRepositorySlug,
         mockPullRequestId,
         1,
-        'Superseded by another PR'
+        'Superseded by another PR',
       );
 
       expect(PullRequestsService.decline).toHaveBeenCalledWith(
@@ -213,7 +213,7 @@ describe('BitbucketService', () => {
         mockPullRequestId,
         mockRepositorySlug,
         '1',
-        { comment: 'Superseded by another PR' }
+        { comment: 'Superseded by another PR' },
       );
     });
 
@@ -225,7 +225,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        1
+        1,
       );
 
       expect(result.success).toBe(false);
@@ -239,7 +239,7 @@ describe('BitbucketService', () => {
         id: 1,
         version: 3,
         title: 'Test PR',
-        state: 'OPEN'
+        state: 'OPEN',
       };
       (PullRequestsService.reopen as Mock).mockResolvedValue(mockReopenedPR);
 
@@ -247,7 +247,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        2
+        2,
       );
 
       expect(result.success).toBe(true);
@@ -263,7 +263,7 @@ describe('BitbucketService', () => {
         mockPullRequestId,
         mockRepositorySlug,
         '2',
-        {}
+        {},
       );
     });
 
@@ -275,7 +275,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        2
+        2,
       );
 
       expect(result.success).toBe(false);
@@ -290,9 +290,9 @@ describe('BitbucketService', () => {
           id: 1,
           reviewers: [
             { name: 'reviewer1', emailAddress: 'reviewer1@example.com' },
-            { name: 'reviewer2', emailAddress: 'reviewer2@example.com' }
-          ]
-        }
+            { name: 'reviewer2', emailAddress: 'reviewer2@example.com' },
+          ],
+        },
       ];
       (PullRequestsService.getReviewers as Mock).mockResolvedValue(mockReviewersData);
 
@@ -300,7 +300,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'refs/heads/feature',
-        'refs/heads/main'
+        'refs/heads/main',
       );
 
       expect(result.success).toBe(true);
@@ -311,7 +311,7 @@ describe('BitbucketService', () => {
         undefined, // targetRepoId
         undefined, // sourceRepoId
         'refs/heads/feature',
-        'refs/heads/main'
+        'refs/heads/main',
       );
     });
 
@@ -320,9 +320,9 @@ describe('BitbucketService', () => {
         {
           id: 1,
           reviewers: [
-            { name: 'reviewer1', emailAddress: 'reviewer1@example.com' }
-          ]
-        }
+            { name: 'reviewer1', emailAddress: 'reviewer1@example.com' },
+          ],
+        },
       ];
       (PullRequestsService.getReviewers as Mock).mockResolvedValue(mockReviewersData);
 
@@ -332,7 +332,7 @@ describe('BitbucketService', () => {
         'refs/heads/feature',
         'refs/heads/main',
         '123', // sourceRepoId
-        '456'  // targetRepoId
+        '456',  // targetRepoId
       );
 
       expect(result.success).toBe(true);
@@ -343,7 +343,7 @@ describe('BitbucketService', () => {
         '456', // targetRepoId
         '123', // sourceRepoId
         'refs/heads/feature',
-        'refs/heads/main'
+        'refs/heads/main',
       );
     });
 
@@ -355,7 +355,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'refs/heads/feature',
-        'refs/heads/main'
+        'refs/heads/main',
       );
 
       expect(result.success).toBe(false);
@@ -372,7 +372,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        'reviewer1'
+        'reviewer1',
       );
 
       expect(result.success).toBe(true);
@@ -381,7 +381,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockPullRequestId,
         mockRepositorySlug,
-        { user: { name: 'reviewer1' }, role: 'REVIEWER' }
+        { user: { name: 'reviewer1' }, role: 'REVIEWER' },
       );
     });
 
@@ -391,7 +391,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        'reviewer1'
+        'reviewer1',
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
@@ -406,7 +406,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        'reviewer1'
+        'reviewer1',
       );
 
       expect(result.success).toBe(true);
@@ -415,7 +415,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         'reviewer1',
         mockPullRequestId,
-        mockRepositorySlug
+        mockRepositorySlug,
       );
     });
 
@@ -425,7 +425,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        'reviewer1'
+        'reviewer1',
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
@@ -437,22 +437,22 @@ describe('BitbucketService', () => {
       const mockData = {
         values: [
           { user: { name: 'author1' }, role: 'AUTHOR', approved: true },
-          { user: { name: 'commenter1' }, role: 'PARTICIPANT', approved: false }
+          { user: { name: 'commenter1' }, role: 'PARTICIPANT', approved: false },
         ],
-        isLastPage: true
+        isLastPage: true,
       };
       (PullRequestsService.listParticipants as Mock).mockResolvedValue(mockData);
 
       const result = await bitbucketService.getPullRequestParticipants(
         mockProjectKey,
         mockRepositorySlug,
-        mockPullRequestId
+        mockPullRequestId,
       );
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(PullRequestsService.listParticipants).toHaveBeenCalledWith(
-        mockProjectKey, mockPullRequestId, mockRepositorySlug, undefined, 25
+        mockProjectKey, mockPullRequestId, mockRepositorySlug, undefined, 25,
       );
     });
 
@@ -462,7 +462,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.getPullRequestParticipants(
         mockProjectKey,
         mockRepositorySlug,
-        mockPullRequestId
+        mockPullRequestId,
       );
 
       expect(result.success).toBe(false);
@@ -477,7 +477,7 @@ describe('BitbucketService', () => {
       const mockParticipant = {
         user: { name: mockUserSlug },
         role: 'REVIEWER',
-        status: 'NEEDS_WORK'
+        status: 'NEEDS_WORK',
       };
       (PullRequestsService.updateStatus as Mock).mockResolvedValue(mockParticipant);
 
@@ -486,7 +486,7 @@ describe('BitbucketService', () => {
         mockRepositorySlug,
         mockPullRequestId,
         mockUserSlug,
-        'NEEDS_WORK'
+        'NEEDS_WORK',
       );
 
       expect(result.success).toBe(true);
@@ -496,7 +496,7 @@ describe('BitbucketService', () => {
         mockUserSlug,
         mockPullRequestId,
         mockRepositorySlug,
-        { status: 'NEEDS_WORK' }
+        { status: 'NEEDS_WORK' },
       );
     });
 
@@ -509,7 +509,7 @@ describe('BitbucketService', () => {
         mockRepositorySlug,
         mockPullRequestId,
         mockUserSlug,
-        'APPROVED'
+        'APPROVED',
       );
 
       expect(result.success).toBe(true);
@@ -518,7 +518,7 @@ describe('BitbucketService', () => {
         mockUserSlug,
         mockPullRequestId,
         mockRepositorySlug,
-        { status: 'APPROVED' }
+        { status: 'APPROVED' },
       );
     });
 
@@ -532,7 +532,7 @@ describe('BitbucketService', () => {
         mockPullRequestId,
         mockUserSlug,
         'NEEDS_WORK',
-        'abc123def456'
+        'abc123def456',
       );
 
       expect(PullRequestsService.updateStatus).toHaveBeenCalledWith(
@@ -540,7 +540,7 @@ describe('BitbucketService', () => {
         mockUserSlug,
         mockPullRequestId,
         mockRepositorySlug,
-        { status: 'NEEDS_WORK', lastReviewedCommit: 'abc123def456' }
+        { status: 'NEEDS_WORK', lastReviewedCommit: 'abc123def456' },
       );
     });
 
@@ -553,7 +553,7 @@ describe('BitbucketService', () => {
         mockRepositorySlug,
         mockPullRequestId,
         mockUserSlug,
-        'APPROVED'
+        'APPROVED',
       );
 
       expect(result.success).toBe(false);

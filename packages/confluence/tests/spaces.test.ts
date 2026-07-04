@@ -87,7 +87,7 @@ describe('ConfluenceService space CRUD', () => {
       undefined,
       undefined,
       undefined,
-      'current'
+      'current',
     );
   });
 
@@ -110,7 +110,7 @@ describe('ConfluenceService space CRUD', () => {
       undefined,
       undefined,
       undefined,
-      undefined
+      undefined,
     );
   });
 
@@ -240,7 +240,7 @@ describe('ConfluenceService space properties', () => {
     expect(SPACE_PROPERTY.update3).toHaveBeenCalledWith(
       'DEV',
       'my-key',
-      { key: 'my-key', value: 'new-value', version: { number: 2 } }
+      { key: 'my-key', value: 'new-value', version: { number: 2 } },
     );
   });
 

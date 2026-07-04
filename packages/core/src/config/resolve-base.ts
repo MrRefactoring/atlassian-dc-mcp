@@ -7,6 +7,7 @@ export type ResolveOpenApiBaseOptions = {
 
 function normalizeHost(host: string): string {
   const withScheme = /^https?:\/\//i.test(host) ? host : `https://${host}`;
+
   return withScheme.replace(/\/+$/, '');
 }
 
@@ -18,11 +19,13 @@ function stripGeneratedSuffix(path: string, suffixes: readonly string[]): string
       return path.replace(re, '');
     }
   }
+
   return path;
 }
 
 function normalizeBasePath(path: string, suffixes: readonly string[]): string {
   const stripped = stripGeneratedSuffix(path, suffixes).replace(/\/+$/, '');
+
   return stripped === '/' ? '' : stripped;
 }
 
@@ -31,6 +34,7 @@ export function resolveOpenApiBase(options: ResolveOpenApiBaseOptions): string {
 
   if (apiBasePath && /^https?:\/\//i.test(apiBasePath)) {
     const url = new URL(apiBasePath);
+
     return `${url.origin}${normalizeBasePath(url.pathname, strippableSuffixes)}`;
   }
 
@@ -39,5 +43,6 @@ export function resolveOpenApiBase(options: ResolveOpenApiBaseOptions): string {
   }
 
   const basePath = apiBasePath ? normalizeBasePath(apiBasePath, strippableSuffixes) : defaultBasePath;
+
   return `${normalizeHost(host)}${basePath}`;
 }

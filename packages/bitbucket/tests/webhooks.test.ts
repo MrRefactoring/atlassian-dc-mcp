@@ -9,13 +9,13 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
     deleteWebhook1: vi.fn(),
     findWebhooks1: vi.fn(),
     getWebhook1: vi.fn(),
-    updateWebhook1: vi.fn()
+    updateWebhook1: vi.fn(),
   },
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -36,7 +36,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(RepositoryService.findWebhooks1).toHaveBeenCalledWith(
-        'TEST', 'test-repo', 'repo:refs_changed', true
+        'TEST', 'test-repo', 'repo:refs_changed', true,
       );
     });
 
@@ -74,7 +74,7 @@ describe('BitbucketService', () => {
 
       const result = await bitbucketService.createWebhook(
         'test', 'Test-Repo', 'my hook', 'https://example.com/hook',
-        ['repo:refs_changed', 'pr:opened'], true, 's3cret', false
+        ['repo:refs_changed', 'pr:opened'], true, 's3cret', false,
       );
 
       expect(result.success).toBe(true);
@@ -85,7 +85,7 @@ describe('BitbucketService', () => {
         events: ['repo:refs_changed', 'pr:opened'],
         active: true,
         configuration: { secret: 's3cret' },
-        sslVerificationRequired: false
+        sslVerificationRequired: false,
       });
     });
 
@@ -93,13 +93,13 @@ describe('BitbucketService', () => {
       (RepositoryService.createWebhook1 as Mock).mockResolvedValue({ id: 1 });
 
       await bitbucketService.createWebhook(
-        'TEST', 'test-repo', 'minimal', 'https://example.com/h', ['pr:merged']
+        'TEST', 'test-repo', 'minimal', 'https://example.com/h', ['pr:merged'],
       );
 
       expect(RepositoryService.createWebhook1).toHaveBeenCalledWith('TEST', 'test-repo', {
         name: 'minimal',
         url: 'https://example.com/h',
-        events: ['pr:merged']
+        events: ['pr:merged'],
       });
     });
 
@@ -108,7 +108,7 @@ describe('BitbucketService', () => {
       (RepositoryService.updateWebhook1 as Mock).mockResolvedValue(mockData);
 
       const result = await bitbucketService.updateWebhook(
-        'test', 'Test-Repo', '5', 'renamed', 'https://example.com/new', ['pr:declined'], false
+        'test', 'Test-Repo', '5', 'renamed', 'https://example.com/new', ['pr:declined'], false,
       );
 
       expect(result.success).toBe(true);
@@ -117,7 +117,7 @@ describe('BitbucketService', () => {
         name: 'renamed',
         url: 'https://example.com/new',
         events: ['pr:declined'],
-        active: false
+        active: false,
       });
     });
 

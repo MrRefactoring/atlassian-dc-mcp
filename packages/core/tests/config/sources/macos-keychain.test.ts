@@ -195,6 +195,7 @@ describe('MacosKeychainSource', () => {
         const account = args[accountIndex];
         if (args[0] === 'add-generic-password') {
           store.set(account, args[args.indexOf('-w') + 1]);
+
           return '';
         }
         if (args[0] === 'find-generic-password') {
@@ -203,8 +204,10 @@ describe('MacosKeychainSource', () => {
             err.status = 44;
             throw err;
           }
+
           return `${store.get(account)}\n`;
         }
+
         return '';
       });
       const deps = makeDeps({ execFileSync: execFileSync as any });

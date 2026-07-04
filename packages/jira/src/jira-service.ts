@@ -85,6 +85,7 @@ function toIssueFieldSelection(fields: string[]): Array<StringList> {
 function resolveCredential(value: string | (() => string | undefined) | undefined) {
   return async () => {
     const resolved = typeof value === 'function' ? value() : value;
+
     return resolved ?? '';
   };
 }
@@ -120,7 +121,7 @@ export class JiraService {
         maxResults: maxResults ?? this.getPageSize(),
         fields: fields ?? DEFAULT_SEARCH_FIELDS,
         expand,
-        startAt
+        startAt,
       });
     }, 'Error searching issues');
   }
@@ -128,14 +129,14 @@ export class JiraService {
   async getIssue(issueKey: string, expand?: string, fields?: string[]) {
     return handleApiOperation(
       () => IssueService.getIssue(issueKey, expand, toIssueFieldSelection(fields ?? DEFAULT_ISSUE_FIELDS)),
-      'Error getting issue'
+      'Error getting issue',
     );
   }
 
   async getIssueComments(issueKey: string, expand?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => IssueService.getComments(issueKey, expand, (maxResults ?? this.getPageSize()).toString(), undefined, startAt?.toString()),
-      'Error getting issue comments'
+      'Error getting issue comments',
     );
   }
 
@@ -155,7 +156,7 @@ export class JiraService {
         project: { key: params.projectId },
         summary: params.summary,
         description: params.description,
-        issuetype: { id: params.issueTypeId }
+        issuetype: { id: params.issueTypeId },
       };
 
       const fields = params.customFields
@@ -196,7 +197,7 @@ export class JiraService {
   async getTransitions(issueKey: string) {
     return handleApiOperation(
       () => IssueService.getTransitions(issueKey),
-      'Error getting transitions'
+      'Error getting transitions',
     );
   }
 
@@ -207,6 +208,7 @@ export class JiraService {
   ) {
     return handleApiOperation(async () => {
       const issueId = await this.resolveIssueId(issueKey);
+
       return __request(OpenAPI, {
         method: 'GET',
         url: '/dev-status/1.0/issue/detail',
@@ -221,6 +223,7 @@ export class JiraService {
     if (!issue?.id) {
       throw new Error(`Could not resolve numeric id for issue ${issueKey}`);
     }
+
     return issue.id;
   }
 
@@ -232,7 +235,7 @@ export class JiraService {
   }) {
     return handleApiOperation(async () => {
       const requestBody: { transition: { id: string }; fields?: Record<string, any> } = {
-        transition: { id: params.transitionId }
+        transition: { id: params.transitionId },
       };
       if (params.fields) {
         requestBody.fields = params.fields;
@@ -240,6 +243,7 @@ export class JiraService {
       if (params.customFields) {
         Object.assign(requestBody, params.customFields);
       }
+
       return IssueService.doTransition(params.issueKey, requestBody);
     }, 'Error transitioning issue');
   }
@@ -247,106 +251,108 @@ export class JiraService {
   async getProjects(includeArchived?: boolean, expand?: string, recent?: number) {
     return handleApiOperation(
       () => ProjectService.getAllProjects(includeArchived, expand, recent),
-      'Error getting projects'
+      'Error getting projects',
     );
   }
 
   async searchProjects(query: string, maxResults?: number, allowEmptyQuery?: boolean) {
     return handleApiOperation(
       () => ProjectsService.searchForProjects(maxResults, query, allowEmptyQuery),
-      'Error searching projects'
+      'Error searching projects',
     );
   }
 
   async getProject(projectIdOrKey: string, expand?: string) {
     return handleApiOperation(
       () => ProjectService.getProject(projectIdOrKey, expand),
-      'Error getting project'
+      'Error getting project',
     );
   }
 
   async getProjectComponents(projectIdOrKey: string) {
     return handleApiOperation(
       () => ProjectService.getProjectComponents(projectIdOrKey),
-      'Error getting project components'
+      'Error getting project components',
     );
   }
 
   async getProjectVersions(projectIdOrKey: string, expand?: string) {
     return handleApiOperation(
       () => ProjectService.getProjectVersions(projectIdOrKey, expand),
-      'Error getting project versions'
+      'Error getting project versions',
     );
   }
 
   async createProject(project: Omit<ProjectInputBean, 'assigneeType'> & { assigneeType?: 'PROJECT_LEAD' | 'UNASSIGNED' }) {
     return handleApiOperation(
       () => ProjectService.createProject(project as ProjectInputBean),
-      'Error creating project'
+      'Error creating project',
     );
   }
 
   async updateProject(projectIdOrKey: string, project: Omit<ProjectUpdateBean, 'assigneeType'> & { assigneeType?: 'PROJECT_LEAD' | 'UNASSIGNED' }, expand?: string) {
     return handleApiOperation(
       () => ProjectService.updateProject(projectIdOrKey, project as ProjectUpdateBean, expand),
-      'Error updating project'
+      'Error updating project',
     );
   }
 
   async deleteProject(projectIdOrKey: string) {
     const result = await handleApiOperation(
       () => ProjectService.deleteProject(projectIdOrKey),
-      'Error deleting project'
+      'Error deleting project',
     );
     if (result.success) {
       return { ...result, data: { deleted: true, projectIdOrKey } };
     }
+
     return result;
   }
 
   async archiveProject(projectIdOrKey: string) {
     const result = await handleApiOperation(
       () => ProjectService.archiveProject(projectIdOrKey),
-      'Error archiving project'
+      'Error archiving project',
     );
     if (result.success) {
       return { ...result, data: { archived: true, projectIdOrKey } };
     }
+
     return result;
   }
 
   async restoreProject(projectIdOrKey: string) {
     return handleApiOperation(
       () => ProjectService.restoreProject(projectIdOrKey),
-      'Error restoring project'
+      'Error restoring project',
     );
   }
 
   async getProjectPropertyKeys(projectIdOrKey: string) {
     return handleApiOperation(
       () => ProjectService.getPropertiesKeys3(projectIdOrKey),
-      'Error getting project property keys'
+      'Error getting project property keys',
     );
   }
 
   async getProjectProperty(projectIdOrKey: string, propertyKey: string) {
     return handleApiOperation(
       () => ProjectService.getProperty5(propertyKey, projectIdOrKey),
-      'Error getting project property'
+      'Error getting project property',
     );
   }
 
   async setProjectProperty(projectIdOrKey: string, propertyKey: string, value: string) {
     return handleApiOperation(
       () => ProjectService.setProperty4(propertyKey, projectIdOrKey, { key: propertyKey, value }),
-      'Error setting project property'
+      'Error setting project property',
     );
   }
 
   async deleteProjectProperty(projectIdOrKey: string, propertyKey: string) {
     return handleApiOperation(
       () => ProjectService.deleteProperty5(propertyKey, projectIdOrKey),
-      'Error deleting project property'
+      'Error deleting project property',
     );
   }
 
@@ -369,14 +375,14 @@ export class JiraService {
   async getCreateIssueMetaIssueTypes(projectIdOrKey: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => IssueService.getCreateIssueMetaProjectIssueTypes(projectIdOrKey, maxResults?.toString(), startAt?.toString()),
-      'Error getting create-issue metadata issue types'
+      'Error getting create-issue metadata issue types',
     );
   }
 
   async getCreateIssueMetaFields(projectIdOrKey: string, issueTypeId: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => IssueService.getCreateIssueMetaFields(issueTypeId, projectIdOrKey, maxResults?.toString(), startAt?.toString()),
-      'Error getting create-issue metadata fields'
+      'Error getting create-issue metadata fields',
     );
   }
 
@@ -387,49 +393,49 @@ export class JiraService {
   async deleteIssue(issueKey: string, deleteSubtasks?: boolean) {
     return handleApiOperation(
       () => IssueService.deleteIssue(issueKey, deleteSubtasks?.toString()),
-      'Error deleting issue'
+      'Error deleting issue',
     );
   }
 
   async updateIssueComment(issueKey: string, commentId: string, comment: string) {
     return handleApiOperation(
       () => IssueService.updateComment(issueKey, commentId, undefined, { body: comment }),
-      'Error updating issue comment'
+      'Error updating issue comment',
     );
   }
 
   async deleteIssueComment(issueKey: string, commentId: string) {
     return handleApiOperation(
       () => IssueService.deleteComment(issueKey, commentId),
-      'Error deleting issue comment'
+      'Error deleting issue comment',
     );
   }
 
   async getCommentPropertyKeys(commentId: string) {
     return handleApiOperation(
       () => CommentService.getPropertiesKeys1(commentId),
-      'Error getting comment property keys'
+      'Error getting comment property keys',
     );
   }
 
   async getCommentProperty(commentId: string, propertyKey: string) {
     return handleApiOperation(
       () => CommentService.getProperty2(propertyKey, commentId),
-      'Error getting comment property'
+      'Error getting comment property',
     );
   }
 
   async setCommentProperty(commentId: string, propertyKey: string, value: string) {
     return handleApiOperation(
       () => CommentService.setProperty1(propertyKey, commentId, value),
-      'Error setting comment property'
+      'Error setting comment property',
     );
   }
 
   async deleteCommentProperty(commentId: string, propertyKey: string) {
     return handleApiOperation(
       () => CommentService.deleteProperty2(propertyKey, commentId),
-      'Error deleting comment property'
+      'Error deleting comment property',
     );
   }
 
@@ -440,14 +446,14 @@ export class JiraService {
   async addIssueWatcher(issueKey: string, username: string) {
     return handleApiOperation(
       () => IssueService.addWatcher1(issueKey, undefined, username),
-      'Error adding issue watcher'
+      'Error adding issue watcher',
     );
   }
 
   async removeIssueWatcher(issueKey: string, username: string) {
     return handleApiOperation(
       () => IssueService.removeWatcher1(issueKey, username),
-      'Error removing issue watcher'
+      'Error removing issue watcher',
     );
   }
 
@@ -470,7 +476,7 @@ export class JiraService {
   async addIssueWorklog(issueKey: string, timeSpent: string, comment?: string, started?: string) {
     return handleApiOperation(
       () => IssueService.addWorklog(issueKey, undefined, undefined, undefined, { timeSpent, comment, started }),
-      'Error adding issue worklog'
+      'Error adding issue worklog',
     );
   }
 
@@ -481,41 +487,42 @@ export class JiraService {
   async updateIssueWorklog(issueKey: string, worklogId: string, timeSpent?: string, comment?: string, started?: string) {
     return handleApiOperation(
       () => IssueService.updateWorklog(issueKey, worklogId, undefined, undefined, { timeSpent, comment, started }),
-      'Error updating issue worklog'
+      'Error updating issue worklog',
     );
   }
 
   async deleteIssueWorklog(issueKey: string, worklogId: string) {
     return handleApiOperation(
       () => IssueService.deleteWorklog(issueKey, worklogId),
-      'Error deleting issue worklog'
+      'Error deleting issue worklog',
     );
   }
 
   async getWorklogsDeletedSince(since?: number) {
     return handleApiOperation(
       () => WorklogService.getIdsOfWorklogsDeletedSince(since),
-      'Error getting worklogs deleted since given time'
+      'Error getting worklogs deleted since given time',
     );
   }
 
   async getWorklogsModifiedSince(since?: number) {
     return handleApiOperation(
       () => WorklogService.getIdsOfWorklogsModifiedSince(since),
-      'Error getting worklogs modified since given time'
+      'Error getting worklogs modified since given time',
     );
   }
 
   async getWorklogsForIds(worklogIds: number[]) {
     return handleApiOperation(
       () => WorklogService.getWorklogsForIds({ ids: worklogIds }),
-      'Error getting worklogs for ids'
+      'Error getting worklogs for ids',
     );
   }
 
   async addIssueAttachment(issueKey: string, fileName: string, contentBase64: string) {
     return handleApiOperation(() => {
       const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
+
       return IssueService.addAttachment(issueKey, { file } as unknown as Blob);
     }, 'Error adding issue attachment');
   }
@@ -543,6 +550,7 @@ export class JiraService {
         throw new Error(`Failed to download attachment content: ${response.status} ${response.statusText}`);
       }
       const arrayBuffer = await response.arrayBuffer();
+
       return {
         filename: meta.filename,
         mimeType: meta.mimeType,
@@ -555,7 +563,7 @@ export class JiraService {
   async deleteAttachment(attachmentId: string) {
     return handleApiOperation(
       () => AttachmentService.removeAttachment(attachmentId),
-      'Error deleting attachment'
+      'Error deleting attachment',
     );
   }
 
@@ -567,7 +575,7 @@ export class JiraService {
         type: { name: linkTypeName },
         ...(comment ? { comment: { body: comment } } : {}),
       }),
-      'Error linking issues'
+      'Error linking issues',
     );
   }
 
@@ -605,14 +613,14 @@ export class JiraService {
   async getRemoteIssueLinks(issueIdOrKey: string, globalId?: string) {
     return handleApiOperation(
       () => IssueService.getRemoteIssueLinks(issueIdOrKey, globalId),
-      'Error getting remote issue links'
+      'Error getting remote issue links',
     );
   }
 
   async getRemoteIssueLink(issueIdOrKey: string, linkId: string) {
     return handleApiOperation(
       () => IssueService.getRemoteIssueLinkById(linkId, issueIdOrKey),
-      'Error getting remote issue link'
+      'Error getting remote issue link',
     );
   }
 
@@ -627,7 +635,7 @@ export class JiraService {
   }) {
     return handleApiOperation(
       () => IssueService.createOrUpdateRemoteIssueLink(issueIdOrKey, this.buildRemoteIssueLinkBody(params)),
-      'Error creating or updating remote issue link'
+      'Error creating or updating remote issue link',
     );
   }
 
@@ -642,54 +650,57 @@ export class JiraService {
   }) {
     const result = await handleApiOperation(
       () => IssueService.updateRemoteIssueLink(linkId, issueIdOrKey, this.buildRemoteIssueLinkBody(params)),
-      'Error updating remote issue link'
+      'Error updating remote issue link',
     );
     if (result.success) {
       return { ...result, data: { updated: true, linkId } };
     }
+
     return result;
   }
 
   async deleteRemoteIssueLink(issueIdOrKey: string, linkId: string) {
     const result = await handleApiOperation(
       () => IssueService.deleteRemoteIssueLinkById(linkId, issueIdOrKey),
-      'Error deleting remote issue link'
+      'Error deleting remote issue link',
     );
     if (result.success) {
       return { ...result, data: { deleted: true, linkId } };
     }
+
     return result;
   }
 
   async deleteRemoteIssueLinkByGlobalId(issueIdOrKey: string, globalId: string) {
     const result = await handleApiOperation(
       () => IssueService.deleteRemoteIssueLinkByGlobalId(issueIdOrKey, globalId),
-      'Error deleting remote issue link'
+      'Error deleting remote issue link',
     );
     if (result.success) {
       return { ...result, data: { deleted: true, globalId } };
     }
+
     return result;
   }
 
   async assignIssue(issueKey: string, username: string | null) {
     return handleApiOperation(
       () => IssueService.assign(issueKey, { name: username } as unknown as { name: string }),
-      'Error assigning issue'
+      'Error assigning issue',
     );
   }
 
   async createComponent(projectKey: string, name: string, description?: string, leadUserName?: string) {
     return handleApiOperation(
       () => ComponentService.createComponent({ project: projectKey, name, description, leadUserName }),
-      'Error creating component'
+      'Error creating component',
     );
   }
 
   async getComponents(maxResults?: number, query?: string, projectIds?: string) {
     return handleApiOperation(
       () => ComponentService.getPaginatedComponents(maxResults?.toString(), query, projectIds),
-      'Error getting components'
+      'Error getting components',
     );
   }
 
@@ -700,35 +711,35 @@ export class JiraService {
   async updateComponent(componentId: string, name?: string, description?: string, leadUserName?: string) {
     return handleApiOperation(
       () => ComponentService.updateComponent(componentId, { name, description, leadUserName }),
-      'Error updating component'
+      'Error updating component',
     );
   }
 
   async deleteComponent(componentId: string, moveIssuesTo?: string) {
     return handleApiOperation(
       () => ComponentService.delete(componentId, moveIssuesTo),
-      'Error deleting component'
+      'Error deleting component',
     );
   }
 
   async getComponentRelatedIssues(componentId: string) {
     return handleApiOperation(
       () => ComponentService.getComponentRelatedIssues(componentId),
-      'Error getting component related issue counts'
+      'Error getting component related issue counts',
     );
   }
 
   async createVersion(projectKey: string, name: string, description?: string, releaseDate?: string, startDate?: string) {
     return handleApiOperation(
       () => VersionService.createVersion({ project: projectKey, name, description, releaseDate, startDate }),
-      'Error creating version'
+      'Error creating version',
     );
   }
 
   async getVersions(projectIds?: number[], query?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => VersionService.getPaginatedVersions(maxResults ?? 100, query ?? '', projectIds, startAt),
-      'Error getting versions'
+      'Error getting versions',
     );
   }
 
@@ -739,42 +750,42 @@ export class JiraService {
   async updateVersion(versionId: string, name?: string, description?: string, released?: boolean, archived?: boolean, releaseDate?: string) {
     return handleApiOperation(
       () => VersionService.updateVersion(versionId, { name, description, released, archived, releaseDate }),
-      'Error updating version'
+      'Error updating version',
     );
   }
 
   async deleteAndReplaceVersion(versionId: string, moveFixIssuesTo?: number, moveAffectedIssuesTo?: number) {
     return handleApiOperation(
       () => VersionService.delete1(versionId, { moveFixIssuesTo, moveAffectedIssuesTo }),
-      'Error deleting version'
+      'Error deleting version',
     );
   }
 
   async mergeVersion(versionId: string, moveIssuesToVersionId: string) {
     return handleApiOperation(
       () => VersionService.merge(moveIssuesToVersionId, versionId),
-      'Error merging version'
+      'Error merging version',
     );
   }
 
   async moveVersion(versionId: string, position?: 'Earlier' | 'Later' | 'First' | 'Last', after?: string) {
     return handleApiOperation(
       () => VersionService.moveVersion(versionId, { position: position as VersionMoveBean.position | undefined, after }),
-      'Error moving version'
+      'Error moving version',
     );
   }
 
   async getVersionRelatedIssues(versionId: string) {
     return handleApiOperation(
       () => VersionService.getVersionRelatedIssues(versionId),
-      'Error getting version related issue counts'
+      'Error getting version related issue counts',
     );
   }
 
   async getVersionUnresolvedIssues(versionId: string) {
     return handleApiOperation(
       () => VersionService.getVersionUnresolvedIssues(versionId),
-      'Error getting version unresolved issue counts'
+      'Error getting version unresolved issue counts',
     );
   }
 
@@ -785,14 +796,14 @@ export class JiraService {
   async getProjectRole(projectIdOrKey: string, roleId: number) {
     return handleApiOperation(
       () => ProjectService.getProjectRole(projectIdOrKey, roleId),
-      'Error getting project role'
+      'Error getting project role',
     );
   }
 
   async setProjectRoleActors(projectIdOrKey: string, roleId: number, categorisedActors: Record<string, string[]>) {
     return handleApiOperation(
       () => ProjectService.setActors(projectIdOrKey, roleId, { categorisedActors, id: roleId }),
-      'Error setting project role actors'
+      'Error setting project role actors',
     );
   }
 
@@ -802,35 +813,35 @@ export class JiraService {
         ...(users ? { user: users } : {}),
         ...(groups ? { group: groups } : {}),
       }),
-      'Error adding project role actors'
+      'Error adding project role actors',
     );
   }
 
   async deleteProjectRoleActor(projectIdOrKey: string, roleId: number, user?: string, group?: string) {
     return handleApiOperation(
       () => ProjectService.deleteActor(projectIdOrKey, roleId, user, group),
-      'Error deleting project role actor'
+      'Error deleting project role actor',
     );
   }
 
   async getUser(username?: string, key?: string, includeDeleted?: boolean) {
     return handleApiOperation(
       () => UserService.getUser1(includeDeleted, key, username),
-      'Error getting user'
+      'Error getting user',
     );
   }
 
   async findUsers(username: string, maxResults?: number, startAt?: number, includeActive?: boolean, includeInactive?: boolean) {
     return handleApiOperation(
       () => UserService.findUsers(includeInactive, maxResults, includeActive, startAt, username),
-      'Error finding users'
+      'Error finding users',
     );
   }
 
   async findAssignableUsers(project: string, issueKey?: string, username?: string, maxResults?: number) {
     return handleApiOperation(
       () => UserService.findAssignableUsers1(issueKey, maxResults ?? 50, project, undefined, username),
-      'Error finding assignable users'
+      'Error finding assignable users',
     );
   }
 
@@ -841,49 +852,49 @@ export class JiraService {
   async deleteGroup(groupname: string, swapGroup?: string) {
     return handleApiOperation(
       () => GroupService.removeGroup(groupname, swapGroup),
-      'Error deleting group'
+      'Error deleting group',
     );
   }
 
   async getGroupUsers(groupname: string, includeInactiveUsers?: boolean, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => GroupService.getUsersFromGroup(groupname, includeInactiveUsers?.toString(), maxResults?.toString(), startAt?.toString()),
-      'Error getting group users'
+      'Error getting group users',
     );
   }
 
   async addUserToGroup(groupname: string, username: string) {
     return handleApiOperation(
       () => GroupService.addUserToGroup(groupname, { name: username }),
-      'Error adding user to group'
+      'Error adding user to group',
     );
   }
 
   async removeUserFromGroup(groupname: string, username: string) {
     return handleApiOperation(
       () => GroupService.removeUserFromGroup(groupname, username),
-      'Error removing user from group'
+      'Error removing user from group',
     );
   }
 
   async findGroups(query?: string, maxResults?: number, exclude?: string, userName?: string) {
     return handleApiOperation(
       () => GroupsService.findGroups(maxResults?.toString(), query, exclude, userName),
-      'Error finding groups'
+      'Error finding groups',
     );
   }
 
   async findUsersAndGroups(query: string, maxResults?: number, showAvatar?: boolean, issueTypeId?: string, projectId?: string, fieldId?: string) {
     return handleApiOperation(
       () => GroupuserpickerService.findUsersAndGroups(issueTypeId, maxResults?.toString(), query, showAvatar?.toString(), projectId, fieldId),
-      'Error finding users and groups'
+      'Error finding users and groups',
     );
   }
 
   async createFilter(name: string, jql: string, description?: string, favourite?: boolean) {
     return handleApiOperation(
       () => FilterService.createFilter(undefined, { name, jql, description, favourite }),
-      'Error creating filter'
+      'Error creating filter',
     );
   }
 
@@ -894,7 +905,7 @@ export class JiraService {
   async updateFilter(filterId: string, name?: string, jql?: string, description?: string, favourite?: boolean) {
     return handleApiOperation(
       () => FilterService.editFilter(filterId, undefined, { name, jql, description, favourite }),
-      'Error updating filter'
+      'Error updating filter',
     );
   }
 
@@ -905,14 +916,14 @@ export class JiraService {
   async getFavouriteFilters() {
     return handleApiOperation(
       () => FilterService.getFavouriteFilters(),
-      'Error getting favourite filters'
+      'Error getting favourite filters',
     );
   }
 
   async getDashboards(filter?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => DashboardService.list(filter, maxResults?.toString(), startAt?.toString()),
-      'Error getting dashboards'
+      'Error getting dashboards',
     );
   }
 
@@ -923,28 +934,28 @@ export class JiraService {
   async getIssueLinkTypes() {
     return handleApiOperation(
       () => IssueLinkTypeService.getIssueLinkTypes(),
-      'Error getting issue link types'
+      'Error getting issue link types',
     );
   }
 
   async createIssueLinkType(name: string, inward: string, outward: string) {
     return handleApiOperation(
       () => IssueLinkTypeService.createIssueLinkType({ name, inward, outward }),
-      'Error creating issue link type'
+      'Error creating issue link type',
     );
   }
 
   async updateIssueLinkType(issueLinkTypeId: string, name?: string, inward?: string, outward?: string) {
     return handleApiOperation(
       () => IssueLinkTypeService.updateIssueLinkType(issueLinkTypeId, { name, inward, outward }),
-      'Error updating issue link type'
+      'Error updating issue link type',
     );
   }
 
   async deleteIssueLinkType(issueLinkTypeId: string) {
     return handleApiOperation(
       () => IssueLinkTypeService.deleteIssueLinkType(issueLinkTypeId),
-      'Error deleting issue link type'
+      'Error deleting issue link type',
     );
   }
 
@@ -959,6 +970,7 @@ export class JiraService {
           ...issue.customFields,
         },
       }));
+
       return IssueService.createIssues({ issueUpdates });
     }, 'Error bulk creating issues');
   }
@@ -966,56 +978,56 @@ export class JiraService {
   async archiveIssues(issueKeysOrJql: string, notifyUsers?: boolean) {
     return handleApiOperation(
       () => IssueService.archiveIssues(notifyUsers?.toString(), issueKeysOrJql),
-      'Error bulk archiving issues'
+      'Error bulk archiving issues',
     );
   }
 
   async archiveIssue(issueKey: string, notifyUsers?: boolean) {
     return handleApiOperation(
       () => IssueService.archiveIssue(issueKey, notifyUsers?.toString()),
-      'Error archiving issue'
+      'Error archiving issue',
     );
   }
 
   async restoreIssue(issueKey: string, notifyUsers?: boolean) {
     return handleApiOperation(
       () => IssueService.restoreIssue(issueKey, notifyUsers?.toString()),
-      'Error restoring issue'
+      'Error restoring issue',
     );
   }
 
   async rankIssues(issueKeys: string[], rankBeforeIssue?: string, rankAfterIssue?: string, rankCustomFieldId?: number) {
     return handleApiOperation(
       () => IssueService.rankIssues({ issues: issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId }),
-      'Error ranking issues'
+      'Error ranking issues',
     );
   }
 
   async getIssuePropertyKeys(issueKey: string) {
     return handleApiOperation(
       () => IssueService.getPropertiesKeys2(issueKey),
-      'Error getting issue property keys'
+      'Error getting issue property keys',
     );
   }
 
   async getIssueProperty(issueKey: string, propertyKey: string) {
     return handleApiOperation(
       () => IssueService.getProperty3(propertyKey, issueKey),
-      'Error getting issue property'
+      'Error getting issue property',
     );
   }
 
   async setIssueProperty(issueKey: string, propertyKey: string, value: string) {
     return handleApiOperation(
       () => IssueService.setProperty2(propertyKey, issueKey, value),
-      'Error setting issue property'
+      'Error setting issue property',
     );
   }
 
   async deleteIssueProperty(issueKey: string, propertyKey: string) {
     return handleApiOperation(
       () => IssueService.deleteProperty3(propertyKey, issueKey),
-      'Error deleting issue property'
+      'Error deleting issue property',
     );
   }
 
@@ -1030,7 +1042,7 @@ export class JiraService {
     toVoters?: boolean,
     toUsernames?: string[],
     toGroupNames?: string[],
-    restrictToGroupNames?: string[]
+    restrictToGroupNames?: string[],
   ) {
     return handleApiOperation(
       () => IssueService.notify(issueKey, {
@@ -1047,28 +1059,28 @@ export class JiraService {
         },
         restrict: restrictToGroupNames ? { groups: restrictToGroupNames.map((name) => ({ name })) } : undefined,
       }),
-      'Error sending issue notification'
+      'Error sending issue notification',
     );
   }
 
   async setCommentPinned(issueKey: string, commentId: string, pinned: boolean) {
     return handleApiOperation(
       () => IssueService.setPinComment(issueKey, commentId, pinned),
-      'Error setting comment pinned state'
+      'Error setting comment pinned state',
     );
   }
 
   async getPinnedComments(issueKey: string) {
     return handleApiOperation(
       () => IssueService.getPinnedComments(issueKey),
-      'Error getting pinned comments'
+      'Error getting pinned comments',
     );
   }
 
   async getBoards(maxResults?: number, name?: string, projectKeyOrId?: string, startAt?: number) {
     return handleApiOperation(
       () => BoardService.getAllBoards(maxResults, name, projectKeyOrId, undefined, startAt),
-      'Error getting boards'
+      'Error getting boards',
     );
   }
 
@@ -1079,70 +1091,70 @@ export class JiraService {
   async getBoardConfiguration(boardId: number) {
     return handleApiOperation(
       () => BoardService.getConfiguration(boardId),
-      'Error getting board configuration'
+      'Error getting board configuration',
     );
   }
 
   async getBoardIssues(boardId: number, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => BoardService.getIssuesForBoard(boardId, undefined, jql, maxResults, undefined, undefined, startAt),
-      'Error getting board issues'
+      'Error getting board issues',
     );
   }
 
   async getBoardSprints(boardId: number, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => BoardService.getAllSprints(boardId, maxResults, undefined, startAt),
-      'Error getting board sprints'
+      'Error getting board sprints',
     );
   }
 
   async getBoardVersions(boardId: number, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => BoardService.getAllVersions(boardId, maxResults, undefined, startAt),
-      'Error getting board versions'
+      'Error getting board versions',
     );
   }
 
   async getBoardBacklogIssues(boardId: number, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => BoardService.getIssuesForBacklog(boardId, undefined, jql, maxResults, undefined, undefined, startAt),
-      'Error getting board backlog issues'
+      'Error getting board backlog issues',
     );
   }
 
   async getBoardEpics(boardId: number, maxResults?: number, done?: boolean, startAt?: number) {
     return handleApiOperation(
       () => BoardService.getEpics(boardId, maxResults, done?.toString(), startAt),
-      'Error getting board epics'
+      'Error getting board epics',
     );
   }
 
   async getBoardIssuesWithoutEpic(boardId: number, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => BoardService.getIssuesWithoutEpic(boardId, undefined, jql, maxResults, undefined, undefined, startAt),
-      'Error getting board issues without an epic'
+      'Error getting board issues without an epic',
     );
   }
 
   async getBoardEpicIssues(boardId: number, epicId: number, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => BoardService.getIssuesForEpic(epicId, boardId, undefined, jql, maxResults, undefined, undefined, startAt),
-      'Error getting board epic issues'
+      'Error getting board epic issues',
     );
   }
 
   async moveIssuesToBacklog(issueKeys: string[]) {
     return handleApiOperation(
       () => BacklogService.moveIssuesToBacklog({ issues: issueKeys }),
-      'Error moving issues to backlog'
+      'Error moving issues to backlog',
     );
   }
 
   async createSprint(name: string, originBoardId: number, startDate?: string, endDate?: string, goal?: string) {
     return handleApiOperation(
       () => SprintService.createSprint({ name, originBoardId, startDate, endDate, goal }),
-      'Error creating sprint'
+      'Error creating sprint',
     );
   }
 
@@ -1153,7 +1165,7 @@ export class JiraService {
   async updateSprint(sprintId: number, name?: string, startDate?: string, endDate?: string, goal?: string, state?: string) {
     return handleApiOperation(
       () => SprintService.updateSprint(sprintId, { name, startDate, endDate, goal, state }),
-      'Error updating sprint'
+      'Error updating sprint',
     );
   }
 
@@ -1164,14 +1176,14 @@ export class JiraService {
   async getSprintIssues(sprintId: number, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => SprintService.getIssuesForSprint1(sprintId, undefined, jql, maxResults, undefined, undefined, startAt),
-      'Error getting sprint issues'
+      'Error getting sprint issues',
     );
   }
 
   async moveIssuesToSprint(sprintId: number, issueKeys: string[]) {
     return handleApiOperation(
       () => SprintService.moveIssuesToSprint(sprintId, { issues: issueKeys }),
-      'Error moving issues to sprint'
+      'Error moving issues to sprint',
     );
   }
 
@@ -1182,42 +1194,42 @@ export class JiraService {
   async updateEpic(epicIdOrKey: string, name?: string, summary?: string, done?: boolean) {
     return handleApiOperation(
       () => EpicService.partiallyUpdateEpic(epicIdOrKey, { name, summary, done }),
-      'Error updating epic'
+      'Error updating epic',
     );
   }
 
   async getEpicIssues(epicIdOrKey: string, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => EpicService.getIssuesForEpic1(epicIdOrKey, undefined, jql, maxResults, undefined, undefined, startAt),
-      'Error getting epic issues'
+      'Error getting epic issues',
     );
   }
 
   async moveIssuesToEpic(epicIdOrKey: string, issueKeys: string[]) {
     return handleApiOperation(
       () => EpicService.moveIssuesToEpic(epicIdOrKey, { issues: issueKeys }),
-      'Error moving issues to epic'
+      'Error moving issues to epic',
     );
   }
 
   async rankEpic(epicIdOrKey: string, rankBeforeEpic?: string, rankAfterEpic?: string, rankCustomFieldId?: number) {
     return handleApiOperation(
       () => EpicService.rankEpics(epicIdOrKey, { rankBeforeEpic, rankAfterEpic, rankCustomFieldId }),
-      'Error ranking epic'
+      'Error ranking epic',
     );
   }
 
   async getPermissionSchemes(expand?: string) {
     return handleApiOperation(
       () => PermissionschemeService.getPermissionSchemes(expand),
-      'Error getting permission schemes'
+      'Error getting permission schemes',
     );
   }
 
   async getPermissionScheme(schemeId: number, expand?: string) {
     return handleApiOperation(
       () => PermissionschemeService.getPermissionScheme(schemeId, expand),
-      'Error getting permission scheme'
+      'Error getting permission scheme',
     );
   }
 
@@ -1231,7 +1243,7 @@ export class JiraService {
           holder: { type: holderType, parameter: holderParameter },
         })),
       }),
-      'Error creating permission scheme'
+      'Error creating permission scheme',
     );
   }
 
@@ -1245,21 +1257,21 @@ export class JiraService {
           holder: { type: holderType, parameter: holderParameter },
         })),
       }),
-      'Error updating permission scheme'
+      'Error updating permission scheme',
     );
   }
 
   async deletePermissionScheme(schemeId: number) {
     return handleApiOperation(
       () => PermissionschemeService.deletePermissionScheme(schemeId),
-      'Error deleting permission scheme'
+      'Error deleting permission scheme',
     );
   }
 
   async getPermissionSchemeGrants(schemeId: number, expand?: string) {
     return handleApiOperation(
       () => PermissionschemeService.getPermissionSchemeGrants(schemeId, expand),
-      'Error getting permission scheme grants'
+      'Error getting permission scheme grants',
     );
   }
 
@@ -1269,203 +1281,203 @@ export class JiraService {
         permission,
         holder: { type: holderType, parameter: holderParameter },
       }),
-      'Error creating permission grant'
+      'Error creating permission grant',
     );
   }
 
   async deletePermissionGrant(schemeId: number, permissionId: number) {
     return handleApiOperation(
       () => PermissionschemeService.deletePermissionSchemeEntity(permissionId, schemeId),
-      'Error deleting permission grant'
+      'Error deleting permission grant',
     );
   }
 
   async getIssueTypeSchemes() {
     return handleApiOperation(
       () => IssuetypeschemeService.getAllIssueTypeSchemes(),
-      'Error getting issue type schemes'
+      'Error getting issue type schemes',
     );
   }
 
   async createIssueTypeScheme(name: string, description?: string, issueTypeIds?: string[], defaultIssueTypeId?: string) {
     return handleApiOperation(
       () => IssuetypeschemeService.createIssueTypeScheme({ name, description, issueTypeIds, defaultIssueTypeId }),
-      'Error creating issue type scheme'
+      'Error creating issue type scheme',
     );
   }
 
   async getIssueTypeScheme(schemeId: string) {
     return handleApiOperation(
       () => IssuetypeschemeService.getIssueTypeScheme(schemeId),
-      'Error getting issue type scheme'
+      'Error getting issue type scheme',
     );
   }
 
   async updateIssueTypeScheme(schemeId: string, name?: string, description?: string, issueTypeIds?: string[], defaultIssueTypeId?: string) {
     return handleApiOperation(
       () => IssuetypeschemeService.updateIssueTypeScheme(schemeId, { name, description, issueTypeIds, defaultIssueTypeId }),
-      'Error updating issue type scheme'
+      'Error updating issue type scheme',
     );
   }
 
   async deleteIssueTypeScheme(schemeId: string) {
     return handleApiOperation(
       () => IssuetypeschemeService.deleteIssueTypeScheme(schemeId),
-      'Error deleting issue type scheme'
+      'Error deleting issue type scheme',
     );
   }
 
   async getIssueTypeSchemeProjects(schemeId: string, expand?: string) {
     return handleApiOperation(
       () => IssuetypeschemeService.getAssociatedProjects(schemeId, expand),
-      'Error getting issue type scheme associated projects'
+      'Error getting issue type scheme associated projects',
     );
   }
 
   async setIssueTypeSchemeProjects(schemeId: string, idsOrKeys: string[]) {
     return handleApiOperation(
       () => IssuetypeschemeService.setProjectAssociationsForScheme(schemeId, { idsOrKeys }),
-      'Error setting issue type scheme project associations'
+      'Error setting issue type scheme project associations',
     );
   }
 
   async addIssueTypeSchemeProjects(schemeId: string, idsOrKeys: string[]) {
     return handleApiOperation(
       () => IssuetypeschemeService.addProjectAssociationsToScheme(schemeId, { idsOrKeys }),
-      'Error adding issue type scheme project associations'
+      'Error adding issue type scheme project associations',
     );
   }
 
   async removeIssueTypeSchemeProjects(schemeId: string) {
     return handleApiOperation(
       () => IssuetypeschemeService.removeAllProjectAssociations(schemeId),
-      'Error removing issue type scheme project associations'
+      'Error removing issue type scheme project associations',
     );
   }
 
   async removeIssueTypeSchemeProject(schemeId: string, projIdOrKey: string) {
     return handleApiOperation(
       () => IssuetypeschemeService.removeProjectAssociation(projIdOrKey, schemeId),
-      'Error removing issue type scheme project association'
+      'Error removing issue type scheme project association',
     );
   }
 
   async getPrioritySchemes(maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => PriorityschemesService.getPrioritySchemes(maxResults, startAt),
-      'Error getting priority schemes'
+      'Error getting priority schemes',
     );
   }
 
   async createPriorityScheme(name: string, description?: string, defaultOptionId?: string, optionIds?: string[]) {
     return handleApiOperation(
       () => PriorityschemesService.createPriorityScheme({ name, description, defaultOptionId, optionIds }),
-      'Error creating priority scheme'
+      'Error creating priority scheme',
     );
   }
 
   async getPriorityScheme(schemeId: number) {
     return handleApiOperation(
       () => PriorityschemesService.getPriorityScheme(schemeId),
-      'Error getting priority scheme'
+      'Error getting priority scheme',
     );
   }
 
   async updatePriorityScheme(schemeId: number, name?: string, description?: string, defaultOptionId?: string, optionIds?: string[]) {
     return handleApiOperation(
       () => PriorityschemesService.updatePriorityScheme(schemeId, { name, description, defaultOptionId, optionIds }),
-      'Error updating priority scheme'
+      'Error updating priority scheme',
     );
   }
 
   async deletePriorityScheme(schemeId: number) {
     return handleApiOperation(
       () => PriorityschemesService.deletePriorityScheme(schemeId),
-      'Error deleting priority scheme'
+      'Error deleting priority scheme',
     );
   }
 
   async getProjectCategories() {
     return handleApiOperation(
       () => ProjectCategoryService.getAllProjectCategories(),
-      'Error getting project categories'
+      'Error getting project categories',
     );
   }
 
   async createProjectCategory(name?: string, description?: string) {
     return handleApiOperation(
       () => ProjectCategoryService.createProjectCategory({ name, description }),
-      'Error creating project category'
+      'Error creating project category',
     );
   }
 
   async getProjectCategory(id: number) {
     return handleApiOperation(
       () => ProjectCategoryService.getProjectCategoryById(id),
-      'Error getting project category'
+      'Error getting project category',
     );
   }
 
   async updateProjectCategory(id: number, name?: string, description?: string) {
     return handleApiOperation(
       () => ProjectCategoryService.updateProjectCategory(id, { name, description }),
-      'Error updating project category'
+      'Error updating project category',
     );
   }
 
   async deleteProjectCategory(id: number) {
     return handleApiOperation(
       () => ProjectCategoryService.removeProjectCategory(id),
-      'Error deleting project category'
+      'Error deleting project category',
     );
   }
 
   async getRoleDefinitions() {
     return handleApiOperation(
       () => RoleService.getProjectRoles1(),
-      'Error getting role definitions'
+      'Error getting role definitions',
     );
   }
 
   async createRoleDefinition(name: string, description?: string) {
     return handleApiOperation(
       () => RoleService.createProjectRole({ name, description }),
-      'Error creating role definition'
+      'Error creating role definition',
     );
   }
 
   async getRoleDefinition(id: number) {
     return handleApiOperation(
       () => RoleService.getProjectRolesById(id),
-      'Error getting role definition'
+      'Error getting role definition',
     );
   }
 
   async updateRoleDefinition(id: number, name: string, description: string) {
     return handleApiOperation(
       () => RoleService.fullyUpdateProjectRole(id, { name, description }),
-      'Error updating role definition'
+      'Error updating role definition',
     );
   }
 
   async partialUpdateRoleDefinition(id: number, name?: string, description?: string) {
     return handleApiOperation(
       () => RoleService.partialUpdateProjectRole(id, { name, description }),
-      'Error partially updating role definition'
+      'Error partially updating role definition',
     );
   }
 
   async deleteRoleDefinition(id: number, swap?: number) {
     return handleApiOperation(
       () => RoleService.deleteProjectRole(id, swap),
-      'Error deleting role definition'
+      'Error deleting role definition',
     );
   }
 
   async getRoleDefinitionActors(id: number) {
     return handleApiOperation(
       () => RoleService.getProjectRoleActorsForRole(id),
-      'Error getting role definition actors'
+      'Error getting role definition actors',
     );
   }
 
@@ -1475,14 +1487,14 @@ export class JiraService {
         ...(users ? { user: users } : {}),
         ...(groups ? { group: groups } : {}),
       }),
-      'Error adding role definition actors'
+      'Error adding role definition actors',
     );
   }
 
   async deleteRoleDefinitionActor(id: number, user?: string, group?: string) {
     return handleApiOperation(
       () => RoleService.deleteProjectRoleActorsFromRole(id, user, group),
-      'Error deleting role definition actor'
+      'Error deleting role definition actor',
     );
   }
 
@@ -1497,119 +1509,119 @@ export class JiraService {
   async getWorkflows(workflowName?: string) {
     return handleApiOperation(
       () => WorkflowService.getAllWorkflows(workflowName),
-      'Error getting workflows'
+      'Error getting workflows',
     );
   }
 
   async getWorkflowScheme(schemeId: number, returnDraftIfExists?: boolean) {
     return handleApiOperation(
       () => WorkflowschemeService.getById(schemeId, returnDraftIfExists),
-      'Error getting workflow scheme'
+      'Error getting workflow scheme',
     );
   }
 
   async getWorkflowSchemeDefault(schemeId: number, returnDraftIfExists?: boolean) {
     return handleApiOperation(
       () => WorkflowschemeService.getDefault(schemeId, returnDraftIfExists),
-      'Error getting workflow scheme default workflow'
+      'Error getting workflow scheme default workflow',
     );
   }
 
   async getWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, returnDraftIfExists?: boolean) {
     return handleApiOperation(
       () => WorkflowschemeService.getIssueType(issueType, schemeId, returnDraftIfExists),
-      'Error getting workflow scheme issue type mapping'
+      'Error getting workflow scheme issue type mapping',
     );
   }
 
   async getWorkflowSchemeWorkflowMapping(schemeId: number, workflowName?: string, returnDraftIfExists?: boolean) {
     return handleApiOperation(
       () => WorkflowschemeService.getWorkflow(schemeId, workflowName, returnDraftIfExists),
-      'Error getting workflow scheme workflow mapping'
+      'Error getting workflow scheme workflow mapping',
     );
   }
 
   async createWorkflowScheme(name?: string, description?: string, defaultWorkflow?: string, issueTypeMappings?: Record<string, string>) {
     return handleApiOperation(
       () => WorkflowschemeService.createScheme({ name, description, defaultWorkflow, issueTypeMappings }),
-      'Error creating workflow scheme'
+      'Error creating workflow scheme',
     );
   }
 
   async updateWorkflowScheme(schemeId: number, name?: string, description?: string, defaultWorkflow?: string, issueTypeMappings?: Record<string, string>, updateDraftIfNeeded?: boolean) {
     return handleApiOperation(
       () => WorkflowschemeService.update(schemeId, { name, description, defaultWorkflow, issueTypeMappings, updateDraftIfNeeded }),
-      'Error updating workflow scheme'
+      'Error updating workflow scheme',
     );
   }
 
   async deleteWorkflowScheme(schemeId: number) {
     return handleApiOperation(
       () => WorkflowschemeService.deleteScheme(schemeId),
-      'Error deleting workflow scheme'
+      'Error deleting workflow scheme',
     );
   }
 
   async setWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, workflow: string, updateDraftIfNeeded?: boolean) {
     return handleApiOperation(
       () => WorkflowschemeService.setIssueType(issueType, schemeId, { issueType, workflow, updateDraftIfNeeded }),
-      'Error setting workflow scheme issue type mapping'
+      'Error setting workflow scheme issue type mapping',
     );
   }
 
   async deleteWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, updateDraftIfNeeded?: boolean) {
     return handleApiOperation(
       () => WorkflowschemeService.deleteIssueType(issueType, schemeId, updateDraftIfNeeded),
-      'Error deleting workflow scheme issue type mapping'
+      'Error deleting workflow scheme issue type mapping',
     );
   }
 
   async setWorkflowSchemeWorkflowMapping(schemeId: number, workflow: string, issueTypes?: string[], defaultMapping?: boolean, updateDraftIfNeeded?: boolean, workflowName?: string) {
     return handleApiOperation(
       () => WorkflowschemeService.updateWorkflowMapping(schemeId, { workflow, issueTypes, defaultMapping, updateDraftIfNeeded }, workflowName),
-      'Error setting workflow scheme workflow mapping'
+      'Error setting workflow scheme workflow mapping',
     );
   }
 
   async deleteWorkflowSchemeWorkflowMapping(schemeId: number, workflowName?: string, updateDraftIfNeeded?: boolean) {
     return handleApiOperation(
       () => WorkflowschemeService.deleteWorkflowMapping(schemeId, updateDraftIfNeeded, workflowName),
-      'Error deleting workflow scheme workflow mapping'
+      'Error deleting workflow scheme workflow mapping',
     );
   }
 
   async getNotificationSchemes(expand?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => NotificationschemeService.getNotificationSchemes(expand, maxResults, startAt),
-      'Error getting notification schemes'
+      'Error getting notification schemes',
     );
   }
 
   async getNotificationScheme(id: number, expand?: string) {
     return handleApiOperation(
       () => NotificationschemeService.getNotificationScheme(id, expand),
-      'Error getting notification scheme'
+      'Error getting notification scheme',
     );
   }
 
   async getSecurityLevel(id: string) {
     return handleApiOperation(
       () => SecuritylevelService.getIssuesecuritylevel(id),
-      'Error getting security level'
+      'Error getting security level',
     );
   }
 
   async getIssueSecuritySchemes() {
     return handleApiOperation(
       () => IssuesecurityschemesService.getIssueSecuritySchemes(),
-      'Error getting issue security schemes'
+      'Error getting issue security schemes',
     );
   }
 
   async getIssueSecurityScheme(id: string) {
     return handleApiOperation(
       () => IssuesecurityschemesService.getIssueSecurityScheme(id),
-      'Error getting issue security scheme'
+      'Error getting issue security scheme',
     );
   }
 
@@ -1624,16 +1636,16 @@ export class JiraService {
         screenIds?.join(','),
         lastValueUpdate,
         projectIds?.join(','),
-        startAt !== undefined ? String(startAt) : undefined
+        startAt !== undefined ? String(startAt) : undefined,
       ),
-      'Error getting custom fields'
+      'Error getting custom fields',
     );
   }
 
   async deleteCustomFields(ids: string[]) {
     return handleApiOperation(
       () => CustomFieldsService.bulkDeleteCustomFields(ids.join(',')),
-      'Error deleting custom fields'
+      'Error deleting custom fields',
     );
   }
 
@@ -1647,85 +1659,86 @@ export class JiraService {
         sortByOptionName !== undefined ? String(sortByOptionName) : undefined,
         useAllContexts !== undefined ? String(useAllContexts) : undefined,
         page !== undefined ? String(page) : undefined,
-        projectIds?.join(',')
+        projectIds?.join(','),
       ),
-      'Error getting custom field options'
+      'Error getting custom field options',
     );
   }
 
   async getCustomFieldOption(id: string) {
     return handleApiOperation(
       () => CustomFieldOptionService.getCustomFieldOption(id),
-      'Error getting custom field option'
+      'Error getting custom field option',
     );
   }
 
   async createCustomField(name: string, type: string, description?: string, searcherKey?: string, issueTypeIds?: string[], projectIds?: number[]) {
     return handleApiOperation(
       () => FieldService.createCustomField({ name, type, description, searcherKey, issueTypeIds, projectIds }),
-      'Error creating custom field'
+      'Error creating custom field',
     );
   }
 
   async createUser(name: string, emailAddress: string, displayName?: string, password?: string, notification?: string) {
     return handleApiOperation(
       () => UserService.createUser({ name, emailAddress, displayName, password, notification }),
-      'Error creating user'
+      'Error creating user',
     );
   }
 
   async removeUser(key?: string, username?: string) {
     return handleApiOperation(
       () => UserService.removeUser(key, username),
-      'Error removing user'
+      'Error removing user',
     );
   }
 
   async changeUserPassword(password: string, currentPassword?: string, key?: string, username?: string) {
     return handleApiOperation(
       () => UserService.changeUserPassword({ password, currentPassword }, key, username),
-      'Error changing user password'
+      'Error changing user password',
     );
   }
 
   async validateUserAnonymization(userKey?: string, expand?: string) {
     return handleApiOperation(
       () => UserService.validateUserAnonymization(expand, userKey),
-      'Error validating user anonymization'
+      'Error validating user anonymization',
     );
   }
 
   async scheduleUserAnonymization(userKey?: string, newOwnerKey?: string) {
     return handleApiOperation(
       () => UserService.scheduleUserAnonymization({ userKey, newOwnerKey }),
-      'Error scheduling user anonymization'
+      'Error scheduling user anonymization',
     );
   }
 
   async getUserAnonymizationProgress(taskId?: number) {
     return handleApiOperation(
       () => UserService.getProgress1(taskId),
-      'Error getting user anonymization progress'
+      'Error getting user anonymization progress',
     );
   }
 
   async getSystemAvatars(type: string) {
     return handleApiOperation(
       () => AvatarService.getAllSystemAvatars(type),
-      'Error getting system avatars'
+      'Error getting system avatars',
     );
   }
 
   async getAvatars(type: string, owningObjectId: string) {
     return handleApiOperation(
       () => UniversalAvatarService.getAvatars(type, owningObjectId),
-      'Error getting avatars'
+      'Error getting avatars',
     );
   }
 
   async uploadTemporaryAvatar(type: string, owningObjectId: string, fileName: string, contentBase64: string) {
     return handleApiOperation(() => {
       const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
+
       return UniversalAvatarService.storeTemporaryAvatarUsingMultiPart2(type, owningObjectId, { file } as unknown as FilePart);
     }, 'Error uploading temporary avatar');
   }
@@ -1735,49 +1748,49 @@ export class JiraService {
       () => UniversalAvatarService.createAvatarFromTemporary3(type, owningObjectId, {
         cropperOffsetX, cropperOffsetY, cropperWidth, needsCropping, url,
       }),
-      'Error creating avatar from temporary'
+      'Error creating avatar from temporary',
     );
   }
 
   async deleteAvatar(id: number, type: string, owningObjectId: string) {
     return handleApiOperation(
       () => UniversalAvatarService.deleteAvatar1(id, type, owningObjectId),
-      'Error deleting avatar'
+      'Error deleting avatar',
     );
   }
 
   async getMyPermissions(projectKey?: string, projectId?: string, issueKey?: string, issueId?: string) {
     return handleApiOperation(
       () => MypermissionsService.getPermissions(issueId, projectKey, issueKey, projectId),
-      'Error getting my permissions'
+      'Error getting my permissions',
     );
   }
 
   async getAllPermissions() {
     return handleApiOperation(
       () => PermissionsService.getAllPermissions(),
-      'Error getting all permissions'
+      'Error getting all permissions',
     );
   }
 
   async getJqlAutocompleteData() {
     return handleApiOperation(
       () => JqlService.getAutoComplete(),
-      'Error getting JQL autocomplete data'
+      'Error getting JQL autocomplete data',
     );
   }
 
   async getJqlFieldAutocomplete(fieldName?: string, fieldValue?: string, predicateName?: string, predicateValue?: string) {
     return handleApiOperation(
       () => JqlService.getFieldAutoCompleteForQueryString(predicateValue, predicateName, fieldName, fieldValue),
-      'Error getting JQL field autocomplete suggestions'
+      'Error getting JQL field autocomplete suggestions',
     );
   }
 
   async validateProjectKey(key?: string) {
     return handleApiOperation(
       () => ProjectvalidateService.getProject1(key),
-      'Error validating project key'
+      'Error validating project key',
     );
   }
 
@@ -1788,14 +1801,14 @@ export class JiraService {
   async setMyPreference(key: string, value: string) {
     return handleApiOperation(
       () => MypreferencesService.setPreference(key, value),
-      'Error setting user preference'
+      'Error setting user preference',
     );
   }
 
   async deleteMyPreference(key: string) {
     return handleApiOperation(
       () => MypreferencesService.removePreference(key),
-      'Error deleting user preference'
+      'Error deleting user preference',
     );
   }
 
@@ -1805,121 +1818,121 @@ export class JiraService {
         search,
         expand,
         maxResults !== undefined ? String(maxResults) : undefined,
-        startAt !== undefined ? String(startAt) : undefined
+        startAt !== undefined ? String(startAt) : undefined,
       ),
-      'Error getting screens'
+      'Error getting screens',
     );
   }
 
   async addFieldToDefaultScreen(fieldId: string) {
     return handleApiOperation(
       () => ScreensService.addFieldToDefaultScreen(fieldId),
-      'Error adding field to default screen'
+      'Error adding field to default screen',
     );
   }
 
   async getScreenAvailableFields(screenId: number) {
     return handleApiOperation(
       () => ScreensService.getFieldsToAdd(screenId),
-      'Error getting available fields for screen'
+      'Error getting available fields for screen',
     );
   }
 
   async getScreenTabs(screenId: number, projectKey?: string) {
     return handleApiOperation(
       () => ScreensService.getAllTabs(screenId, projectKey),
-      'Error getting screen tabs'
+      'Error getting screen tabs',
     );
   }
 
   async addScreenTab(screenId: number, name: string) {
     return handleApiOperation(
       () => ScreensService.addTab(screenId, { name }),
-      'Error adding screen tab'
+      'Error adding screen tab',
     );
   }
 
   async renameScreenTab(screenId: number, tabId: number, name: string) {
     return handleApiOperation(
       () => ScreensService.renameTab(tabId, screenId, { name }),
-      'Error renaming screen tab'
+      'Error renaming screen tab',
     );
   }
 
   async deleteScreenTab(screenId: number, tabId: number) {
     return handleApiOperation(
       () => ScreensService.deleteTab(tabId, screenId),
-      'Error deleting screen tab'
+      'Error deleting screen tab',
     );
   }
 
   async moveScreenTab(screenId: number, tabId: number, pos: number) {
     return handleApiOperation(
       () => ScreensService.moveTab(tabId, screenId, pos),
-      'Error moving screen tab'
+      'Error moving screen tab',
     );
   }
 
   async getScreenTabFields(screenId: number, tabId: number, projectKey?: string) {
     return handleApiOperation(
       () => ScreensService.getAllFields(tabId, screenId, projectKey),
-      'Error getting screen tab fields'
+      'Error getting screen tab fields',
     );
   }
 
   async addFieldToScreenTab(screenId: number, tabId: number, fieldId: string) {
     return handleApiOperation(
       () => ScreensService.addField(tabId, screenId, { fieldId }),
-      'Error adding field to screen tab'
+      'Error adding field to screen tab',
     );
   }
 
   async removeFieldFromScreenTab(screenId: number, tabId: number, fieldId: string) {
     return handleApiOperation(
       () => ScreensService.removeField(tabId, screenId, fieldId),
-      'Error removing field from screen tab'
+      'Error removing field from screen tab',
     );
   }
 
   async moveScreenTabField(screenId: number, tabId: number, fieldId: string, after?: string, position?: 'Earlier' | 'Later' | 'First' | 'Last') {
     return handleApiOperation(
       () => ScreensService.moveField(tabId, screenId, fieldId, { after, position: position as MoveFieldBean.position | undefined }),
-      'Error moving screen tab field'
+      'Error moving screen tab field',
     );
   }
 
   async updateScreenTabFieldShowWhenEmpty(screenId: number, tabId: number, fieldId: string, showWhenEmpty: boolean) {
     return handleApiOperation(
       () => ScreensService.updateShowWhenEmptyIndicator(tabId, screenId, showWhenEmpty, fieldId),
-      'Error updating screen tab field show-when-empty indicator'
+      'Error updating screen tab field show-when-empty indicator',
     );
   }
 
   async getServerInfo() {
     return handleApiOperation(
       () => ServerInfoService.getServerInfo(),
-      'Error getting server info'
+      'Error getting server info',
     );
   }
 
   async validateLicense(licenseString: string) {
     return handleApiOperation(
       () => LicenseValidatorService.validate(licenseString),
-      'Error validating license'
+      'Error validating license',
     );
   }
 
   async getApplicationProperty(permissionLevel: string, key: string, keyFilter?: string) {
     return handleApiOperation(
       () => ApplicationPropertiesService.getProperty(permissionLevel, key, keyFilter),
-      'Error getting application property'
+      'Error getting application property',
     );
   }
 
   async getAdvancedSettings() {
     return handleApiOperation(
       () => ApplicationPropertiesService.getAdvancedSettings(),
-      'Error getting advanced settings'
+      'Error getting advanced settings',
     );
   }
 
@@ -1934,28 +1947,28 @@ export class JiraService {
         body: { id, value },
         mediaType: 'application/json',
       }),
-      'Error setting application property'
+      'Error setting application property',
     );
   }
 
   async getClusterNodes() {
     return handleApiOperation(
       () => ClusterService.getAllNodes(),
-      'Error getting cluster nodes'
+      'Error getting cluster nodes',
     );
   }
 
   async deleteClusterNode(nodeId: string) {
     return handleApiOperation(
       () => ClusterService.deleteNode(nodeId),
-      'Error deleting cluster node'
+      'Error deleting cluster node',
     );
   }
 
   async setClusterNodeOffline(nodeId: string) {
     return handleApiOperation(
       () => ClusterService.changeNodeStateToOffline(nodeId),
-      'Error setting cluster node offline'
+      'Error setting cluster node offline',
     );
   }
 
@@ -1963,119 +1976,119 @@ export class JiraService {
   async requestClusterNodeIndexSnapshot(nodeId: string) {
     return handleApiOperation(
       () => ClusterService.requestCurrentIndexFromNode(nodeId),
-      'Error requesting cluster node index snapshot'
+      'Error requesting cluster node index snapshot',
     );
   }
 
   async approveClusterUpgrade() {
     return handleApiOperation(
       () => ClusterService.approveUpgrade(),
-      'Error approving cluster upgrade'
+      'Error approving cluster upgrade',
     );
   }
 
   async cancelClusterUpgrade() {
     return handleApiOperation(
       () => ClusterService.cancelUpgrade(),
-      'Error cancelling cluster upgrade'
+      'Error cancelling cluster upgrade',
     );
   }
 
   async retryClusterUpgrade() {
     return handleApiOperation(
       () => ClusterService.acknowledgeErrors(),
-      'Error retrying cluster upgrade'
+      'Error retrying cluster upgrade',
     );
   }
 
   async startClusterUpgrade() {
     return handleApiOperation(
       () => ClusterService.setReadyToUpgrade(),
-      'Error starting cluster upgrade'
+      'Error starting cluster upgrade',
     );
   }
 
   async getClusterUpgradeState() {
     return handleApiOperation(
       () => ClusterService.getState(),
-      'Error getting cluster upgrade state'
+      'Error getting cluster upgrade state',
     );
   }
 
   async getIndexSummary() {
     return handleApiOperation(
       () => IndexService.getIndexSummary(),
-      'Error getting index summary'
+      'Error getting index summary',
     );
   }
 
   async listIndexSnapshots() {
     return handleApiOperation(
       () => IndexSnapshotService.listIndexSnapshot(),
-      'Error listing index snapshots'
+      'Error listing index snapshots',
     );
   }
 
   async createIndexSnapshot() {
     return handleApiOperation(
       () => IndexSnapshotService.createIndexSnapshot(),
-      'Error creating index snapshot'
+      'Error creating index snapshot',
     );
   }
 
   async getIndexSnapshotStatus() {
     return handleApiOperation(
       () => IndexSnapshotService.isIndexSnapshotRunning(),
-      'Error getting index snapshot status'
+      'Error getting index snapshot status',
     );
   }
 
   async getReindexInfo(taskId?: number) {
     return handleApiOperation(
       () => ReindexService.getReindexInfo(taskId),
-      'Error getting reindex info'
+      'Error getting reindex info',
     );
   }
 
   async startReindex(indexChangeHistory = false, type?: string, indexWorklogs = false, indexComments = false) {
     return handleApiOperation(
       () => ReindexService.reindex(indexChangeHistory, type, indexWorklogs, indexComments),
-      'Error starting reindex'
+      'Error starting reindex',
     );
   }
 
   async reindexIssues(issueIds?: string[], indexChangeHistory = false, indexWorklogs = false, indexComments = false) {
     return handleApiOperation(
       () => ReindexService.reindexIssues(issueIds, indexChangeHistory, indexWorklogs, indexComments),
-      'Error reindexing issues'
+      'Error reindexing issues',
     );
   }
 
   async getReindexProgress(taskId?: number) {
     return handleApiOperation(
       () => ReindexService.getReindexProgress(taskId),
-      'Error getting reindex progress'
+      'Error getting reindex progress',
     );
   }
 
   async processReindexRequests() {
     return handleApiOperation(
       () => ReindexService.processRequests(),
-      'Error processing reindex requests'
+      'Error processing reindex requests',
     );
   }
 
   async getReindexRequestsProgress(requestIds?: number[]) {
     return handleApiOperation(
       () => ReindexService.getProgressBulk(requestIds),
-      'Error getting reindex requests progress'
+      'Error getting reindex requests progress',
     );
   }
 
   async getReindexRequestProgress(requestId: number) {
     return handleApiOperation(
       () => ReindexService.getProgress(requestId),
-      'Error getting reindex request progress'
+      'Error getting reindex request progress',
     );
   }
 
@@ -2090,6 +2103,7 @@ export class JiraService {
         throw new Error(`Failed to download email templates: ${response.status} ${response.statusText}`);
       }
       const arrayBuffer = await response.arrayBuffer();
+
       return { contentBase64: Buffer.from(arrayBuffer).toString('base64') };
     }, 'Error downloading email templates');
   }
@@ -2097,6 +2111,7 @@ export class JiraService {
   async uploadEmailTemplates(contentBase64: string) {
     return handleApiOperation(() => {
       const file = new File([Buffer.from(contentBase64, 'base64')], 'email-templates.zip');
+
       return EmailTemplatesService.uploadEmailTemplates(file as unknown as Record<string, any>);
     }, 'Error uploading email templates');
   }
@@ -2104,49 +2119,49 @@ export class JiraService {
   async applyEmailTemplates() {
     return handleApiOperation(
       () => EmailTemplatesService.applyEmailTemplates(),
-      'Error applying uploaded email templates'
+      'Error applying uploaded email templates',
     );
   }
 
   async resetEmailTemplatesToDefault() {
     return handleApiOperation(
       () => EmailTemplatesService.revertEmailTemplatesToDefault(),
-      'Error resetting email templates to default'
+      'Error resetting email templates to default',
     );
   }
 
   async getEmailTemplateTypes() {
     return handleApiOperation(
       () => EmailTemplatesService.getEmailTypes(),
-      'Error getting email template types'
+      'Error getting email template types',
     );
   }
 
   async getCurrentSession() {
     return handleApiOperation(
       () => SessionService.currentUser(),
-      'Error getting current session'
+      'Error getting current session',
     );
   }
 
   async createSession(username: string, password: string) {
     return handleApiOperation(
       () => SessionService.login({ username, password }),
-      'Error creating session'
+      'Error creating session',
     );
   }
 
   async deleteSession() {
     return handleApiOperation(
       () => SessionService.logout(),
-      'Error deleting session'
+      'Error deleting session',
     );
   }
 
   async releaseWebSudo() {
     return handleApiOperation(
       () => WebsudoService.release(),
-      'Error releasing WebSudo session'
+      'Error releasing WebSudo session',
     );
   }
 
@@ -2161,1110 +2176,1110 @@ export class JiraService {
 
 export const jiraToolSchemas = {
   searchIssues: {
-    jql: z.string().describe("JQL query string"),
-    maxResults: z.number().optional().describe("Maximum number of results to return"),
-    startAt: z.number().optional().describe("Index of the first result to return"),
-    expand: z.array(z.string()).optional().describe("Additional sections to expand in the search response, such as renderedFields, names, or schema"),
-    fields: z.array(z.string()).optional().describe("Issue field names to include in the response. When omitted, a moderate-detail default field set is used.")
+    jql: z.string().describe('JQL query string'),
+    maxResults: z.number().optional().describe('Maximum number of results to return'),
+    startAt: z.number().optional().describe('Index of the first result to return'),
+    expand: z.array(z.string()).optional().describe('Additional sections to expand in the search response, such as renderedFields, names, or schema'),
+    fields: z.array(z.string()).optional().describe('Issue field names to include in the response. When omitted, a moderate-detail default field set is used.'),
   },
   getIssue: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    expand: z.string().optional().describe("Comma-separated response sections to expand, such as renderedFields, changelog, or transitions"),
-    fields: z.array(z.string()).optional().describe("Issue field names to include in the response. When omitted, a moderate-detail default field set is used.")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    expand: z.string().optional().describe('Comma-separated response sections to expand, such as renderedFields, changelog, or transitions'),
+    fields: z.array(z.string()).optional().describe('Issue field names to include in the response. When omitted, a moderate-detail default field set is used.'),
   },
   getIssueComments: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    expand: z.string().optional().describe("Comma-separated comment expansions, such as renderedBody"),
-    maxResults: z.number().optional().describe("Maximum number of comments to return"),
-    startAt: z.number().optional().describe("Index of the first comment to return")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    expand: z.string().optional().describe('Comma-separated comment expansions, such as renderedBody'),
+    maxResults: z.number().optional().describe('Maximum number of comments to return'),
+    startAt: z.number().optional().describe('Index of the first comment to return'),
   },
   postIssueComment: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    comment: z.string().describe("Comment text in the format suitable for JIRA DATA CENTER edition (JIRA Wiki Markup).")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    comment: z.string().describe('Comment text in the format suitable for JIRA DATA CENTER edition (JIRA Wiki Markup).'),
   },
   createIssue: {
-    projectId: z.string().describe("Project key (despite the parameter name, e.g. TEST)"),
-    summary: z.string().describe("Issue summary"),
-    description: z.string().describe("Issue description in the format suitable for JIRA DATA CENTER edition (JIRA Wiki Markup)."),
-    issueTypeId: z.string().describe("Issue type id (e.g. id of Task, Bug, Story). Should be found first a correct number for specific JIRA installation."),
-    customFields: z.record(z.string(), z.any()).optional().describe("Optional fields merged into the JIRA create payload. Can be used for custom fields and standard fields such as labels. Examples: {'customfield_10001': 'Custom Value', 'priority': {'id': '1'}, 'assignee': {'name': 'john.doe'}, 'labels': ['urgent', 'bug']}")
+    projectId: z.string().describe('Project key (despite the parameter name, e.g. TEST)'),
+    summary: z.string().describe('Issue summary'),
+    description: z.string().describe('Issue description in the format suitable for JIRA DATA CENTER edition (JIRA Wiki Markup).'),
+    issueTypeId: z.string().describe('Issue type id (e.g. id of Task, Bug, Story). Should be found first a correct number for specific JIRA installation.'),
+    customFields: z.record(z.string(), z.any()).optional().describe('Optional fields merged into the JIRA create payload. Can be used for custom fields and standard fields such as labels. Examples: {\'customfield_10001\': \'Custom Value\', \'priority\': {\'id\': \'1\'}, \'assignee\': {\'name\': \'john.doe\'}, \'labels\': [\'urgent\', \'bug\']}'),
   },
   updateIssue: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    summary: z.string().optional().describe("New summary (optional)"),
-    description: z.string().optional().describe("New description in JIRA Wiki Markup (optional)"),
-    issueTypeId: z.string().optional().describe("New issue type id (optional)"),
-    customFields: z.record(z.string(), z.any()).optional().describe("Optional fields merged into the JIRA update payload. Can be used for custom fields and standard fields such as labels. Examples: {'customfield_10001': 'Custom Value', 'priority': {'id': '1'}, 'assignee': {'name': 'john.doe'}, 'labels': ['urgent', 'bug']}")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    summary: z.string().optional().describe('New summary (optional)'),
+    description: z.string().optional().describe('New description in JIRA Wiki Markup (optional)'),
+    issueTypeId: z.string().optional().describe('New issue type id (optional)'),
+    customFields: z.record(z.string(), z.any()).optional().describe('Optional fields merged into the JIRA update payload. Can be used for custom fields and standard fields such as labels. Examples: {\'customfield_10001\': \'Custom Value\', \'priority\': {\'id\': \'1\'}, \'assignee\': {\'name\': \'john.doe\'}, \'labels\': [\'urgent\', \'bug\']}'),
   },
   getTransitions: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
   },
   getIssueDevelopmentInfo: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    dataType: z.enum(['pullrequest', 'repository', 'branch']).optional().describe("Development data to fetch: 'pullrequest' (default), 'repository' (commits), or 'branch'"),
-    applicationType: z.enum(['stash', 'bitbucket', 'github', 'githube']).optional().describe("Linked SCM type: 'stash' (Bitbucket Server/Data Center, default), 'bitbucket' (Cloud), 'github', or 'githube' (GitHub Enterprise)")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    dataType: z.enum(['pullrequest', 'repository', 'branch']).optional().describe('Development data to fetch: \'pullrequest\' (default), \'repository\' (commits), or \'branch\''),
+    applicationType: z.enum(['stash', 'bitbucket', 'github', 'githube']).optional().describe('Linked SCM type: \'stash\' (Bitbucket Server/Data Center, default), \'bitbucket\' (Cloud), \'github\', or \'githube\' (GitHub Enterprise)'),
   },
   transitionIssue: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    transitionId: z.string().describe("The ID of the transition to perform. Use jira_getTransitions to find available transitions and their IDs."),
-    fields: z.record(z.string(), z.any()).optional().describe("Optional fields required by the transition screen. Use jira_getTransitions to see which fields are available for each transition."),
-    customFields: z.record(z.string(), z.any()).optional().describe("Optional fields merged into the JIRA transition payload. Can be used for update operations such as comments. Example: {'update': {'comment': [{'add': {'body': 'text'}}]}}")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    transitionId: z.string().describe('The ID of the transition to perform. Use jira_getTransitions to find available transitions and their IDs.'),
+    fields: z.record(z.string(), z.any()).optional().describe('Optional fields required by the transition screen. Use jira_getTransitions to see which fields are available for each transition.'),
+    customFields: z.record(z.string(), z.any()).optional().describe('Optional fields merged into the JIRA transition payload. Can be used for update operations such as comments. Example: {\'update\': {\'comment\': [{\'add\': {\'body\': \'text\'}}]}}'),
   },
   getProjects: {
-    includeArchived: z.boolean().optional().describe("Whether to include archived projects in the response"),
-    expand: z.string().optional().describe("Comma-separated project sections to expand, such as description, lead, or issueTypes"),
-    recent: z.number().optional().describe("Limit results to this many recently viewed projects")
+    includeArchived: z.boolean().optional().describe('Whether to include archived projects in the response'),
+    expand: z.string().optional().describe('Comma-separated project sections to expand, such as description, lead, or issueTypes'),
+    recent: z.number().optional().describe('Limit results to this many recently viewed projects'),
   },
   searchProjects: {
-    query: z.string().describe("Free-text query matched against project name and/or key"),
-    maxResults: z.number().optional().describe("Maximum number of matching projects to return (hard limit of 100)"),
-    allowEmptyQuery: z.boolean().optional().describe("Whether an empty query should match all projects instead of none")
+    query: z.string().describe('Free-text query matched against project name and/or key'),
+    maxResults: z.number().optional().describe('Maximum number of matching projects to return (hard limit of 100)'),
+    allowEmptyQuery: z.boolean().optional().describe('Whether an empty query should match all projects instead of none'),
   },
   getProject: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    expand: z.string().optional().describe("Comma-separated project sections to expand, such as description, lead, or issueTypes")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    expand: z.string().optional().describe('Comma-separated project sections to expand, such as description, lead, or issueTypes'),
   },
   getProjectComponents: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
   },
   getProjectVersions: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    expand: z.string().optional().describe("Comma-separated version sections to expand, such as operations")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    expand: z.string().optional().describe('Comma-separated version sections to expand, such as operations'),
   },
   createProject: {
-    key: z.string().describe("Unique project key (uppercase letters, e.g., TEST)"),
-    name: z.string().describe("Name of the new project"),
-    projectTypeKey: z.string().optional().describe("Project type key, e.g., 'software', 'business', or 'service_desk'"),
-    projectTemplateKey: z.string().optional().describe("Project template key determining the default scheme set, e.g., 'com.pyxis.greenhopper.jira:gh-simplified-kanban-classic'"),
-    description: z.string().optional().describe("Project description"),
-    lead: z.string().optional().describe("Username of the project lead"),
-    url: z.string().optional().describe("A link to information about this project, such as a documentation page"),
-    assigneeType: z.enum(['PROJECT_LEAD', 'UNASSIGNED']).optional().describe("Default assignee when a new issue is created"),
-    avatarId: z.number().optional().describe("ID of an existing avatar to use for the project"),
-    issueSecurityScheme: z.number().optional().describe("ID of the issue security scheme to associate with the project"),
-    permissionScheme: z.number().optional().describe("ID of the permission scheme to associate with the project"),
-    notificationScheme: z.number().optional().describe("ID of the notification scheme to associate with the project"),
-    categoryId: z.number().optional().describe("ID of the project category to assign the project to"),
-    workflowSchemeId: z.number().optional().describe("ID of the workflow scheme to associate with the project")
+    key: z.string().describe('Unique project key (uppercase letters, e.g., TEST)'),
+    name: z.string().describe('Name of the new project'),
+    projectTypeKey: z.string().optional().describe('Project type key, e.g., \'software\', \'business\', or \'service_desk\''),
+    projectTemplateKey: z.string().optional().describe('Project template key determining the default scheme set, e.g., \'com.pyxis.greenhopper.jira:gh-simplified-kanban-classic\''),
+    description: z.string().optional().describe('Project description'),
+    lead: z.string().optional().describe('Username of the project lead'),
+    url: z.string().optional().describe('A link to information about this project, such as a documentation page'),
+    assigneeType: z.enum(['PROJECT_LEAD', 'UNASSIGNED']).optional().describe('Default assignee when a new issue is created'),
+    avatarId: z.number().optional().describe('ID of an existing avatar to use for the project'),
+    issueSecurityScheme: z.number().optional().describe('ID of the issue security scheme to associate with the project'),
+    permissionScheme: z.number().optional().describe('ID of the permission scheme to associate with the project'),
+    notificationScheme: z.number().optional().describe('ID of the notification scheme to associate with the project'),
+    categoryId: z.number().optional().describe('ID of the project category to assign the project to'),
+    workflowSchemeId: z.number().optional().describe('ID of the workflow scheme to associate with the project'),
   },
   updateProject: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    name: z.string().optional().describe("New name for the project"),
-    key: z.string().optional().describe("New unique project key (uppercase letters)"),
-    description: z.string().optional().describe("New project description"),
-    lead: z.string().optional().describe("Username of the new project lead"),
-    url: z.string().optional().describe("A link to information about this project, such as a documentation page"),
-    assigneeType: z.enum(['PROJECT_LEAD', 'UNASSIGNED']).optional().describe("Default assignee when a new issue is created"),
-    avatarId: z.number().optional().describe("ID of an existing avatar to use for the project"),
-    issueSecurityScheme: z.number().optional().describe("ID of the issue security scheme to associate with the project"),
-    permissionScheme: z.number().optional().describe("ID of the permission scheme to associate with the project"),
-    notificationScheme: z.number().optional().describe("ID of the notification scheme to associate with the project"),
-    categoryId: z.number().optional().describe("ID of the project category to assign the project to"),
-    projectTypeKey: z.string().optional().describe("New project type key, e.g., 'software', 'business', or 'service_desk'"),
-    expand: z.string().optional().describe("Comma-separated project sections to expand in the response, such as description, lead, or issueTypes")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    name: z.string().optional().describe('New name for the project'),
+    key: z.string().optional().describe('New unique project key (uppercase letters)'),
+    description: z.string().optional().describe('New project description'),
+    lead: z.string().optional().describe('Username of the new project lead'),
+    url: z.string().optional().describe('A link to information about this project, such as a documentation page'),
+    assigneeType: z.enum(['PROJECT_LEAD', 'UNASSIGNED']).optional().describe('Default assignee when a new issue is created'),
+    avatarId: z.number().optional().describe('ID of an existing avatar to use for the project'),
+    issueSecurityScheme: z.number().optional().describe('ID of the issue security scheme to associate with the project'),
+    permissionScheme: z.number().optional().describe('ID of the permission scheme to associate with the project'),
+    notificationScheme: z.number().optional().describe('ID of the notification scheme to associate with the project'),
+    categoryId: z.number().optional().describe('ID of the project category to assign the project to'),
+    projectTypeKey: z.string().optional().describe('New project type key, e.g., \'software\', \'business\', or \'service_desk\''),
+    expand: z.string().optional().describe('Comma-separated project sections to expand in the response, such as description, lead, or issueTypes'),
   },
   deleteProject: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST). Deletion is irreversible.")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST). Deletion is irreversible.'),
   },
   archiveProject: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
   },
   restoreProject: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST) of a previously archived project")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST) of a previously archived project'),
   },
   getProjectPropertyKeys: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
   },
   getProjectProperty: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    propertyKey: z.string().describe("Key of the property to look up. Use jira_getProjectPropertyKeys to find valid keys.")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    propertyKey: z.string().describe('Key of the property to look up. Use jira_getProjectPropertyKeys to find valid keys.'),
   },
   setProjectProperty: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    propertyKey: z.string().describe("Key of the property to set. The maximum length of the key is 255 bytes."),
-    value: z.string().describe("New property value as a JSON-encoded string, e.g. '{\"foo\":\"bar\"}' or '\"a plain string\"'. Maximum length 32768 bytes.")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    propertyKey: z.string().describe('Key of the property to set. The maximum length of the key is 255 bytes.'),
+    value: z.string().describe('New property value as a JSON-encoded string, e.g. \'{"foo":"bar"}\' or \'"a plain string"\'. Maximum length 32768 bytes.'),
   },
   deleteProjectProperty: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    propertyKey: z.string().describe("Key of the property to remove")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    propertyKey: z.string().describe('Key of the property to remove'),
   },
   getIssueTypes: {},
   getPriorities: {},
   getResolutions: {},
   getStatuses: {},
   getCreateIssueMetaIssueTypes: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    maxResults: z.number().optional().describe("Maximum number of issue types to return"),
-    startAt: z.number().optional().describe("Index of the first issue type to return")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    maxResults: z.number().optional().describe('Maximum number of issue types to return'),
+    startAt: z.number().optional().describe('Index of the first issue type to return'),
   },
   getCreateIssueMetaFields: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    issueTypeId: z.string().describe("Issue type id. Use jira_getCreateIssueMetaIssueTypes to find valid ids for the project."),
-    maxResults: z.number().optional().describe("Maximum number of fields to return"),
-    startAt: z.number().optional().describe("Index of the first field to return")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    issueTypeId: z.string().describe('Issue type id. Use jira_getCreateIssueMetaIssueTypes to find valid ids for the project.'),
+    maxResults: z.number().optional().describe('Maximum number of fields to return'),
+    startAt: z.number().optional().describe('Index of the first field to return'),
   },
   getEditIssueMeta: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
   },
   deleteIssue: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    deleteSubtasks: z.boolean().optional().describe("Whether to also delete the issue's subtasks. If false and subtasks exist, the delete fails.")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    deleteSubtasks: z.boolean().optional().describe('Whether to also delete the issue\'s subtasks. If false and subtasks exist, the delete fails.'),
   },
   updateIssueComment: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    commentId: z.string().describe("Id of the comment to update. Use jira_getIssueComments to find comment ids."),
-    comment: z.string().describe("New comment text in the format suitable for JIRA DATA CENTER edition (JIRA Wiki Markup).")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    commentId: z.string().describe('Id of the comment to update. Use jira_getIssueComments to find comment ids.'),
+    comment: z.string().describe('New comment text in the format suitable for JIRA DATA CENTER edition (JIRA Wiki Markup).'),
   },
   deleteIssueComment: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    commentId: z.string().describe("Id of the comment to delete. Use jira_getIssueComments to find comment ids.")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    commentId: z.string().describe('Id of the comment to delete. Use jira_getIssueComments to find comment ids.'),
   },
   getCommentPropertyKeys: {
-    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids.")
+    commentId: z.string().describe('Id of the comment. Use jira_getIssueComments to find comment ids.'),
   },
   getCommentProperty: {
-    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids."),
-    propertyKey: z.string().describe("Key of the property to look up. Use jira_getCommentPropertyKeys to find valid keys.")
+    commentId: z.string().describe('Id of the comment. Use jira_getIssueComments to find comment ids.'),
+    propertyKey: z.string().describe('Key of the property to look up. Use jira_getCommentPropertyKeys to find valid keys.'),
   },
   setCommentProperty: {
-    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids."),
-    propertyKey: z.string().describe("Key of the property to set. The maximum length of the key is 255 bytes."),
-    value: z.string().describe("New property value as a JSON-encoded string, e.g. '{\"foo\":\"bar\"}' or '\"a plain string\"'. Maximum length 32768 bytes.")
+    commentId: z.string().describe('Id of the comment. Use jira_getIssueComments to find comment ids.'),
+    propertyKey: z.string().describe('Key of the property to set. The maximum length of the key is 255 bytes.'),
+    value: z.string().describe('New property value as a JSON-encoded string, e.g. \'{"foo":"bar"}\' or \'"a plain string"\'. Maximum length 32768 bytes.'),
   },
   deleteCommentProperty: {
-    commentId: z.string().describe("Id of the comment. Use jira_getIssueComments to find comment ids."),
-    propertyKey: z.string().describe("Key of the property to remove")
+    commentId: z.string().describe('Id of the comment. Use jira_getIssueComments to find comment ids.'),
+    propertyKey: z.string().describe('Key of the property to remove'),
   },
   getIssueWatchers: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
   },
   addIssueWatcher: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    username: z.string().describe("Username of the user to add as a watcher")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    username: z.string().describe('Username of the user to add as a watcher'),
   },
   removeIssueWatcher: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    username: z.string().describe("Username of the watcher to remove")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    username: z.string().describe('Username of the watcher to remove'),
   },
   getIssueVotes: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
   },
   addIssueVote: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
   },
   removeIssueVote: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
   },
   getIssueWorklogs: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
   },
   addIssueWorklog: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    timeSpent: z.string().describe("Time spent in JIRA duration format (e.g., '3h', '1d 4h', '30m')"),
-    comment: z.string().optional().describe("Worklog comment text"),
-    started: z.string().optional().describe("When the work was started, ISO-like JIRA datetime format (e.g., '2024-01-15T09:00:00.000+0000'). Defaults to now if omitted.")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    timeSpent: z.string().describe('Time spent in JIRA duration format (e.g., \'3h\', \'1d 4h\', \'30m\')'),
+    comment: z.string().optional().describe('Worklog comment text'),
+    started: z.string().optional().describe('When the work was started, ISO-like JIRA datetime format (e.g., \'2024-01-15T09:00:00.000+0000\'). Defaults to now if omitted.'),
   },
   getIssueWorklog: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    worklogId: z.string().describe("Id of the worklog entry. Use jira_getIssueWorklogs to find worklog ids.")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    worklogId: z.string().describe('Id of the worklog entry. Use jira_getIssueWorklogs to find worklog ids.'),
   },
   updateIssueWorklog: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    worklogId: z.string().describe("Id of the worklog entry to update. Use jira_getIssueWorklogs to find worklog ids."),
-    timeSpent: z.string().optional().describe("New time spent in JIRA duration format (e.g., '3h', '1d 4h', '30m')"),
-    comment: z.string().optional().describe("New worklog comment text"),
-    started: z.string().optional().describe("New start datetime, JIRA datetime format")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    worklogId: z.string().describe('Id of the worklog entry to update. Use jira_getIssueWorklogs to find worklog ids.'),
+    timeSpent: z.string().optional().describe('New time spent in JIRA duration format (e.g., \'3h\', \'1d 4h\', \'30m\')'),
+    comment: z.string().optional().describe('New worklog comment text'),
+    started: z.string().optional().describe('New start datetime, JIRA datetime format'),
   },
   deleteIssueWorklog: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    worklogId: z.string().describe("Id of the worklog entry to delete. Use jira_getIssueWorklogs to find worklog ids.")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    worklogId: z.string().describe('Id of the worklog entry to delete. Use jira_getIssueWorklogs to find worklog ids.'),
   },
   getWorklogsDeletedSince: {
-    since: z.number().optional().describe("Unix epoch millisecond timestamp; only worklogs deleted after this time are returned. Omit to get the full (up to 1000) result set. Excludes worklogs deleted in the last minute.")
+    since: z.number().optional().describe('Unix epoch millisecond timestamp; only worklogs deleted after this time are returned. Omit to get the full (up to 1000) result set. Excludes worklogs deleted in the last minute.'),
   },
   getWorklogsModifiedSince: {
-    since: z.number().optional().describe("Unix epoch millisecond timestamp; only worklogs updated after this time are returned. Omit to get the full (up to 1000) result set. Excludes worklogs updated in the last minute.")
+    since: z.number().optional().describe('Unix epoch millisecond timestamp; only worklogs updated after this time are returned. Omit to get the full (up to 1000) result set. Excludes worklogs updated in the last minute.'),
   },
   getWorklogsForIds: {
-    worklogIds: z.array(z.number()).describe("Worklog ids to fetch, e.g. from jira_getWorklogsDeletedSince or jira_getWorklogsModifiedSince. Maximum 1000 ids per request.")
+    worklogIds: z.array(z.number()).describe('Worklog ids to fetch, e.g. from jira_getWorklogsDeletedSince or jira_getWorklogsModifiedSince. Maximum 1000 ids per request.'),
   },
   addIssueAttachment: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    fileName: z.string().describe("File name to attach, including extension (e.g., 'screenshot.png')"),
-    contentBase64: z.string().describe("File content encoded as base64")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    fileName: z.string().describe('File name to attach, including extension (e.g., \'screenshot.png\')'),
+    contentBase64: z.string().describe('File content encoded as base64'),
   },
   getAttachmentMeta: {},
   getAttachment: {
-    attachmentId: z.string().describe("Id of the attachment")
+    attachmentId: z.string().describe('Id of the attachment'),
   },
   getAttachmentContent: {
-    attachmentId: z.string().describe("Id of the attachment to download")
+    attachmentId: z.string().describe('Id of the attachment to download'),
   },
   deleteAttachment: {
-    attachmentId: z.string().describe("Id of the attachment to delete")
+    attachmentId: z.string().describe('Id of the attachment to delete'),
   },
   linkIssues: {
-    inwardIssueKey: z.string().describe("Key of the inward issue (e.g., the issue that 'blocks', 'is caused by', etc., depending on linkTypeName direction)"),
-    outwardIssueKey: z.string().describe("Key of the outward issue"),
-    linkTypeName: z.string().describe("Name of the issue link type (e.g., 'Blocks', 'Relates', 'Duplicate'). Use jira_getIssueLinkTypes to find valid names."),
-    comment: z.string().optional().describe("Optional comment added to the inward issue when the link is created")
+    inwardIssueKey: z.string().describe('Key of the inward issue (e.g., the issue that \'blocks\', \'is caused by\', etc., depending on linkTypeName direction)'),
+    outwardIssueKey: z.string().describe('Key of the outward issue'),
+    linkTypeName: z.string().describe('Name of the issue link type (e.g., \'Blocks\', \'Relates\', \'Duplicate\'). Use jira_getIssueLinkTypes to find valid names.'),
+    comment: z.string().optional().describe('Optional comment added to the inward issue when the link is created'),
   },
   getIssueLink: {
-    linkId: z.string().describe("Id of the issue link")
+    linkId: z.string().describe('Id of the issue link'),
   },
   deleteIssueLink: {
-    linkId: z.string().describe("Id of the issue link to delete")
+    linkId: z.string().describe('Id of the issue link to delete'),
   },
   getRemoteIssueLinks: {
-    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
-    globalId: z.string().optional().describe("Optional global id to filter to a single remote issue link")
+    issueIdOrKey: z.string().describe('JIRA issue id or key (e.g., PROJ-123)'),
+    globalId: z.string().optional().describe('Optional global id to filter to a single remote issue link'),
   },
   getRemoteIssueLink: {
-    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
-    linkId: z.string().describe("Id of the remote issue link")
+    issueIdOrKey: z.string().describe('JIRA issue id or key (e.g., PROJ-123)'),
+    linkId: z.string().describe('Id of the remote issue link'),
   },
   createOrUpdateRemoteIssueLink: {
-    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
-    url: z.string().describe("URL of the remote object being linked to (e.g., a Confluence page or external URL)"),
-    title: z.string().describe("Title of the remote object, shown in the issue's remote links list"),
-    summary: z.string().optional().describe("Optional short summary of the remote object"),
-    globalId: z.string().optional().describe("Optional global id identifying this remote link. If a link with this globalId already exists on the issue, it is updated instead of creating a duplicate."),
-    relationship: z.string().optional().describe("Optional description of the relationship between the issue and the remote object (e.g., 'mentioned in', 'documented by')"),
-    applicationName: z.string().optional().describe("Optional name of the application hosting the remote object (e.g., 'My Confluence Instance')"),
-    applicationType: z.string().optional().describe("Optional type of the application hosting the remote object (e.g., 'com.atlassian.confluence')")
+    issueIdOrKey: z.string().describe('JIRA issue id or key (e.g., PROJ-123)'),
+    url: z.string().describe('URL of the remote object being linked to (e.g., a Confluence page or external URL)'),
+    title: z.string().describe('Title of the remote object, shown in the issue\'s remote links list'),
+    summary: z.string().optional().describe('Optional short summary of the remote object'),
+    globalId: z.string().optional().describe('Optional global id identifying this remote link. If a link with this globalId already exists on the issue, it is updated instead of creating a duplicate.'),
+    relationship: z.string().optional().describe('Optional description of the relationship between the issue and the remote object (e.g., \'mentioned in\', \'documented by\')'),
+    applicationName: z.string().optional().describe('Optional name of the application hosting the remote object (e.g., \'My Confluence Instance\')'),
+    applicationType: z.string().optional().describe('Optional type of the application hosting the remote object (e.g., \'com.atlassian.confluence\')'),
   },
   updateRemoteIssueLink: {
-    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
-    linkId: z.string().describe("Id of the remote issue link to update"),
-    url: z.string().describe("URL of the remote object being linked to"),
-    title: z.string().describe("Title of the remote object"),
-    summary: z.string().optional().describe("Optional short summary of the remote object"),
-    globalId: z.string().optional().describe("Optional global id identifying this remote link"),
-    relationship: z.string().optional().describe("Optional description of the relationship between the issue and the remote object"),
-    applicationName: z.string().optional().describe("Optional name of the application hosting the remote object"),
-    applicationType: z.string().optional().describe("Optional type of the application hosting the remote object")
+    issueIdOrKey: z.string().describe('JIRA issue id or key (e.g., PROJ-123)'),
+    linkId: z.string().describe('Id of the remote issue link to update'),
+    url: z.string().describe('URL of the remote object being linked to'),
+    title: z.string().describe('Title of the remote object'),
+    summary: z.string().optional().describe('Optional short summary of the remote object'),
+    globalId: z.string().optional().describe('Optional global id identifying this remote link'),
+    relationship: z.string().optional().describe('Optional description of the relationship between the issue and the remote object'),
+    applicationName: z.string().optional().describe('Optional name of the application hosting the remote object'),
+    applicationType: z.string().optional().describe('Optional type of the application hosting the remote object'),
   },
   deleteRemoteIssueLink: {
-    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
-    linkId: z.string().describe("Id of the remote issue link to delete")
+    issueIdOrKey: z.string().describe('JIRA issue id or key (e.g., PROJ-123)'),
+    linkId: z.string().describe('Id of the remote issue link to delete'),
   },
   deleteRemoteIssueLinkByGlobalId: {
-    issueIdOrKey: z.string().describe("JIRA issue id or key (e.g., PROJ-123)"),
-    globalId: z.string().describe("Global id of the remote issue link to delete")
+    issueIdOrKey: z.string().describe('JIRA issue id or key (e.g., PROJ-123)'),
+    globalId: z.string().describe('Global id of the remote issue link to delete'),
   },
   assignIssue: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    username: z.string().nullable().describe("Username to assign the issue to, '-1' for automatic assignee, or null to unassign")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    username: z.string().nullable().describe('Username to assign the issue to, \'-1\' for automatic assignee, or null to unassign'),
   },
   createComponent: {
-    projectKey: z.string().describe("Project key the component belongs to (e.g., TEST)"),
-    name: z.string().describe("Component name"),
-    description: z.string().optional().describe("Component description"),
-    leadUserName: z.string().optional().describe("Username of the component lead")
+    projectKey: z.string().describe('Project key the component belongs to (e.g., TEST)'),
+    name: z.string().describe('Component name'),
+    description: z.string().optional().describe('Component description'),
+    leadUserName: z.string().optional().describe('Username of the component lead'),
   },
   getComponents: {
-    maxResults: z.number().optional().describe("Maximum number of components to return (default 100)"),
-    query: z.string().optional().describe("Free-text query matched against component names"),
-    projectIds: z.string().optional().describe("Comma-separated project ids to filter components by")
+    maxResults: z.number().optional().describe('Maximum number of components to return (default 100)'),
+    query: z.string().optional().describe('Free-text query matched against component names'),
+    projectIds: z.string().optional().describe('Comma-separated project ids to filter components by'),
   },
   getComponent: {
-    componentId: z.string().describe("Id of the component")
+    componentId: z.string().describe('Id of the component'),
   },
   updateComponent: {
-    componentId: z.string().describe("Id of the component to update"),
-    name: z.string().optional().describe("New component name"),
-    description: z.string().optional().describe("New component description"),
-    leadUserName: z.string().optional().describe("New component lead username")
+    componentId: z.string().describe('Id of the component to update'),
+    name: z.string().optional().describe('New component name'),
+    description: z.string().optional().describe('New component description'),
+    leadUserName: z.string().optional().describe('New component lead username'),
   },
   deleteComponent: {
-    componentId: z.string().describe("Id of the component to delete"),
-    moveIssuesTo: z.string().optional().describe("Id of another component to move affected issues to. If omitted, the component is simply removed from issues.")
+    componentId: z.string().describe('Id of the component to delete'),
+    moveIssuesTo: z.string().optional().describe('Id of another component to move affected issues to. If omitted, the component is simply removed from issues.'),
   },
   getComponentRelatedIssues: {
-    componentId: z.string().describe("Id of the component")
+    componentId: z.string().describe('Id of the component'),
   },
   createVersion: {
-    projectKey: z.string().describe("Project key the version belongs to (e.g., TEST)"),
-    name: z.string().describe("Version name (e.g., '1.0')"),
-    description: z.string().optional().describe("Version description"),
-    releaseDate: z.string().optional().describe("Planned/actual release date (e.g., '2024-01-15')"),
-    startDate: z.string().optional().describe("Planned start date (e.g., '2024-01-01')")
+    projectKey: z.string().describe('Project key the version belongs to (e.g., TEST)'),
+    name: z.string().describe('Version name (e.g., \'1.0\')'),
+    description: z.string().optional().describe('Version description'),
+    releaseDate: z.string().optional().describe('Planned/actual release date (e.g., \'2024-01-15\')'),
+    startDate: z.string().optional().describe('Planned start date (e.g., \'2024-01-01\')'),
   },
   getVersions: {
-    projectIds: z.array(z.number()).optional().describe("Project ids to filter versions by"),
-    query: z.string().optional().describe("Free-text query matched against version names"),
-    maxResults: z.number().optional().describe("Maximum number of versions to return (default 100)"),
-    startAt: z.number().optional().describe("Index of the first version to return")
+    projectIds: z.array(z.number()).optional().describe('Project ids to filter versions by'),
+    query: z.string().optional().describe('Free-text query matched against version names'),
+    maxResults: z.number().optional().describe('Maximum number of versions to return (default 100)'),
+    startAt: z.number().optional().describe('Index of the first version to return'),
   },
   getVersion: {
-    versionId: z.string().describe("Id of the version"),
-    expand: z.string().optional().describe("Comma-separated version sections to expand, such as operations")
+    versionId: z.string().describe('Id of the version'),
+    expand: z.string().optional().describe('Comma-separated version sections to expand, such as operations'),
   },
   updateVersion: {
-    versionId: z.string().describe("Id of the version to update"),
-    name: z.string().optional().describe("New version name"),
-    description: z.string().optional().describe("New version description"),
-    released: z.boolean().optional().describe("Whether the version is released"),
-    archived: z.boolean().optional().describe("Whether the version is archived"),
-    releaseDate: z.string().optional().describe("New release date")
+    versionId: z.string().describe('Id of the version to update'),
+    name: z.string().optional().describe('New version name'),
+    description: z.string().optional().describe('New version description'),
+    released: z.boolean().optional().describe('Whether the version is released'),
+    archived: z.boolean().optional().describe('Whether the version is archived'),
+    releaseDate: z.string().optional().describe('New release date'),
   },
   deleteAndReplaceVersion: {
-    versionId: z.string().describe("Id of the version to delete"),
-    moveFixIssuesTo: z.number().optional().describe("Id of the version to move issues with this fixVersion to. If omitted, the fixVersion is simply removed."),
-    moveAffectedIssuesTo: z.number().optional().describe("Id of the version to move issues with this affectedVersion to. If omitted, the affectedVersion is simply removed.")
+    versionId: z.string().describe('Id of the version to delete'),
+    moveFixIssuesTo: z.number().optional().describe('Id of the version to move issues with this fixVersion to. If omitted, the fixVersion is simply removed.'),
+    moveAffectedIssuesTo: z.number().optional().describe('Id of the version to move issues with this affectedVersion to. If omitted, the affectedVersion is simply removed.'),
   },
   mergeVersion: {
-    versionId: z.string().describe("Id of the version to merge away"),
-    moveIssuesToVersionId: z.string().describe("Id of the version that will absorb the merged version's issues")
+    versionId: z.string().describe('Id of the version to merge away'),
+    moveIssuesToVersionId: z.string().describe('Id of the version that will absorb the merged version\'s issues'),
   },
   moveVersion: {
-    versionId: z.string().describe("Id of the version to reposition"),
-    position: z.enum(['Earlier', 'Later', 'First', 'Last']).optional().describe("Relative position to move the version to within its project's version sequence"),
-    after: z.string().describe("URI (self link) of the version to place this version after, from jira_getVersions/jira_getVersion. Required unless position is set.").optional()
+    versionId: z.string().describe('Id of the version to reposition'),
+    position: z.enum(['Earlier', 'Later', 'First', 'Last']).optional().describe('Relative position to move the version to within its project\'s version sequence'),
+    after: z.string().describe('URI (self link) of the version to place this version after, from jira_getVersions/jira_getVersion. Required unless position is set.').optional(),
   },
   getVersionRelatedIssues: {
-    versionId: z.string().describe("Id of the version")
+    versionId: z.string().describe('Id of the version'),
   },
   getVersionUnresolvedIssues: {
-    versionId: z.string().describe("Id of the version")
+    versionId: z.string().describe('Id of the version'),
   },
   getProjectRoles: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
   },
   getProjectRole: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    roleId: z.number().describe("Id of the project role. Use jira_getProjectRoles to find role ids.")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    roleId: z.number().describe('Id of the project role. Use jira_getProjectRoles to find role ids.'),
   },
   setProjectRoleActors: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    roleId: z.number().describe("Id of the project role. Use jira_getProjectRoles to find role ids."),
-    categorisedActors: z.record(z.string(), z.array(z.string())).describe("Replaces all actors for the role. Keys are actor categories (e.g., 'atlassian-user-role-actor', 'atlassian-group-role-actor'), values are lists of usernames/group names.")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    roleId: z.number().describe('Id of the project role. Use jira_getProjectRoles to find role ids.'),
+    categorisedActors: z.record(z.string(), z.array(z.string())).describe('Replaces all actors for the role. Keys are actor categories (e.g., \'atlassian-user-role-actor\', \'atlassian-group-role-actor\'), values are lists of usernames/group names.'),
   },
   addProjectRoleActors: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    roleId: z.number().describe("Id of the project role. Use jira_getProjectRoles to find role ids."),
-    users: z.array(z.string()).optional().describe("Usernames to add as actors for this role"),
-    groups: z.array(z.string()).optional().describe("Group names to add as actors for this role")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    roleId: z.number().describe('Id of the project role. Use jira_getProjectRoles to find role ids.'),
+    users: z.array(z.string()).optional().describe('Usernames to add as actors for this role'),
+    groups: z.array(z.string()).optional().describe('Group names to add as actors for this role'),
   },
   deleteProjectRoleActor: {
-    projectIdOrKey: z.string().describe("Project id or key (e.g., TEST)"),
-    roleId: z.number().describe("Id of the project role. Use jira_getProjectRoles to find role ids."),
-    user: z.string().optional().describe("Username of the actor to remove"),
-    group: z.string().optional().describe("Group name of the actor to remove")
+    projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
+    roleId: z.number().describe('Id of the project role. Use jira_getProjectRoles to find role ids.'),
+    user: z.string().optional().describe('Username of the actor to remove'),
+    group: z.string().optional().describe('Group name of the actor to remove'),
   },
   getUser: {
-    username: z.string().optional().describe("Username to look up. Either username or key must be provided."),
-    key: z.string().optional().describe("User key to look up. Either username or key must be provided."),
-    includeDeleted: z.boolean().optional().describe("Whether to include deleted users in the lookup")
+    username: z.string().optional().describe('Username to look up. Either username or key must be provided.'),
+    key: z.string().optional().describe('User key to look up. Either username or key must be provided.'),
+    includeDeleted: z.boolean().optional().describe('Whether to include deleted users in the lookup'),
   },
   findUsers: {
-    username: z.string().describe("Free-text query matched against username, name, and email. Use '.' or '' to match all users."),
-    maxResults: z.number().optional().describe("Maximum number of users to return"),
-    startAt: z.number().optional().describe("Index of the first user to return"),
-    includeActive: z.boolean().optional().describe("Whether to include active users (default true)"),
-    includeInactive: z.boolean().optional().describe("Whether to include inactive users (default false)")
+    username: z.string().describe('Free-text query matched against username, name, and email. Use \'.\' or \'\' to match all users.'),
+    maxResults: z.number().optional().describe('Maximum number of users to return'),
+    startAt: z.number().optional().describe('Index of the first user to return'),
+    includeActive: z.boolean().optional().describe('Whether to include active users (default true)'),
+    includeInactive: z.boolean().optional().describe('Whether to include inactive users (default false)'),
   },
   findAssignableUsers: {
-    project: z.string().describe("Project key to search assignable users within"),
-    issueKey: z.string().optional().describe("JIRA issue key to search assignable users for, instead of/in addition to project"),
-    username: z.string().optional().describe("Free-text query to filter candidate usernames"),
-    maxResults: z.number().optional().describe("Maximum number of users to return (default 50)")
+    project: z.string().describe('Project key to search assignable users within'),
+    issueKey: z.string().optional().describe('JIRA issue key to search assignable users for, instead of/in addition to project'),
+    username: z.string().optional().describe('Free-text query to filter candidate usernames'),
+    maxResults: z.number().optional().describe('Maximum number of users to return (default 50)'),
   },
   createGroup: {
-    name: z.string().describe("Name of the group to create")
+    name: z.string().describe('Name of the group to create'),
   },
   deleteGroup: {
-    groupname: z.string().describe("Name of the group to delete"),
-    swapGroup: z.string().optional().describe("Name of another group to transfer this group's permissions/restrictions to")
+    groupname: z.string().describe('Name of the group to delete'),
+    swapGroup: z.string().optional().describe('Name of another group to transfer this group\'s permissions/restrictions to'),
   },
   getGroupUsers: {
-    groupname: z.string().describe("Name of the group"),
-    includeInactiveUsers: z.boolean().optional().describe("Whether to include inactive users"),
-    maxResults: z.number().optional().describe("Maximum number of users to return"),
-    startAt: z.number().optional().describe("Index of the first user to return")
+    groupname: z.string().describe('Name of the group'),
+    includeInactiveUsers: z.boolean().optional().describe('Whether to include inactive users'),
+    maxResults: z.number().optional().describe('Maximum number of users to return'),
+    startAt: z.number().optional().describe('Index of the first user to return'),
   },
   addUserToGroup: {
-    groupname: z.string().describe("Name of the group"),
-    username: z.string().describe("Username of the user to add")
+    groupname: z.string().describe('Name of the group'),
+    username: z.string().describe('Username of the user to add'),
   },
   removeUserFromGroup: {
-    groupname: z.string().describe("Name of the group"),
-    username: z.string().describe("Username of the user to remove")
+    groupname: z.string().describe('Name of the group'),
+    username: z.string().describe('Username of the user to remove'),
   },
   findGroups: {
-    query: z.string().optional().describe("Substring to match group names against"),
-    maxResults: z.number().optional().describe("Maximum number of matching groups to return"),
-    exclude: z.string().optional().describe("Comma-separated group names to exclude from the results"),
-    userName: z.string().optional().describe("Restrict results to groups containing this username, for context")
+    query: z.string().optional().describe('Substring to match group names against'),
+    maxResults: z.number().optional().describe('Maximum number of matching groups to return'),
+    exclude: z.string().optional().describe('Comma-separated group names to exclude from the results'),
+    userName: z.string().optional().describe('Restrict results to groups containing this username, for context'),
   },
   findUsersAndGroups: {
-    query: z.string().describe("Substring matched against username, display name, email address, or group name"),
-    maxResults: z.number().optional().describe("Maximum number of users to return (groups are not subject to this limit)"),
-    showAvatar: z.boolean().optional().describe("Whether to include avatar URLs for matched users"),
-    issueTypeId: z.string().optional().describe("Comma-separated issue type ids to further restrict the search"),
-    projectId: z.string().optional().describe("Comma-separated project ids to further restrict the search"),
-    fieldId: z.string().optional().describe("Id of the custom field this picker is being used for, e.g. for a custom user/group picker field")
+    query: z.string().describe('Substring matched against username, display name, email address, or group name'),
+    maxResults: z.number().optional().describe('Maximum number of users to return (groups are not subject to this limit)'),
+    showAvatar: z.boolean().optional().describe('Whether to include avatar URLs for matched users'),
+    issueTypeId: z.string().optional().describe('Comma-separated issue type ids to further restrict the search'),
+    projectId: z.string().optional().describe('Comma-separated project ids to further restrict the search'),
+    fieldId: z.string().optional().describe('Id of the custom field this picker is being used for, e.g. for a custom user/group picker field'),
   },
   createFilter: {
-    name: z.string().describe("Filter name"),
-    jql: z.string().describe("JQL query the filter runs"),
-    description: z.string().optional().describe("Filter description"),
-    favourite: z.boolean().optional().describe("Whether to mark the filter as a favourite for the current user")
+    name: z.string().describe('Filter name'),
+    jql: z.string().describe('JQL query the filter runs'),
+    description: z.string().optional().describe('Filter description'),
+    favourite: z.boolean().optional().describe('Whether to mark the filter as a favourite for the current user'),
   },
   getFilter: {
-    filterId: z.string().describe("Id of the filter"),
-    expand: z.array(z.string()).optional().describe("Additional sections to expand, such as sharedUsers or subscriptions")
+    filterId: z.string().describe('Id of the filter'),
+    expand: z.array(z.string()).optional().describe('Additional sections to expand, such as sharedUsers or subscriptions'),
   },
   updateFilter: {
-    filterId: z.string().describe("Id of the filter to update"),
-    name: z.string().optional().describe("New filter name"),
-    jql: z.string().optional().describe("New JQL query"),
-    description: z.string().optional().describe("New filter description"),
-    favourite: z.boolean().optional().describe("Whether the filter is a favourite for the current user")
+    filterId: z.string().describe('Id of the filter to update'),
+    name: z.string().optional().describe('New filter name'),
+    jql: z.string().optional().describe('New JQL query'),
+    description: z.string().optional().describe('New filter description'),
+    favourite: z.boolean().optional().describe('Whether the filter is a favourite for the current user'),
   },
   deleteFilter: {
-    filterId: z.string().describe("Id of the filter to delete")
+    filterId: z.string().describe('Id of the filter to delete'),
   },
   getFavouriteFilters: {},
   getDashboards: {
-    filter: z.enum(['favourite', 'my']).optional().describe("Restrict results to 'favourite' or 'my' dashboards. Omit to return all visible dashboards."),
-    maxResults: z.number().optional().describe("Maximum number of dashboards to return"),
-    startAt: z.number().optional().describe("Index of the first dashboard to return")
+    filter: z.enum(['favourite', 'my']).optional().describe('Restrict results to \'favourite\' or \'my\' dashboards. Omit to return all visible dashboards.'),
+    maxResults: z.number().optional().describe('Maximum number of dashboards to return'),
+    startAt: z.number().optional().describe('Index of the first dashboard to return'),
   },
   getDashboard: {
-    dashboardId: z.string().describe("Id of the dashboard")
+    dashboardId: z.string().describe('Id of the dashboard'),
   },
   getIssueLinkTypes: {},
   createIssueLinkType: {
-    name: z.string().describe("Name of the new issue link type (e.g., 'Blocks')"),
-    inward: z.string().describe("Inward relationship description (e.g., 'is blocked by')"),
-    outward: z.string().describe("Outward relationship description (e.g., 'blocks')")
+    name: z.string().describe('Name of the new issue link type (e.g., \'Blocks\')'),
+    inward: z.string().describe('Inward relationship description (e.g., \'is blocked by\')'),
+    outward: z.string().describe('Outward relationship description (e.g., \'blocks\')'),
   },
   updateIssueLinkType: {
-    issueLinkTypeId: z.string().describe("Id of the issue link type to update. Use jira_getIssueLinkTypes to find ids."),
-    name: z.string().optional().describe("New name for the link type"),
-    inward: z.string().optional().describe("New inward relationship description"),
-    outward: z.string().optional().describe("New outward relationship description")
+    issueLinkTypeId: z.string().describe('Id of the issue link type to update. Use jira_getIssueLinkTypes to find ids.'),
+    name: z.string().optional().describe('New name for the link type'),
+    inward: z.string().optional().describe('New inward relationship description'),
+    outward: z.string().optional().describe('New outward relationship description'),
   },
   deleteIssueLinkType: {
-    issueLinkTypeId: z.string().describe("Id of the issue link type to delete")
+    issueLinkTypeId: z.string().describe('Id of the issue link type to delete'),
   },
   createIssues: {
     issues: z.array(z.object({
-      projectId: z.string().describe("Project key (despite the parameter name, e.g. TEST)"),
-      summary: z.string().describe("Issue summary"),
-      description: z.string().describe("Issue description in JIRA Wiki Markup"),
-      issueTypeId: z.string().describe("Issue type id"),
-      customFields: z.record(z.string(), z.any()).optional().describe("Optional fields merged into this issue's create payload")
-    })).describe("Issues to create in a single bulk request")
+      projectId: z.string().describe('Project key (despite the parameter name, e.g. TEST)'),
+      summary: z.string().describe('Issue summary'),
+      description: z.string().describe('Issue description in JIRA Wiki Markup'),
+      issueTypeId: z.string().describe('Issue type id'),
+      customFields: z.record(z.string(), z.any()).optional().describe('Optional fields merged into this issue\'s create payload'),
+    })).describe('Issues to create in a single bulk request'),
   },
   archiveIssues: {
-    issueKeysOrJql: z.string().describe("Comma-separated issue keys, or a JQL query, selecting the issues to archive"),
-    notifyUsers: z.boolean().optional().describe("Whether to send notifications for this change")
+    issueKeysOrJql: z.string().describe('Comma-separated issue keys, or a JQL query, selecting the issues to archive'),
+    notifyUsers: z.boolean().optional().describe('Whether to send notifications for this change'),
   },
   archiveIssue: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    notifyUsers: z.boolean().optional().describe("Whether to send notifications for this change")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    notifyUsers: z.boolean().optional().describe('Whether to send notifications for this change'),
   },
   restoreIssue: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123) of a previously archived issue"),
-    notifyUsers: z.boolean().optional().describe("Whether to send notifications for this change. Admin or project admin permission is required to disable notifications.")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123) of a previously archived issue'),
+    notifyUsers: z.boolean().optional().describe('Whether to send notifications for this change. Admin or project admin permission is required to disable notifications.'),
   },
   rankIssues: {
-    issueKeys: z.array(z.string()).describe("Issue keys to rank, in the desired order"),
-    rankBeforeIssue: z.string().optional().describe("Rank the issues before this issue key"),
-    rankAfterIssue: z.string().optional().describe("Rank the issues after this issue key"),
-    rankCustomFieldId: z.number().optional().describe("Id of the custom 'Rank' field, if not the default")
+    issueKeys: z.array(z.string()).describe('Issue keys to rank, in the desired order'),
+    rankBeforeIssue: z.string().optional().describe('Rank the issues before this issue key'),
+    rankAfterIssue: z.string().optional().describe('Rank the issues after this issue key'),
+    rankCustomFieldId: z.number().optional().describe('Id of the custom \'Rank\' field, if not the default'),
   },
   getIssuePropertyKeys: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
   },
   getIssueProperty: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    propertyKey: z.string().describe("Key of the property to look up. Use jira_getIssuePropertyKeys to find valid keys.")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    propertyKey: z.string().describe('Key of the property to look up. Use jira_getIssuePropertyKeys to find valid keys.'),
   },
   setIssueProperty: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    propertyKey: z.string().describe("Key of the property to set"),
-    value: z.string().describe("New property value as a JSON-encoded string, e.g. '{\"foo\":\"bar\"}' or '\"a plain string\"'")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    propertyKey: z.string().describe('Key of the property to set'),
+    value: z.string().describe('New property value as a JSON-encoded string, e.g. \'{"foo":"bar"}\' or \'"a plain string"\''),
   },
   deleteIssueProperty: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    propertyKey: z.string().describe("Key of the property to remove")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    propertyKey: z.string().describe('Key of the property to remove'),
   },
   notifyIssue: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    subject: z.string().optional().describe("Email subject. Defaults to the issue summary if omitted."),
-    textBody: z.string().optional().describe("Plain-text email body"),
-    htmlBody: z.string().optional().describe("HTML email body"),
-    toReporter: z.boolean().optional().describe("Send to the issue's reporter"),
-    toAssignee: z.boolean().optional().describe("Send to the issue's assignee"),
-    toWatchers: z.boolean().optional().describe("Send to all watchers of the issue"),
-    toVoters: z.boolean().optional().describe("Send to all voters of the issue"),
-    toUsernames: z.array(z.string()).optional().describe("Usernames of additional recipients"),
-    toGroupNames: z.array(z.string()).optional().describe("Names of groups whose members should receive the notification"),
-    restrictToGroupNames: z.array(z.string()).optional().describe("Restrict the notification to only recipients who are members of these groups")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    subject: z.string().optional().describe('Email subject. Defaults to the issue summary if omitted.'),
+    textBody: z.string().optional().describe('Plain-text email body'),
+    htmlBody: z.string().optional().describe('HTML email body'),
+    toReporter: z.boolean().optional().describe('Send to the issue\'s reporter'),
+    toAssignee: z.boolean().optional().describe('Send to the issue\'s assignee'),
+    toWatchers: z.boolean().optional().describe('Send to all watchers of the issue'),
+    toVoters: z.boolean().optional().describe('Send to all voters of the issue'),
+    toUsernames: z.array(z.string()).optional().describe('Usernames of additional recipients'),
+    toGroupNames: z.array(z.string()).optional().describe('Names of groups whose members should receive the notification'),
+    restrictToGroupNames: z.array(z.string()).optional().describe('Restrict the notification to only recipients who are members of these groups'),
   },
   setCommentPinned: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)"),
-    commentId: z.string().describe("Id of the comment to pin or unpin. Use jira_getIssueComments to find comment ids."),
-    pinned: z.boolean().describe("true to pin the comment to the top of the comment list, false to unpin it")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
+    commentId: z.string().describe('Id of the comment to pin or unpin. Use jira_getIssueComments to find comment ids.'),
+    pinned: z.boolean().describe('true to pin the comment to the top of the comment list, false to unpin it'),
   },
   getPinnedComments: {
-    issueKey: z.string().describe("JIRA issue key (e.g., PROJ-123)")
+    issueKey: z.string().describe('JIRA issue key (e.g., PROJ-123)'),
   },
   getBoards: {
-    maxResults: z.number().optional().describe("Maximum number of boards to return"),
-    name: z.string().optional().describe("Filter boards by name"),
-    projectKeyOrId: z.string().optional().describe("Filter boards by project key or id"),
-    startAt: z.number().optional().describe("Index of the first board to return")
+    maxResults: z.number().optional().describe('Maximum number of boards to return'),
+    name: z.string().optional().describe('Filter boards by name'),
+    projectKeyOrId: z.string().optional().describe('Filter boards by project key or id'),
+    startAt: z.number().optional().describe('Index of the first board to return'),
   },
   getBoard: {
-    boardId: z.number().describe("Id of the Agile board")
+    boardId: z.number().describe('Id of the Agile board'),
   },
   getBoardConfiguration: {
-    boardId: z.number().describe("Id of the Agile board")
+    boardId: z.number().describe('Id of the Agile board'),
   },
   getBoardIssues: {
-    boardId: z.number().describe("Id of the Agile board"),
-    jql: z.string().optional().describe("JQL query to further filter the board's issues"),
-    maxResults: z.number().optional().describe("Maximum number of issues to return"),
-    startAt: z.number().optional().describe("Index of the first issue to return")
+    boardId: z.number().describe('Id of the Agile board'),
+    jql: z.string().optional().describe('JQL query to further filter the board\'s issues'),
+    maxResults: z.number().optional().describe('Maximum number of issues to return'),
+    startAt: z.number().optional().describe('Index of the first issue to return'),
   },
   getBoardSprints: {
-    boardId: z.number().describe("Id of the Agile board"),
-    maxResults: z.number().optional().describe("Maximum number of sprints to return"),
-    startAt: z.number().optional().describe("Index of the first sprint to return")
+    boardId: z.number().describe('Id of the Agile board'),
+    maxResults: z.number().optional().describe('Maximum number of sprints to return'),
+    startAt: z.number().optional().describe('Index of the first sprint to return'),
   },
   getBoardVersions: {
-    boardId: z.number().describe("Id of the Agile board"),
-    maxResults: z.number().optional().describe("Maximum number of versions to return"),
-    startAt: z.number().optional().describe("Index of the first version to return")
+    boardId: z.number().describe('Id of the Agile board'),
+    maxResults: z.number().optional().describe('Maximum number of versions to return'),
+    startAt: z.number().optional().describe('Index of the first version to return'),
   },
   getBoardBacklogIssues: {
-    boardId: z.number().describe("Id of the Agile board"),
-    jql: z.string().optional().describe("JQL query to further filter the backlog"),
-    maxResults: z.number().optional().describe("Maximum number of issues to return"),
-    startAt: z.number().optional().describe("Index of the first issue to return")
+    boardId: z.number().describe('Id of the Agile board'),
+    jql: z.string().optional().describe('JQL query to further filter the backlog'),
+    maxResults: z.number().optional().describe('Maximum number of issues to return'),
+    startAt: z.number().optional().describe('Index of the first issue to return'),
   },
   getBoardEpics: {
-    boardId: z.number().describe("Id of the Agile board"),
-    maxResults: z.number().optional().describe("Maximum number of epics to return"),
-    done: z.boolean().optional().describe("Filter epics by done status"),
-    startAt: z.number().optional().describe("Index of the first epic to return")
+    boardId: z.number().describe('Id of the Agile board'),
+    maxResults: z.number().optional().describe('Maximum number of epics to return'),
+    done: z.boolean().optional().describe('Filter epics by done status'),
+    startAt: z.number().optional().describe('Index of the first epic to return'),
   },
   getBoardIssuesWithoutEpic: {
-    boardId: z.number().describe("Id of the Agile board"),
-    jql: z.string().optional().describe("JQL query to further filter results"),
-    maxResults: z.number().optional().describe("Maximum number of issues to return"),
-    startAt: z.number().optional().describe("Index of the first issue to return")
+    boardId: z.number().describe('Id of the Agile board'),
+    jql: z.string().optional().describe('JQL query to further filter results'),
+    maxResults: z.number().optional().describe('Maximum number of issues to return'),
+    startAt: z.number().optional().describe('Index of the first issue to return'),
   },
   getBoardEpicIssues: {
-    boardId: z.number().describe("Id of the Agile board"),
-    epicId: z.number().describe("Id of the epic. Use jira_getBoardEpics to find epic ids."),
-    jql: z.string().optional().describe("JQL query to further filter results"),
-    maxResults: z.number().optional().describe("Maximum number of issues to return"),
-    startAt: z.number().optional().describe("Index of the first issue to return")
+    boardId: z.number().describe('Id of the Agile board'),
+    epicId: z.number().describe('Id of the epic. Use jira_getBoardEpics to find epic ids.'),
+    jql: z.string().optional().describe('JQL query to further filter results'),
+    maxResults: z.number().optional().describe('Maximum number of issues to return'),
+    startAt: z.number().optional().describe('Index of the first issue to return'),
   },
   moveIssuesToBacklog: {
-    issueKeys: z.array(z.string()).describe("Issue keys to move to the backlog (removes them from any sprint). At most 50 at a time.")
+    issueKeys: z.array(z.string()).describe('Issue keys to move to the backlog (removes them from any sprint). At most 50 at a time.'),
   },
   createSprint: {
-    name: z.string().describe("Sprint name"),
-    originBoardId: z.number().describe("Id of the board this sprint originates from"),
-    startDate: z.string().optional().describe("Sprint start date (ISO datetime)"),
-    endDate: z.string().optional().describe("Sprint end date (ISO datetime)"),
-    goal: z.string().optional().describe("Sprint goal text")
+    name: z.string().describe('Sprint name'),
+    originBoardId: z.number().describe('Id of the board this sprint originates from'),
+    startDate: z.string().optional().describe('Sprint start date (ISO datetime)'),
+    endDate: z.string().optional().describe('Sprint end date (ISO datetime)'),
+    goal: z.string().optional().describe('Sprint goal text'),
   },
   getSprint: {
-    sprintId: z.number().describe("Id of the sprint")
+    sprintId: z.number().describe('Id of the sprint'),
   },
   updateSprint: {
-    sprintId: z.number().describe("Id of the sprint to update"),
-    name: z.string().optional().describe("New sprint name"),
-    startDate: z.string().optional().describe("New start date (ISO datetime)"),
-    endDate: z.string().optional().describe("New end date (ISO datetime)"),
-    goal: z.string().optional().describe("New sprint goal text"),
-    state: z.enum(['future', 'active', 'closed']).optional().describe("New sprint state — set to 'active' to start the sprint or 'closed' to complete it")
+    sprintId: z.number().describe('Id of the sprint to update'),
+    name: z.string().optional().describe('New sprint name'),
+    startDate: z.string().optional().describe('New start date (ISO datetime)'),
+    endDate: z.string().optional().describe('New end date (ISO datetime)'),
+    goal: z.string().optional().describe('New sprint goal text'),
+    state: z.enum(['future', 'active', 'closed']).optional().describe('New sprint state — set to \'active\' to start the sprint or \'closed\' to complete it'),
   },
   deleteSprint: {
-    sprintId: z.number().describe("Id of the sprint to delete")
+    sprintId: z.number().describe('Id of the sprint to delete'),
   },
   getSprintIssues: {
-    sprintId: z.number().describe("Id of the sprint"),
-    jql: z.string().optional().describe("JQL query to further filter the sprint's issues"),
-    maxResults: z.number().optional().describe("Maximum number of issues to return"),
-    startAt: z.number().optional().describe("Index of the first issue to return")
+    sprintId: z.number().describe('Id of the sprint'),
+    jql: z.string().optional().describe('JQL query to further filter the sprint\'s issues'),
+    maxResults: z.number().optional().describe('Maximum number of issues to return'),
+    startAt: z.number().optional().describe('Index of the first issue to return'),
   },
   moveIssuesToSprint: {
-    sprintId: z.number().describe("Id of the target sprint"),
-    issueKeys: z.array(z.string()).describe("Issue keys to move into this sprint. At most 50 at a time.")
+    sprintId: z.number().describe('Id of the target sprint'),
+    issueKeys: z.array(z.string()).describe('Issue keys to move into this sprint. At most 50 at a time.'),
   },
   getEpic: {
-    epicIdOrKey: z.string().describe("Id or issue key of the epic")
+    epicIdOrKey: z.string().describe('Id or issue key of the epic'),
   },
   updateEpic: {
-    epicIdOrKey: z.string().describe("Id or issue key of the epic to update"),
-    name: z.string().optional().describe("New epic name (the short label shown on boards)"),
-    summary: z.string().optional().describe("New epic summary"),
-    done: z.boolean().optional().describe("Whether the epic is done")
+    epicIdOrKey: z.string().describe('Id or issue key of the epic to update'),
+    name: z.string().optional().describe('New epic name (the short label shown on boards)'),
+    summary: z.string().optional().describe('New epic summary'),
+    done: z.boolean().optional().describe('Whether the epic is done'),
   },
   getEpicIssues: {
-    epicIdOrKey: z.string().describe("Id or issue key of the epic"),
-    jql: z.string().optional().describe("JQL query to further filter the epic's issues"),
-    maxResults: z.number().optional().describe("Maximum number of issues to return"),
-    startAt: z.number().optional().describe("Index of the first issue to return")
+    epicIdOrKey: z.string().describe('Id or issue key of the epic'),
+    jql: z.string().optional().describe('JQL query to further filter the epic\'s issues'),
+    maxResults: z.number().optional().describe('Maximum number of issues to return'),
+    startAt: z.number().optional().describe('Index of the first issue to return'),
   },
   moveIssuesToEpic: {
-    epicIdOrKey: z.string().describe("Id or issue key of the target epic"),
-    issueKeys: z.array(z.string()).describe("Issue keys to move into this epic")
+    epicIdOrKey: z.string().describe('Id or issue key of the target epic'),
+    issueKeys: z.array(z.string()).describe('Issue keys to move into this epic'),
   },
   rankEpic: {
-    epicIdOrKey: z.string().describe("Id or issue key of the epic to rank"),
-    rankBeforeEpic: z.string().optional().describe("Rank this epic before the epic with this id/key"),
-    rankAfterEpic: z.string().optional().describe("Rank this epic after the epic with this id/key"),
-    rankCustomFieldId: z.number().optional().describe("Id of the custom 'Rank' field, if not the default")
+    epicIdOrKey: z.string().describe('Id or issue key of the epic to rank'),
+    rankBeforeEpic: z.string().optional().describe('Rank this epic before the epic with this id/key'),
+    rankAfterEpic: z.string().optional().describe('Rank this epic after the epic with this id/key'),
+    rankCustomFieldId: z.number().optional().describe('Id of the custom \'Rank\' field, if not the default'),
   },
   getIssueTypeSchemes: {},
   createIssueTypeScheme: {
-    name: z.string().describe("Name of the new issue type scheme"),
-    description: z.string().optional().describe("Description of the new issue type scheme"),
-    issueTypeIds: z.array(z.string()).optional().describe("Ids of the issue types to associate with the scheme"),
-    defaultIssueTypeId: z.string().optional().describe("Id of the default issue type. Must be one of issueTypeIds.")
+    name: z.string().describe('Name of the new issue type scheme'),
+    description: z.string().optional().describe('Description of the new issue type scheme'),
+    issueTypeIds: z.array(z.string()).optional().describe('Ids of the issue types to associate with the scheme'),
+    defaultIssueTypeId: z.string().optional().describe('Id of the default issue type. Must be one of issueTypeIds.'),
   },
   getIssueTypeScheme: {
-    schemeId: z.string().describe("Id of the issue type scheme")
+    schemeId: z.string().describe('Id of the issue type scheme'),
   },
   updateIssueTypeScheme: {
-    schemeId: z.string().describe("Id of the issue type scheme to update"),
-    name: z.string().optional().describe("New name for the scheme"),
-    description: z.string().optional().describe("New description for the scheme"),
-    issueTypeIds: z.array(z.string()).optional().describe("Replaces the issue types associated with the scheme"),
-    defaultIssueTypeId: z.string().optional().describe("Id of the default issue type. Must be one of issueTypeIds.")
+    schemeId: z.string().describe('Id of the issue type scheme to update'),
+    name: z.string().optional().describe('New name for the scheme'),
+    description: z.string().optional().describe('New description for the scheme'),
+    issueTypeIds: z.array(z.string()).optional().describe('Replaces the issue types associated with the scheme'),
+    defaultIssueTypeId: z.string().optional().describe('Id of the default issue type. Must be one of issueTypeIds.'),
   },
   deleteIssueTypeScheme: {
-    schemeId: z.string().describe("Id of the issue type scheme to delete")
+    schemeId: z.string().describe('Id of the issue type scheme to delete'),
   },
   getIssueTypeSchemeProjects: {
-    schemeId: z.string().describe("Id of the issue type scheme"),
-    expand: z.string().optional().describe("Comma-separated expansions for the returned projects")
+    schemeId: z.string().describe('Id of the issue type scheme'),
+    expand: z.string().optional().describe('Comma-separated expansions for the returned projects'),
   },
   setIssueTypeSchemeProjects: {
-    schemeId: z.string().describe("Id of the issue type scheme whose project associations are being replaced"),
-    idsOrKeys: z.array(z.string()).describe("Project ids or keys to associate with the scheme, replacing any existing associations")
+    schemeId: z.string().describe('Id of the issue type scheme whose project associations are being replaced'),
+    idsOrKeys: z.array(z.string()).describe('Project ids or keys to associate with the scheme, replacing any existing associations'),
   },
   addIssueTypeSchemeProjects: {
-    schemeId: z.string().describe("Id of the issue type scheme whose project associations are being added to"),
-    idsOrKeys: z.array(z.string()).describe("Project ids or keys to associate with the scheme, in addition to existing associations")
+    schemeId: z.string().describe('Id of the issue type scheme whose project associations are being added to'),
+    idsOrKeys: z.array(z.string()).describe('Project ids or keys to associate with the scheme, in addition to existing associations'),
   },
   removeIssueTypeSchemeProjects: {
-    schemeId: z.string().describe("Id of the issue type scheme whose project associations should all be removed")
+    schemeId: z.string().describe('Id of the issue type scheme whose project associations should all be removed'),
   },
   removeIssueTypeSchemeProject: {
-    schemeId: z.string().describe("Id of the issue type scheme"),
-    projIdOrKey: z.string().describe("Id or key of the project to un-associate from the scheme")
+    schemeId: z.string().describe('Id of the issue type scheme'),
+    projIdOrKey: z.string().describe('Id or key of the project to un-associate from the scheme'),
   },
   getPrioritySchemes: {
-    maxResults: z.number().optional().describe("Maximum number of priority schemes to return"),
-    startAt: z.number().optional().describe("Index of the first priority scheme to return")
+    maxResults: z.number().optional().describe('Maximum number of priority schemes to return'),
+    startAt: z.number().optional().describe('Index of the first priority scheme to return'),
   },
   createPriorityScheme: {
-    name: z.string().describe("Name of the new priority scheme"),
-    description: z.string().optional().describe("Description of the new priority scheme"),
-    defaultOptionId: z.string().optional().describe("Id of the priority to use as the scheme's default"),
-    optionIds: z.array(z.string()).optional().describe("Ids of the priorities included in the scheme")
+    name: z.string().describe('Name of the new priority scheme'),
+    description: z.string().optional().describe('Description of the new priority scheme'),
+    defaultOptionId: z.string().optional().describe('Id of the priority to use as the scheme\'s default'),
+    optionIds: z.array(z.string()).optional().describe('Ids of the priorities included in the scheme'),
   },
   getPriorityScheme: {
-    schemeId: z.number().describe("Id of the priority scheme")
+    schemeId: z.number().describe('Id of the priority scheme'),
   },
   updatePriorityScheme: {
-    schemeId: z.number().describe("Id of the priority scheme to update"),
-    name: z.string().optional().describe("New name for the scheme"),
-    description: z.string().optional().describe("New description for the scheme"),
-    defaultOptionId: z.string().optional().describe("Id of the priority to use as the scheme's default"),
-    optionIds: z.array(z.string()).optional().describe("Replaces the priorities included in the scheme")
+    schemeId: z.number().describe('Id of the priority scheme to update'),
+    name: z.string().optional().describe('New name for the scheme'),
+    description: z.string().optional().describe('New description for the scheme'),
+    defaultOptionId: z.string().optional().describe('Id of the priority to use as the scheme\'s default'),
+    optionIds: z.array(z.string()).optional().describe('Replaces the priorities included in the scheme'),
   },
   deletePriorityScheme: {
-    schemeId: z.number().describe("Id of the priority scheme to delete")
+    schemeId: z.number().describe('Id of the priority scheme to delete'),
   },
   getProjectCategories: {},
   createProjectCategory: {
-    name: z.string().optional().describe("Name of the new project category"),
-    description: z.string().optional().describe("Description of the new project category")
+    name: z.string().optional().describe('Name of the new project category'),
+    description: z.string().optional().describe('Description of the new project category'),
   },
   getProjectCategory: {
-    id: z.number().describe("Id of the project category")
+    id: z.number().describe('Id of the project category'),
   },
   updateProjectCategory: {
-    id: z.number().describe("Id of the project category to update"),
-    name: z.string().optional().describe("New name for the project category"),
-    description: z.string().optional().describe("New description for the project category")
+    id: z.number().describe('Id of the project category to update'),
+    name: z.string().optional().describe('New name for the project category'),
+    description: z.string().optional().describe('New description for the project category'),
   },
   deleteProjectCategory: {
-    id: z.number().describe("Id of the project category to delete")
+    id: z.number().describe('Id of the project category to delete'),
   },
   getRoleDefinitions: {},
   createRoleDefinition: {
-    name: z.string().describe("Name of the new global role definition"),
-    description: z.string().optional().describe("Description of the new global role definition")
+    name: z.string().describe('Name of the new global role definition'),
+    description: z.string().optional().describe('Description of the new global role definition'),
   },
   getRoleDefinition: {
-    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids.")
+    id: z.number().describe('Id of the global role definition. Use jira_getRoleDefinitions to find role ids.'),
   },
   updateRoleDefinition: {
-    id: z.number().describe("Id of the global role definition to fully update"),
-    name: z.string().describe("New name for the role definition"),
-    description: z.string().describe("New description for the role definition")
+    id: z.number().describe('Id of the global role definition to fully update'),
+    name: z.string().describe('New name for the role definition'),
+    description: z.string().describe('New description for the role definition'),
   },
   partialUpdateRoleDefinition: {
-    id: z.number().describe("Id of the global role definition to partially update"),
-    name: z.string().optional().describe("New name for the role definition"),
-    description: z.string().optional().describe("New description for the role definition")
+    id: z.number().describe('Id of the global role definition to partially update'),
+    name: z.string().optional().describe('New name for the role definition'),
+    description: z.string().optional().describe('New description for the role definition'),
   },
   deleteRoleDefinition: {
-    id: z.number().describe("Id of the global role definition to delete"),
-    swap: z.number().optional().describe("Id of another role definition to migrate existing usages to before deleting")
+    id: z.number().describe('Id of the global role definition to delete'),
+    swap: z.number().optional().describe('Id of another role definition to migrate existing usages to before deleting'),
   },
   getRoleDefinitionActors: {
-    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids.")
+    id: z.number().describe('Id of the global role definition. Use jira_getRoleDefinitions to find role ids.'),
   },
   addRoleDefinitionActors: {
-    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids."),
-    users: z.array(z.string()).optional().describe("Usernames to add as default actors for this role"),
-    groups: z.array(z.string()).optional().describe("Group names to add as default actors for this role")
+    id: z.number().describe('Id of the global role definition. Use jira_getRoleDefinitions to find role ids.'),
+    users: z.array(z.string()).optional().describe('Usernames to add as default actors for this role'),
+    groups: z.array(z.string()).optional().describe('Group names to add as default actors for this role'),
   },
   deleteRoleDefinitionActor: {
-    id: z.number().describe("Id of the global role definition. Use jira_getRoleDefinitions to find role ids."),
-    user: z.string().optional().describe("Username of the default actor to remove"),
-    group: z.string().optional().describe("Group name of the default actor to remove")
+    id: z.number().describe('Id of the global role definition. Use jira_getRoleDefinitions to find role ids.'),
+    user: z.string().optional().describe('Username of the default actor to remove'),
+    group: z.string().optional().describe('Group name of the default actor to remove'),
   },
   getPermissionSchemes: {
-    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'permissions' to include each scheme's permission grants")
+    expand: z.string().optional().describe('Comma-separated expansions, e.g. \'permissions\' to include each scheme\'s permission grants'),
   },
   getPermissionScheme: {
-    schemeId: z.number().describe("Id of the permission scheme"),
-    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'permissions' to include the scheme's permission grants")
+    schemeId: z.number().describe('Id of the permission scheme'),
+    expand: z.string().optional().describe('Comma-separated expansions, e.g. \'permissions\' to include the scheme\'s permission grants'),
   },
   createPermissionScheme: {
-    name: z.string().describe("Name of the new permission scheme"),
-    description: z.string().optional().describe("Description of the new permission scheme"),
+    name: z.string().describe('Name of the new permission scheme'),
+    description: z.string().optional().describe('Description of the new permission scheme'),
     permissions: z.array(z.object({
-      permission: z.string().describe("Permission key, e.g. 'ADMINISTER_PROJECTS' or 'BROWSE_PROJECTS'"),
-      holderType: z.string().describe("Type of the permission holder, e.g. 'group', 'projectRole', 'applicationRole', 'anyone', 'reporter', 'assignee'"),
-      holderParameter: z.string().optional().describe("Holder-specific identifier, e.g. group name or project role id")
-    })).optional().describe("Initial permission grants for the scheme")
+      permission: z.string().describe('Permission key, e.g. \'ADMINISTER_PROJECTS\' or \'BROWSE_PROJECTS\''),
+      holderType: z.string().describe('Type of the permission holder, e.g. \'group\', \'projectRole\', \'applicationRole\', \'anyone\', \'reporter\', \'assignee\''),
+      holderParameter: z.string().optional().describe('Holder-specific identifier, e.g. group name or project role id'),
+    })).optional().describe('Initial permission grants for the scheme'),
   },
   updatePermissionScheme: {
-    schemeId: z.number().describe("Id of the permission scheme to update"),
-    name: z.string().optional().describe("New name for the scheme"),
-    description: z.string().optional().describe("New description for the scheme"),
+    schemeId: z.number().describe('Id of the permission scheme to update'),
+    name: z.string().optional().describe('New name for the scheme'),
+    description: z.string().optional().describe('New description for the scheme'),
     permissions: z.array(z.object({
-      permission: z.string().describe("Permission key, e.g. 'ADMINISTER_PROJECTS' or 'BROWSE_PROJECTS'"),
-      holderType: z.string().describe("Type of the permission holder, e.g. 'group', 'projectRole', 'applicationRole', 'anyone', 'reporter', 'assignee'"),
-      holderParameter: z.string().optional().describe("Holder-specific identifier, e.g. group name or project role id")
-    })).optional().describe("Replaces all permission grants for the scheme. Omit to leave grants unchanged.")
+      permission: z.string().describe('Permission key, e.g. \'ADMINISTER_PROJECTS\' or \'BROWSE_PROJECTS\''),
+      holderType: z.string().describe('Type of the permission holder, e.g. \'group\', \'projectRole\', \'applicationRole\', \'anyone\', \'reporter\', \'assignee\''),
+      holderParameter: z.string().optional().describe('Holder-specific identifier, e.g. group name or project role id'),
+    })).optional().describe('Replaces all permission grants for the scheme. Omit to leave grants unchanged.'),
   },
   deletePermissionScheme: {
-    schemeId: z.number().describe("Id of the permission scheme to delete")
+    schemeId: z.number().describe('Id of the permission scheme to delete'),
   },
   getPermissionSchemeGrants: {
-    schemeId: z.number().describe("Id of the permission scheme"),
-    expand: z.string().optional().describe("Comma-separated expansions for the returned grants")
+    schemeId: z.number().describe('Id of the permission scheme'),
+    expand: z.string().optional().describe('Comma-separated expansions for the returned grants'),
   },
   createPermissionGrant: {
-    schemeId: z.number().describe("Id of the permission scheme to add the grant to"),
-    permission: z.string().describe("Permission key, e.g. 'ADMINISTER_PROJECTS' or 'BROWSE_PROJECTS'"),
-    holderType: z.string().describe("Type of the permission holder, e.g. 'group', 'projectRole', 'applicationRole', 'anyone', 'reporter', 'assignee'"),
-    holderParameter: z.string().optional().describe("Holder-specific identifier, e.g. group name or project role id")
+    schemeId: z.number().describe('Id of the permission scheme to add the grant to'),
+    permission: z.string().describe('Permission key, e.g. \'ADMINISTER_PROJECTS\' or \'BROWSE_PROJECTS\''),
+    holderType: z.string().describe('Type of the permission holder, e.g. \'group\', \'projectRole\', \'applicationRole\', \'anyone\', \'reporter\', \'assignee\''),
+    holderParameter: z.string().optional().describe('Holder-specific identifier, e.g. group name or project role id'),
   },
   deletePermissionGrant: {
-    schemeId: z.number().describe("Id of the permission scheme"),
-    permissionId: z.number().describe("Id of the permission grant to delete")
+    schemeId: z.number().describe('Id of the permission scheme'),
+    permissionId: z.number().describe('Id of the permission grant to delete'),
   },
   getApplicationRoles: {},
   getApplicationRole: {
-    key: z.string().describe("Key of the application role, e.g. 'jira-software'. Use jira_getApplicationRoles to find valid keys.")
+    key: z.string().describe('Key of the application role, e.g. \'jira-software\'. Use jira_getApplicationRoles to find valid keys.'),
   },
   getWorkflows: {
-    workflowName: z.string().optional().describe("Name of a specific workflow to return. Omit to return all workflows.")
+    workflowName: z.string().optional().describe('Name of a specific workflow to return. Omit to return all workflows.'),
   },
   getWorkflowScheme: {
-    schemeId: z.number().describe("Id of the workflow scheme"),
-    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant of the scheme if one exists")
+    schemeId: z.number().describe('Id of the workflow scheme'),
+    returnDraftIfExists: z.boolean().optional().describe('Return the draft variant of the scheme if one exists'),
   },
   getWorkflowSchemeDefault: {
-    schemeId: z.number().describe("Id of the workflow scheme"),
-    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's default workflow if a draft exists")
+    schemeId: z.number().describe('Id of the workflow scheme'),
+    returnDraftIfExists: z.boolean().optional().describe('Return the draft variant\'s default workflow if a draft exists'),
   },
   getWorkflowSchemeIssueTypeMapping: {
-    schemeId: z.number().describe("Id of the workflow scheme"),
-    issueType: z.string().describe("Id of the issue type to look up in the scheme's mapping"),
-    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's mapping if a draft exists")
+    schemeId: z.number().describe('Id of the workflow scheme'),
+    issueType: z.string().describe('Id of the issue type to look up in the scheme\'s mapping'),
+    returnDraftIfExists: z.boolean().optional().describe('Return the draft variant\'s mapping if a draft exists'),
   },
   getWorkflowSchemeWorkflowMapping: {
-    schemeId: z.number().describe("Id of the workflow scheme"),
-    workflowName: z.string().optional().describe("Name of a specific workflow to look up. Omit to return all workflow mappings."),
-    returnDraftIfExists: z.boolean().optional().describe("Return the draft variant's mapping if a draft exists")
+    schemeId: z.number().describe('Id of the workflow scheme'),
+    workflowName: z.string().optional().describe('Name of a specific workflow to look up. Omit to return all workflow mappings.'),
+    returnDraftIfExists: z.boolean().optional().describe('Return the draft variant\'s mapping if a draft exists'),
   },
   createWorkflowScheme: {
-    name: z.string().optional().describe("Name of the new workflow scheme"),
-    description: z.string().optional().describe("Description of the workflow scheme"),
-    defaultWorkflow: z.string().optional().describe("Name of the workflow to use as the scheme's default"),
-    issueTypeMappings: z.record(z.string(), z.string()).optional().describe("Map of issue type id to workflow name for issue types that should use a workflow other than the default")
+    name: z.string().optional().describe('Name of the new workflow scheme'),
+    description: z.string().optional().describe('Description of the workflow scheme'),
+    defaultWorkflow: z.string().optional().describe('Name of the workflow to use as the scheme\'s default'),
+    issueTypeMappings: z.record(z.string(), z.string()).optional().describe('Map of issue type id to workflow name for issue types that should use a workflow other than the default'),
   },
   updateWorkflowScheme: {
-    schemeId: z.number().describe("Id of the workflow scheme to update"),
-    name: z.string().optional().describe("New name for the workflow scheme"),
-    description: z.string().optional().describe("New description for the workflow scheme"),
-    defaultWorkflow: z.string().optional().describe("New default workflow name"),
-    issueTypeMappings: z.record(z.string(), z.string()).optional().describe("Replacement map of issue type id to workflow name"),
-    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+    schemeId: z.number().describe('Id of the workflow scheme to update'),
+    name: z.string().optional().describe('New name for the workflow scheme'),
+    description: z.string().optional().describe('New description for the workflow scheme'),
+    defaultWorkflow: z.string().optional().describe('New default workflow name'),
+    issueTypeMappings: z.record(z.string(), z.string()).optional().describe('Replacement map of issue type id to workflow name'),
+    updateDraftIfNeeded: z.boolean().optional().describe('Create/update a draft instead of failing when the scheme is active and cannot be edited directly'),
   },
   deleteWorkflowScheme: {
-    schemeId: z.number().describe("Id of the workflow scheme to delete. The scheme must not be active (in use by a project).")
+    schemeId: z.number().describe('Id of the workflow scheme to delete. The scheme must not be active (in use by a project).'),
   },
   setWorkflowSchemeIssueTypeMapping: {
-    schemeId: z.number().describe("Id of the workflow scheme"),
-    issueType: z.string().describe("Id of the issue type to map"),
-    workflow: z.string().describe("Name of the workflow to map the issue type to"),
-    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+    schemeId: z.number().describe('Id of the workflow scheme'),
+    issueType: z.string().describe('Id of the issue type to map'),
+    workflow: z.string().describe('Name of the workflow to map the issue type to'),
+    updateDraftIfNeeded: z.boolean().optional().describe('Create/update a draft instead of failing when the scheme is active and cannot be edited directly'),
   },
   deleteWorkflowSchemeIssueTypeMapping: {
-    schemeId: z.number().describe("Id of the workflow scheme"),
-    issueType: z.string().describe("Id of the issue type mapping to remove"),
-    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+    schemeId: z.number().describe('Id of the workflow scheme'),
+    issueType: z.string().describe('Id of the issue type mapping to remove'),
+    updateDraftIfNeeded: z.boolean().optional().describe('Create/update a draft instead of failing when the scheme is active and cannot be edited directly'),
   },
   setWorkflowSchemeWorkflowMapping: {
-    schemeId: z.number().describe("Id of the workflow scheme"),
-    workflow: z.string().describe("Name of the workflow for this mapping"),
-    issueTypes: z.array(z.string()).optional().describe("Issue type ids to associate with this workflow"),
-    defaultMapping: z.boolean().optional().describe("Whether this mapping should become the scheme's default"),
-    workflowName: z.string().optional().describe("Name of the existing workflow mapping to replace. Omit when adding a brand new mapping."),
-    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+    schemeId: z.number().describe('Id of the workflow scheme'),
+    workflow: z.string().describe('Name of the workflow for this mapping'),
+    issueTypes: z.array(z.string()).optional().describe('Issue type ids to associate with this workflow'),
+    defaultMapping: z.boolean().optional().describe('Whether this mapping should become the scheme\'s default'),
+    workflowName: z.string().optional().describe('Name of the existing workflow mapping to replace. Omit when adding a brand new mapping.'),
+    updateDraftIfNeeded: z.boolean().optional().describe('Create/update a draft instead of failing when the scheme is active and cannot be edited directly'),
   },
   deleteWorkflowSchemeWorkflowMapping: {
-    schemeId: z.number().describe("Id of the workflow scheme"),
-    workflowName: z.string().optional().describe("Name of the workflow mapping to remove. Omit to remove the default workflow's mapping."),
-    updateDraftIfNeeded: z.boolean().optional().describe("Create/update a draft instead of failing when the scheme is active and cannot be edited directly")
+    schemeId: z.number().describe('Id of the workflow scheme'),
+    workflowName: z.string().optional().describe('Name of the workflow mapping to remove. Omit to remove the default workflow\'s mapping.'),
+    updateDraftIfNeeded: z.boolean().optional().describe('Create/update a draft instead of failing when the scheme is active and cannot be edited directly'),
   },
   getNotificationSchemes: {
-    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'all,field,group,user,projectRole,notificationSchemeEvents'"),
-    maxResults: z.number().optional().describe("Maximum number of notification schemes to return"),
-    startAt: z.number().optional().describe("Index of the first notification scheme to return")
+    expand: z.string().optional().describe('Comma-separated expansions, e.g. \'all,field,group,user,projectRole,notificationSchemeEvents\''),
+    maxResults: z.number().optional().describe('Maximum number of notification schemes to return'),
+    startAt: z.number().optional().describe('Index of the first notification scheme to return'),
   },
   getNotificationScheme: {
-    id: z.number().describe("Id of the notification scheme"),
-    expand: z.string().optional().describe("Comma-separated expansions, e.g. 'all,field,group,user,projectRole,notificationSchemeEvents'")
+    id: z.number().describe('Id of the notification scheme'),
+    expand: z.string().optional().describe('Comma-separated expansions, e.g. \'all,field,group,user,projectRole,notificationSchemeEvents\''),
   },
   getSecurityLevel: {
-    id: z.string().describe("Id of the issue security level")
+    id: z.string().describe('Id of the issue security level'),
   },
   getIssueSecuritySchemes: {},
   getIssueSecurityScheme: {
-    id: z.string().describe("Id of the issue security scheme")
+    id: z.string().describe('Id of the issue security scheme'),
   },
   getCustomFields: {
-    sortColumn: z.string().optional().describe("Column to sort the returned custom fields by"),
-    types: z.array(z.string()).optional().describe("Custom field type keys to filter by"),
-    search: z.string().optional().describe("Query string used to search custom fields by name"),
-    maxResults: z.number().optional().describe("Maximum number of custom fields to return"),
-    sortOrder: z.string().optional().describe("Sort order, e.g. 'asc' or 'desc'"),
-    screenIds: z.array(z.string()).optional().describe("Screen ids to filter custom fields by"),
-    lastValueUpdate: z.string().optional().describe("Filter by the last value update"),
-    projectIds: z.array(z.string()).optional().describe("Project ids to filter custom fields by"),
-    startAt: z.number().optional().describe("Index of the first custom field to return")
+    sortColumn: z.string().optional().describe('Column to sort the returned custom fields by'),
+    types: z.array(z.string()).optional().describe('Custom field type keys to filter by'),
+    search: z.string().optional().describe('Query string used to search custom fields by name'),
+    maxResults: z.number().optional().describe('Maximum number of custom fields to return'),
+    sortOrder: z.string().optional().describe('Sort order, e.g. \'asc\' or \'desc\''),
+    screenIds: z.array(z.string()).optional().describe('Screen ids to filter custom fields by'),
+    lastValueUpdate: z.string().optional().describe('Filter by the last value update'),
+    projectIds: z.array(z.string()).optional().describe('Project ids to filter custom fields by'),
+    startAt: z.number().optional().describe('Index of the first custom field to return'),
   },
   deleteCustomFields: {
-    ids: z.array(z.string()).describe("Ids of the custom fields to delete")
+    ids: z.array(z.string()).describe('Ids of the custom fields to delete'),
   },
   getCustomFieldOptions: {
-    customFieldId: z.string().describe("Id of the custom field"),
-    maxResults: z.number().optional().describe("Maximum number of options to return"),
-    issueTypeIds: z.array(z.string()).optional().describe("Issue type ids to scope the returned options to"),
-    query: z.string().optional().describe("Query string used to filter options"),
-    sortByOptionName: z.boolean().optional().describe("Sort the returned options by their names"),
-    useAllContexts: z.boolean().optional().describe("Return options regardless of context, project ids, or issue type ids"),
-    page: z.number().optional().describe("Page of options to return"),
-    projectIds: z.array(z.string()).optional().describe("Project ids to scope the returned options to")
+    customFieldId: z.string().describe('Id of the custom field'),
+    maxResults: z.number().optional().describe('Maximum number of options to return'),
+    issueTypeIds: z.array(z.string()).optional().describe('Issue type ids to scope the returned options to'),
+    query: z.string().optional().describe('Query string used to filter options'),
+    sortByOptionName: z.boolean().optional().describe('Sort the returned options by their names'),
+    useAllContexts: z.boolean().optional().describe('Return options regardless of context, project ids, or issue type ids'),
+    page: z.number().optional().describe('Page of options to return'),
+    projectIds: z.array(z.string()).optional().describe('Project ids to scope the returned options to'),
   },
   getCustomFieldOption: {
-    id: z.string().describe("Id of the custom field option")
+    id: z.string().describe('Id of the custom field option'),
   },
   createCustomField: {
-    name: z.string().describe("Name of the new custom field"),
-    type: z.string().describe("Custom field type key, e.g. 'com.atlassian.jira.plugin.system.customfieldtypes:textfield'"),
-    description: z.string().optional().describe("Description of the new custom field"),
-    searcherKey: z.string().optional().describe("Searcher key for the new custom field, e.g. 'com.atlassian.jira.plugin.system.customfieldtypes:textsearcher'"),
-    issueTypeIds: z.array(z.string()).optional().describe("Issue type ids to scope the field to"),
-    projectIds: z.array(z.number()).optional().describe("Project ids to scope the field to")
+    name: z.string().describe('Name of the new custom field'),
+    type: z.string().describe('Custom field type key, e.g. \'com.atlassian.jira.plugin.system.customfieldtypes:textfield\''),
+    description: z.string().optional().describe('Description of the new custom field'),
+    searcherKey: z.string().optional().describe('Searcher key for the new custom field, e.g. \'com.atlassian.jira.plugin.system.customfieldtypes:textsearcher\''),
+    issueTypeIds: z.array(z.string()).optional().describe('Issue type ids to scope the field to'),
+    projectIds: z.array(z.number()).optional().describe('Project ids to scope the field to'),
   },
   createUser: {
-    name: z.string().describe("Username of the new user"),
-    emailAddress: z.string().describe("Email address of the new user"),
-    displayName: z.string().optional().describe("Display name of the new user"),
-    password: z.string().optional().describe("Password for the new user. If omitted, a random password is generated."),
-    notification: z.string().optional().describe("Whether to notify the new user by email, e.g. 'true' or 'false'")
+    name: z.string().describe('Username of the new user'),
+    emailAddress: z.string().describe('Email address of the new user'),
+    displayName: z.string().optional().describe('Display name of the new user'),
+    password: z.string().optional().describe('Password for the new user. If omitted, a random password is generated.'),
+    notification: z.string().optional().describe('Whether to notify the new user by email, e.g. \'true\' or \'false\''),
   },
   removeUser: {
-    key: z.string().optional().describe("Key of the user to remove"),
-    username: z.string().optional().describe("Username of the user to remove. Provide either key or username.")
+    key: z.string().optional().describe('Key of the user to remove'),
+    username: z.string().optional().describe('Username of the user to remove. Provide either key or username.'),
   },
   changeUserPassword: {
-    password: z.string().describe("New password for the user"),
-    currentPassword: z.string().optional().describe("Current password, required when changing your own password"),
-    key: z.string().optional().describe("Key of the user whose password is being changed"),
-    username: z.string().optional().describe("Username of the user whose password is being changed. Provide either key or username.")
+    password: z.string().describe('New password for the user'),
+    currentPassword: z.string().optional().describe('Current password, required when changing your own password'),
+    key: z.string().optional().describe('Key of the user whose password is being changed'),
+    username: z.string().optional().describe('Username of the user whose password is being changed. Provide either key or username.'),
   },
   validateUserAnonymization: {
-    userKey: z.string().optional().describe("Key of the user to validate anonymization for"),
-    expand: z.string().optional().describe("Comma-separated expansions for the validation response")
+    userKey: z.string().optional().describe('Key of the user to validate anonymization for'),
+    expand: z.string().optional().describe('Comma-separated expansions for the validation response'),
   },
   scheduleUserAnonymization: {
-    userKey: z.string().optional().describe("Key of the user to anonymize"),
-    newOwnerKey: z.string().optional().describe("Key of the user who will own the anonymization audit log entries")
+    userKey: z.string().optional().describe('Key of the user to anonymize'),
+    newOwnerKey: z.string().optional().describe('Key of the user who will own the anonymization audit log entries'),
   },
   getUserAnonymizationProgress: {
-    taskId: z.number().optional().describe("Id of the anonymization task to check progress for")
+    taskId: z.number().optional().describe('Id of the anonymization task to check progress for'),
   },
   getSystemAvatars: {
-    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'")
+    type: z.string().describe('Avatar type, e.g. \'project\', \'user\', or \'issuetype\''),
   },
   getAvatars: {
-    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
-    owningObjectId: z.string().describe("Id of the object that owns the avatars, e.g. a project id or username")
+    type: z.string().describe('Avatar type, e.g. \'project\', \'user\', or \'issuetype\''),
+    owningObjectId: z.string().describe('Id of the object that owns the avatars, e.g. a project id or username'),
   },
   uploadTemporaryAvatar: {
-    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
-    owningObjectId: z.string().describe("Id of the object that will own the avatar, e.g. a project id or username"),
-    fileName: z.string().describe("File name of the avatar image, including extension (e.g. 'avatar.png')"),
-    contentBase64: z.string().describe("Avatar image content encoded as base64")
+    type: z.string().describe('Avatar type, e.g. \'project\', \'user\', or \'issuetype\''),
+    owningObjectId: z.string().describe('Id of the object that will own the avatar, e.g. a project id or username'),
+    fileName: z.string().describe('File name of the avatar image, including extension (e.g. \'avatar.png\')'),
+    contentBase64: z.string().describe('Avatar image content encoded as base64'),
   },
   createAvatarFromTemporary: {
-    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
-    owningObjectId: z.string().describe("Id of the object that will own the avatar, e.g. a project id or username"),
-    cropperOffsetX: z.number().optional().describe("Horizontal crop offset returned by jira_uploadTemporaryAvatar"),
-    cropperOffsetY: z.number().optional().describe("Vertical crop offset returned by jira_uploadTemporaryAvatar"),
-    cropperWidth: z.number().optional().describe("Crop width returned by jira_uploadTemporaryAvatar"),
-    needsCropping: z.boolean().optional().describe("Whether the temporary avatar needs cropping"),
-    url: z.string().optional().describe("Url of the temporary avatar returned by jira_uploadTemporaryAvatar")
+    type: z.string().describe('Avatar type, e.g. \'project\', \'user\', or \'issuetype\''),
+    owningObjectId: z.string().describe('Id of the object that will own the avatar, e.g. a project id or username'),
+    cropperOffsetX: z.number().optional().describe('Horizontal crop offset returned by jira_uploadTemporaryAvatar'),
+    cropperOffsetY: z.number().optional().describe('Vertical crop offset returned by jira_uploadTemporaryAvatar'),
+    cropperWidth: z.number().optional().describe('Crop width returned by jira_uploadTemporaryAvatar'),
+    needsCropping: z.boolean().optional().describe('Whether the temporary avatar needs cropping'),
+    url: z.string().optional().describe('Url of the temporary avatar returned by jira_uploadTemporaryAvatar'),
   },
   deleteAvatar: {
-    id: z.number().describe("Id of the avatar to delete"),
-    type: z.string().describe("Avatar type, e.g. 'project', 'user', or 'issuetype'"),
-    owningObjectId: z.string().describe("Id of the object that owns the avatar, e.g. a project id or username")
+    id: z.number().describe('Id of the avatar to delete'),
+    type: z.string().describe('Avatar type, e.g. \'project\', \'user\', or \'issuetype\''),
+    owningObjectId: z.string().describe('Id of the object that owns the avatar, e.g. a project id or username'),
   },
   getMyPermissions: {
-    projectKey: z.string().optional().describe("Key of the project to scope returned permissions for"),
-    projectId: z.string().optional().describe("Id of the project to scope returned permissions for"),
-    issueKey: z.string().optional().describe("Key of the issue to scope returned permissions for"),
-    issueId: z.string().optional().describe("Id of the issue to scope returned permissions for")
+    projectKey: z.string().optional().describe('Key of the project to scope returned permissions for'),
+    projectId: z.string().optional().describe('Id of the project to scope returned permissions for'),
+    issueKey: z.string().optional().describe('Key of the issue to scope returned permissions for'),
+    issueId: z.string().optional().describe('Id of the issue to scope returned permissions for'),
   },
   getAllPermissions: {},
   getJqlAutocompleteData: {},
   getJqlFieldAutocomplete: {
-    fieldName: z.string().optional().describe("JQL field name to get value suggestions for, e.g. 'assignee' or 'status'"),
-    fieldValue: z.string().optional().describe("Partial value typed so far, used to filter the returned suggestions"),
-    predicateName: z.string().optional().describe("Name of the JQL predicate being completed, e.g. 'in' or 'was'"),
-    predicateValue: z.string().optional().describe("Partial predicate value typed so far, used to filter the returned suggestions")
+    fieldName: z.string().optional().describe('JQL field name to get value suggestions for, e.g. \'assignee\' or \'status\''),
+    fieldValue: z.string().optional().describe('Partial value typed so far, used to filter the returned suggestions'),
+    predicateName: z.string().optional().describe('Name of the JQL predicate being completed, e.g. \'in\' or \'was\''),
+    predicateValue: z.string().optional().describe('Partial predicate value typed so far, used to filter the returned suggestions'),
   },
   validateProjectKey: {
-    key: z.string().optional().describe("Candidate project key to validate before creating a new project, e.g. 'TEST'. Returns validation errors, if any; an empty result means the key is valid.")
+    key: z.string().optional().describe('Candidate project key to validate before creating a new project, e.g. \'TEST\'. Returns validation errors, if any; an empty result means the key is valid.'),
   },
   getMyPreference: {
-    key: z.string().describe("Preference key to look up for the current user")
+    key: z.string().describe('Preference key to look up for the current user'),
   },
   setMyPreference: {
-    key: z.string().describe("Preference key to set for the current user"),
-    value: z.string().describe("Preference value to store")
+    key: z.string().describe('Preference key to set for the current user'),
+    value: z.string().describe('Preference value to store'),
   },
   deleteMyPreference: {
-    key: z.string().describe("Preference key to remove for the current user")
+    key: z.string().describe('Preference key to remove for the current user'),
   },
   getAllScreens: {
-    search: z.string().optional().describe("Query string used to search screens by name"),
-    expand: z.string().optional().describe("Comma-separated expansions for the returned screens"),
-    maxResults: z.number().optional().describe("Maximum number of screens to return"),
-    startAt: z.number().optional().describe("Index of the first screen to return")
+    search: z.string().optional().describe('Query string used to search screens by name'),
+    expand: z.string().optional().describe('Comma-separated expansions for the returned screens'),
+    maxResults: z.number().optional().describe('Maximum number of screens to return'),
+    startAt: z.number().optional().describe('Index of the first screen to return'),
   },
   addFieldToDefaultScreen: {
-    fieldId: z.string().describe("Id of the field or custom field to add to the default screen's default tab")
+    fieldId: z.string().describe('Id of the field or custom field to add to the default screen\'s default tab'),
   },
   getScreenAvailableFields: {
-    screenId: z.number().describe("Id of the screen")
+    screenId: z.number().describe('Id of the screen'),
   },
   getScreenTabs: {
-    screenId: z.number().describe("Id of the screen"),
-    projectKey: z.string().optional().describe("Key of the project to scope the returned tabs to")
+    screenId: z.number().describe('Id of the screen'),
+    projectKey: z.string().optional().describe('Key of the project to scope the returned tabs to'),
   },
   addScreenTab: {
-    screenId: z.number().describe("Id of the screen to add the tab to"),
-    name: z.string().describe("Name of the new tab")
+    screenId: z.number().describe('Id of the screen to add the tab to'),
+    name: z.string().describe('Name of the new tab'),
   },
   renameScreenTab: {
-    screenId: z.number().describe("Id of the screen"),
-    tabId: z.number().describe("Id of the tab to rename"),
-    name: z.string().describe("New name for the tab")
+    screenId: z.number().describe('Id of the screen'),
+    tabId: z.number().describe('Id of the tab to rename'),
+    name: z.string().describe('New name for the tab'),
   },
   deleteScreenTab: {
-    screenId: z.number().describe("Id of the screen"),
-    tabId: z.number().describe("Id of the tab to delete. The screen must have at least one tab remaining.")
+    screenId: z.number().describe('Id of the screen'),
+    tabId: z.number().describe('Id of the tab to delete. The screen must have at least one tab remaining.'),
   },
   moveScreenTab: {
-    screenId: z.number().describe("Id of the screen"),
-    tabId: z.number().describe("Id of the tab to move"),
-    pos: z.number().describe("Zero-based position to move the tab to")
+    screenId: z.number().describe('Id of the screen'),
+    tabId: z.number().describe('Id of the tab to move'),
+    pos: z.number().describe('Zero-based position to move the tab to'),
   },
   getScreenTabFields: {
-    screenId: z.number().describe("Id of the screen"),
-    tabId: z.number().describe("Id of the tab"),
-    projectKey: z.string().optional().describe("Key of the project to scope the returned fields to")
+    screenId: z.number().describe('Id of the screen'),
+    tabId: z.number().describe('Id of the tab'),
+    projectKey: z.string().optional().describe('Key of the project to scope the returned fields to'),
   },
   addFieldToScreenTab: {
-    screenId: z.number().describe("Id of the screen"),
-    tabId: z.number().describe("Id of the tab to add the field to"),
-    fieldId: z.string().describe("Id of the field or custom field to add")
+    screenId: z.number().describe('Id of the screen'),
+    tabId: z.number().describe('Id of the tab to add the field to'),
+    fieldId: z.string().describe('Id of the field or custom field to add'),
   },
   removeFieldFromScreenTab: {
-    screenId: z.number().describe("Id of the screen"),
-    tabId: z.number().describe("Id of the tab"),
-    fieldId: z.string().describe("Id of the field to remove from the tab")
+    screenId: z.number().describe('Id of the screen'),
+    tabId: z.number().describe('Id of the tab'),
+    fieldId: z.string().describe('Id of the field to remove from the tab'),
   },
   moveScreenTabField: {
-    screenId: z.number().describe("Id of the screen"),
-    tabId: z.number().describe("Id of the tab"),
-    fieldId: z.string().describe("Id of the field to move"),
-    after: z.string().optional().describe("Id of the field to position this field after"),
-    position: z.enum(['Earlier', 'Later', 'First', 'Last']).optional().describe("Relative position to move the field to within the tab")
+    screenId: z.number().describe('Id of the screen'),
+    tabId: z.number().describe('Id of the tab'),
+    fieldId: z.string().describe('Id of the field to move'),
+    after: z.string().optional().describe('Id of the field to position this field after'),
+    position: z.enum(['Earlier', 'Later', 'First', 'Last']).optional().describe('Relative position to move the field to within the tab'),
   },
   updateScreenTabFieldShowWhenEmpty: {
-    screenId: z.number().describe("Id of the screen"),
-    tabId: z.number().describe("Id of the tab"),
-    fieldId: z.string().describe("Id of the field"),
-    showWhenEmpty: z.boolean().describe("Whether to show a 'no value' indicator for this field on the screen when it is empty")
+    screenId: z.number().describe('Id of the screen'),
+    tabId: z.number().describe('Id of the tab'),
+    fieldId: z.string().describe('Id of the field'),
+    showWhenEmpty: z.boolean().describe('Whether to show a \'no value\' indicator for this field on the screen when it is empty'),
   },
   validateLicense: {
-    licenseString: z.string().describe("The license string to validate against the current server installation")
+    licenseString: z.string().describe('The license string to validate against the current server installation'),
   },
   getServerInfo: {},
   getApplicationProperty: {
-    permissionLevel: z.string().describe("Permission level of all items when fetching a list, e.g. 'ADMIN' or 'SYSADMIN'"),
-    key: z.string().describe("Property key to fetch, e.g. 'jira.clone.prefix'"),
-    keyFilter: z.string().optional().describe("Regex to filter a list of properties by the start of their key, e.g. 'jira.lf.*'")
+    permissionLevel: z.string().describe('Permission level of all items when fetching a list, e.g. \'ADMIN\' or \'SYSADMIN\''),
+    key: z.string().describe('Property key to fetch, e.g. \'jira.clone.prefix\''),
+    keyFilter: z.string().optional().describe('Regex to filter a list of properties by the start of their key, e.g. \'jira.lf.*\''),
   },
   getAdvancedSettings: {},
   setApplicationProperty: {
-    id: z.string().describe("Property key to update, e.g. 'jira.clone.prefix'"),
-    value: z.string().describe("New value for the property")
+    id: z.string().describe('Property key to update, e.g. \'jira.clone.prefix\''),
+    value: z.string().describe('New value for the property'),
   },
   getClusterNodes: {},
   deleteClusterNode: {
-    nodeId: z.string().describe("Id of the node to delete. The node must be OFFLINE.")
+    nodeId: z.string().describe('Id of the node to delete. The node must be OFFLINE.'),
   },
   setClusterNodeOffline: {
-    nodeId: z.string().describe("Id of the node to change state. The node must be reporting as active but not alive.")
+    nodeId: z.string().describe('Id of the node to change state. The node must be reporting as active but not alive.'),
   },
   requestClusterNodeIndexSnapshot: {
-    nodeId: z.string().describe("Id of the node to request an index snapshot from")
+    nodeId: z.string().describe('Id of the node to request an index snapshot from'),
   },
   approveClusterUpgrade: {},
   cancelClusterUpgrade: {},
@@ -3276,42 +3291,42 @@ export const jiraToolSchemas = {
   createIndexSnapshot: {},
   getIndexSnapshotStatus: {},
   getReindexInfo: {
-    taskId: z.number().optional().describe("Id of a specific reindex task to get information for. When omitted, returns the active or most recent reindex.")
+    taskId: z.number().optional().describe('Id of a specific reindex task to get information for. When omitted, returns the active or most recent reindex.'),
   },
   startReindex: {
-    indexChangeHistory: z.boolean().optional().describe("Whether to reindex change history (default false)"),
-    type: z.string().optional().describe("Type of reindex to perform, e.g. 'BACKGROUND_PREFERRED', 'FOREGROUND', or 'BACKGROUND'"),
-    indexWorklogs: z.boolean().optional().describe("Whether to reindex worklogs (default false)"),
-    indexComments: z.boolean().optional().describe("Whether to reindex comments (default false)")
+    indexChangeHistory: z.boolean().optional().describe('Whether to reindex change history (default false)'),
+    type: z.string().optional().describe('Type of reindex to perform, e.g. \'BACKGROUND_PREFERRED\', \'FOREGROUND\', or \'BACKGROUND\''),
+    indexWorklogs: z.boolean().optional().describe('Whether to reindex worklogs (default false)'),
+    indexComments: z.boolean().optional().describe('Whether to reindex comments (default false)'),
   },
   reindexIssues: {
-    issueIds: z.array(z.string()).optional().describe("Ids of the issues to reindex"),
-    indexChangeHistory: z.boolean().optional().describe("Whether to reindex change history (default false)"),
-    indexWorklogs: z.boolean().optional().describe("Whether to reindex worklogs (default false)"),
-    indexComments: z.boolean().optional().describe("Whether to reindex comments (default false)")
+    issueIds: z.array(z.string()).optional().describe('Ids of the issues to reindex'),
+    indexChangeHistory: z.boolean().optional().describe('Whether to reindex change history (default false)'),
+    indexWorklogs: z.boolean().optional().describe('Whether to reindex worklogs (default false)'),
+    indexComments: z.boolean().optional().describe('Whether to reindex comments (default false)'),
   },
   getReindexProgress: {
-    taskId: z.number().optional().describe("Id of a specific reindex task to get progress for. When omitted, returns the active or most recent reindex.")
+    taskId: z.number().optional().describe('Id of a specific reindex task to get progress for. When omitted, returns the active or most recent reindex.'),
   },
   processReindexRequests: {},
   getReindexRequestsProgress: {
-    requestIds: z.array(z.number()).optional().describe("Ids of the reindex requests to get progress for")
+    requestIds: z.array(z.number()).optional().describe('Ids of the reindex requests to get progress for'),
   },
   getReindexRequestProgress: {
-    requestId: z.number().describe("Id of the reindex request to get progress for")
+    requestId: z.number().describe('Id of the reindex request to get progress for'),
   },
   downloadEmailTemplates: {},
   uploadEmailTemplates: {
-    contentBase64: z.string().describe("Base64-encoded contents of the email templates zip file to upload")
+    contentBase64: z.string().describe('Base64-encoded contents of the email templates zip file to upload'),
   },
   applyEmailTemplates: {},
   resetEmailTemplatesToDefault: {},
   getEmailTemplateTypes: {},
   getCurrentSession: {},
   createSession: {
-    username: z.string().describe("Username to authenticate with"),
-    password: z.string().describe("Password to authenticate with")
+    username: z.string().describe('Username to authenticate with'),
+    password: z.string().describe('Password to authenticate with'),
   },
   deleteSession: {},
-  releaseWebSudo: {}
+  releaseWebSudo: {},
 };

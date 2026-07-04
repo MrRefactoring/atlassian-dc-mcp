@@ -12,7 +12,7 @@ const ENTITY_MAP: Record<string, string> = {
   '&lt;': '<',
   '&gt;': '>',
   '&quot;': '"',
-  '&#39;': "'",
+  '&#39;': '\'',
 };
 
 function decodeHtmlEntities(value: string): string {
@@ -20,6 +20,7 @@ function decodeHtmlEntities(value: string): string {
     .replace(/&(nbsp|amp|lt|gt|quot);|&#39;/g, match => ENTITY_MAP[match] ?? match)
     .replace(/&#(\d+);/g, (_, code) => {
       const parsed = Number.parseInt(code, 10);
+
       return Number.isNaN(parsed) ? '' : String.fromCodePoint(parsed);
     });
 }
@@ -102,6 +103,7 @@ export function shapeConfluenceContent(content: any, bodyMode: ConfluenceBodyMod
 
   const textBody = sliceText(confluenceStorageToText(storageValue), bodySliceOptions);
   const { value, ...textBodyMetadata } = textBody;
+
   return {
     ...rest,
     body: {

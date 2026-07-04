@@ -46,6 +46,7 @@ function isRetryableStatus(status: number): boolean {
 function computeDelayMs(attempt: number, baseDelayMs: number, maxDelayMs: number): number {
   const exponential = baseDelayMs * 2 ** attempt;
   const capped = Math.min(exponential, maxDelayMs);
+
   // Full jitter (see AWS's "Exponential Backoff And Jitter" post): a random delay in
   // [0, capped] spreads out retries from concurrent callers instead of retrying in lockstep.
   return Math.random() * capped;
@@ -62,6 +63,7 @@ function describeError(e: unknown, errorPrefix: string): { error: string; detail
       details: e.body,
     };
   }
+
   return {
     error: e instanceof Error ? e.message : String(e),
     details: undefined,
@@ -79,7 +81,7 @@ function describeError(e: unknown, errorPrefix: string): { error: string; detail
 export async function handleApiOperation<T>(
   operation: () => Promise<T>,
   errorPrefix: string,
-  retryOptions: RetryOptions = {}
+  retryOptions: RetryOptions = {},
 ): Promise<ApiErrorResponse<T>> {
   const maxRetries = retryOptions.maxRetries ?? DEFAULT_MAX_RETRIES;
   const baseDelayMs = retryOptions.baseDelayMs ?? DEFAULT_BASE_DELAY_MS;
@@ -88,9 +90,10 @@ export async function handleApiOperation<T>(
   for (let attempt = 0; ; attempt++) {
     try {
       const data = await operation();
+
       return {
         success: true,
-        data
+        data,
       };
     } catch (e) {
       const status = isApiClientError(e) ? e.status : undefined;
@@ -108,10 +111,11 @@ export async function handleApiOperation<T>(
       }
 
       const { error, details } = describeError(e, errorPrefix);
+
       return {
         success: false,
         error,
-        details
+        details,
       };
     }
   }

@@ -16,16 +16,16 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
     createRequiredBuildsMergeCheck: vi.fn(),
     deleteRequiredBuildsMergeCheck: vi.fn(),
     getPageOfRequiredBuildsMergeChecks: vi.fn(),
-    updateRequiredBuildsMergeCheck: vi.fn()
+    updateRequiredBuildsMergeCheck: vi.fn(),
   },
   DeprecatedService: {
-    getBuildStatus: vi.fn()
+    getBuildStatus: vi.fn(),
   },
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -56,7 +56,7 @@ describe('BitbucketService', () => {
         commitId,
         mockRepositorySlug,
         key,
-        report
+        report,
       );
     });
 
@@ -65,7 +65,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.getInsightReport(mockProjectKey, mockRepositorySlug, commitId, key);
       expect(result.success).toBe(true);
       expect(BuildsAndDeploymentsService.getACodeInsightsReport).toHaveBeenCalledWith(
-        mockProjectKey, commitId, mockRepositorySlug, key
+        mockProjectKey, commitId, mockRepositorySlug, key,
       );
     });
 
@@ -80,13 +80,13 @@ describe('BitbucketService', () => {
       (BuildsAndDeploymentsService.addAnnotations as Mock).mockResolvedValue(undefined);
       const annotations = [
         { externalId: 'a1', path: 'app.js', line: 3, message: 'x', severity: 'HIGH' },
-        { externalId: 'a2', path: 'app.js', line: 9, message: 'y', severity: 'LOW' }
+        { externalId: 'a2', path: 'app.js', line: 9, message: 'y', severity: 'LOW' },
       ];
       const result = await bitbucketService.addInsightAnnotations(mockProjectKey, mockRepositorySlug, commitId, key, annotations);
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ added: 2, key });
       expect(BuildsAndDeploymentsService.addAnnotations).toHaveBeenCalledWith(
-        mockProjectKey, commitId, mockRepositorySlug, key, { annotations }
+        mockProjectKey, commitId, mockRepositorySlug, key, { annotations },
       );
     });
 
@@ -95,7 +95,7 @@ describe('BitbucketService', () => {
       const result = await bitbucketService.getInsightAnnotations(mockProjectKey, mockRepositorySlug, commitId, key);
       expect(result.success).toBe(true);
       expect(BuildsAndDeploymentsService.getAnnotations).toHaveBeenCalledWith(
-        mockProjectKey, commitId, mockRepositorySlug, key
+        mockProjectKey, commitId, mockRepositorySlug, key,
       );
     });
 
@@ -105,7 +105,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ deleted: true, key, externalId: 'a1' });
       expect(BuildsAndDeploymentsService.deleteAnnotations).toHaveBeenCalledWith(
-        mockProjectKey, commitId, mockRepositorySlug, key, 'a1'
+        mockProjectKey, commitId, mockRepositorySlug, key, 'a1',
       );
     });
 
@@ -153,7 +153,7 @@ describe('BitbucketService', () => {
         'abc123',
         'SUCCESSFUL',
         'build-1',
-        'http://ci/build/1'
+        'http://ci/build/1',
       );
 
       expect(result.success).toBe(true);
@@ -162,7 +162,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         'abc123',
         mockRepositorySlug,
-        { state: 'SUCCESSFUL', key: 'build-1', url: 'http://ci/build/1' }
+        { state: 'SUCCESSFUL', key: 'build-1', url: 'http://ci/build/1' },
       );
     });
 
@@ -176,13 +176,13 @@ describe('BitbucketService', () => {
         'build-2',
         'http://ci/build/2',
         'Unit tests',
-        'Failed on step 3'
+        'Failed on step 3',
       );
       expect(BuildsAndDeploymentsService.add).toHaveBeenCalledWith(
         mockProjectKey,
         'abc123',
         mockRepositorySlug,
-        { state: 'FAILED', key: 'build-2', url: 'http://ci/build/2', name: 'Unit tests', description: 'Failed on step 3' }
+        { state: 'FAILED', key: 'build-2', url: 'http://ci/build/2', name: 'Unit tests', description: 'Failed on step 3' },
       );
     });
 
@@ -194,7 +194,7 @@ describe('BitbucketService', () => {
         'abc123',
         'SUCCESSFUL',
         'build-1',
-        'http://ci/build/1'
+        'http://ci/build/1',
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
@@ -210,7 +210,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'abc123',
-        'build-1'
+        'build-1',
       );
 
       expect(result.success).toBe(true);
@@ -219,7 +219,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         'abc123',
         mockRepositorySlug,
-        'build-1'
+        'build-1',
       );
     });
 
@@ -229,7 +229,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         'abc123',
-        'build-1'
+        'build-1',
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe('API Error');
@@ -253,7 +253,7 @@ describe('BitbucketService', () => {
       (BuildsAndDeploymentsService.createRequiredBuildsMergeCheck as Mock).mockResolvedValue(mockData);
 
       const result = await bitbucketService.createRequiredBuildsMergeCheck(
-        'test', 'Test-Repo', ['build-foo'], 'BRANCH', 'refs/heads/master', 'master', 'BRANCH', 'refs/heads/dev', 'dev'
+        'test', 'Test-Repo', ['build-foo'], 'BRANCH', 'refs/heads/master', 'master', 'BRANCH', 'refs/heads/dev', 'dev',
       );
 
       expect(result.success).toBe(true);
@@ -261,7 +261,7 @@ describe('BitbucketService', () => {
       expect(BuildsAndDeploymentsService.createRequiredBuildsMergeCheck).toHaveBeenCalledWith('TEST', 'test-repo', {
         buildParentKeys: ['build-foo'],
         refMatcher: { id: 'refs/heads/master', displayId: 'master', type: { id: 'BRANCH' } },
-        exemptRefMatcher: { id: 'refs/heads/dev', displayId: 'dev', type: { id: 'BRANCH' } }
+        exemptRefMatcher: { id: 'refs/heads/dev', displayId: 'dev', type: { id: 'BRANCH' } },
       });
     });
 
@@ -272,7 +272,7 @@ describe('BitbucketService', () => {
 
       expect(BuildsAndDeploymentsService.createRequiredBuildsMergeCheck).toHaveBeenCalledWith('TEST', 'test-repo', {
         buildParentKeys: ['build-foo'],
-        refMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } }
+        refMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
       });
     });
 
@@ -290,14 +290,14 @@ describe('BitbucketService', () => {
       (BuildsAndDeploymentsService.updateRequiredBuildsMergeCheck as Mock).mockResolvedValue(mockData);
 
       const result = await bitbucketService.updateRequiredBuildsMergeCheck(
-        'test', 'Test-Repo', '1', ['build-foo', 'build-bar'], 'BRANCH', 'refs/heads/master', 'master'
+        'test', 'Test-Repo', '1', ['build-foo', 'build-bar'], 'BRANCH', 'refs/heads/master', 'master',
       );
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(BuildsAndDeploymentsService.updateRequiredBuildsMergeCheck).toHaveBeenCalledWith('TEST', 1, 'test-repo', {
         buildParentKeys: ['build-foo', 'build-bar'],
-        refMatcher: { id: 'refs/heads/master', displayId: 'master', type: { id: 'BRANCH' } }
+        refMatcher: { id: 'refs/heads/master', displayId: 'master', type: { id: 'BRANCH' } },
       });
     });
 

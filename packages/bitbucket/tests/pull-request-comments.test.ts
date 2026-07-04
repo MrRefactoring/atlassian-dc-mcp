@@ -6,13 +6,13 @@ import { PullRequestsService } from '../src/bitbucket-client/index.js';
 vi.mock('../src/bitbucket-client/index.js', () => ({
   PullRequestsService: {
     createComment2: vi.fn(),
-    updateComment2: vi.fn()
+    updateComment2: vi.fn(),
   },
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -31,7 +31,7 @@ describe('BitbucketService', () => {
       const mockComment = {
         id: 12345,
         text: 'Test comment',
-        author: { displayName: 'Test User' }
+        author: { displayName: 'Test User' },
       };
       (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
 
@@ -39,7 +39,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        'Test comment'
+        'Test comment',
       );
 
       expect(result.success).toBe(true);
@@ -51,7 +51,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockPullRequestId,
         mockRepositorySlug,
-        { text: 'Test comment' }
+        { text: 'Test comment' },
       );
     });
 
@@ -59,7 +59,7 @@ describe('BitbucketService', () => {
       const mockComment = {
         id: 12346,
         text: 'Reply comment',
-        author: { displayName: 'Test User' }
+        author: { displayName: 'Test User' },
       };
       (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
 
@@ -68,7 +68,7 @@ describe('BitbucketService', () => {
         mockRepositorySlug,
         mockPullRequestId,
         'Reply comment',
-        123 // parentId
+        123, // parentId
       );
 
       expect(result.success).toBe(true);
@@ -82,8 +82,8 @@ describe('BitbucketService', () => {
         mockRepositorySlug,
         {
           text: 'Reply comment',
-          parent: { id: 123 }
-        }
+          parent: { id: 123 },
+        },
       );
     });
 
@@ -91,7 +91,7 @@ describe('BitbucketService', () => {
       const mockComment = {
         id: 12347,
         text: 'File comment',
-        author: { displayName: 'Test User' }
+        author: { displayName: 'Test User' },
       };
       (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
 
@@ -101,7 +101,7 @@ describe('BitbucketService', () => {
         mockPullRequestId,
         'File comment',
         undefined, // parentId
-        'src/test.js' // filePath
+        'src/test.js', // filePath
       );
 
       expect(result.success).toBe(true);
@@ -117,9 +117,9 @@ describe('BitbucketService', () => {
           text: 'File comment',
           anchor: {
             path: 'src/test.js',
-            diffType: 'EFFECTIVE'
-          }
-        }
+            diffType: 'EFFECTIVE',
+          },
+        },
       );
     });
 
@@ -127,7 +127,7 @@ describe('BitbucketService', () => {
       const mockComment = {
         id: 12348,
         text: 'Line comment',
-        author: { displayName: 'Test User' }
+        author: { displayName: 'Test User' },
       };
       (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
 
@@ -141,7 +141,7 @@ describe('BitbucketService', () => {
         undefined, // startLine
         undefined, // startLineType
         42, // line
-        'ADDED' // lineType
+        'ADDED', // lineType
       );
 
       expect(result.success).toBe(true);
@@ -160,9 +160,9 @@ describe('BitbucketService', () => {
             diffType: 'EFFECTIVE',
             line: 42,
             lineType: 'ADDED',
-            fileType: 'TO'
-          }
-        }
+            fileType: 'TO',
+          },
+        },
       );
     });
 
@@ -178,8 +178,8 @@ describe('BitbucketService', () => {
           lineType: 'ADDED',
           fileType: 'TO',
           multilineMarker: { startLine: 10, startLineType: 'ADDED' },
-          multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 }
-        }
+          multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
+        },
       };
       (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
 
@@ -193,7 +193,7 @@ describe('BitbucketService', () => {
         10,             // startLine
         undefined,      // startLineType (should default to lineType)
         15,             // line (end line)
-        'ADDED'         // lineType
+        'ADDED',         // lineType
       );
 
       expect(result.success).toBe(true);
@@ -206,7 +206,7 @@ describe('BitbucketService', () => {
           lineType: 'ADDED',
           startLine: 10,
           startLineType: 'ADDED',
-        }
+        },
       });
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
         mockProjectKey,
@@ -221,9 +221,9 @@ describe('BitbucketService', () => {
             lineType: 'ADDED',
             fileType: 'TO',
             multilineMarker: { startLine: 10, startLineType: 'ADDED' },
-            multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 }
-          }
-        }
+            multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
+          },
+        },
       );
     });
 
@@ -239,8 +239,8 @@ describe('BitbucketService', () => {
           lineType: 'ADDED',
           fileType: 'TO',
           multilineMarker: { startLine: 5, startLineType: 'CONTEXT' },
-          multilineSpan: { dstSpanStart: 5, dstSpanEnd: 8 }
-        }
+          multilineSpan: { dstSpanStart: 5, dstSpanEnd: 8 },
+        },
       };
       (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
 
@@ -254,7 +254,7 @@ describe('BitbucketService', () => {
         5,              // startLine
         'CONTEXT',      // startLineType
         8,              // line (end line)
-        'ADDED'         // lineType
+        'ADDED',         // lineType
       );
 
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
@@ -270,9 +270,9 @@ describe('BitbucketService', () => {
             lineType: 'ADDED',
             fileType: 'TO',
             multilineMarker: { startLine: 5, startLineType: 'CONTEXT' },
-            multilineSpan: { dstSpanStart: 5, dstSpanEnd: 8 }
-          }
-        }
+            multilineSpan: { dstSpanStart: 5, dstSpanEnd: 8 },
+          },
+        },
       );
     });
 
@@ -289,7 +289,7 @@ describe('BitbucketService', () => {
         15,             // startLine (greater than line)
         'ADDED',        // startLineType
         10,             // line (end line, smaller)
-        'ADDED'         // lineType
+        'ADDED',         // lineType
       );
 
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
@@ -305,9 +305,9 @@ describe('BitbucketService', () => {
             lineType: 'ADDED',
             fileType: 'TO',
             multilineMarker: { startLine: 10, startLineType: 'ADDED' },
-            multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 }
-          }
-        }
+            multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
+          },
+        },
       );
     });
 
@@ -324,7 +324,7 @@ describe('BitbucketService', () => {
         2,              // startLine
         'REMOVED',      // startLineType
         5,              // line (end line)
-        'REMOVED'       // lineType
+        'REMOVED',       // lineType
       );
 
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
@@ -340,16 +340,16 @@ describe('BitbucketService', () => {
             lineType: 'REMOVED',
             fileType: 'FROM',
             multilineMarker: { startLine: 2, startLineType: 'REMOVED' },
-            multilineSpan: { srcSpanStart: 2, srcSpanEnd: 5 }
-          }
-        }
+            multilineSpan: { srcSpanStart: 2, srcSpanEnd: 5 },
+          },
+        },
       );
     });
 
     it('should warn when a multi-line suggestion is anchored to a single line', async () => {
       (PullRequestsService.createComment2 as Mock).mockResolvedValue({
         id: 99,
-        anchor: { path: 'src/test.js', line: 5, lineType: 'ADDED' }
+        anchor: { path: 'src/test.js', line: 5, lineType: 'ADDED' },
       });
 
       const result = await bitbucketService.postPullRequestComment(
@@ -362,7 +362,7 @@ describe('BitbucketService', () => {
         undefined,      // startLine (single-line anchor — the bug shape)
         undefined,      // startLineType
         5,              // line
-        'ADDED'         // lineType
+        'ADDED',         // lineType
       );
 
       expect(result.success).toBe(true);
@@ -376,7 +376,7 @@ describe('BitbucketService', () => {
     it('should not warn when a multi-line suggestion has a proper multiline range', async () => {
       (PullRequestsService.createComment2 as Mock).mockResolvedValue({
         id: 100,
-        anchor: { path: 'src/test.js', line: 5, lineType: 'ADDED', multilineMarker: { startLine: 4, startLineType: 'ADDED' } }
+        anchor: { path: 'src/test.js', line: 5, lineType: 'ADDED', multilineMarker: { startLine: 4, startLineType: 'ADDED' } },
       });
 
       const result = await bitbucketService.postPullRequestComment(
@@ -389,7 +389,7 @@ describe('BitbucketService', () => {
         4,              // startLine
         'ADDED',        // startLineType
         5,              // line
-        'ADDED'         // lineType
+        'ADDED',         // lineType
       );
 
       expect(result.success).toBe(true);
@@ -404,7 +404,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        'Test comment'
+        'Test comment',
       );
 
       expect(result.success).toBe(false);
@@ -429,7 +429,7 @@ describe('BitbucketService', () => {
         undefined,  // line
         undefined,  // lineType
         undefined,  // pending
-        'BLOCKER'   // severity
+        'BLOCKER',   // severity
       );
 
       expect(result.success).toBe(true);
@@ -437,7 +437,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockPullRequestId,
         mockRepositorySlug,
-        { text: 'Task comment', severity: 'BLOCKER' }
+        { text: 'Task comment', severity: 'BLOCKER' },
       );
     });
 
@@ -449,14 +449,14 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        'Normal comment'
+        'Normal comment',
       );
 
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
         mockRepositorySlug,
-        { text: 'Normal comment' } // no severity field
+        { text: 'Normal comment' }, // no severity field
       );
     });
 
@@ -476,7 +476,7 @@ describe('BitbucketService', () => {
         10,             // line
         'ADDED',        // lineType
         undefined,      // pending
-        'BLOCKER'       // severity
+        'BLOCKER',       // severity
       );
 
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
@@ -491,9 +491,9 @@ describe('BitbucketService', () => {
             diffType: 'EFFECTIVE',
             line: 10,
             lineType: 'ADDED',
-            fileType: 'TO'
-          }
-        }
+            fileType: 'TO',
+          },
+        },
       );
     });
   });
@@ -514,7 +514,7 @@ describe('BitbucketService', () => {
         undefined, // startLineType
         undefined, // line
         undefined, // lineType
-        true       // pending
+        true,       // pending
       );
 
       expect(result.success).toBe(true);
@@ -522,7 +522,7 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockPullRequestId,
         mockRepositorySlug,
-        { text: 'Draft comment', state: 'PENDING' }
+        { text: 'Draft comment', state: 'PENDING' },
       );
     });
 
@@ -534,14 +534,14 @@ describe('BitbucketService', () => {
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        'Normal comment'
+        'Normal comment',
       );
 
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
         mockProjectKey,
         mockPullRequestId,
         mockRepositorySlug,
-        { text: 'Normal comment' } // no pending field
+        { text: 'Normal comment' }, // no pending field
       );
     });
 
@@ -560,7 +560,7 @@ describe('BitbucketService', () => {
         undefined,      // startLineType
         10,             // line
         'ADDED',        // lineType
-        true            // pending
+        true,            // pending
       );
 
       expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
@@ -575,9 +575,9 @@ describe('BitbucketService', () => {
             diffType: 'EFFECTIVE',
             line: 10,
             lineType: 'ADDED',
-            fileType: 'TO'
-          }
-        }
+            fileType: 'TO',
+          },
+        },
       );
     });
   });
@@ -594,7 +594,7 @@ describe('BitbucketService', () => {
         '500',      // commentId
         1,          // version
         undefined,  // text
-        'RESOLVED'  // state
+        'RESOLVED',  // state
       );
 
       expect(result.success).toBe(true);
@@ -603,7 +603,7 @@ describe('BitbucketService', () => {
         '500',
         mockPullRequestId,
         mockRepositorySlug,
-        { version: 1, state: 'RESOLVED' }
+        { version: 1, state: 'RESOLVED' },
       );
     });
 
@@ -617,7 +617,7 @@ describe('BitbucketService', () => {
         mockPullRequestId,
         '501',
         2,
-        'Edited text'
+        'Edited text',
       );
 
       expect(PullRequestsService.updateComment2).toHaveBeenCalledWith(
@@ -625,7 +625,7 @@ describe('BitbucketService', () => {
         '501',
         mockPullRequestId,
         mockRepositorySlug,
-        { version: 2, text: 'Edited text' }
+        { version: 2, text: 'Edited text' },
       );
     });
 
@@ -641,7 +641,7 @@ describe('BitbucketService', () => {
         3,
         'New body',
         'RESOLVED',
-        'BLOCKER'
+        'BLOCKER',
       );
 
       expect(PullRequestsService.updateComment2).toHaveBeenCalledWith(
@@ -649,7 +649,7 @@ describe('BitbucketService', () => {
         '502',
         mockPullRequestId,
         mockRepositorySlug,
-        { version: 3, text: 'New body', state: 'RESOLVED', severity: 'BLOCKER' }
+        { version: 3, text: 'New body', state: 'RESOLVED', severity: 'BLOCKER' },
       );
     });
 
@@ -663,7 +663,7 @@ describe('BitbucketService', () => {
         '503',
         1,
         undefined,
-        'RESOLVED'
+        'RESOLVED',
       );
 
       expect(result.success).toBe(false);

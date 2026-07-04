@@ -12,13 +12,13 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
     getUsersWithAnyPermission1: vi.fn(),
     revokePermissions: vi.fn(),
     setPermissionForGroups1: vi.fn(),
-    setPermissionForUsers1: vi.fn()
+    setPermissionForUsers1: vi.fn(),
   },
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -42,7 +42,7 @@ describe('BitbucketService', () => {
       expect(ProjectService.createProject).toHaveBeenCalledWith({
         key: 'PROJ',
         name: 'My Project',
-        description: 'desc'
+        description: 'desc',
       });
     });
 
@@ -53,7 +53,7 @@ describe('BitbucketService', () => {
 
       expect(ProjectService.createProject).toHaveBeenCalledWith({
         key: 'PROJ',
-        name: 'My Project'
+        name: 'My Project',
       });
     });
 
@@ -77,7 +77,7 @@ describe('BitbucketService', () => {
       expect(ProjectService.updateProject).toHaveBeenCalledWith('PROJ', {
         key: 'PROJ',
         name: 'Renamed',
-        description: 'new desc'
+        description: 'new desc',
       });
     });
 

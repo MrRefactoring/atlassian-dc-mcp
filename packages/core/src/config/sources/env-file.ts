@@ -23,6 +23,7 @@ export class EnvFileSource implements ReadableSource {
 
   read(product: ProductDefinition, key: ConfigKey): string | undefined {
     const values = this.loadFile();
+
     return getNonEmptyValue(values[product.envVars[key]]);
   }
 
@@ -38,6 +39,7 @@ export class EnvFileSource implements ReadableSource {
     if (!path.isAbsolute(filePath)) {
       throw new Error(`${ATLASSIAN_DC_MCP_CONFIG_FILE_ENV_VAR} must be an absolute path: ${filePath}`);
     }
+
     return filePath;
   }
 
@@ -54,6 +56,7 @@ export class EnvFileSource implements ReadableSource {
             { cause: error },
           );
         }
+
         return {};
       }
       throw error;

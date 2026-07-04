@@ -15,6 +15,7 @@ await runSetupCli(JIRA_PRODUCT, {
     );
     try {
       await service.validateSetup();
+
       return { ok: true };
     } catch (error) {
       return { ok: false, message: describeValidationError(error) };

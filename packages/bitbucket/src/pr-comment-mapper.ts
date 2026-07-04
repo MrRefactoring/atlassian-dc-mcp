@@ -239,7 +239,7 @@ function isPRActivity(obj: unknown): obj is PRActivity {
 function simplifyUser(user: BitbucketUser): SimplifiedUser {
   return {
     name: user.name,
-    displayName: user.displayName
+    displayName: user.displayName,
   };
 }
 
@@ -250,10 +250,10 @@ function simplifyAnchor(anchor: CommentAnchor): SimplifiedAnchor {
     fileType: anchor.fileType,
     ...(anchor.multilineMarker
       ? {
-          startLine: anchor.multilineMarker.startLine,
-          startLineType: anchor.multilineMarker.startLineType
-        }
-      : {})
+        startLine: anchor.multilineMarker.startLine,
+        startLineType: anchor.multilineMarker.startLineType,
+      }
+      : {}),
   };
 }
 
@@ -272,7 +272,7 @@ function simplifyComment(comment: Comment, ancestorIds: Set<number> = new Set())
       .filter(childComment => !nextAncestorIds.has(childComment.id))
       .map(childComment => simplifyComment(childComment, nextAncestorIds)),
     threadResolved: comment.threadResolved,
-    state: comment.state
+    state: comment.state,
   };
 }
 
@@ -298,7 +298,7 @@ function filterComment(comment: Comment, includeResolved: boolean, ancestorIds: 
 
 export function filterPullRequestComments(
   response: BitbucketPRApiResponse,
-  options: PullRequestCommentOptions = {}
+  options: PullRequestCommentOptions = {},
 ): BitbucketPRApiResponse {
   const includeResolved = options.includeResolved ?? false;
 
@@ -322,7 +322,7 @@ export function filterPullRequestComments(
         ...activity,
         comment: filteredComment,
       }];
-    })
+    }),
   };
 }
 
@@ -334,14 +334,14 @@ function simplifyActivity(activity: PRActivity): SimplifiedActivity {
     action: activity.action,
     ...(activity.commentAction && { commentAction: activity.commentAction }),
     ...(activity.comment && isComment(activity.comment) && {
-      comment: simplifyComment(activity.comment)
-    })
+      comment: simplifyComment(activity.comment),
+    }),
   };
 }
 
 export function simplifyBitbucketPRComments(
   response: BitbucketPRApiResponse,
-  options: PullRequestCommentOptions = {}
+  options: PullRequestCommentOptions = {},
 ): SimplifiedPRResponse | BitbucketPRApiResponse {
   const filteredResponse = filterPullRequestComments(response, options);
   const activities: SimplifiedActivity[] = [];
@@ -373,8 +373,8 @@ export function simplifyBitbucketPRComments(
       totalActivities: activities.length,
       ...(prAuthor && { prAuthor }),
       commentCount: comments.length,
-      unresolvedCount
-    }
+      unresolvedCount,
+    },
   };
 }
 
@@ -389,7 +389,7 @@ export function getCommentSummary(response: BitbucketPRApiResponse, options: Pul
       if (isComment(activity.comment)) {
         const comment = activity.comment;
         commentSummaries.push(
-          `${comment.author.displayName} on ${comment.anchor?.path || 'PR'}:${comment.anchor?.line || ''}: ${comment.text}`
+          `${comment.author.displayName} on ${comment.anchor?.path || 'PR'}:${comment.anchor?.line || ''}: ${comment.text}`,
         );
       }
     }

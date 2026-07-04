@@ -3,7 +3,8 @@ import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsServ
 import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
-import { ConfluenceBodyMode, shapeConfluenceContent } from './confluence-response-mapper.js';
+import type { ConfluenceBodyMode } from './confluence-response-mapper.js';
+import { shapeConfluenceContent } from './confluence-response-mapper.js';
 
 /**
  * Escapes user input for safe use inside a CQL quoted string.
@@ -70,6 +71,7 @@ export interface WebhookInput {
 function resolveCredential(value: string | (() => string | undefined) | undefined) {
   return async () => {
     const resolved = typeof value === 'function' ? value() : value;
+
     return resolved ?? '';
   };
 }
@@ -99,6 +101,7 @@ export class ConfluenceService {
     OpenAPI.HEADERS = { 'X-Atlassian-Token': 'no-check' };
     this.getPageSize = getPageSize;
   }
+
   /**
    * Get a Confluence page by ID
    * @param contentId The ID of the page to retrieve
@@ -109,6 +112,7 @@ export class ConfluenceService {
     const finalExpand = expand && !expand.includes('body.storage')
       ? `${expand},body.storage`
       : expandValue;
+
     return handleApiOperation(() => ContentResourceService.getContentById(contentId, finalExpand), 'Error getting content');
   }
 
@@ -146,9 +150,9 @@ export class ConfluenceService {
         (limit ?? this.getPageSize()).toString(),
         start?.toString(),
         excerpt,
-        cql
+        cql,
       ),
-      'Error searching for content'
+      'Error searching for content',
     );
   }
 
@@ -198,7 +202,7 @@ export class ConfluenceService {
   async getContentChildren(contentId: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
       () => ChildContentService.children(contentId, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
-      'Error getting content children'
+      'Error getting content children',
     );
   }
 
@@ -210,7 +214,7 @@ export class ConfluenceService {
   async getContentChildrenByType(contentId: string, type: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
       () => ChildContentService.childrenOfType(contentId, type, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
-      'Error getting content children by type'
+      'Error getting content children by type',
     );
   }
 
@@ -223,7 +227,7 @@ export class ConfluenceService {
   async getContentComments(contentId: string, expand?: string, depth?: string, limit?: number, start?: number, location?: string) {
     return handleApiOperation(
       () => ChildContentService.commentsOfContent(contentId, expand, depth, (limit ?? this.getPageSize()).toString(), start?.toString(), location),
-      'Error getting content comments'
+      'Error getting content comments',
     );
   }
 
@@ -235,7 +239,7 @@ export class ConfluenceService {
   async getContentDescendants(contentId: string, expand?: string) {
     return handleApiOperation(
       () => ContentDescendantService.descendants(contentId, expand),
-      'Error getting content descendants'
+      'Error getting content descendants',
     );
   }
 
@@ -247,7 +251,7 @@ export class ConfluenceService {
   async getContentDescendantsByType(contentId: string, type: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
       () => ContentDescendantService.descendantsOfType(contentId, type, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
-      'Error getting content descendants by type'
+      'Error getting content descendants by type',
     );
   }
 
@@ -259,7 +263,7 @@ export class ConfluenceService {
   async getContentLabels(contentId: string, prefix?: string, limit?: number, start?: number) {
     return handleApiOperation(
       () => ContentLabelsService.labels(contentId, prefix, (limit ?? this.getPageSize()).toString(), start?.toString()),
-      'Error getting content labels'
+      'Error getting content labels',
     );
   }
 
@@ -271,7 +275,7 @@ export class ConfluenceService {
   async addContentLabels(contentId: string, labels: Array<{ name: string; prefix?: string }>) {
     return handleApiOperation(
       () => ContentLabelsService.addLabels(contentId, labels),
-      'Error adding content labels'
+      'Error adding content labels',
     );
   }
 
@@ -284,7 +288,7 @@ export class ConfluenceService {
   async deleteContentLabel(contentId: string, name: string) {
     return handleApiOperation(
       () => ContentLabelsService.deleteLabelWithQueryParam(contentId, name),
-      'Error deleting content label'
+      'Error deleting content label',
     );
   }
 
@@ -295,7 +299,7 @@ export class ConfluenceService {
   async getContentProperties(contentId: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
       () => ContentPropertyService.findAll(contentId, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
-      'Error getting content properties'
+      'Error getting content properties',
     );
   }
 
@@ -307,7 +311,7 @@ export class ConfluenceService {
   async getContentProperty(contentId: string, key: string, expand?: string) {
     return handleApiOperation(
       () => ContentPropertyService.findByKey(contentId, key, expand),
-      'Error getting content property'
+      'Error getting content property',
     );
   }
 
@@ -320,7 +324,7 @@ export class ConfluenceService {
   async createContentProperty(contentId: string, key: string, value: unknown) {
     return handleApiOperation(
       () => ContentPropertyService.create1(contentId, { key, value }),
-      'Error creating content property'
+      'Error creating content property',
     );
   }
 
@@ -334,7 +338,7 @@ export class ConfluenceService {
   async updateContentProperty(contentId: string, key: string, value: unknown, version: number) {
     return handleApiOperation(
       () => ContentPropertyService.update1(contentId, key, undefined, { key, value, version: { number: version } }),
-      'Error updating content property'
+      'Error updating content property',
     );
   }
 
@@ -346,7 +350,7 @@ export class ConfluenceService {
   async deleteContentProperty(contentId: string, key: string) {
     return handleApiOperation(
       () => ContentPropertyService.delete2(contentId, key),
-      'Error deleting content property'
+      'Error deleting content property',
     );
   }
 
@@ -357,7 +361,7 @@ export class ConfluenceService {
   async getContentRestrictions(contentId: string, expand?: string) {
     return handleApiOperation(
       () => ContentRestrictionsService.byOperation(contentId, expand),
-      'Error getting content restrictions'
+      'Error getting content restrictions',
     );
   }
 
@@ -369,7 +373,7 @@ export class ConfluenceService {
   async getContentRestrictionsByOperation(operationKey: string, contentId: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
       () => ContentRestrictionsService.forOperation(operationKey, contentId, expand, limit?.toString(), start?.toString()),
-      'Error getting content restrictions by operation'
+      'Error getting content restrictions by operation',
     );
   }
 
@@ -388,7 +392,7 @@ export class ConfluenceService {
   ) {
     return handleApiOperation(
       () => ContentRestrictionsService.updateRestrictions(contentId, expand, limit?.toString(), start?.toString(), restrictions),
-      'Error updating content restrictions'
+      'Error updating content restrictions',
     );
   }
 
@@ -400,7 +404,7 @@ export class ConfluenceService {
   async getContentWatchers(contentId: string, limit?: number, start?: number) {
     return handleApiOperation(
       () => ContentWatchersService.index(contentId, (limit ?? this.getPageSize()).toString(), start?.toString()),
-      'Error getting content watchers'
+      'Error getting content watchers',
     );
   }
 
@@ -414,7 +418,7 @@ export class ConfluenceService {
   async isWatchingContent(contentId: string, key?: string, username?: string) {
     return handleApiOperation(
       () => UserWatchService.isWatchingContent(contentId, key, username),
-      'Error checking content watch state'
+      'Error checking content watch state',
     );
   }
 
@@ -427,7 +431,7 @@ export class ConfluenceService {
   async addContentWatcher(contentId: string, key?: string, username?: string) {
     return handleApiOperation(
       () => UserWatchService.addContentWatcher(contentId, key, username),
-      'Error adding content watcher'
+      'Error adding content watcher',
     );
   }
 
@@ -440,7 +444,7 @@ export class ConfluenceService {
   async removeContentWatcher(contentId: string, key?: string, username?: string) {
     return handleApiOperation(
       () => UserWatchService.removeContentWatcher(contentId, key, username),
-      'Error removing content watcher'
+      'Error removing content watcher',
     );
   }
 
@@ -453,7 +457,7 @@ export class ConfluenceService {
   async getAttachments(contentId: string, expand?: string, filename?: string, limit?: number, start?: number, mediaType?: string) {
     return handleApiOperation(
       () => AttachmentsService.getAttachments(contentId, expand, filename, (limit ?? this.getPageSize()).toString(), start?.toString(), mediaType),
-      'Error getting attachments'
+      'Error getting attachments',
     );
   }
 
@@ -465,7 +469,7 @@ export class ConfluenceService {
   async removeAttachment(attachmentId: string, contentId: string) {
     return handleApiOperation(
       () => AttachmentsService.removeAttachment(attachmentId, contentId),
-      'Error removing attachment'
+      'Error removing attachment',
     );
   }
 
@@ -481,7 +485,7 @@ export class ConfluenceService {
     limit?: number,
     start?: number,
     expand?: string,
-    excerpt: 'none' | 'highlight' = 'none'
+    excerpt: 'none' | 'highlight' = 'none',
   ) {
     // Create a CQL query that searches for spaces
     // The correct syntax for space search is: type=space AND title ~ "searchText"
@@ -495,7 +499,7 @@ export class ConfluenceService {
       (limit ?? this.getPageSize()).toString(),
       start?.toString(),
       excerpt,
-      cql
+      cql,
     ), 'Error searching for spaces');
   }
 
@@ -539,7 +543,7 @@ export class ConfluenceService {
         undefined,
         status,
       ),
-      'Error getting spaces'
+      'Error getting spaces',
     );
   }
 
@@ -551,7 +555,7 @@ export class ConfluenceService {
   async createSpace(space: ConfluenceSpace, isPrivate = false) {
     return handleApiOperation(
       () => (isPrivate ? SpaceService.createPrivateSpace(space) : SpaceService.createSpace(space)),
-      'Error creating space'
+      'Error creating space',
     );
   }
 
@@ -570,17 +574,18 @@ export class ConfluenceService {
     hidden?: boolean,
     allowDuplicated?: boolean,
     status?: string,
-    expand?: string
+    expand?: string,
   ) {
     return handleApiOperation(() => {
       const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
       const formData = { file, comment, minorEdit, hidden } as unknown as MockAttachmentRequest;
+
       return AttachmentsService.createAttachments(
         contentId,
         expand,
         allowDuplicated ? 'true' : undefined,
         status,
-        formData
+        formData,
       );
     }, 'Error creating attachment');
   }
@@ -599,7 +604,7 @@ export class ConfluenceService {
     versionComment?: string,
     mediaType?: string,
     comment?: string,
-    minorEdit?: boolean
+    minorEdit?: boolean,
   ) {
     const body: Content = {
       id: attachmentId,
@@ -611,7 +616,7 @@ export class ConfluenceService {
 
     return handleApiOperation(
       () => AttachmentsService.update(attachmentId, contentId, body),
-      'Error updating attachment metadata'
+      'Error updating attachment metadata',
     );
   }
 
@@ -640,11 +645,12 @@ export class ConfluenceService {
    */
   async getSpaceContent(spaceKey: string, type?: string, expand?: string, depth?: string, limit?: number, start?: number) {
     const limitValue = (limit ?? this.getPageSize()).toString();
+
     return handleApiOperation(
       () => (type
         ? SpaceService.contentsWithType1(spaceKey, type, expand, depth, limitValue, start?.toString())
         : SpaceService.contents(spaceKey, expand, depth, limitValue, start?.toString())),
-      'Error getting space content'
+      'Error getting space content',
     );
   }
 
@@ -661,11 +667,12 @@ export class ConfluenceService {
     fileName: string,
     contentBase64: string,
     comment?: string,
-    minorEdit?: boolean
+    minorEdit?: boolean,
   ) {
     return handleApiOperation(() => {
       const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
       const formData = { file, comment, minorEdit } as unknown as MockAttachmentRequest;
+
       return AttachmentsService.updateData(attachmentId, contentId, formData);
     }, 'Error updating attachment data');
   }
@@ -678,7 +685,7 @@ export class ConfluenceService {
   async moveAttachment(contentId: string, attachmentId: string, newContentId?: string, newName?: string) {
     return handleApiOperation(
       () => AttachmentsService.move(attachmentId, contentId, newName, newContentId),
-      'Error moving attachment'
+      'Error moving attachment',
     );
   }
 
@@ -705,7 +712,7 @@ export class ConfluenceService {
   async getSpaceProperties(spaceKey: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
       () => SpacePropertyService.get1(spaceKey, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
-      'Error getting space properties'
+      'Error getting space properties',
     );
   }
 
@@ -717,7 +724,7 @@ export class ConfluenceService {
   async deleteAttachment(contentId: string, attachmentId: string) {
     return handleApiOperation(
       () => AttachmentsService.removeAttachment(attachmentId, contentId),
-      'Error deleting attachment'
+      'Error deleting attachment',
     );
   }
 
@@ -729,7 +736,7 @@ export class ConfluenceService {
   async getSpaceProperty(spaceKey: string, key: string, expand?: string) {
     return handleApiOperation(
       () => SpacePropertyService.get(spaceKey, key, expand),
-      'Error getting space property'
+      'Error getting space property',
     );
   }
 
@@ -742,7 +749,7 @@ export class ConfluenceService {
   async createSpaceProperty(spaceKey: string, key: string, value: unknown) {
     return handleApiOperation(
       () => SpacePropertyService.create3(spaceKey, { key, value }),
-      'Error creating space property'
+      'Error creating space property',
     );
   }
 
@@ -756,7 +763,7 @@ export class ConfluenceService {
   async updateSpaceProperty(spaceKey: string, key: string, value: unknown, version: number) {
     return handleApiOperation(
       () => SpacePropertyService.update3(spaceKey, key, { key, value, version: { number: version } }),
-      'Error updating space property'
+      'Error updating space property',
     );
   }
 
@@ -768,7 +775,7 @@ export class ConfluenceService {
   async deleteSpaceProperty(spaceKey: string, key: string) {
     return handleApiOperation(
       () => SpacePropertyService.delete4(spaceKey, key),
-      'Error deleting space property'
+      'Error deleting space property',
     );
   }
 
@@ -781,7 +788,7 @@ export class ConfluenceService {
   async deleteAttachmentVersion(contentId: string, attachmentId: string, version: number) {
     return handleApiOperation(
       () => AttachmentsService.removeAttachmentVersion(attachmentId, contentId, version),
-      'Error deleting attachment version'
+      'Error deleting attachment version',
     );
   }
 
@@ -792,7 +799,7 @@ export class ConfluenceService {
   async getAllSpacePermissions(spaceKey: string) {
     return handleApiOperation(
       () => SpacePermissionsService.getAllSpacePermissions(spaceKey),
-      'Error getting space permissions'
+      'Error getting space permissions',
     );
   }
 
@@ -805,7 +812,7 @@ export class ConfluenceService {
   async setSpacePermissions(spaceKey: string, permissions: SpacePermissionsForSubjectInput[]) {
     return handleApiOperation(
       () => SpacePermissionsService.setPermissions1(spaceKey, permissions),
-      'Error setting space permissions'
+      'Error setting space permissions',
     );
   }
 
@@ -816,7 +823,7 @@ export class ConfluenceService {
   async getAnonymousSpacePermissions(spaceKey: string) {
     return handleApiOperation(
       () => SpacePermissionsService.getPermissionsGrantedToAnonymousUsers1(spaceKey),
-      'Error getting anonymous space permissions'
+      'Error getting anonymous space permissions',
     );
   }
 
@@ -828,7 +835,7 @@ export class ConfluenceService {
   async getGroupSpacePermissions(spaceKey: string, groupName: string) {
     return handleApiOperation(
       () => SpacePermissionsService.getPermissionsGrantedToGroup1(spaceKey, groupName),
-      'Error getting group space permissions'
+      'Error getting group space permissions',
     );
   }
 
@@ -840,7 +847,7 @@ export class ConfluenceService {
   async getUserSpacePermissions(spaceKey: string, userKey: string) {
     return handleApiOperation(
       () => SpacePermissionsService.getPermissionsGrantedToUser1(spaceKey, userKey),
-      'Error getting user space permissions'
+      'Error getting user space permissions',
     );
   }
 
@@ -852,7 +859,7 @@ export class ConfluenceService {
   async grantAnonymousSpacePermissions(spaceKey: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
       () => SpacePermissionsService.grantPermissionsToAnonymousUsers1(spaceKey, operations),
-      'Error granting anonymous space permissions'
+      'Error granting anonymous space permissions',
     );
   }
 
@@ -865,7 +872,7 @@ export class ConfluenceService {
   async grantGroupSpacePermissions(spaceKey: string, groupName: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
       () => SpacePermissionsService.grantPermissionsToGroup1(spaceKey, groupName, operations),
-      'Error granting group space permissions'
+      'Error granting group space permissions',
     );
   }
 
@@ -878,7 +885,7 @@ export class ConfluenceService {
   async grantUserSpacePermissions(spaceKey: string, userKey: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
       () => SpacePermissionsService.grantPermissionsToUser1(spaceKey, userKey, operations),
-      'Error granting user space permissions'
+      'Error granting user space permissions',
     );
   }
 
@@ -890,7 +897,7 @@ export class ConfluenceService {
   async revokeAnonymousSpacePermissions(spaceKey: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
       () => SpacePermissionsService.revokePermissionsFromAnonymousUser(spaceKey, operations),
-      'Error revoking anonymous space permissions'
+      'Error revoking anonymous space permissions',
     );
   }
 
@@ -903,7 +910,7 @@ export class ConfluenceService {
   async revokeGroupSpacePermissions(spaceKey: string, groupName: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
       () => SpacePermissionsService.revokePermissionsFromGroup1(spaceKey, groupName, operations),
-      'Error revoking group space permissions'
+      'Error revoking group space permissions',
     );
   }
 
@@ -916,7 +923,7 @@ export class ConfluenceService {
   async revokeUserSpacePermissions(spaceKey: string, userKey: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
       () => SpacePermissionsService.revokePermissionsFromUser1(spaceKey, userKey, operations),
-      'Error revoking user space permissions'
+      'Error revoking user space permissions',
     );
   }
 
@@ -947,7 +954,7 @@ export class ConfluenceService {
   async getUsers(limit?: number, start?: number, expand?: string) {
     return handleApiOperation(
       () => UserService.getUsers(expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
-      'Error getting users'
+      'Error getting users',
     );
   }
 
@@ -957,7 +964,7 @@ export class ConfluenceService {
   async getUserGroups(key?: string, username?: string, limit?: number, start?: number, expand?: string) {
     return handleApiOperation(
       () => UserService.getGroups1(expand, (limit ?? this.getPageSize()).toString(), start?.toString(), key, username),
-      'Error getting user groups'
+      'Error getting user groups',
     );
   }
 
@@ -967,7 +974,7 @@ export class ConfluenceService {
   async updateCurrentUser(fullName?: string, email?: string, currentPassword?: string) {
     return handleApiOperation(
       () => UserService.updateUser1({ fullName, email, currentPassword }),
-      'Error updating current user'
+      'Error updating current user',
     );
   }
 
@@ -977,7 +984,7 @@ export class ConfluenceService {
   async changeCurrentUserPassword(newPassword: string, oldPassword?: string) {
     return handleApiOperation(
       () => UserService.changePassword1({ newPassword, oldPassword }),
-      'Error changing current user password'
+      'Error changing current user password',
     );
   }
 
@@ -994,7 +1001,7 @@ export class ConfluenceService {
   async getGroups(limit?: number, start?: number, expand?: string) {
     return handleApiOperation(
       () => GroupService.getGroups(expand, limit ?? this.getPageSize(), start),
-      'Error getting groups'
+      'Error getting groups',
     );
   }
 
@@ -1004,7 +1011,7 @@ export class ConfluenceService {
   async getGroupMembers(groupName: string, limit?: number, start?: number, expand?: string) {
     return handleApiOperation(
       () => GroupService.getMembers(groupName, expand, limit ?? this.getPageSize(), start),
-      'Error getting group members'
+      'Error getting group members',
     );
   }
 
@@ -1014,7 +1021,7 @@ export class ConfluenceService {
   async getNestedGroupMembers(groupName: string, limit?: number, start?: number, expand?: string) {
     return handleApiOperation(
       () => GroupService.getNestedGroupMembers(groupName, expand, limit ?? this.getPageSize(), start),
-      'Error getting nested group members'
+      'Error getting nested group members',
     );
   }
 
@@ -1024,7 +1031,7 @@ export class ConfluenceService {
   async addUserToGroup(username: string, groupName: string) {
     return handleApiOperation(
       () => UserGroupService.update5(groupName, username),
-      'Error adding user to group'
+      'Error adding user to group',
     );
   }
 
@@ -1034,7 +1041,7 @@ export class ConfluenceService {
   async removeUserFromGroup(username: string, groupName: string) {
     return handleApiOperation(
       () => UserGroupService.delete6(groupName, username),
-      'Error removing user from group'
+      'Error removing user from group',
     );
   }
 
@@ -1045,7 +1052,7 @@ export class ConfluenceService {
   async adminCreateUser(userName: string, fullName: string, email: string, password?: string, notifyViaEmail?: boolean) {
     return handleApiOperation(
       () => AdminUserService.createUser({ userName, fullName, email, password, notifyViaEmail }),
-      'Error creating user'
+      'Error creating user',
     );
   }
 
@@ -1055,7 +1062,7 @@ export class ConfluenceService {
   async adminUpdateUser(username: string, fullName?: string, email?: string) {
     return handleApiOperation(
       () => AdminUserService.updateUser(username, { fullName, email }),
-      'Error updating user'
+      'Error updating user',
     );
   }
 
@@ -1086,7 +1093,7 @@ export class ConfluenceService {
   async adminChangeUserPassword(username: string, password: string) {
     return handleApiOperation(
       () => AdminUserService.changePassword(username, { password }),
-      'Error changing user password'
+      'Error changing user password',
     );
   }
 
@@ -1110,7 +1117,7 @@ export class ConfluenceService {
   async adminGetActiveUsers(limit?: number, start?: number, expand?: string) {
     return handleApiOperation(
       () => AdminUsersService.getActiveUsers(expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
-      'Error getting active users'
+      'Error getting active users',
     );
   }
 
@@ -1123,7 +1130,7 @@ export class ConfluenceService {
   async publishBlueprintSharedDraft(draftId: string, content: ConfluenceContent, expand?: string) {
     return handleApiOperation(
       () => ContentBlueprintService.publishSharedDraft(draftId, expand, 'draft', content),
-      'Error publishing shared blueprint draft'
+      'Error publishing shared blueprint draft',
     );
   }
 
@@ -1136,7 +1143,7 @@ export class ConfluenceService {
   async publishBlueprintLegacyDraft(draftId: string, content: ConfluenceContent, expand?: string) {
     return handleApiOperation(
       () => ContentBlueprintService.publishLegacyDraft(draftId, expand, 'draft', content),
-      'Error publishing legacy blueprint draft'
+      'Error publishing legacy blueprint draft',
     );
   }
 
@@ -1151,7 +1158,7 @@ export class ConfluenceService {
   async convertContentBody(to: string, value: string, representation: string, expand?: string) {
     return handleApiOperation(
       () => ContentBodyService.convert(to, expand, { value, representation }),
-      'Error converting content body'
+      'Error converting content body',
     );
   }
 
@@ -1164,9 +1171,9 @@ export class ConfluenceService {
         (limit ?? this.getPageSize()).toString(),
         start?.toString(),
         event,
-        statistics?.toString()
+        statistics?.toString(),
       ),
-      'Error finding webhooks'
+      'Error finding webhooks',
     );
   }
 
@@ -1204,7 +1211,7 @@ export class ConfluenceService {
   async getWebhookLatestInvocation(webhookId: string, outcomes?: string, event?: string) {
     return handleApiOperation(
       () => WebhooksService.getLatestInvocation(webhookId, outcomes, event),
-      'Error getting webhook latest invocation'
+      'Error getting webhook latest invocation',
     );
   }
 
@@ -1214,7 +1221,7 @@ export class ConfluenceService {
   async getWebhookStatistics(webhookId: string, event?: string) {
     return handleApiOperation(
       () => WebhooksService.getStatistics(webhookId, event),
-      'Error getting webhook statistics'
+      'Error getting webhook statistics',
     );
   }
 
@@ -1224,7 +1231,7 @@ export class ConfluenceService {
   async getWebhookStatisticsSummary(webhookId: string) {
     return handleApiOperation(
       () => WebhooksService.getStatisticsSummary(webhookId),
-      'Error getting webhook statistics summary'
+      'Error getting webhook statistics summary',
     );
   }
 
@@ -1250,7 +1257,7 @@ export class ConfluenceService {
   async getClusterNodes(limit?: number, start?: number) {
     return handleApiOperation(
       () => ClusterInformationService.getClusterNodeStatuses(limit?.toString(), start?.toString()),
-      'Error getting cluster node statuses'
+      'Error getting cluster node statuses',
     );
   }
 
@@ -1267,7 +1274,7 @@ export class ConfluenceService {
   async getLongRunningTasks(expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
       () => LongTaskService.getTasks(expand, limit?.toString(), start?.toString()),
-      'Error getting long-running tasks'
+      'Error getting long-running tasks',
     );
   }
 
@@ -1278,7 +1285,7 @@ export class ConfluenceService {
   async triggerSiteBackup(settings?: Record<string, unknown>) {
     return handleApiOperation(
       () => BackupAndRestoreService.createSiteBackupJob(settings),
-      'Error triggering site backup'
+      'Error triggering site backup',
     );
   }
 
@@ -1304,7 +1311,7 @@ export class ConfluenceService {
   ) {
     return handleApiOperation(
       () => BackupAndRestoreService.findJobs(owner, spaceKey, fromDate, jobStates, toDate, jobOperation, limit?.toString(), jobScope),
-      'Error finding backup/restore jobs'
+      'Error finding backup/restore jobs',
     );
   }
 
@@ -1326,560 +1333,560 @@ export class ConfluenceService {
 
 export const confluenceToolSchemas = {
   getContent: {
-    contentId: z.string().describe("Confluence Data Center content ID"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand"),
-    bodyMode: z.enum(['storage', 'text', 'none']).optional().describe("How to return the page body. Defaults to storage for backward compatibility."),
-    maxBodyChars: z.number().optional().describe("Maximum number of characters to keep when bodyMode is text"),
-    bodyStart: z.number().int().optional().describe("Character offset to start the text body slice when bodyMode is text. Non-negative values start from the beginning; negative values start from the end, e.g. -2000 returns the last 2000 characters.")
+    contentId: z.string().describe('Confluence Data Center content ID'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand'),
+    bodyMode: z.enum(['storage', 'text', 'none']).optional().describe('How to return the page body. Defaults to storage for backward compatibility.'),
+    maxBodyChars: z.number().optional().describe('Maximum number of characters to keep when bodyMode is text'),
+    bodyStart: z.number().int().optional().describe('Character offset to start the text body slice when bodyMode is text. Non-negative values start from the beginning; negative values start from the end, e.g. -2000 returns the last 2000 characters.'),
   },
   searchContent: {
-    cql: z.string().describe("Confluence Query Language (CQL) search string for Confluence Data Center"),
-    limit: z.number().optional().describe("Maximum number of results to return"),
-    start: z.number().optional().describe("Start index for pagination"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand"),
-    excerpt: z.enum(['none', 'highlight']).optional().describe("Excerpt mode for search results. Defaults to none.")
+    cql: z.string().describe('Confluence Query Language (CQL) search string for Confluence Data Center'),
+    limit: z.number().optional().describe('Maximum number of results to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand'),
+    excerpt: z.enum(['none', 'highlight']).optional().describe('Excerpt mode for search results. Defaults to none.'),
   },
   createContent: {
-    title: z.string().describe("Title of the content"),
-    spaceKey: z.string().describe("Space key where content will be created"),
-    type: z.string().default("page").describe("Content type (page, blogpost, etc)"),
-    content: z.string().describe("Content body in Confluence Data Center \"storage\" format (confluence XML)"),
-    parentId: z.string().optional().describe("ID of the parent page (if creating a child page)"),
-    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
+    title: z.string().describe('Title of the content'),
+    spaceKey: z.string().describe('Space key where content will be created'),
+    type: z.string().default('page').describe('Content type (page, blogpost, etc)'),
+    content: z.string().describe('Content body in Confluence Data Center "storage" format (confluence XML)'),
+    parentId: z.string().optional().describe('ID of the parent page (if creating a child page)'),
+    output: z.enum(['ack', 'full']).optional().describe('Return a compact acknowledgement or the full API response. Defaults to ack.'),
   },
   updateContent: {
-    contentId: z.string().describe("ID of the content to update"),
-    title: z.string().optional().describe("New title of the content"),
-    content: z.string().optional().describe("New content body in Confluence Data Center storage format (XML-based)"),
-    version: z.number().describe("New version number (must be incremented)"),
-    versionComment: z.string().optional().describe("Comment for this version"),
-    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
+    contentId: z.string().describe('ID of the content to update'),
+    title: z.string().optional().describe('New title of the content'),
+    content: z.string().optional().describe('New content body in Confluence Data Center storage format (XML-based)'),
+    version: z.number().describe('New version number (must be incremented)'),
+    versionComment: z.string().optional().describe('Comment for this version'),
+    output: z.enum(['ack', 'full']).optional().describe('Return a compact acknowledgement or the full API response. Defaults to ack.'),
   },
   deleteContent: {
-    contentId: z.string().describe("ID of the content to delete"),
-    status: z.string().optional().describe("Content status selector. Omit to move current content to the trash; pass 'trashed' to permanently purge already-trashed content, or 'draft' to delete a draft.")
+    contentId: z.string().describe('ID of the content to delete'),
+    status: z.string().optional().describe('Content status selector. Omit to move current content to the trash; pass \'trashed\' to permanently purge already-trashed content, or \'draft\' to delete a draft.'),
   },
   getContentHistory: {
-    contentId: z.string().describe("ID of the content to fetch history for"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. previousVersion,nextVersion,lastUpdated,contributors). Defaults to previousVersion,nextVersion,lastUpdated.")
+    contentId: z.string().describe('ID of the content to fetch history for'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand (e.g. previousVersion,nextVersion,lastUpdated,contributors). Defaults to previousVersion,nextVersion,lastUpdated.'),
   },
   getContentChildren: {
-    contentId: z.string().describe("ID of the parent content"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the children (e.g. page,comment,attachment). Without an expand only the available child types are listed."),
-    limit: z.number().optional().describe("Maximum number of children to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    contentId: z.string().describe('ID of the parent content'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the children (e.g. page,comment,attachment). Without an expand only the available child types are listed.'),
+    limit: z.number().optional().describe('Maximum number of children to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   getContentChildrenByType: {
-    contentId: z.string().describe("ID of the parent content"),
-    type: z.string().describe("Child content type to filter on (page, comment, attachment)"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the children"),
-    limit: z.number().optional().describe("Maximum number of children to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    contentId: z.string().describe('ID of the parent content'),
+    type: z.string().describe('Child content type to filter on (page, comment, attachment)'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the children'),
+    limit: z.number().optional().describe('Maximum number of children to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   getContentComments: {
-    contentId: z.string().describe("ID of the content to fetch comments for"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the comments (e.g. body.view,extensions.resolution)"),
-    depth: z.string().optional().describe("Depth of the comments: empty string for ROOT only (default) or 'all' for the full thread"),
-    limit: z.number().optional().describe("Maximum number of comments to return"),
-    start: z.number().optional().describe("Start index for pagination"),
-    location: z.string().optional().describe("Comment location filter: inline, footer or resolved. Omit for all locations.")
+    contentId: z.string().describe('ID of the content to fetch comments for'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the comments (e.g. body.view,extensions.resolution)'),
+    depth: z.string().optional().describe('Depth of the comments: empty string for ROOT only (default) or \'all\' for the full thread'),
+    limit: z.number().optional().describe('Maximum number of comments to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+    location: z.string().optional().describe('Comment location filter: inline, footer or resolved. Omit for all locations.'),
   },
   getContentDescendants: {
-    contentId: z.string().describe("ID of the content to fetch descendants for"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the descendants (e.g. comment). Without an expand only the available descendant types are listed.")
+    contentId: z.string().describe('ID of the content to fetch descendants for'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the descendants (e.g. comment). Without an expand only the available descendant types are listed.'),
   },
   getContentDescendantsByType: {
-    contentId: z.string().describe("ID of the content to fetch descendants for"),
-    type: z.string().describe("Content type to filter descendants on (currently only comment is supported)"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the descendants"),
-    limit: z.number().optional().describe("Maximum number of descendants to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    contentId: z.string().describe('ID of the content to fetch descendants for'),
+    type: z.string().describe('Content type to filter descendants on (currently only comment is supported)'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the descendants'),
+    limit: z.number().optional().describe('Maximum number of descendants to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   getContentLabels: {
-    contentId: z.string().describe("ID of the content to fetch labels for"),
-    prefix: z.string().optional().describe("Label prefix filter: global, my or team. Omit for all prefixes."),
-    limit: z.number().optional().describe("Maximum number of labels to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    contentId: z.string().describe('ID of the content to fetch labels for'),
+    prefix: z.string().optional().describe('Label prefix filter: global, my or team. Omit for all prefixes.'),
+    limit: z.number().optional().describe('Maximum number of labels to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   addContentLabels: {
-    contentId: z.string().describe("ID of the content to add labels to"),
+    contentId: z.string().describe('ID of the content to add labels to'),
     labels: z.array(z.object({
-      name: z.string().describe("The label name (without prefix)"),
-      prefix: z.string().optional().describe("Label prefix, defaults to 'global' on the server")
-    })).min(1).describe("One or more labels to add to the content")
+      name: z.string().describe('The label name (without prefix)'),
+      prefix: z.string().optional().describe('Label prefix, defaults to \'global\' on the server'),
+    })).min(1).describe('One or more labels to add to the content'),
   },
   deleteContentLabel: {
-    contentId: z.string().describe("ID of the content to remove the label from"),
-    name: z.string().describe("Name of the label to remove")
+    contentId: z.string().describe('ID of the content to remove the label from'),
+    name: z.string().describe('Name of the label to remove'),
   },
   getContentProperties: {
-    contentId: z.string().describe("ID of the content to fetch properties for"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. content,version). Defaults to version."),
-    limit: z.number().optional().describe("Maximum number of properties to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    contentId: z.string().describe('ID of the content to fetch properties for'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand (e.g. content,version). Defaults to version.'),
+    limit: z.number().optional().describe('Maximum number of properties to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   getContentProperty: {
-    contentId: z.string().describe("ID of the content"),
-    key: z.string().describe("Key of the content property to fetch"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. content,version). Defaults to version.")
+    contentId: z.string().describe('ID of the content'),
+    key: z.string().describe('Key of the content property to fetch'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand (e.g. content,version). Defaults to version.'),
   },
   createContentProperty: {
-    contentId: z.string().describe("ID of the content to store the property on"),
-    key: z.string().describe("Key of the content property to create"),
-    value: z.any().describe("JSON value to store for the property (object, array, string, number or boolean)")
+    contentId: z.string().describe('ID of the content to store the property on'),
+    key: z.string().describe('Key of the content property to create'),
+    value: z.any().describe('JSON value to store for the property (object, array, string, number or boolean)'),
   },
   updateContentProperty: {
-    contentId: z.string().describe("ID of the content"),
-    key: z.string().describe("Key of the content property to update"),
-    value: z.any().describe("New JSON value for the property"),
-    version: z.number().describe("New version number (must be the current version + 1)")
+    contentId: z.string().describe('ID of the content'),
+    key: z.string().describe('Key of the content property to update'),
+    value: z.any().describe('New JSON value for the property'),
+    version: z.number().describe('New version number (must be the current version + 1)'),
   },
   deleteContentProperty: {
-    contentId: z.string().describe("ID of the content"),
-    key: z.string().describe("Key of the content property to delete")
+    contentId: z.string().describe('ID of the content'),
+    key: z.string().describe('Key of the content property to delete'),
   },
   getContentRestrictions: {
-    contentId: z.string().describe("ID of the content to fetch restrictions for"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. restrictions.user,restrictions.group). Defaults to group.")
+    contentId: z.string().describe('ID of the content to fetch restrictions for'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand (e.g. restrictions.user,restrictions.group). Defaults to group.'),
   },
   getContentRestrictionsByOperation: {
-    operationKey: z.string().describe("The operation to fetch restrictions for: read or update"),
-    contentId: z.string().describe("ID of the content"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand. Defaults to group."),
-    limit: z.number().optional().describe("Maximum number of restriction entries to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    operationKey: z.string().describe('The operation to fetch restrictions for: read or update'),
+    contentId: z.string().describe('ID of the content'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand. Defaults to group.'),
+    limit: z.number().optional().describe('Maximum number of restriction entries to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   updateContentRestrictions: {
-    contentId: z.string().describe("ID of the content (pages and blog posts only)"),
+    contentId: z.string().describe('ID of the content (pages and blog posts only)'),
     restrictions: z.array(z.object({
-      operation: z.enum(['read', 'update']).describe("The operation the restriction applies to"),
+      operation: z.enum(['read', 'update']).describe('The operation the restriction applies to'),
       restrictions: z.object({
         user: z.array(z.object({
-          type: z.string().optional().describe("User type, e.g. 'known'"),
-          username: z.string().optional().describe("Username of the user"),
-          userKey: z.string().optional().describe("User key of the user")
-        })).optional().describe("Users allowed to perform the operation. An empty array clears the user restriction."),
+          type: z.string().optional().describe('User type, e.g. \'known\''),
+          username: z.string().optional().describe('Username of the user'),
+          userKey: z.string().optional().describe('User key of the user'),
+        })).optional().describe('Users allowed to perform the operation. An empty array clears the user restriction.'),
         group: z.array(z.object({
-          type: z.string().optional().describe("Group type, e.g. 'group'"),
-          name: z.string().optional().describe("Group name")
-        })).optional().describe("Groups allowed to perform the operation. An empty array clears the group restriction.")
-      }).describe("The users and groups the operation is restricted to")
-    })).min(1).describe("Per-operation restrictions to set. Each entry overwrites the existing restrictions for that operation."),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand in the response. Defaults to restrictions.user,restrictions.group.")
+          type: z.string().optional().describe('Group type, e.g. \'group\''),
+          name: z.string().optional().describe('Group name'),
+        })).optional().describe('Groups allowed to perform the operation. An empty array clears the group restriction.'),
+      }).describe('The users and groups the operation is restricted to'),
+    })).min(1).describe('Per-operation restrictions to set. Each entry overwrites the existing restrictions for that operation.'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand in the response. Defaults to restrictions.user,restrictions.group.'),
   },
   getContentWatchers: {
-    contentId: z.string().describe("ID of the content to list watchers for (requires admin privileges)"),
-    limit: z.number().optional().describe("Maximum number of watchers to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    contentId: z.string().describe('ID of the content to list watchers for (requires admin privileges)'),
+    limit: z.number().optional().describe('Maximum number of watchers to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   isWatchingContent: {
-    contentId: z.string().describe("ID of the content"),
-    key: z.string().optional().describe("User key of the user to check. Omit to check the current user."),
-    username: z.string().optional().describe("Username of the user to check. Omit to check the current user.")
+    contentId: z.string().describe('ID of the content'),
+    key: z.string().optional().describe('User key of the user to check. Omit to check the current user.'),
+    username: z.string().optional().describe('Username of the user to check. Omit to check the current user.'),
   },
   addContentWatcher: {
-    contentId: z.string().describe("ID of the content to watch"),
-    key: z.string().optional().describe("User key of the user to add as watcher. Omit to add the current user."),
-    username: z.string().optional().describe("Username of the user to add as watcher. Omit to add the current user.")
+    contentId: z.string().describe('ID of the content to watch'),
+    key: z.string().optional().describe('User key of the user to add as watcher. Omit to add the current user.'),
+    username: z.string().optional().describe('Username of the user to add as watcher. Omit to add the current user.'),
   },
   removeContentWatcher: {
-    contentId: z.string().describe("ID of the content to unwatch"),
-    key: z.string().optional().describe("User key of the user to remove. Omit to remove the current user."),
-    username: z.string().optional().describe("Username of the user to remove. Omit to remove the current user.")
+    contentId: z.string().describe('ID of the content to unwatch'),
+    key: z.string().optional().describe('User key of the user to remove. Omit to remove the current user.'),
+    username: z.string().optional().describe('Username of the user to remove. Omit to remove the current user.'),
   },
   getAttachments: {
-    contentId: z.string().describe("ID of the content the attachments are on"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the attachments (e.g. version,container)"),
-    filename: z.string().optional().describe("Return only the attachment matching this exact file name"),
-    limit: z.number().optional().describe("Maximum number of attachments to return"),
-    start: z.number().optional().describe("Start index for pagination"),
-    mediaType: z.string().optional().describe("Return only attachments matching this media type (e.g. image/png)")
+    contentId: z.string().describe('ID of the content the attachments are on'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the attachments (e.g. version,container)'),
+    filename: z.string().optional().describe('Return only the attachment matching this exact file name'),
+    limit: z.number().optional().describe('Maximum number of attachments to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+    mediaType: z.string().optional().describe('Return only attachments matching this media type (e.g. image/png)'),
   },
   removeAttachment: {
-    attachmentId: z.string().describe("ID of the attachment to remove"),
-    contentId: z.string().describe("ID of the content the attachment is on")
+    attachmentId: z.string().describe('ID of the attachment to remove'),
+    contentId: z.string().describe('ID of the content the attachment is on'),
   },
   searchSpaces: {
-    searchText: z.string().describe("Text to search for in Confluence Data Center space names or descriptions. Quotes and backslashes are escaped for CQL; pass the literal search phrase only (do not pre-escape)."),
-    limit: z.number().optional().describe("Maximum number of results to return"),
-    start: z.number().optional().describe("Start index for pagination"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand"),
-    excerpt: z.enum(['none', 'highlight']).optional().describe("Excerpt mode for search results. Defaults to none.")
+    searchText: z.string().describe('Text to search for in Confluence Data Center space names or descriptions. Quotes and backslashes are escaped for CQL; pass the literal search phrase only (do not pre-escape).'),
+    limit: z.number().optional().describe('Maximum number of results to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand'),
+    excerpt: z.enum(['none', 'highlight']).optional().describe('Excerpt mode for search results. Defaults to none.'),
   },
   getSpace: {
-    spaceKey: z.string().describe("Key of the space to fetch"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. description.plain,homepage,metadata.labels)")
+    spaceKey: z.string().describe('Key of the space to fetch'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand (e.g. description.plain,homepage,metadata.labels)'),
   },
   getSpaces: {
-    spaceKey: z.string().optional().describe("Fetch information for a single space by key"),
-    type: z.enum(['global', 'personal']).optional().describe("Filter spaces by type"),
-    status: z.enum(['current', 'archived']).optional().describe("Filter spaces by status"),
-    label: z.string().optional().describe("Filter spaces by label"),
-    favourite: z.boolean().optional().describe("Filter to only the calling user's favourite spaces"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the spaces"),
-    limit: z.number().optional().describe("Maximum number of spaces to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    spaceKey: z.string().optional().describe('Fetch information for a single space by key'),
+    type: z.enum(['global', 'personal']).optional().describe('Filter spaces by type'),
+    status: z.enum(['current', 'archived']).optional().describe('Filter spaces by status'),
+    label: z.string().optional().describe('Filter spaces by label'),
+    favourite: z.boolean().optional().describe('Filter to only the calling user\'s favourite spaces'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the spaces'),
+    limit: z.number().optional().describe('Maximum number of spaces to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   createSpace: {
-    key: z.string().describe("Key for the new space (unique, uppercase letters/numbers)"),
-    name: z.string().describe("Name of the new space"),
-    description: z.string().optional().describe("Plain-text description of the space"),
-    isPrivate: z.boolean().optional().describe("Create a private space viewable only by its creator. Defaults to false.")
+    key: z.string().describe('Key for the new space (unique, uppercase letters/numbers)'),
+    name: z.string().describe('Name of the new space'),
+    description: z.string().optional().describe('Plain-text description of the space'),
+    isPrivate: z.boolean().optional().describe('Create a private space viewable only by its creator. Defaults to false.'),
   },
   updateSpace: {
-    spaceKey: z.string().describe("Key of the space to update"),
-    name: z.string().describe("New name for the space"),
-    description: z.string().optional().describe("New plain-text description of the space")
+    spaceKey: z.string().describe('Key of the space to update'),
+    name: z.string().describe('New name for the space'),
+    description: z.string().optional().describe('New plain-text description of the space'),
   },
   deleteSpace: {
-    spaceKey: z.string().describe("Key of the space to delete. Deletion runs as a long-running task.")
+    spaceKey: z.string().describe('Key of the space to delete. Deletion runs as a long-running task.'),
   },
   getSpaceContent: {
-    spaceKey: z.string().describe("Key of the space to fetch content from"),
-    type: z.enum(['page', 'blogpost']).optional().describe("Limit results to a single content type. Omit to return all content types."),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the content (e.g. history,version,body.storage)"),
-    depth: z.enum(['all', 'root']).optional().describe("'all' (default) for the full tree or 'root' for only top-level content"),
-    limit: z.number().optional().describe("Maximum number of content items to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    spaceKey: z.string().describe('Key of the space to fetch content from'),
+    type: z.enum(['page', 'blogpost']).optional().describe('Limit results to a single content type. Omit to return all content types.'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the content (e.g. history,version,body.storage)'),
+    depth: z.enum(['all', 'root']).optional().describe('\'all\' (default) for the full tree or \'root\' for only top-level content'),
+    limit: z.number().optional().describe('Maximum number of content items to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   archiveSpace: {
-    spaceKey: z.string().describe("Key of the space to archive")
+    spaceKey: z.string().describe('Key of the space to archive'),
   },
   restoreSpace: {
-    spaceKey: z.string().describe("Key of the archived space to restore")
+    spaceKey: z.string().describe('Key of the archived space to restore'),
   },
   getSpaceProperties: {
-    spaceKey: z.string().describe("Key of the space to fetch properties for"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. space,version). Defaults to version."),
-    limit: z.number().optional().describe("Maximum number of properties to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    spaceKey: z.string().describe('Key of the space to fetch properties for'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand (e.g. space,version). Defaults to version.'),
+    limit: z.number().optional().describe('Maximum number of properties to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   getSpaceProperty: {
-    spaceKey: z.string().describe("Key of the space"),
-    key: z.string().describe("Key of the space property to fetch"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand (e.g. space,version). Defaults to version.")
+    spaceKey: z.string().describe('Key of the space'),
+    key: z.string().describe('Key of the space property to fetch'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand (e.g. space,version). Defaults to version.'),
   },
   createSpaceProperty: {
-    spaceKey: z.string().describe("Key of the space to store the property on"),
-    key: z.string().describe("Key of the space property to create"),
-    value: z.any().describe("JSON value to store for the property (object, array, string, number or boolean)")
+    spaceKey: z.string().describe('Key of the space to store the property on'),
+    key: z.string().describe('Key of the space property to create'),
+    value: z.any().describe('JSON value to store for the property (object, array, string, number or boolean)'),
   },
   updateSpaceProperty: {
-    spaceKey: z.string().describe("Key of the space"),
-    key: z.string().describe("Key of the space property to update"),
-    value: z.any().describe("New JSON value for the property"),
-    version: z.number().describe("New version number (must be the current version + 1)")
+    spaceKey: z.string().describe('Key of the space'),
+    key: z.string().describe('Key of the space property to update'),
+    value: z.any().describe('New JSON value for the property'),
+    version: z.number().describe('New version number (must be the current version + 1)'),
   },
   deleteSpaceProperty: {
-    spaceKey: z.string().describe("Key of the space"),
-    key: z.string().describe("Key of the space property to delete")
+    spaceKey: z.string().describe('Key of the space'),
+    key: z.string().describe('Key of the space property to delete'),
   },
   createAttachment: {
-    contentId: z.string().describe("The ID of the content to attach the file to"),
-    fileName: z.string().describe("Name of the file being uploaded"),
-    contentBase64: z.string().describe("Base64-encoded file content"),
-    comment: z.string().optional().describe("Comment to attach to the uploaded file"),
-    minorEdit: z.boolean().optional().describe("If true, no notification email will be generated for this attachment"),
-    hidden: z.boolean().optional().describe("If true, no notification email or activity stream entry will be generated"),
-    allowDuplicated: z.boolean().optional().describe("Allow uploading an attachment with an already-existing filename"),
-    status: z.string().optional().describe("Status of the attachment's content container, e.g. current or draft"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the attachment returned")
+    contentId: z.string().describe('The ID of the content to attach the file to'),
+    fileName: z.string().describe('Name of the file being uploaded'),
+    contentBase64: z.string().describe('Base64-encoded file content'),
+    comment: z.string().optional().describe('Comment to attach to the uploaded file'),
+    minorEdit: z.boolean().optional().describe('If true, no notification email will be generated for this attachment'),
+    hidden: z.boolean().optional().describe('If true, no notification email or activity stream entry will be generated'),
+    allowDuplicated: z.boolean().optional().describe('Allow uploading an attachment with an already-existing filename'),
+    status: z.string().optional().describe('Status of the attachment\'s content container, e.g. current or draft'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the attachment returned'),
   },
   updateAttachmentMeta: {
-    contentId: z.string().describe("The ID of the content the attachment is on"),
-    attachmentId: z.string().describe("The ID of the attachment to update"),
-    version: z.number().describe("New version number (must be incremented from the attachment's current version)"),
-    title: z.string().optional().describe("New filename for the attachment"),
-    versionComment: z.string().optional().describe("Comment for this version"),
-    mediaType: z.string().optional().describe("New media type for the attachment"),
-    comment: z.string().optional().describe("New comment metadata for the attachment"),
-    minorEdit: z.boolean().optional().describe("If true, no notification email will be generated for this update")
+    contentId: z.string().describe('The ID of the content the attachment is on'),
+    attachmentId: z.string().describe('The ID of the attachment to update'),
+    version: z.number().describe('New version number (must be incremented from the attachment\'s current version)'),
+    title: z.string().optional().describe('New filename for the attachment'),
+    versionComment: z.string().optional().describe('Comment for this version'),
+    mediaType: z.string().optional().describe('New media type for the attachment'),
+    comment: z.string().optional().describe('New comment metadata for the attachment'),
+    minorEdit: z.boolean().optional().describe('If true, no notification email will be generated for this update'),
   },
   updateAttachmentData: {
-    contentId: z.string().describe("The ID of the content the attachment is on"),
-    attachmentId: z.string().describe("The ID of the attachment to upload a new file for"),
-    fileName: z.string().describe("Name of the new file being uploaded"),
-    contentBase64: z.string().describe("Base64-encoded new file content"),
-    comment: z.string().optional().describe("Comment to attach to the new version"),
-    minorEdit: z.boolean().optional().describe("If true, no notification email will be generated for this update")
+    contentId: z.string().describe('The ID of the content the attachment is on'),
+    attachmentId: z.string().describe('The ID of the attachment to upload a new file for'),
+    fileName: z.string().describe('Name of the new file being uploaded'),
+    contentBase64: z.string().describe('Base64-encoded new file content'),
+    comment: z.string().optional().describe('Comment to attach to the new version'),
+    minorEdit: z.boolean().optional().describe('If true, no notification email will be generated for this update'),
   },
   moveAttachment: {
-    contentId: z.string().describe("The ID of the content the attachment is currently on"),
-    attachmentId: z.string().describe("The ID of the attachment to move"),
-    newContentId: z.string().optional().describe("The ID of the content to move the attachment to"),
-    newName: z.string().optional().describe("New name for the attachment while moving it")
+    contentId: z.string().describe('The ID of the content the attachment is currently on'),
+    attachmentId: z.string().describe('The ID of the attachment to move'),
+    newContentId: z.string().optional().describe('The ID of the content to move the attachment to'),
+    newName: z.string().optional().describe('New name for the attachment while moving it'),
   },
   deleteAttachment: {
-    contentId: z.string().describe("The ID of the content the attachment is on"),
-    attachmentId: z.string().describe("The ID of the attachment to delete")
+    contentId: z.string().describe('The ID of the content the attachment is on'),
+    attachmentId: z.string().describe('The ID of the attachment to delete'),
   },
   deleteAttachmentVersion: {
-    contentId: z.string().describe("The ID of the content the attachment is on"),
-    attachmentId: z.string().describe("The ID of the attachment"),
-    version: z.number().describe("The version number to delete")
+    contentId: z.string().describe('The ID of the content the attachment is on'),
+    attachmentId: z.string().describe('The ID of the attachment'),
+    version: z.number().describe('The version number to delete'),
   },
   getAllSpacePermissions: {
-    spaceKey: z.string().describe("Key of the space to fetch permissions for")
+    spaceKey: z.string().describe('Key of the space to fetch permissions for'),
   },
   setSpacePermissions: {
-    spaceKey: z.string().describe("Key of the space to set permissions on"),
+    spaceKey: z.string().describe('Key of the space to set permissions on'),
     permissions: z.array(z.object({
-      userKey: z.string().optional().describe("User key to set permissions for (mutually exclusive with groupName)"),
-      groupName: z.string().optional().describe("Group name to set permissions for (mutually exclusive with userKey)"),
+      userKey: z.string().optional().describe('User key to set permissions for (mutually exclusive with groupName)'),
+      groupName: z.string().optional().describe('Group name to set permissions for (mutually exclusive with userKey)'),
       operations: z.array(z.object({
-        targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
-        operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
-      })).optional().describe("Full set of operations this subject should have. Omit or pass an empty array to revoke all of the subject's existing permissions.")
-    })).min(1).max(40).describe("Up to 40 subjects (user/group/anonymous). Each entry replaces that subject's entire permission set in the space; subjects not listed are left unchanged.")
+        targetType: z.string().describe('The resource type the operation applies to, e.g. \'space\', \'page\', \'blogpost\', \'comment\', \'attachment\''),
+        operationKey: z.string().describe('The operation key, e.g. \'read\', \'administer\', \'export\', \'restrict\', \'delete_own\', \'delete_mail\', \'create\', \'delete\''),
+      })).optional().describe('Full set of operations this subject should have. Omit or pass an empty array to revoke all of the subject\'s existing permissions.'),
+    })).min(1).max(40).describe('Up to 40 subjects (user/group/anonymous). Each entry replaces that subject\'s entire permission set in the space; subjects not listed are left unchanged.'),
   },
   getAnonymousSpacePermissions: {
-    spaceKey: z.string().describe("Key of the space to fetch anonymous permissions for")
+    spaceKey: z.string().describe('Key of the space to fetch anonymous permissions for'),
   },
   getGroupSpacePermissions: {
-    spaceKey: z.string().describe("Key of the space to fetch permissions for"),
-    groupName: z.string().describe("Name of the group to fetch permissions for")
+    spaceKey: z.string().describe('Key of the space to fetch permissions for'),
+    groupName: z.string().describe('Name of the group to fetch permissions for'),
   },
   getUserSpacePermissions: {
-    spaceKey: z.string().describe("Key of the space to fetch permissions for"),
-    userKey: z.string().describe("Key of the user to fetch permissions for")
+    spaceKey: z.string().describe('Key of the space to fetch permissions for'),
+    userKey: z.string().describe('Key of the user to fetch permissions for'),
   },
   grantAnonymousSpacePermissions: {
-    spaceKey: z.string().describe("Key of the space to grant permissions in"),
+    spaceKey: z.string().describe('Key of the space to grant permissions in'),
     operations: z.array(z.object({
-      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
-      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
-    })).min(1).describe("Operations to grant. Adds to existing permissions; does not override them.")
+      targetType: z.string().describe('The resource type the operation applies to, e.g. \'space\', \'page\', \'blogpost\', \'comment\', \'attachment\''),
+      operationKey: z.string().describe('The operation key, e.g. \'read\', \'administer\', \'export\', \'restrict\', \'delete_own\', \'delete_mail\', \'create\', \'delete\''),
+    })).min(1).describe('Operations to grant. Adds to existing permissions; does not override them.'),
   },
   grantGroupSpacePermissions: {
-    spaceKey: z.string().describe("Key of the space to grant permissions in"),
-    groupName: z.string().describe("Name of the group to grant permissions to"),
+    spaceKey: z.string().describe('Key of the space to grant permissions in'),
+    groupName: z.string().describe('Name of the group to grant permissions to'),
     operations: z.array(z.object({
-      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
-      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
-    })).min(1).describe("Operations to grant. Adds to existing permissions; does not override them.")
+      targetType: z.string().describe('The resource type the operation applies to, e.g. \'space\', \'page\', \'blogpost\', \'comment\', \'attachment\''),
+      operationKey: z.string().describe('The operation key, e.g. \'read\', \'administer\', \'export\', \'restrict\', \'delete_own\', \'delete_mail\', \'create\', \'delete\''),
+    })).min(1).describe('Operations to grant. Adds to existing permissions; does not override them.'),
   },
   grantUserSpacePermissions: {
-    spaceKey: z.string().describe("Key of the space to grant permissions in"),
-    userKey: z.string().describe("Key of the user to grant permissions to"),
+    spaceKey: z.string().describe('Key of the space to grant permissions in'),
+    userKey: z.string().describe('Key of the user to grant permissions to'),
     operations: z.array(z.object({
-      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
-      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
-    })).min(1).describe("Operations to grant. Adds to existing permissions; does not override them.")
+      targetType: z.string().describe('The resource type the operation applies to, e.g. \'space\', \'page\', \'blogpost\', \'comment\', \'attachment\''),
+      operationKey: z.string().describe('The operation key, e.g. \'read\', \'administer\', \'export\', \'restrict\', \'delete_own\', \'delete_mail\', \'create\', \'delete\''),
+    })).min(1).describe('Operations to grant. Adds to existing permissions; does not override them.'),
   },
   revokeAnonymousSpacePermissions: {
-    spaceKey: z.string().describe("Key of the space to revoke permissions from"),
+    spaceKey: z.string().describe('Key of the space to revoke permissions from'),
     operations: z.array(z.object({
-      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
-      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
-    })).min(1).describe("Operations to revoke. Permissions not currently held are silently skipped.")
+      targetType: z.string().describe('The resource type the operation applies to, e.g. \'space\', \'page\', \'blogpost\', \'comment\', \'attachment\''),
+      operationKey: z.string().describe('The operation key, e.g. \'read\', \'administer\', \'export\', \'restrict\', \'delete_own\', \'delete_mail\', \'create\', \'delete\''),
+    })).min(1).describe('Operations to revoke. Permissions not currently held are silently skipped.'),
   },
   revokeGroupSpacePermissions: {
-    spaceKey: z.string().describe("Key of the space to revoke permissions from"),
-    groupName: z.string().describe("Name of the group to revoke permissions from"),
+    spaceKey: z.string().describe('Key of the space to revoke permissions from'),
+    groupName: z.string().describe('Name of the group to revoke permissions from'),
     operations: z.array(z.object({
-      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
-      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
-    })).min(1).describe("Operations to revoke. Permissions not currently held are silently skipped.")
+      targetType: z.string().describe('The resource type the operation applies to, e.g. \'space\', \'page\', \'blogpost\', \'comment\', \'attachment\''),
+      operationKey: z.string().describe('The operation key, e.g. \'read\', \'administer\', \'export\', \'restrict\', \'delete_own\', \'delete_mail\', \'create\', \'delete\''),
+    })).min(1).describe('Operations to revoke. Permissions not currently held are silently skipped.'),
   },
   revokeUserSpacePermissions: {
-    spaceKey: z.string().describe("Key of the space to revoke permissions from"),
-    userKey: z.string().describe("Key of the user to revoke permissions from"),
+    spaceKey: z.string().describe('Key of the space to revoke permissions from'),
+    userKey: z.string().describe('Key of the user to revoke permissions from'),
     operations: z.array(z.object({
-      targetType: z.string().describe("The resource type the operation applies to, e.g. 'space', 'page', 'blogpost', 'comment', 'attachment'"),
-      operationKey: z.string().describe("The operation key, e.g. 'read', 'administer', 'export', 'restrict', 'delete_own', 'delete_mail', 'create', 'delete'")
-    })).min(1).describe("Operations to revoke. Permissions not currently held are silently skipped.")
+      targetType: z.string().describe('The resource type the operation applies to, e.g. \'space\', \'page\', \'blogpost\', \'comment\', \'attachment\''),
+      operationKey: z.string().describe('The operation key, e.g. \'read\', \'administer\', \'export\', \'restrict\', \'delete_own\', \'delete_mail\', \'create\', \'delete\''),
+    })).min(1).describe('Operations to revoke. Permissions not currently held are silently skipped.'),
   },
   getCurrentUser: {
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the user")
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the user'),
   },
   getAnonymousUser: {
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the user")
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the user'),
   },
   getUser: {
-    key: z.string().optional().describe("User key of the user to fetch (mutually exclusive with username)"),
-    username: z.string().optional().describe("Username of the user to fetch (mutually exclusive with key)"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the user")
+    key: z.string().optional().describe('User key of the user to fetch (mutually exclusive with username)'),
+    username: z.string().optional().describe('Username of the user to fetch (mutually exclusive with key)'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the user'),
   },
   getUsers: {
-    limit: z.number().optional().describe("Maximum number of users to return"),
-    start: z.number().optional().describe("Start index for pagination"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the users (e.g. status)")
+    limit: z.number().optional().describe('Maximum number of users to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the users (e.g. status)'),
   },
   getUserGroups: {
-    key: z.string().optional().describe("User key of the user (mutually exclusive with username)"),
-    username: z.string().optional().describe("Username of the user (mutually exclusive with key)"),
-    limit: z.number().optional().describe("Maximum number of groups to return"),
-    start: z.number().optional().describe("Start index for pagination"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+    key: z.string().optional().describe('User key of the user (mutually exclusive with username)'),
+    username: z.string().optional().describe('Username of the user (mutually exclusive with key)'),
+    limit: z.number().optional().describe('Maximum number of groups to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand'),
   },
   updateCurrentUser: {
-    fullName: z.string().optional().describe("New full name for the current user"),
-    email: z.string().optional().describe("New email address for the current user"),
-    currentPassword: z.string().optional().describe("Current password, required when changing the email address")
+    fullName: z.string().optional().describe('New full name for the current user'),
+    email: z.string().optional().describe('New email address for the current user'),
+    currentPassword: z.string().optional().describe('Current password, required when changing the email address'),
   },
   changeCurrentUserPassword: {
-    newPassword: z.string().describe("The new password. Cannot be null or blank."),
-    oldPassword: z.string().optional().describe("The current password")
+    newPassword: z.string().describe('The new password. Cannot be null or blank.'),
+    oldPassword: z.string().optional().describe('The current password'),
   },
   getGroup: {
-    groupName: z.string().describe("Name of the group to fetch"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+    groupName: z.string().describe('Name of the group to fetch'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand'),
   },
   getGroups: {
-    limit: z.number().optional().describe("Maximum number of groups to return"),
-    start: z.number().optional().describe("Start index for pagination"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+    limit: z.number().optional().describe('Maximum number of groups to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand'),
   },
   getGroupMembers: {
-    groupName: z.string().describe("Name of the group to fetch members for"),
-    limit: z.number().optional().describe("Maximum number of members to return"),
-    start: z.number().optional().describe("Start index for pagination"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+    groupName: z.string().describe('Name of the group to fetch members for'),
+    limit: z.number().optional().describe('Maximum number of members to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand'),
   },
   getNestedGroupMembers: {
-    groupName: z.string().describe("Name of the group to fetch nested group members for"),
-    limit: z.number().optional().describe("Maximum number of groups to return"),
-    start: z.number().optional().describe("Start index for pagination"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand")
+    groupName: z.string().describe('Name of the group to fetch nested group members for'),
+    limit: z.number().optional().describe('Maximum number of groups to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand'),
   },
   addUserToGroup: {
-    username: z.string().describe("Username of the user to add"),
-    groupName: z.string().describe("Name of the group to add the user to")
+    username: z.string().describe('Username of the user to add'),
+    groupName: z.string().describe('Name of the group to add the user to'),
   },
   removeUserFromGroup: {
-    username: z.string().describe("Username of the user to remove"),
-    groupName: z.string().describe("Name of the group to remove the user from")
+    username: z.string().describe('Username of the user to remove'),
+    groupName: z.string().describe('Name of the group to remove the user from'),
   },
   adminCreateUser: {
-    userName: z.string().describe("Username for the new user (lowercase, no whitespace or \\ , + < > ' \" characters, not 'anonymous')"),
-    fullName: z.string().describe("Full name for the new user"),
-    email: z.string().describe("Email address for the new user"),
-    password: z.string().optional().describe("Password for the new user. Required unless notifyViaEmail is true."),
-    notifyViaEmail: z.boolean().optional().describe("If true, email the user an invitation instead of setting a password directly")
+    userName: z.string().describe('Username for the new user (lowercase, no whitespace or \\ , + < > \' " characters, not \'anonymous\')'),
+    fullName: z.string().describe('Full name for the new user'),
+    email: z.string().describe('Email address for the new user'),
+    password: z.string().optional().describe('Password for the new user. Required unless notifyViaEmail is true.'),
+    notifyViaEmail: z.boolean().optional().describe('If true, email the user an invitation instead of setting a password directly'),
   },
   adminUpdateUser: {
-    username: z.string().describe("Username of the user to update"),
-    fullName: z.string().optional().describe("New full name for the user"),
-    email: z.string().optional().describe("New email address for the user")
+    username: z.string().describe('Username of the user to update'),
+    fullName: z.string().optional().describe('New full name for the user'),
+    email: z.string().optional().describe('New email address for the user'),
   },
   adminDeleteUser: {
-    username: z.string().describe("Username of the user to delete. Requires system administrator permission.")
+    username: z.string().describe('Username of the user to delete. Requires system administrator permission.'),
   },
   adminDisableUser: {
-    username: z.string().describe("Username of the user to disable. Requires system administrator permission.")
+    username: z.string().describe('Username of the user to disable. Requires system administrator permission.'),
   },
   adminEnableUser: {
-    username: z.string().describe("Username of the user to enable. Requires system administrator permission.")
+    username: z.string().describe('Username of the user to enable. Requires system administrator permission.'),
   },
   adminChangeUserPassword: {
-    username: z.string().describe("Username of the user whose password will be changed"),
-    password: z.string().describe("The new password. Cannot be null or blank.")
+    username: z.string().describe('Username of the user whose password will be changed'),
+    password: z.string().describe('The new password. Cannot be null or blank.'),
   },
   adminCreateGroup: {
-    name: z.string().describe("Name for the new group. Requires system administrator permission.")
+    name: z.string().describe('Name for the new group. Requires system administrator permission.'),
   },
   adminDeleteGroup: {
-    groupName: z.string().describe("Name of the group to delete. Requires system administrator permission.")
+    groupName: z.string().describe('Name of the group to delete. Requires system administrator permission.'),
   },
   adminGetActiveUsers: {
-    limit: z.number().optional().describe("Maximum number of users to return"),
-    start: z.number().optional().describe("Start index for pagination"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the users (e.g. status)")
+    limit: z.number().optional().describe('Maximum number of users to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the users (e.g. status)'),
   },
   publishBlueprintSharedDraft: {
-    draftId: z.string().describe("ID of the shared draft (created from a content blueprint/template) to publish"),
-    title: z.string().describe("Title of the published content"),
-    spaceKey: z.string().describe("Space key where the content will be published"),
-    content: z.string().describe("Content body in Confluence Data Center \"storage\" format (confluence XML)"),
-    parentId: z.string().optional().describe("ID of the parent page (if publishing as a child page)"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the response")
+    draftId: z.string().describe('ID of the shared draft (created from a content blueprint/template) to publish'),
+    title: z.string().describe('Title of the published content'),
+    spaceKey: z.string().describe('Space key where the content will be published'),
+    content: z.string().describe('Content body in Confluence Data Center "storage" format (confluence XML)'),
+    parentId: z.string().optional().describe('ID of the parent page (if publishing as a child page)'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the response'),
   },
   publishBlueprintLegacyDraft: {
-    draftId: z.string().describe("ID of the legacy draft (created from a content blueprint/template) to publish"),
-    title: z.string().describe("Title of the published content"),
-    spaceKey: z.string().describe("Space key where the content will be published"),
-    content: z.string().describe("Content body in Confluence Data Center \"storage\" format (confluence XML)"),
-    parentId: z.string().optional().describe("ID of the parent page (if publishing as a child page)"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the response")
+    draftId: z.string().describe('ID of the legacy draft (created from a content blueprint/template) to publish'),
+    title: z.string().describe('Title of the published content'),
+    spaceKey: z.string().describe('Space key where the content will be published'),
+    content: z.string().describe('Content body in Confluence Data Center "storage" format (confluence XML)'),
+    parentId: z.string().optional().describe('ID of the parent page (if publishing as a child page)'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the response'),
   },
   convertContentBody: {
-    to: z.enum(['view', 'export_view', 'styled_view', 'editor', 'storage']).describe("The representation to convert to. Supported conversions: storage -> view/export_view/styled_view/editor; editor -> storage."),
-    value: z.string().describe("The body content to convert"),
-    representation: z.enum(['storage', 'editor', 'view', 'export_view', 'styled_view']).describe("The representation of the supplied value"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the response")
+    to: z.enum(['view', 'export_view', 'styled_view', 'editor', 'storage']).describe('The representation to convert to. Supported conversions: storage -> view/export_view/styled_view/editor; editor -> storage.'),
+    value: z.string().describe('The body content to convert'),
+    representation: z.enum(['storage', 'editor', 'view', 'export_view', 'styled_view']).describe('The representation of the supplied value'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the response'),
   },
   findWebhooks: {
-    limit: z.number().optional().describe("Maximum number of webhooks to return"),
-    start: z.number().optional().describe("Start index for pagination"),
-    event: z.string().optional().describe("Filter by webhook event ID (e.g. page_created)"),
-    statistics: z.boolean().optional().describe("Include invocation statistics for each webhook")
+    limit: z.number().optional().describe('Maximum number of webhooks to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+    event: z.string().optional().describe('Filter by webhook event ID (e.g. page_created)'),
+    statistics: z.boolean().optional().describe('Include invocation statistics for each webhook'),
   },
   createWebhook: {
-    name: z.string().describe("Name for the webhook"),
-    url: z.string().describe("The endpoint URL the webhook will POST event payloads to"),
-    events: z.array(z.string()).min(1).describe("Events to subscribe to, e.g. ['page_created', 'page_updated', 'page_removed']"),
-    active: z.boolean().optional().describe("Whether the webhook is enabled. Defaults to true."),
-    secret: z.string().optional().describe("Optional secret used to sign webhook payloads for verification")
+    name: z.string().describe('Name for the webhook'),
+    url: z.string().describe('The endpoint URL the webhook will POST event payloads to'),
+    events: z.array(z.string()).min(1).describe('Events to subscribe to, e.g. [\'page_created\', \'page_updated\', \'page_removed\']'),
+    active: z.boolean().optional().describe('Whether the webhook is enabled. Defaults to true.'),
+    secret: z.string().optional().describe('Optional secret used to sign webhook payloads for verification'),
   },
   getWebhook: {
-    webhookId: z.string().describe("ID of the webhook to fetch"),
-    statistics: z.boolean().optional().describe("Include invocation statistics. Defaults to false.")
+    webhookId: z.string().describe('ID of the webhook to fetch'),
+    statistics: z.boolean().optional().describe('Include invocation statistics. Defaults to false.'),
   },
   updateWebhook: {
-    webhookId: z.string().describe("ID of the webhook to update"),
-    name: z.string().describe("Name for the webhook"),
-    url: z.string().describe("The endpoint URL the webhook will POST event payloads to"),
-    events: z.array(z.string()).min(1).describe("Events to subscribe to, e.g. ['page_created', 'page_updated', 'page_removed']"),
-    active: z.boolean().optional().describe("Whether the webhook is enabled"),
-    secret: z.string().optional().describe("Optional secret used to sign webhook payloads for verification")
+    webhookId: z.string().describe('ID of the webhook to update'),
+    name: z.string().describe('Name for the webhook'),
+    url: z.string().describe('The endpoint URL the webhook will POST event payloads to'),
+    events: z.array(z.string()).min(1).describe('Events to subscribe to, e.g. [\'page_created\', \'page_updated\', \'page_removed\']'),
+    active: z.boolean().optional().describe('Whether the webhook is enabled'),
+    secret: z.string().optional().describe('Optional secret used to sign webhook payloads for verification'),
   },
   deleteWebhook: {
-    webhookId: z.string().describe("ID of the webhook to delete")
+    webhookId: z.string().describe('ID of the webhook to delete'),
   },
   getWebhookLatestInvocation: {
-    webhookId: z.string().describe("ID of the webhook"),
-    outcomes: z.string().optional().describe("Filter by outcome: SUCCESS, FAILURE or ERROR. Omit for all outcomes."),
-    event: z.string().optional().describe("Filter to the last invocation of a specific event")
+    webhookId: z.string().describe('ID of the webhook'),
+    outcomes: z.string().optional().describe('Filter by outcome: SUCCESS, FAILURE or ERROR. Omit for all outcomes.'),
+    event: z.string().optional().describe('Filter to the last invocation of a specific event'),
   },
   getWebhookStatistics: {
-    webhookId: z.string().describe("ID of the webhook"),
-    event: z.string().optional().describe("Filter statistics to a specific event")
+    webhookId: z.string().describe('ID of the webhook'),
+    event: z.string().optional().describe('Filter statistics to a specific event'),
   },
   getWebhookStatisticsSummary: {
-    webhookId: z.string().describe("ID of the webhook")
+    webhookId: z.string().describe('ID of the webhook'),
   },
   testWebhook: {
-    url: z.string().describe("The endpoint URL to test connectivity against")
+    url: z.string().describe('The endpoint URL to test connectivity against'),
   },
   getServerInfo: {},
   getClusterNodes: {
-    limit: z.number().optional().describe("Maximum number of node statuses to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    limit: z.number().optional().describe('Maximum number of node statuses to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   getLongRunningTask: {
-    id: z.string().describe("The key of the long-running task to fetch"),
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the task")
+    id: z.string().describe('The key of the long-running task to fetch'),
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the task'),
   },
   getLongRunningTasks: {
-    expand: z.string().optional().describe("Comma-separated list of properties to expand on the tasks"),
-    limit: z.number().optional().describe("Maximum number of tasks to return"),
-    start: z.number().optional().describe("Start index for pagination")
+    expand: z.string().optional().describe('Comma-separated list of properties to expand on the tasks'),
+    limit: z.number().optional().describe('Maximum number of tasks to return'),
+    start: z.number().optional().describe('Start index for pagination'),
   },
   triggerSiteBackup: {
-    settings: z.record(z.string(), z.any()).optional().describe("Site backup settings, passed through as-is to the API. Consult the target instance's REST API documentation for supported fields.")
+    settings: z.record(z.string(), z.any()).optional().describe('Site backup settings, passed through as-is to the API. Consult the target instance\'s REST API documentation for supported fields.'),
   },
   getBackupRestoreJob: {
-    jobId: z.string().describe("ID of the backup/restore job to fetch. Caller must be a system administrator or the job's owner.")
+    jobId: z.string().describe('ID of the backup/restore job to fetch. Caller must be a system administrator or the job\'s owner.'),
   },
   findBackupRestoreJobs: {
-    owner: z.string().optional().describe("Filter by the username of the user who created the job"),
-    spaceKey: z.string().optional().describe("Filter by the key of the space the job applies to"),
-    fromDate: z.string().optional().describe("Minimum job creation date, format yyyy-MM-ddTHH:mm:ss.SSSZ"),
-    jobStates: z.string().optional().describe("Comma-separated list of job states to filter by: QUEUED, PROCESSING, FINISHED, CANCELLING, CANCELLED, FAILED"),
-    toDate: z.string().optional().describe("Maximum job creation date, format yyyy-MM-ddTHH:mm:ss.SSSZ"),
-    jobOperation: z.enum(['BACKUP', 'RESTORE']).optional().describe("Filter by job operation"),
-    limit: z.number().optional().describe("Maximum number of jobs to return"),
-    jobScope: z.enum(['SPACE', 'SITE']).optional().describe("Filter by job scope")
+    owner: z.string().optional().describe('Filter by the username of the user who created the job'),
+    spaceKey: z.string().optional().describe('Filter by the key of the space the job applies to'),
+    fromDate: z.string().optional().describe('Minimum job creation date, format yyyy-MM-ddTHH:mm:ss.SSSZ'),
+    jobStates: z.string().optional().describe('Comma-separated list of job states to filter by: QUEUED, PROCESSING, FINISHED, CANCELLING, CANCELLED, FAILED'),
+    toDate: z.string().optional().describe('Maximum job creation date, format yyyy-MM-ddTHH:mm:ss.SSSZ'),
+    jobOperation: z.enum(['BACKUP', 'RESTORE']).optional().describe('Filter by job operation'),
+    limit: z.number().optional().describe('Maximum number of jobs to return'),
+    jobScope: z.enum(['SPACE', 'SITE']).optional().describe('Filter by job scope'),
   },
-  getInstanceMetrics: {}
+  getInstanceMetrics: {},
 };

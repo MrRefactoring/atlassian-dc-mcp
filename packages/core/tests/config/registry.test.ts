@@ -31,9 +31,11 @@ class ReadOnlySource implements ReadableSource {
     public readonly priority: number,
     public readonly values: Partial<Record<ConfigKey, string>> = {},
   ) {}
+
   read(_p: ProductDefinition, key: ConfigKey): string | undefined {
     return this.values[key];
   }
+
   describe(): string {
     return this.id;
   }
@@ -46,18 +48,23 @@ class FakeWritableSource implements WritableSource {
     public readonly id: SourceId,
     public readonly priority: number,
   ) {}
+
   read(): string | undefined {
     return undefined;
   }
+
   describe(): string {
     return this.id;
   }
+
   isAvailable(): boolean {
     return this.available;
   }
+
   write(_p: ProductDefinition, key: ConfigKey, value: string): void {
     this.calls.push(`write:${key}:${value}`);
   }
+
   clear(_p: ProductDefinition, key: ConfigKey): void {
     this.calls.push(`clear:${key}`);
   }

@@ -10,7 +10,7 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
     forkRepository: vi.fn(),
     getForkedRepositories: vi.fn(),
     updateRepository: vi.fn(),
-    setDefaultBranch2: vi.fn()
+    setDefaultBranch2: vi.fn(),
   },
   RepositoryService: {
     delete5: vi.fn(),
@@ -25,19 +25,19 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
     set1: vi.fn(),
     setAutoDeclineSettings1: vi.fn(),
     setSettings1: vi.fn(),
-    updatePullRequestSettings1: vi.fn()
+    updatePullRequestSettings1: vi.fn(),
   },
   PullRequestsService: {
     createPullRequestCondition1: vi.fn(),
     deletePullRequestCondition1: vi.fn(),
     getPullRequestConditions1: vi.fn(),
-    updatePullRequestCondition1: vi.fn()
+    updatePullRequestCondition1: vi.fn(),
   },
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -59,7 +59,7 @@ describe('BitbucketService', () => {
       expect(result.data).toBe(mockData);
       expect(ProjectService.createRepository).toHaveBeenCalledWith('TEST', {
         name: 'New Repo',
-        scmId: 'git'
+        scmId: 'git',
       });
     });
 
@@ -71,7 +71,7 @@ describe('BitbucketService', () => {
       expect(ProjectService.createRepository).toHaveBeenCalledWith('TEST', {
         name: 'Repo',
         scmId: 'hg',
-        defaultBranch: 'main'
+        defaultBranch: 'main',
       });
     });
 
@@ -89,7 +89,7 @@ describe('BitbucketService', () => {
       (ProjectService.updateRepository as Mock).mockResolvedValue(mockData);
 
       const result = await bitbucketService.updateRepository(
-        'test', 'Test-Repo', 'Renamed', 'desc', 'main', 'dest'
+        'test', 'Test-Repo', 'Renamed', 'desc', 'main', 'dest',
       );
 
       expect(result.success).toBe(true);
@@ -98,7 +98,7 @@ describe('BitbucketService', () => {
         name: 'Renamed',
         description: 'desc',
         defaultBranch: 'main',
-        project: { key: 'DEST' }
+        project: { key: 'DEST' },
       });
     });
 
@@ -120,7 +120,7 @@ describe('BitbucketService', () => {
       expect(result.data).toBe(mockData);
       expect(ProjectService.forkRepository).toHaveBeenCalledWith('TEST', 'test-repo', {
         name: 'my-fork',
-        project: { key: 'DEST' }
+        project: { key: 'DEST' },
       });
     });
 
@@ -161,7 +161,7 @@ describe('BitbucketService', () => {
       expect(result.data).toEqual({
         scheduledForDeletion: true,
         projectKey: 'TEST',
-        repositorySlug: 'test-repo'
+        repositorySlug: 'test-repo',
       });
       expect(ProjectService.deleteRepository).toHaveBeenCalledWith('TEST', 'test-repo');
     });
@@ -187,7 +187,7 @@ describe('BitbucketService', () => {
         updated: true,
         projectKey: 'TEST',
         repositorySlug: 'test-repo',
-        branchId: 'refs/heads/main'
+        branchId: 'refs/heads/main',
       });
       expect(ProjectService.setDefaultBranch2).toHaveBeenCalledWith('TEST', 'test-repo', { id: 'refs/heads/main' });
     });
@@ -271,7 +271,7 @@ describe('BitbucketService', () => {
       expect(result.data).toBe(mockData);
       expect(RepositoryService.setAutoDeclineSettings1).toHaveBeenCalledWith('TEST', 'test-repo', {
         enabled: true,
-        inactivityWeeks: 8
+        inactivityWeeks: 8,
       });
     });
 
@@ -488,7 +488,7 @@ describe('BitbucketService', () => {
       (PullRequestsService.createPullRequestCondition1 as Mock).mockResolvedValue(mockData);
 
       const result = await bitbucketService.createDefaultReviewerCondition(
-        'test', 'Test-Repo', 'ANY_REF', 'ANY_REF', 'BRANCH', 'refs/heads/main', [52], 1, undefined, 'main'
+        'test', 'Test-Repo', 'ANY_REF', 'ANY_REF', 'BRANCH', 'refs/heads/main', [52], 1, undefined, 'main',
       );
 
       expect(result.success).toBe(true);
@@ -497,7 +497,7 @@ describe('BitbucketService', () => {
         reviewers: [{ id: 52 }],
         sourceMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
         targetMatcher: { id: 'refs/heads/main', displayId: 'main', type: { id: 'BRANCH' } },
-        requiredApprovals: 1
+        requiredApprovals: 1,
       });
     });
 
@@ -505,13 +505,13 @@ describe('BitbucketService', () => {
       (PullRequestsService.createPullRequestCondition1 as Mock).mockResolvedValue({});
 
       await bitbucketService.createDefaultReviewerCondition(
-        'TEST', 'test-repo', 'ANY_REF', 'ANY_REF', 'ANY_REF', 'ANY_REF', [52]
+        'TEST', 'test-repo', 'ANY_REF', 'ANY_REF', 'ANY_REF', 'ANY_REF', [52],
       );
 
       expect(PullRequestsService.createPullRequestCondition1).toHaveBeenCalledWith('TEST', 'test-repo', {
         reviewers: [{ id: 52 }],
         sourceMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
-        targetMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } }
+        targetMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
       });
     });
 
@@ -519,7 +519,7 @@ describe('BitbucketService', () => {
       (PullRequestsService.createPullRequestCondition1 as Mock).mockRejectedValue(new Error('API Error'));
 
       const result = await bitbucketService.createDefaultReviewerCondition(
-        'TEST', 'test-repo', 'ANY_REF', 'ANY_REF', 'ANY_REF', 'ANY_REF', [52]
+        'TEST', 'test-repo', 'ANY_REF', 'ANY_REF', 'ANY_REF', 'ANY_REF', [52],
       );
 
       expect(result.success).toBe(false);
@@ -531,7 +531,7 @@ describe('BitbucketService', () => {
       (PullRequestsService.updatePullRequestCondition1 as Mock).mockResolvedValue(mockData);
 
       const result = await bitbucketService.updateDefaultReviewerCondition(
-        'test', 'Test-Repo', '1', 'ANY_REF', 'ANY_REF', 'BRANCH', 'refs/heads/main', [52], 2, undefined, 'main'
+        'test', 'Test-Repo', '1', 'ANY_REF', 'ANY_REF', 'BRANCH', 'refs/heads/main', [52], 2, undefined, 'main',
       );
 
       expect(result.success).toBe(true);
@@ -540,7 +540,7 @@ describe('BitbucketService', () => {
         reviewers: [{ id: 52 }],
         sourceMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
         targetMatcher: { id: 'refs/heads/main', displayId: 'main', type: { id: 'BRANCH' } },
-        requiredApprovals: 2
+        requiredApprovals: 2,
       });
     });
 

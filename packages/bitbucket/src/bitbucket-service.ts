@@ -5,9 +5,10 @@ import { request as __request } from './bitbucket-client/core/request.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { simplifyInboxPullRequests } from './inbox-pr-mapper.js';
 import { BITBUCKET_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
-import {
+import type {
   BitbucketMutationOutputMode,
-  BitbucketOutputMode,
+  BitbucketOutputMode } from './bitbucket-response-mapper.js';
+import {
   shapePullRequestAck,
   shapePullRequestChangesResponse,
   shapePullRequestCommentAck,
@@ -17,6 +18,7 @@ import {
 function resolveCredential(value: string | (() => string | undefined) | undefined) {
   return async () => {
     const resolved = typeof value === 'function' ? value() : value;
+
     return resolved ?? '';
   };
 }
@@ -49,6 +51,7 @@ function buildCommentAnchor(params: {
     anchor.line = line;
     anchor.lineType = lineType;
     anchor.fileType = lineType === 'REMOVED' ? 'FROM' : 'TO';
+
     return anchor;
   }
 
@@ -71,6 +74,7 @@ function buildCommentAnchor(params: {
     fileType === 'FROM'
       ? { srcSpanStart: startLine, srcSpanEnd: endLine }
       : { dstSpanStart: startLine, dstSpanEnd: endLine };
+
   return anchor;
 }
 
@@ -93,6 +97,7 @@ function multilineSuggestionWarning(text: string, startLine?: number): string | 
   if (suggestionLineCount <= 1) {
     return undefined;
   }
+
   return (
     'The comment contains a multi-line ```suggestion block but is anchored to a single line. ' +
     'On Apply, Bitbucket replaces only that one line and leaves the rest. To replace multiple lines, ' +
@@ -135,10 +140,11 @@ export class BitbucketService {
    * @returns Promise with commits data
    */
   async getCommits(projectKey: string, repositorySlug: string, path?: string, since?: string, until?: string,
-    limit?: number
+    limit?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getCommits(
         projectKey,
@@ -153,9 +159,9 @@ export class BitbucketService {
         undefined, // merges
         undefined, // ignoreMissing
         0, // start
-        limit ?? this.getPageSize()
+        limit ?? this.getPageSize(),
       ),
-      'Error fetching commits'
+      'Error fetching commits',
     );
   }
 
@@ -170,9 +176,10 @@ export class BitbucketService {
   async getCommit(projectKey: string, repositorySlug: string, commitId: string, path?: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getCommit(projectKey, commitId, repositorySlug, path),
-      'Error fetching commit'
+      'Error fetching commit',
     );
   }
 
@@ -188,7 +195,7 @@ export class BitbucketService {
   async listBuildStatuses(commitId: string, orderBy?: string, start?: number, limit?: number) {
     return handleApiOperation(
       () => DeprecatedService.getBuildStatus(commitId, orderBy, start, limit ?? this.getPageSize()),
-      'Error fetching build statuses'
+      'Error fetching build statuses',
     );
   }
 
@@ -212,18 +219,19 @@ export class BitbucketService {
     key: string,
     url: string,
     name?: string,
-    description?: string
+    description?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody: any = { state, key, url, ...(name ? { name } : {}), ...(description ? { description } : {}) };
     const result = await handleApiOperation(
       () => BuildsAndDeploymentsService.add(projectKey, commitId, repositorySlug, requestBody),
-      'Error adding build status'
+      'Error adding build status',
     );
     if (result.success) {
       return { ...result, data: { added: true, commitId, key } };
     }
+
     return result;
   }
 
@@ -238,9 +246,10 @@ export class BitbucketService {
   async getBuildStatus(projectKey: string, repositorySlug: string, commitId: string, key: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => BuildsAndDeploymentsService.get(projectKey, commitId, repositorySlug, key),
-      'Error fetching build status'
+      'Error fetching build status',
     );
   }
 
@@ -256,13 +265,14 @@ export class BitbucketService {
     projectKey: string,
     repositorySlug: string,
     path: string,
-    at?: string
+    at?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.streamRaw(path, projectKey, repositorySlug, at),
-      'Error fetching file content'
+      'Error fetching file content',
     );
   }
 
@@ -284,10 +294,11 @@ export class BitbucketService {
     path: string = '',
     contextLines?: string,
     whitespace?: string,
-    srcPath?: string
+    srcPath?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.streamDiff(
         commitId,
@@ -302,9 +313,9 @@ export class BitbucketService {
         undefined, // autoSrcPath
         whitespace,
         undefined, // withComments
-        undefined  // since
+        undefined,  // since
       ),
-      'Error fetching commit diff'
+      'Error fetching commit diff',
     );
   }
 
@@ -324,10 +335,11 @@ export class BitbucketService {
     path: string = '',
     at?: string,
     type?: boolean,
-    blame?: boolean
+    blame?: boolean,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getContent1(
         path,
@@ -337,9 +349,9 @@ export class BitbucketService {
         at,
         undefined, // size
         blame ? 'true' : undefined,
-        type ? 'true' : undefined
+        type ? 'true' : undefined,
       ),
-      'Error browsing repository content'
+      'Error browsing repository content',
     );
   }
 
@@ -361,13 +373,14 @@ export class BitbucketService {
     path: string,
     since?: string,
     start?: number,
-    limit?: number
+    limit?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getComments(projectKey, commitId, repositorySlug, path, since, start, limit ?? this.getPageSize()),
-      'Error fetching commit comments'
+      'Error fetching commit comments',
     );
   }
 
@@ -391,16 +404,17 @@ export class BitbucketService {
     fromRepo?: string,
     compareType: 'commits' | 'changes' = 'commits',
     start?: number,
-    limit?: number
+    limit?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const pageSize = limit ?? this.getPageSize();
+
     return handleApiOperation(
       () => compareType === 'changes'
         ? RepositoryService.streamChanges(projectKey, repositorySlug, fromRepo, from, to, start, pageSize)
         : RepositoryService.streamCommits(projectKey, repositorySlug, fromRepo, from, to, start, pageSize),
-      'Error comparing refs'
+      'Error comparing refs',
     );
   }
 
@@ -418,13 +432,14 @@ export class BitbucketService {
     repositorySlug: string,
     commitId: string,
     key: string,
-    report: Record<string, any>
+    report: Record<string, any>,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => BuildsAndDeploymentsService.setACodeInsightsReport(projectKey, commitId, repositorySlug, key, report as any),
-      'Error setting code insights report'
+      'Error setting code insights report',
     );
   }
 
@@ -434,9 +449,10 @@ export class BitbucketService {
   async getInsightReport(projectKey: string, repositorySlug: string, commitId: string, key: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => BuildsAndDeploymentsService.getACodeInsightsReport(projectKey, commitId, repositorySlug, key),
-      'Error fetching code insights report'
+      'Error fetching code insights report',
     );
   }
 
@@ -448,11 +464,12 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => BuildsAndDeploymentsService.deleteACodeInsightsReport(projectKey, commitId, repositorySlug, key),
-      'Error deleting code insights report'
+      'Error deleting code insights report',
     );
     if (result.success) {
       return { ...result, data: { deleted: true, key } };
     }
+
     return result;
   }
 
@@ -465,17 +482,18 @@ export class BitbucketService {
     repositorySlug: string,
     commitId: string,
     key: string,
-    annotations: Array<Record<string, any>>
+    annotations: Array<Record<string, any>>,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => BuildsAndDeploymentsService.addAnnotations(projectKey, commitId, repositorySlug, key, { annotations } as any),
-      'Error adding code insights annotations'
+      'Error adding code insights annotations',
     );
     if (result.success) {
       return { ...result, data: { added: annotations.length, key } };
     }
+
     return result;
   }
 
@@ -485,9 +503,10 @@ export class BitbucketService {
   async getInsightAnnotations(projectKey: string, repositorySlug: string, commitId: string, key: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => BuildsAndDeploymentsService.getAnnotations(projectKey, commitId, repositorySlug, key),
-      'Error fetching code insights annotations'
+      'Error fetching code insights annotations',
     );
   }
 
@@ -509,7 +528,7 @@ export class BitbucketService {
     text: string,
     path?: string,
     line?: number,
-    lineType?: 'ADDED' | 'REMOVED' | 'CONTEXT'
+    lineType?: 'ADDED' | 'REMOVED' | 'CONTEXT',
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -520,9 +539,10 @@ export class BitbucketService {
         ...(line !== undefined ? { line, lineType: lineType ?? 'CONTEXT', fileType: 'TO' } : {}),
       };
     }
+
     return handleApiOperation(
       () => RepositoryService.createComment(projectKey, commitId, repositorySlug, undefined, requestBody),
-      'Error adding commit comment'
+      'Error adding commit comment',
     );
   }
 
@@ -535,17 +555,18 @@ export class BitbucketService {
     repositorySlug: string,
     commitId: string,
     key: string,
-    externalId?: string
+    externalId?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => BuildsAndDeploymentsService.deleteAnnotations(projectKey, commitId, repositorySlug, key, externalId),
-      'Error deleting code insights annotations'
+      'Error deleting code insights annotations',
     );
     if (result.success) {
       return { ...result, data: { deleted: true, key, ...(externalId ? { externalId } : {}) } };
     }
+
     return result;
   }
 
@@ -560,7 +581,7 @@ export class BitbucketService {
   async getProjects(name?: string, permission?: string, start?: number, limit?: number) {
     return handleApiOperation(
       () => ProjectService.getProjects(name, permission, start, limit ?? this.getPageSize()),
-      'Error fetching projects'
+      'Error fetching projects',
     );
   }
 
@@ -571,9 +592,10 @@ export class BitbucketService {
    */
   async getProject(projectKey: string) {
     projectKey = projectKey.toUpperCase();
+
     return handleApiOperation(
       () => ProjectService.getProject(projectKey),
-      'Error fetching project'
+      'Error fetching project',
     );
   }
 
@@ -586,9 +608,10 @@ export class BitbucketService {
    */
   async getRepositories(projectKey: string, start?: number, limit?: number) {
     projectKey = projectKey.toUpperCase();
+
     return handleApiOperation(
       () => ProjectService.getRepositories(projectKey, start, limit ?? this.getPageSize()),
-      'Error fetching repositories'
+      'Error fetching repositories',
     );
   }
 
@@ -601,9 +624,10 @@ export class BitbucketService {
   async getRepository(projectKey: string, repositorySlug: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => ProjectService.getRepository(projectKey, repositorySlug),
-      'Error fetching repository'
+      'Error fetching repository',
     );
   }
 
@@ -618,9 +642,10 @@ export class BitbucketService {
   async createBranch(projectKey: string, repositorySlug: string, name: string, startPoint: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.createBranch(projectKey, repositorySlug, { name, startPoint }),
-      'Error creating branch'
+      'Error creating branch',
     );
   }
 
@@ -638,11 +663,12 @@ export class BitbucketService {
     const requestBody: any = { name, ...(dryRun !== undefined ? { dryRun } : {}) };
     const result = await handleApiOperation(
       () => RepositoryService.deleteBranch(projectKey, repositorySlug, requestBody),
-      'Error deleting branch'
+      'Error deleting branch',
     );
     if (result.success) {
       return { ...result, data: { deleted: !dryRun, name } };
     }
+
     return result;
   }
 
@@ -662,10 +688,11 @@ export class BitbucketService {
     filterText?: string,
     orderBy?: 'ALPHABETICAL' | 'MODIFICATION',
     start?: number,
-    limit?: number
+    limit?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getBranches(
         projectKey,
@@ -677,9 +704,9 @@ export class BitbucketService {
         filterText,
         undefined, // base
         start,
-        limit ?? this.getPageSize()
+        limit ?? this.getPageSize(),
       ),
-      'Error fetching branches'
+      'Error fetching branches',
     );
   }
 
@@ -699,13 +726,14 @@ export class BitbucketService {
     filterText?: string,
     orderBy?: string,
     start?: number,
-    limit?: number
+    limit?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getTags(projectKey, repositorySlug, orderBy, filterText, start, limit ?? this.getPageSize()),
-      'Error fetching tags'
+      'Error fetching tags',
     );
   }
 
@@ -718,9 +746,10 @@ export class BitbucketService {
   async getDefaultBranch(projectKey: string, repositorySlug: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getDefaultBranch1(projectKey, repositorySlug),
-      'Error fetching default branch'
+      'Error fetching default branch',
     );
   }
 
@@ -734,9 +763,10 @@ export class BitbucketService {
   async getTag(projectKey: string, repositorySlug: string, name: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getTag(projectKey, name, repositorySlug),
-      'Error fetching tag'
+      'Error fetching tag',
     );
   }
 
@@ -760,7 +790,7 @@ export class BitbucketService {
     message: string,
     branch: string,
     sourceCommitId?: string,
-    sourceBranch?: string
+    sourceBranch?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -771,9 +801,10 @@ export class BitbucketService {
       ...(sourceCommitId ? { sourceCommitId } : {}),
       ...(sourceBranch ? { sourceBranch } : {}),
     };
+
     return handleApiOperation(
       () => RepositoryService.editFile(path, projectKey, repositorySlug, formData),
-      'Error editing file'
+      'Error editing file',
     );
   }
 
@@ -791,14 +822,15 @@ export class BitbucketService {
     repositorySlug: string,
     name: string,
     startPoint: string,
-    message?: string
+    message?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody: any = { name, startPoint, ...(message ? { message } : {}) };
+
     return handleApiOperation(
       () => RepositoryService.createTagForRepository(projectKey, repositorySlug, requestBody),
-      'Error creating tag'
+      'Error creating tag',
     );
   }
 
@@ -830,10 +862,11 @@ export class BitbucketService {
     order?: string,
     direction?: string,
     start?: number,
-    limit?: number
+    limit?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => PullRequestsService.getPage(
         projectKey,
@@ -847,9 +880,9 @@ export class BitbucketService {
         order,
         direction,
         start,
-        limit ?? this.getPageSize()
+        limit ?? this.getPageSize(),
       ),
-      'Error fetching pull requests'
+      'Error fetching pull requests',
     );
   }
 
@@ -863,13 +896,14 @@ export class BitbucketService {
   async getPullRequest(
     projectKey: string,
     repositorySlug: string,
-    pullRequestId: string
+    pullRequestId: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => PullRequestsService.get3(projectKey, pullRequestId, repositorySlug),
-      'Error fetching pull request'
+      'Error fetching pull request',
     );
   }
 
@@ -880,7 +914,7 @@ export class BitbucketService {
     start?: number,
     limit?: number,
     output: BitbucketOutputMode = 'compact',
-    includeResolved = false
+    includeResolved = false,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -892,15 +926,15 @@ export class BitbucketService {
         undefined,
         undefined,
         start,
-        limit ?? this.getPageSize()
+        limit ?? this.getPageSize(),
       ),
-      'Error fetching pull request comments'
+      'Error fetching pull request comments',
     );
 
     if (result.success && result.data) {
       return {
         success: true,
-        data: shapePullRequestCommentsResponse(result.data, output, { includeResolved })
+        data: shapePullRequestCommentsResponse(result.data, output, { includeResolved }),
       };
     }
 
@@ -930,7 +964,7 @@ export class BitbucketService {
     withComments?: string,
     start?: number,
     limit?: number,
-    output: BitbucketOutputMode = 'compact'
+    output: BitbucketOutputMode = 'compact',
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -944,15 +978,15 @@ export class BitbucketService {
         untilId,
         withComments,
         start,
-        limit ?? this.getPageSize()
+        limit ?? this.getPageSize(),
       ),
-      'Error fetching pull request changes'
+      'Error fetching pull request changes',
     );
 
     if (result.success && result.data) {
       return {
         ...result,
-        data: shapePullRequestChangesResponse(result.data, output)
+        data: shapePullRequestChangesResponse(result.data, output),
       };
     }
 
@@ -990,12 +1024,12 @@ export class BitbucketService {
     lineType?: 'ADDED' | 'REMOVED' | 'CONTEXT',
     pending?: boolean,
     severity?: 'NORMAL' | 'BLOCKER',
-    output: BitbucketMutationOutputMode = 'ack'
+    output: BitbucketMutationOutputMode = 'ack',
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const comment: any = {
-      text
+      text,
     };
 
     if (severity) {
@@ -1025,9 +1059,9 @@ export class BitbucketService {
         projectKey,
         pullRequestId,
         repositorySlug,
-        comment
+        comment,
       ),
-      'Error posting pull request comment'
+      'Error posting pull request comment',
     );
 
     if (result.success && result.data && output !== 'full') {
@@ -1072,7 +1106,7 @@ export class BitbucketService {
     text?: string,
     state?: 'OPEN' | 'RESOLVED',
     severity?: 'NORMAL' | 'BLOCKER',
-    output: BitbucketMutationOutputMode = 'ack'
+    output: BitbucketMutationOutputMode = 'ack',
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -1096,9 +1130,9 @@ export class BitbucketService {
         commentId,
         pullRequestId,
         repositorySlug,
-        comment
+        comment,
       ),
-      'Error updating pull request comment'
+      'Error updating pull request comment',
     );
 
     if (result.success && result.data && output !== 'full') {
@@ -1125,16 +1159,17 @@ export class BitbucketService {
           url: '/api/latest/users/{userSlug}',
           path: { userSlug },
         }),
-        'Error fetching user'
+        'Error fetching user',
       );
     }
+
     return handleApiOperation(
       () => __request(OpenAPI, {
         method: 'GET',
         url: '/api/latest/users',
         query: { filter },
       }),
-      'Error fetching users'
+      'Error fetching users',
     );
   }
 
@@ -1155,13 +1190,13 @@ export class BitbucketService {
     pullRequestId: string,
     userSlug: string,
     status: 'APPROVED' | 'NEEDS_WORK' | 'UNAPPROVED',
-    lastReviewedCommit?: string
+    lastReviewedCommit?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody: any = {
       status,
-      ...(lastReviewedCommit ? { lastReviewedCommit } : {})
+      ...(lastReviewedCommit ? { lastReviewedCommit } : {}),
     };
 
     return handleApiOperation(
@@ -1170,9 +1205,9 @@ export class BitbucketService {
         userSlug,
         pullRequestId,
         repositorySlug,
-        requestBody
+        requestBody,
       ),
-      'Error submitting pull request review'
+      'Error submitting pull request review',
     );
   }
 
@@ -1201,10 +1236,11 @@ export class BitbucketService {
     srcPath?: string,
     diffType?: string,
     untilId?: string,
-    whitespace?: string
+    whitespace?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => __request(OpenAPI, {
         method: 'GET',
@@ -1224,15 +1260,15 @@ export class BitbucketService {
           'whitespace': whitespace,
         },
         headers: {
-          'Accept': 'text/plain'
+          'Accept': 'text/plain',
         },
         errors: {
-          400: `If the request was malformed.`,
-          401: `The currently authenticated user has insufficient permissions to view the repository or pull request.`,
-          404: `The repository or pull request does not exist.`,
+          400: 'If the request was malformed.',
+          401: 'The currently authenticated user has insufficient permissions to view the repository or pull request.',
+          404: 'The repository or pull request does not exist.',
         },
       }),
-      'Error fetching pull request diff'
+      'Error fetching pull request diff',
     );
   }
 
@@ -1258,7 +1294,7 @@ export class BitbucketService {
     toRefId: string,
     reviewers?: string[],
     draft?: boolean,
-    output: BitbucketMutationOutputMode = 'ack'
+    output: BitbucketMutationOutputMode = 'ack',
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -1270,26 +1306,26 @@ export class BitbucketService {
         repository: {
           slug: repositorySlug,
           project: {
-            key: projectKey
-          }
-        }
+            key: projectKey,
+          },
+        },
       },
       toRef: {
         id: toRefId,
         repository: {
           slug: repositorySlug,
           project: {
-            key: projectKey
-          }
-        }
-      }
+            key: projectKey,
+          },
+        },
+      },
     };
 
     if (reviewers && reviewers.length > 0) {
       pullRequestData.reviewers = reviewers.map(username => ({
         user: {
-          name: username
-        }
+          name: username,
+        },
       }));
     }
 
@@ -1299,7 +1335,7 @@ export class BitbucketService {
 
     const result = await handleApiOperation(
       () => PullRequestsService.create(projectKey, repositorySlug, pullRequestData),
-      'Error creating pull request'
+      'Error creating pull request',
     );
 
     if (result.success && result.data && output !== 'full') {
@@ -1334,12 +1370,12 @@ export class BitbucketService {
     description?: string,
     reviewers?: string[],
     draft?: boolean,
-    output: BitbucketMutationOutputMode = 'ack'
+    output: BitbucketMutationOutputMode = 'ack',
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const pullRequestData: any = {
-      version
+      version,
     };
 
     if (title !== undefined) {
@@ -1353,8 +1389,8 @@ export class BitbucketService {
     if (reviewers && reviewers.length > 0) {
       pullRequestData.reviewers = reviewers.map(username => ({
         user: {
-          name: username
-        }
+          name: username,
+        },
       }));
     }
 
@@ -1364,7 +1400,7 @@ export class BitbucketService {
 
     const result = await handleApiOperation(
       () => PullRequestsService.update(projectKey, pullRequestId, repositorySlug, pullRequestData),
-      'Error updating pull request'
+      'Error updating pull request',
     );
 
     if (result.success && result.data && output !== 'full') {
@@ -1387,13 +1423,14 @@ export class BitbucketService {
   async canMergePullRequest(
     projectKey: string,
     repositorySlug: string,
-    pullRequestId: string
+    pullRequestId: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => PullRequestsService.canMerge(projectKey, pullRequestId, repositorySlug),
-      'Error checking pull request mergeability'
+      'Error checking pull request mergeability',
     );
   }
 
@@ -1415,7 +1452,7 @@ export class BitbucketService {
     version: number,
     message?: string,
     strategyId?: string,
-    output: BitbucketMutationOutputMode = 'ack'
+    output: BitbucketMutationOutputMode = 'ack',
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -1426,7 +1463,7 @@ export class BitbucketService {
 
     const result = await handleApiOperation(
       () => PullRequestsService.merge(projectKey, pullRequestId, repositorySlug, String(version), requestBody),
-      'Error merging pull request'
+      'Error merging pull request',
     );
 
     if (result.success && result.data && output !== 'full') {
@@ -1452,7 +1489,7 @@ export class BitbucketService {
     pullRequestId: string,
     version: number,
     comment?: string,
-    output: BitbucketMutationOutputMode = 'ack'
+    output: BitbucketMutationOutputMode = 'ack',
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -1462,7 +1499,7 @@ export class BitbucketService {
 
     const result = await handleApiOperation(
       () => PullRequestsService.decline(projectKey, pullRequestId, repositorySlug, String(version), requestBody),
-      'Error declining pull request'
+      'Error declining pull request',
     );
 
     if (result.success && result.data && output !== 'full') {
@@ -1486,14 +1523,14 @@ export class BitbucketService {
     repositorySlug: string,
     pullRequestId: string,
     version: number,
-    output: BitbucketMutationOutputMode = 'ack'
+    output: BitbucketMutationOutputMode = 'ack',
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
 
     const result = await handleApiOperation(
       () => PullRequestsService.reopen(projectKey, pullRequestId, repositorySlug, String(version), {}),
-      'Error reopening pull request'
+      'Error reopening pull request',
     );
 
     if (result.success && result.data && output !== 'full') {
@@ -1521,10 +1558,11 @@ export class BitbucketService {
     sourceRefId: string,
     targetRefId: string,
     sourceRepoId?: string,
-    targetRepoId?: string
+    targetRepoId?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => PullRequestsService.getReviewers(
         projectKey,
@@ -1532,9 +1570,9 @@ export class BitbucketService {
         targetRepoId,
         sourceRepoId,
         sourceRefId,
-        targetRefId
+        targetRefId,
       ),
-      'Error fetching required reviewers'
+      'Error fetching required reviewers',
     );
   }
 
@@ -1554,7 +1592,7 @@ export class BitbucketService {
     closedSince?: number,
     order: string = 'NEWEST',
     start?: number,
-    limit?: number
+    limit?: number,
   ) {
     return handleApiOperation(
       () => __request(OpenAPI, {
@@ -1572,7 +1610,7 @@ export class BitbucketService {
           401: 'The currently authenticated user is not permitted to access the dashboard.',
         },
       }),
-      'Error fetching dashboard pull requests'
+      'Error fetching dashboard pull requests',
     );
   }
 
@@ -1595,7 +1633,7 @@ export class BitbucketService {
           401: 'The currently authenticated user is not permitted to access the inbox.',
         },
       }),
-      'Error fetching inbox pull requests'
+      'Error fetching inbox pull requests',
     );
 
     if (result.success && result.data) {
@@ -1626,15 +1664,16 @@ export class BitbucketService {
     matcherId?: string,
     type?: 'read-only' | 'no-deletes' | 'fast-forward-only' | 'pull-request-only' | 'no-creates',
     start?: number,
-    limit?: number
+    limit?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getRestrictions1(
-        projectKey, repositorySlug, matcherType, matcherId, type, start, limit ?? this.getPageSize()
+        projectKey, repositorySlug, matcherType, matcherId, type, start, limit ?? this.getPageSize(),
       ),
-      'Error fetching branch restrictions'
+      'Error fetching branch restrictions',
     );
   }
 
@@ -1649,9 +1688,10 @@ export class BitbucketService {
   async getWebhooks(projectKey: string, repositorySlug: string, event?: string, statistics?: boolean) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.findWebhooks1(projectKey, repositorySlug, event, statistics),
-      'Error fetching webhooks'
+      'Error fetching webhooks',
     );
   }
 
@@ -1666,14 +1706,15 @@ export class BitbucketService {
   async getWebhook(projectKey: string, repositorySlug: string, webhookId: string, statistics?: boolean) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getWebhook1(
         projectKey,
         webhookId,
         repositorySlug,
-        statistics === undefined ? undefined : String(statistics)
+        statistics === undefined ? undefined : String(statistics),
       ),
-      'Error fetching webhook'
+      'Error fetching webhook',
     );
   }
 
@@ -1688,11 +1729,12 @@ export class BitbucketService {
   async getRequiredBuildsMergeChecks(projectKey: string, repositorySlug: string, start?: number, limit?: number) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => BuildsAndDeploymentsService.getPageOfRequiredBuildsMergeChecks(
-        projectKey, repositorySlug, start, limit ?? this.getPageSize()
+        projectKey, repositorySlug, start, limit ?? this.getPageSize(),
       ),
-      'Error fetching required builds merge checks'
+      'Error fetching required builds merge checks',
     );
   }
 
@@ -1705,9 +1747,10 @@ export class BitbucketService {
   async getDefaultReviewerConditions(projectKey: string, repositorySlug: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => PullRequestsService.getPullRequestConditions1(projectKey, repositorySlug),
-      'Error fetching default reviewer conditions'
+      'Error fetching default reviewer conditions',
     );
   }
 
@@ -1735,17 +1778,18 @@ export class BitbucketService {
     reviewerIds: number[],
     requiredApprovals?: number,
     sourceMatcherDisplayId?: string,
-    targetMatcherDisplayId?: string
+    targetMatcherDisplayId?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody = this.buildDefaultReviewerBody(
       sourceMatcherType, sourceMatcherValue, targetMatcherType, targetMatcherValue,
-      reviewerIds, requiredApprovals, sourceMatcherDisplayId, targetMatcherDisplayId
+      reviewerIds, requiredApprovals, sourceMatcherDisplayId, targetMatcherDisplayId,
     );
+
     return handleApiOperation(
       () => PullRequestsService.createPullRequestCondition1(projectKey, repositorySlug, requestBody),
-      'Error creating default reviewer condition'
+      'Error creating default reviewer condition',
     );
   }
 
@@ -1769,14 +1813,15 @@ export class BitbucketService {
     events: string[],
     active?: boolean,
     secret?: string,
-    sslVerificationRequired?: boolean
+    sslVerificationRequired?: boolean,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody = this.buildWebhookBody(name, url, events, active, secret, sslVerificationRequired);
+
     return handleApiOperation(
       () => RepositoryService.createWebhook1(projectKey, repositorySlug, requestBody),
-      'Error creating webhook'
+      'Error creating webhook',
     );
   }
 
@@ -1802,17 +1847,18 @@ export class BitbucketService {
     refMatcherDisplayId?: string,
     exemptRefMatcherType?: string,
     exemptRefMatcherValue?: string,
-    exemptRefMatcherDisplayId?: string
+    exemptRefMatcherDisplayId?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody = this.buildRequiredBuildsBody(
       buildParentKeys, refMatcherType, refMatcherValue, refMatcherDisplayId,
-      exemptRefMatcherType, exemptRefMatcherValue, exemptRefMatcherDisplayId
+      exemptRefMatcherType, exemptRefMatcherValue, exemptRefMatcherDisplayId,
     );
+
     return handleApiOperation(
       () => BuildsAndDeploymentsService.createRequiredBuildsMergeCheck(projectKey, repositorySlug, requestBody),
-      'Error creating required builds merge check'
+      'Error creating required builds merge check',
     );
   }
 
@@ -1838,14 +1884,15 @@ export class BitbucketService {
     events: string[],
     active?: boolean,
     secret?: string,
-    sslVerificationRequired?: boolean
+    sslVerificationRequired?: boolean,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody = this.buildWebhookBody(name, url, events, active, secret, sslVerificationRequired);
+
     return handleApiOperation(
       () => RepositoryService.updateWebhook1(projectKey, webhookId, repositorySlug, requestBody),
-      'Error updating webhook'
+      'Error updating webhook',
     );
   }
 
@@ -1871,7 +1918,7 @@ export class BitbucketService {
     matcherDisplayId?: string,
     exemptUserSlugs?: string[],
     exemptGroupNames?: string[],
-    exemptAccessKeyIds?: number[]
+    exemptAccessKeyIds?: number[],
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -1886,9 +1933,10 @@ export class BitbucketService {
       ...(exemptGroupNames ? { groupNames: exemptGroupNames } : {}),
       ...(exemptAccessKeyIds ? { accessKeyIds: exemptAccessKeyIds } : {}),
     };
+
     return handleApiOperation(
       () => RepositoryService.createRestrictions1(projectKey, repositorySlug, [restriction]),
-      'Error creating branch restriction'
+      'Error creating branch restriction',
     );
   }
 
@@ -1918,17 +1966,18 @@ export class BitbucketService {
     reviewerIds: number[],
     requiredApprovals?: number,
     sourceMatcherDisplayId?: string,
-    targetMatcherDisplayId?: string
+    targetMatcherDisplayId?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody = this.buildDefaultReviewerBody(
       sourceMatcherType, sourceMatcherValue, targetMatcherType, targetMatcherValue,
-      reviewerIds, requiredApprovals, sourceMatcherDisplayId, targetMatcherDisplayId
+      reviewerIds, requiredApprovals, sourceMatcherDisplayId, targetMatcherDisplayId,
     );
+
     return handleApiOperation(
       () => PullRequestsService.updatePullRequestCondition1(projectKey, id, repositorySlug, requestBody),
-      'Error updating default reviewer condition'
+      'Error updating default reviewer condition',
     );
   }
 
@@ -1956,17 +2005,18 @@ export class BitbucketService {
     refMatcherDisplayId?: string,
     exemptRefMatcherType?: string,
     exemptRefMatcherValue?: string,
-    exemptRefMatcherDisplayId?: string
+    exemptRefMatcherDisplayId?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody = this.buildRequiredBuildsBody(
       buildParentKeys, refMatcherType, refMatcherValue, refMatcherDisplayId,
-      exemptRefMatcherType, exemptRefMatcherValue, exemptRefMatcherDisplayId
+      exemptRefMatcherType, exemptRefMatcherValue, exemptRefMatcherDisplayId,
     );
+
     return handleApiOperation(
       () => BuildsAndDeploymentsService.updateRequiredBuildsMergeCheck(projectKey, Number(id), repositorySlug, requestBody),
-      'Error updating required builds merge check'
+      'Error updating required builds merge check',
     );
   }
 
@@ -1980,9 +2030,10 @@ export class BitbucketService {
   async getBranchRestriction(projectKey: string, repositorySlug: string, id: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getRestriction1(projectKey, id, repositorySlug),
-      'Error fetching branch restriction'
+      'Error fetching branch restriction',
     );
   }
 
@@ -1998,8 +2049,9 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => RepositoryService.deleteRestriction1(projectKey, id, repositorySlug),
-      'Error deleting branch restriction'
+      'Error deleting branch restriction',
     );
+
     return { ...result, data: { deleted: true, id } };
   }
 
@@ -2016,6 +2068,7 @@ export class BitbucketService {
   async getBranchModel(projectKey: string, repositorySlug: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => __request(OpenAPI, {
         method: 'GET',
@@ -2026,7 +2079,7 @@ export class BitbucketService {
           404: 'The specified repository does not exist.',
         },
       }),
-      'Error fetching branch model configuration'
+      'Error fetching branch model configuration',
     );
   }
 
@@ -2044,7 +2097,7 @@ export class BitbucketService {
     repositorySlug: string,
     development: { refId: string; useDefault?: boolean },
     production?: { refId: string; useDefault?: boolean },
-    types?: Array<{ id: string; prefix?: string; enabled?: boolean }>
+    types?: Array<{ id: string; prefix?: string; enabled?: boolean }>,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -2053,6 +2106,7 @@ export class BitbucketService {
       ...(production ? { production } : {}),
       ...(types ? { types } : {}),
     };
+
     return handleApiOperation(
       () => __request(OpenAPI, {
         method: 'PUT',
@@ -2066,7 +2120,7 @@ export class BitbucketService {
           404: 'The specified repository does not exist.',
         },
       }),
-      'Error setting branch model configuration'
+      'Error setting branch model configuration',
     );
   }
 
@@ -2089,11 +2143,12 @@ export class BitbucketService {
           404: 'The specified repository does not exist.',
         },
       }),
-      'Error deleting branch model configuration'
+      'Error deleting branch model configuration',
     );
     if (result.success) {
       return { ...result, data: { reset: true, projectKey, repositorySlug } };
     }
+
     return result;
   }
 
@@ -2109,8 +2164,9 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => BuildsAndDeploymentsService.deleteRequiredBuildsMergeCheck(projectKey, Number(id), repositorySlug),
-      'Error deleting required builds merge check'
+      'Error deleting required builds merge check',
     );
+
     return { ...result, data: { deleted: true, id } };
   }
 
@@ -2126,8 +2182,9 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => PullRequestsService.deletePullRequestCondition1(projectKey, Number(id), repositorySlug),
-      'Error deleting default reviewer condition'
+      'Error deleting default reviewer condition',
     );
+
     return { ...result, data: { deleted: true, id } };
   }
 
@@ -2167,7 +2224,7 @@ export class BitbucketService {
           401: 'The currently authenticated user is not permitted to search.',
         },
       }),
-      'Error searching code'
+      'Error searching code',
     );
   }
 
@@ -2179,7 +2236,7 @@ export class BitbucketService {
     reviewerIds: number[],
     requiredApprovals?: number,
     sourceMatcherDisplayId?: string,
-    targetMatcherDisplayId?: string
+    targetMatcherDisplayId?: string,
   ): any {
     return {
       reviewers: reviewerIds.map(id => ({ id })),
@@ -2204,7 +2261,7 @@ export class BitbucketService {
     refMatcherDisplayId?: string,
     exemptRefMatcherType?: string,
     exemptRefMatcherValue?: string,
-    exemptRefMatcherDisplayId?: string
+    exemptRefMatcherDisplayId?: string,
   ): any {
     return {
       buildParentKeys,
@@ -2215,12 +2272,12 @@ export class BitbucketService {
       },
       ...(exemptRefMatcherType && exemptRefMatcherValue
         ? {
-            exemptRefMatcher: {
-              id: exemptRefMatcherValue,
-              displayId: exemptRefMatcherDisplayId ?? exemptRefMatcherValue,
-              type: { id: exemptRefMatcherType },
-            },
-          }
+          exemptRefMatcher: {
+            id: exemptRefMatcherValue,
+            displayId: exemptRefMatcherDisplayId ?? exemptRefMatcherValue,
+            type: { id: exemptRefMatcherType },
+          },
+        }
         : {}),
     };
   }
@@ -2239,14 +2296,15 @@ export class BitbucketService {
     repositorySlug: string,
     pullRequestId: string,
     commentId: string,
-    version: number
+    version: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => PullRequestsService.deleteComment2(projectKey, commentId, pullRequestId, repositorySlug, String(version)),
-      'Error deleting pull request comment'
+      'Error deleting pull request comment',
     );
+
     return { ...result, data: { deleted: true, commentId } };
   }
 
@@ -2270,7 +2328,7 @@ export class BitbucketService {
     commentVersion: number,
     pullRequestVersion: number,
     commitMessage: string,
-    suggestionIndex?: number
+    suggestionIndex?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -2284,8 +2342,9 @@ export class BitbucketService {
     };
     const result = await handleApiOperation(
       () => PullRequestsService.applySuggestion(projectKey, commentId, pullRequestId, repositorySlug, requestBody),
-      'Error applying pull request suggestion'
+      'Error applying pull request suggestion',
     );
+
     return { ...result, data: { applied: true, commentId } };
   }
 
@@ -2301,8 +2360,9 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => PullRequestsService.watch1(projectKey, pullRequestId, repositorySlug),
-      'Error watching pull request'
+      'Error watching pull request',
     );
+
     return { ...result, data: { watching: true, pullRequestId } };
   }
 
@@ -2318,8 +2378,9 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => PullRequestsService.unwatch1(projectKey, pullRequestId, repositorySlug),
-      'Error unwatching pull request'
+      'Error unwatching pull request',
     );
+
     return { ...result, data: { watching: false, pullRequestId } };
   }
 
@@ -2335,14 +2396,15 @@ export class BitbucketService {
     projectKey: string,
     repositorySlug: string,
     pullRequestId: string,
-    userSlug: string
+    userSlug: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody: any = { user: { name: userSlug }, role: 'REVIEWER' };
+
     return handleApiOperation(
       () => PullRequestsService.assignParticipantRole(projectKey, pullRequestId, repositorySlug, requestBody),
-      'Error adding pull request reviewer'
+      'Error adding pull request reviewer',
     );
   }
 
@@ -2360,9 +2422,10 @@ export class BitbucketService {
       name,
       ...(description !== undefined ? { description } : {}),
     };
+
     return handleApiOperation(
       () => ProjectService.createProject(requestBody),
-      'Error creating project'
+      'Error creating project',
     );
   }
 
@@ -2381,9 +2444,10 @@ export class BitbucketService {
       scmId,
       ...(defaultBranch ? { defaultBranch } : {}),
     };
+
     return handleApiOperation(
       () => ProjectService.createRepository(projectKey, requestBody),
-      'Error creating repository'
+      'Error creating repository',
     );
   }
 
@@ -2399,17 +2463,18 @@ export class BitbucketService {
     projectKey: string,
     repositorySlug: string,
     pullRequestId: string,
-    userSlug: string
+    userSlug: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => PullRequestsService.unassignParticipantRole(projectKey, userSlug, pullRequestId, repositorySlug),
-      'Error removing pull request reviewer'
+      'Error removing pull request reviewer',
     );
     if (result.success) {
       return { ...result, data: { removed: true, userSlug } };
     }
+
     return result;
   }
 
@@ -2428,15 +2493,16 @@ export class BitbucketService {
     repositorySlug: string,
     pullRequestId: string,
     start?: number,
-    limit?: number
+    limit?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => PullRequestsService.listParticipants(
-        projectKey, pullRequestId, repositorySlug, start, limit ?? this.getPageSize()
+        projectKey, pullRequestId, repositorySlug, start, limit ?? this.getPageSize(),
       ),
-      'Error fetching pull request participants'
+      'Error fetching pull request participants',
     );
   }
 
@@ -2454,9 +2520,10 @@ export class BitbucketService {
       ...(name !== undefined ? { name } : {}),
       ...(description !== undefined ? { description } : {}),
     };
+
     return handleApiOperation(
       () => ProjectService.updateProject(key, requestBody),
-      'Error updating project'
+      'Error updating project',
     );
   }
 
@@ -2476,7 +2543,7 @@ export class BitbucketService {
     name?: string,
     description?: string,
     defaultBranch?: string,
-    targetProjectKey?: string
+    targetProjectKey?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -2486,9 +2553,10 @@ export class BitbucketService {
       ...(defaultBranch !== undefined ? { defaultBranch } : {}),
       ...(targetProjectKey ? { project: { key: targetProjectKey.toUpperCase() } } : {}),
     };
+
     return handleApiOperation(
       () => ProjectService.updateRepository(projectKey, repositorySlug, requestBody),
-      'Error updating repository'
+      'Error updating repository',
     );
   }
 
@@ -2501,8 +2569,9 @@ export class BitbucketService {
     key = key.toUpperCase();
     const result = await handleApiOperation(
       () => ProjectService.deleteProject(key),
-      'Error deleting project'
+      'Error deleting project',
     );
+
     return { ...result, data: { deleted: true, key } };
   }
 
@@ -2520,7 +2589,7 @@ export class BitbucketService {
     repositorySlug: string,
     name?: string,
     targetProjectKey?: string,
-    defaultBranch?: string
+    defaultBranch?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -2529,9 +2598,10 @@ export class BitbucketService {
       ...(targetProjectKey ? { project: { key: targetProjectKey.toUpperCase() } } : {}),
       ...(defaultBranch ? { defaultBranch } : {}),
     };
+
     return handleApiOperation(
       () => ProjectService.forkRepository(projectKey, repositorySlug, requestBody),
-      'Error forking repository'
+      'Error forking repository',
     );
   }
 
@@ -2547,13 +2617,14 @@ export class BitbucketService {
     projectKey: string,
     repositorySlug: string,
     start?: number,
-    limit?: number
+    limit?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => ProjectService.getForkedRepositories(projectKey, repositorySlug, start, limit ?? this.getPageSize()),
-      'Error fetching repository forks'
+      'Error fetching repository forks',
     );
   }
 
@@ -2568,8 +2639,9 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => ProjectService.deleteRepository(projectKey, repositorySlug),
-      'Error deleting repository'
+      'Error deleting repository',
     );
+
     return { ...result, data: { scheduledForDeletion: true, projectKey, repositorySlug } };
   }
 
@@ -2585,8 +2657,9 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => RepositoryService.deleteWebhook1(projectKey, webhookId, repositorySlug),
-      'Error deleting webhook'
+      'Error deleting webhook',
     );
+
     return { ...result, data: { deleted: true, webhookId } };
   }
 
@@ -2606,24 +2679,28 @@ export class BitbucketService {
     projectKey?: string,
     repositorySlug?: string,
     start?: number,
-    limit?: number
+    limit?: number,
   ) {
     projectKey = projectKey?.toUpperCase();
     repositorySlug = repositorySlug?.toLowerCase();
+
     return handleApiOperation(
       () => {
         if (scope === 'user') {
-          if (!userSlug) throw new Error("userSlug is required when scope is 'user'");
+          if (!userSlug) throw new Error('userSlug is required when scope is \'user\'');
+
           return AuthenticationService.getAllAccessTokens2(userSlug, start, limit ?? this.getPageSize());
         }
         if (scope === 'project') {
-          if (!projectKey) throw new Error("projectKey is required when scope is 'project'");
+          if (!projectKey) throw new Error('projectKey is required when scope is \'project\'');
+
           return AuthenticationService.getAllAccessTokens(projectKey, start, limit ?? this.getPageSize());
         }
-        if (!projectKey || !repositorySlug) throw new Error("projectKey and repositorySlug are required when scope is 'repo'");
+        if (!projectKey || !repositorySlug) throw new Error('projectKey and repositorySlug are required when scope is \'repo\'');
+
         return AuthenticationService.getAllAccessTokens1(projectKey, repositorySlug, start, limit ?? this.getPageSize());
       },
-      'Error fetching access tokens'
+      'Error fetching access tokens',
     );
   }
 
@@ -2639,8 +2716,9 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => ProjectService.setDefaultBranch2(projectKey, repositorySlug, { id: branchId }),
-      'Error setting default branch'
+      'Error setting default branch',
     );
+
     return { ...result, data: { updated: true, projectKey, repositorySlug, branchId } };
   }
 
@@ -2653,9 +2731,10 @@ export class BitbucketService {
   async getPullRequestSettings(projectKey: string, repositorySlug: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getPullRequestSettings1(projectKey, repositorySlug),
-      'Error fetching pull request settings'
+      'Error fetching pull request settings',
     );
   }
 
@@ -2669,9 +2748,10 @@ export class BitbucketService {
   async updatePullRequestSettings(projectKey: string, repositorySlug: string, settings: Record<string, any>) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.updatePullRequestSettings1(projectKey, repositorySlug, settings),
-      'Error updating pull request settings'
+      'Error updating pull request settings',
     );
   }
 
@@ -2684,9 +2764,10 @@ export class BitbucketService {
   async getAutoDeclineSettings(projectKey: string, repositorySlug: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getAutoDeclineSettings1(projectKey, repositorySlug),
-      'Error fetching auto-decline settings'
+      'Error fetching auto-decline settings',
     );
   }
 
@@ -2702,7 +2783,7 @@ export class BitbucketService {
     projectKey: string,
     repositorySlug: string,
     enabled: boolean,
-    inactivityWeeks?: number
+    inactivityWeeks?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
@@ -2710,9 +2791,10 @@ export class BitbucketService {
       enabled,
       ...(inactivityWeeks !== undefined ? { inactivityWeeks } : {}),
     };
+
     return handleApiOperation(
       () => RepositoryService.setAutoDeclineSettings1(projectKey, repositorySlug, requestBody),
-      'Error updating auto-decline settings'
+      'Error updating auto-decline settings',
     );
   }
 
@@ -2727,11 +2809,12 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => RepositoryService.deleteAutoDeclineSettings1(projectKey, repositorySlug),
-      'Error deleting auto-decline settings'
+      'Error deleting auto-decline settings',
     );
     if (result.success) {
       return { ...result, data: { deleted: true, projectKey, repositorySlug } };
     }
+
     return result;
   }
 
@@ -2744,9 +2827,10 @@ export class BitbucketService {
   async getAutoMergeSettings(projectKey: string, repositorySlug: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.get5(projectKey, repositorySlug),
-      'Error fetching auto-merge settings'
+      'Error fetching auto-merge settings',
     );
   }
 
@@ -2760,9 +2844,10 @@ export class BitbucketService {
   async setAutoMergeSettings(projectKey: string, repositorySlug: string, enabled: boolean) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.set1(projectKey, repositorySlug, { enabled }),
-      'Error updating auto-merge settings'
+      'Error updating auto-merge settings',
     );
   }
 
@@ -2777,11 +2862,12 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => RepositoryService.delete5(projectKey, repositorySlug),
-      'Error deleting auto-merge settings'
+      'Error deleting auto-merge settings',
     );
     if (result.success) {
       return { ...result, data: { deleted: true, projectKey, repositorySlug } };
     }
+
     return result;
   }
 
@@ -2799,13 +2885,14 @@ export class BitbucketService {
     repositorySlug: string,
     type?: 'PRE_RECEIVE' | 'POST_RECEIVE',
     start?: number,
-    limit?: number
+    limit?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getRepositoryHooks1(projectKey, repositorySlug, type, start, limit ?? this.getPageSize()),
-      'Error fetching repository hooks'
+      'Error fetching repository hooks',
     );
   }
 
@@ -2827,7 +2914,7 @@ export class BitbucketService {
     expiryDays?: number,
     userSlug?: string,
     projectKey?: string,
-    repositorySlug?: string
+    repositorySlug?: string,
   ) {
     projectKey = projectKey?.toUpperCase();
     repositorySlug = repositorySlug?.toLowerCase();
@@ -2836,20 +2923,24 @@ export class BitbucketService {
       permissions,
       ...(expiryDays !== undefined ? { expiryDays } : {}),
     };
+
     return handleApiOperation(
       () => {
         if (scope === 'user') {
-          if (!userSlug) throw new Error("userSlug is required when scope is 'user'");
+          if (!userSlug) throw new Error('userSlug is required when scope is \'user\'');
+
           return AuthenticationService.createAccessToken2(userSlug, requestBody);
         }
         if (scope === 'project') {
-          if (!projectKey) throw new Error("projectKey is required when scope is 'project'");
+          if (!projectKey) throw new Error('projectKey is required when scope is \'project\'');
+
           return AuthenticationService.createAccessToken(projectKey, requestBody);
         }
-        if (!projectKey || !repositorySlug) throw new Error("projectKey and repositorySlug are required when scope is 'repo'");
+        if (!projectKey || !repositorySlug) throw new Error('projectKey and repositorySlug are required when scope is \'repo\'');
+
         return AuthenticationService.createAccessToken1(projectKey, repositorySlug, requestBody);
       },
-      'Error creating access token'
+      'Error creating access token',
     );
   }
 
@@ -2863,9 +2954,10 @@ export class BitbucketService {
   async enableRepoHook(projectKey: string, repositorySlug: string, hookKey: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.enableHook1(projectKey, hookKey, repositorySlug),
-      'Error enabling repository hook'
+      'Error enabling repository hook',
     );
   }
 
@@ -2883,28 +2975,32 @@ export class BitbucketService {
     tokenId: string,
     userSlug?: string,
     projectKey?: string,
-    repositorySlug?: string
+    repositorySlug?: string,
   ) {
     projectKey = projectKey?.toUpperCase();
     repositorySlug = repositorySlug?.toLowerCase();
     const result = await handleApiOperation(
       () => {
         if (scope === 'user') {
-          if (!userSlug) throw new Error("userSlug is required when scope is 'user'");
+          if (!userSlug) throw new Error('userSlug is required when scope is \'user\'');
+
           return AuthenticationService.deleteById2(tokenId, userSlug);
         }
         if (scope === 'project') {
-          if (!projectKey) throw new Error("projectKey is required when scope is 'project'");
+          if (!projectKey) throw new Error('projectKey is required when scope is \'project\'');
+
           return AuthenticationService.deleteById(projectKey, tokenId);
         }
-        if (!projectKey || !repositorySlug) throw new Error("projectKey and repositorySlug are required when scope is 'repo'");
+        if (!projectKey || !repositorySlug) throw new Error('projectKey and repositorySlug are required when scope is \'repo\'');
+
         return AuthenticationService.deleteById1(projectKey, tokenId, repositorySlug);
       },
-      'Error deleting access token'
+      'Error deleting access token',
     );
     if (result.success) {
       return { ...result, data: { deleted: true, tokenId } };
     }
+
     return result;
   }
 
@@ -2918,9 +3014,10 @@ export class BitbucketService {
   async disableRepoHook(projectKey: string, repositorySlug: string, hookKey: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.disableHook1(projectKey, hookKey, repositorySlug),
-      'Error disabling repository hook'
+      'Error disabling repository hook',
     );
   }
 
@@ -2934,9 +3031,10 @@ export class BitbucketService {
   async getRepoHookSettings(projectKey: string, repositorySlug: string, hookKey: string) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.getSettings1(projectKey, hookKey, repositorySlug),
-      'Error fetching repository hook settings'
+      'Error fetching repository hook settings',
     );
   }
 
@@ -2951,9 +3049,10 @@ export class BitbucketService {
   async setRepoHookSettings(projectKey: string, repositorySlug: string, hookKey: string, settings: Record<string, any>) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
     return handleApiOperation(
       () => RepositoryService.setSettings1(projectKey, hookKey, repositorySlug, settings),
-      'Error updating repository hook settings'
+      'Error updating repository hook settings',
     );
   }
 
@@ -2963,7 +3062,7 @@ export class BitbucketService {
     events: string[],
     active?: boolean,
     secret?: string,
-    sslVerificationRequired?: boolean
+    sslVerificationRequired?: boolean,
   ): any {
     return {
       name,
@@ -2986,15 +3085,17 @@ export class BitbucketService {
   async getProjectPermissions(projectKey: string, filter?: string, start?: number, limit?: number) {
     projectKey = projectKey.toUpperCase();
     const pageLimit = limit ?? this.getPageSize();
+
     return handleApiOperation(
       async () => {
         const [users, groups] = await Promise.all([
           ProjectService.getUsersWithAnyPermission1(projectKey, filter, start, pageLimit),
           ProjectService.getGroupsWithAnyPermission1(projectKey, filter, start, pageLimit),
         ]);
+
         return { users, groups };
       },
-      'Error fetching project permissions'
+      'Error fetching project permissions',
     );
   }
 
@@ -3008,16 +3109,17 @@ export class BitbucketService {
   async setProjectUserPermission(
     projectKey: string,
     name: string,
-    permission: 'PROJECT_READ' | 'PROJECT_WRITE' | 'PROJECT_ADMIN'
+    permission: 'PROJECT_READ' | 'PROJECT_WRITE' | 'PROJECT_ADMIN',
   ) {
     projectKey = projectKey.toUpperCase();
     const result = await handleApiOperation(
       () => ProjectService.setPermissionForUsers1(projectKey, name, permission),
-      'Error setting project user permission'
+      'Error setting project user permission',
     );
     if (result.success) {
       return { ...result, data: { projectKey, name, permission } };
     }
+
     return result;
   }
 
@@ -3031,16 +3133,17 @@ export class BitbucketService {
   async setProjectGroupPermission(
     projectKey: string,
     name: string,
-    permission: 'PROJECT_READ' | 'PROJECT_WRITE' | 'PROJECT_ADMIN'
+    permission: 'PROJECT_READ' | 'PROJECT_WRITE' | 'PROJECT_ADMIN',
   ) {
     projectKey = projectKey.toUpperCase();
     const result = await handleApiOperation(
       () => ProjectService.setPermissionForGroups1(projectKey, name, permission),
-      'Error setting project group permission'
+      'Error setting project group permission',
     );
     if (result.success) {
       return { ...result, data: { projectKey, name, permission } };
     }
+
     return result;
   }
 
@@ -3055,11 +3158,12 @@ export class BitbucketService {
     projectKey = projectKey.toUpperCase();
     const result = await handleApiOperation(
       () => ProjectService.revokePermissions(projectKey, user, group),
-      'Error revoking project permission'
+      'Error revoking project permission',
     );
     if (result.success) {
       return { ...result, data: { revoked: true, projectKey, user, group } };
     }
+
     return result;
   }
 
@@ -3076,15 +3180,17 @@ export class BitbucketService {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const pageLimit = limit ?? this.getPageSize();
+
     return handleApiOperation(
       async () => {
         const [users, groups] = await Promise.all([
           PermissionManagementService.getUsersWithAnyPermission2(projectKey, repositorySlug, filter, start, pageLimit),
           PermissionManagementService.getGroupsWithAnyPermission2(projectKey, repositorySlug, filter, start, pageLimit),
         ]);
+
         return { users, groups };
       },
-      'Error fetching repository permissions'
+      'Error fetching repository permissions',
     );
   }
 
@@ -3100,17 +3206,18 @@ export class BitbucketService {
     projectKey: string,
     repositorySlug: string,
     name: string,
-    permission: 'REPO_READ' | 'REPO_WRITE' | 'REPO_ADMIN'
+    permission: 'REPO_READ' | 'REPO_WRITE' | 'REPO_ADMIN',
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => PermissionManagementService.setPermissionForUser(projectKey, [name], permission, repositorySlug),
-      'Error setting repository user permission'
+      'Error setting repository user permission',
     );
     if (result.success) {
       return { ...result, data: { projectKey, repositorySlug, name, permission } };
     }
+
     return result;
   }
 
@@ -3126,17 +3233,18 @@ export class BitbucketService {
     projectKey: string,
     repositorySlug: string,
     name: string,
-    permission: 'REPO_READ' | 'REPO_WRITE' | 'REPO_ADMIN'
+    permission: 'REPO_READ' | 'REPO_WRITE' | 'REPO_ADMIN',
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => PermissionManagementService.setPermissionForGroup(projectKey, [name], permission, repositorySlug),
-      'Error setting repository group permission'
+      'Error setting repository group permission',
     );
     if (result.success) {
       return { ...result, data: { projectKey, repositorySlug, name, permission } };
     }
+
     return result;
   }
 
@@ -3153,11 +3261,12 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => PermissionManagementService.revokePermissions1(projectKey, repositorySlug, user, group),
-      'Error revoking repository permission'
+      'Error revoking repository permission',
     );
     if (result.success) {
       return { ...result, data: { revoked: true, projectKey, repositorySlug, user, group } };
     }
+
     return result;
   }
 
@@ -3171,7 +3280,7 @@ export class BitbucketService {
   async getSshKeys(userName?: string, start?: number, limit?: number) {
     return handleApiOperation(
       () => AuthenticationService.getSshKeys(userName, undefined, start, limit ?? this.getPageSize()),
-      'Error fetching SSH keys'
+      'Error fetching SSH keys',
     );
   }
 
@@ -3184,7 +3293,7 @@ export class BitbucketService {
   async addSshKey(text: string, userName?: string) {
     return handleApiOperation(
       () => AuthenticationService.addSshKey(userName, { text }),
-      'Error adding SSH key'
+      'Error adding SSH key',
     );
   }
 
@@ -3196,8 +3305,9 @@ export class BitbucketService {
   async deleteSshKey(keyId: string) {
     const result = await handleApiOperation(
       () => AuthenticationService.deleteSshKey(keyId),
-      'Error deleting SSH key'
+      'Error deleting SSH key',
     );
+
     return { ...result, data: { deleted: true, keyId } };
   }
 
@@ -3211,7 +3321,7 @@ export class BitbucketService {
   async getGpgKeys(user?: string, start?: number, limit?: number) {
     return handleApiOperation(
       () => SecurityService.getKeysForUser(user, start, limit ?? this.getPageSize()),
-      'Error fetching GPG keys'
+      'Error fetching GPG keys',
     );
   }
 
@@ -3223,9 +3333,10 @@ export class BitbucketService {
    */
   async addGpgKey(text: string, user?: string) {
     const requestBody: any = { text };
+
     return handleApiOperation(
       () => SecurityService.addKey(user, requestBody),
-      'Error adding GPG key'
+      'Error adding GPG key',
     );
   }
 
@@ -3237,8 +3348,9 @@ export class BitbucketService {
   async deleteGpgKey(fingerprintOrId: string) {
     const result = await handleApiOperation(
       () => SecurityService.deleteKey(fingerprintOrId),
-      'Error deleting GPG key'
+      'Error deleting GPG key',
     );
+
     return { ...result, data: { deleted: true, fingerprintOrId } };
   }
 
@@ -3257,797 +3369,797 @@ export class BitbucketService {
 
 export const bitbucketToolSchemas = {
   getProjects: {
-    name: z.string().optional().describe("Filter projects by name"),
-    permission: z.string().optional().describe("Filter projects by permission"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    name: z.string().optional().describe('Filter projects by name'),
+    permission: z.string().optional().describe('Filter projects by permission'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   getPullRequests: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    withAttributes: z.string().optional().describe("(optional) defaults to true, whether to return additional pull request attributes"),
-    at: z.string().optional().describe("(optional) a fully-qualified branch ID to find pull requests to or from, such as refs/heads/master"),
-    withProperties: z.string().optional().describe("(optional) defaults to true, whether to return additional pull request properties"),
-    draft: z.string().optional().describe("(optional) If specified, only pull requests matching the supplied draft status will be returned"),
-    filterText: z.string().optional().describe("(optional) If specified, only pull requests where the title or description contains the supplied string will be returned"),
-    state: z.string().optional().describe("(optional, defaults to OPEN). Supply ALL to return pull request in any state. If a state is supplied only pull requests in the specified state will be returned. Either OPEN, DECLINED or MERGED"),
-    order: z.string().optional().describe("(optional, defaults to NEWEST) the order to return pull requests in, either OLDEST (as in: \"oldest first\") or NEWEST"),
-    direction: z.string().optional().describe("(optional, defaults to INCOMING) the direction relative to the specified repository. Either INCOMING or OUTGOING"),
-    start: z.number().optional().describe("Start number for the page (inclusive). If not passed, first page is assumed"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    withAttributes: z.string().optional().describe('(optional) defaults to true, whether to return additional pull request attributes'),
+    at: z.string().optional().describe('(optional) a fully-qualified branch ID to find pull requests to or from, such as refs/heads/master'),
+    withProperties: z.string().optional().describe('(optional) defaults to true, whether to return additional pull request properties'),
+    draft: z.string().optional().describe('(optional) If specified, only pull requests matching the supplied draft status will be returned'),
+    filterText: z.string().optional().describe('(optional) If specified, only pull requests where the title or description contains the supplied string will be returned'),
+    state: z.string().optional().describe('(optional, defaults to OPEN). Supply ALL to return pull request in any state. If a state is supplied only pull requests in the specified state will be returned. Either OPEN, DECLINED or MERGED'),
+    order: z.string().optional().describe('(optional, defaults to NEWEST) the order to return pull requests in, either OLDEST (as in: "oldest first") or NEWEST'),
+    direction: z.string().optional().describe('(optional, defaults to INCOMING) the direction relative to the specified repository. Either INCOMING or OUTGOING'),
+    start: z.number().optional().describe('Start number for the page (inclusive). If not passed, first page is assumed'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   getPullRequest: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The ID of the pull request within the repository")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The ID of the pull request within the repository'),
   },
   getProject: {
-    projectKey: z.string().describe("The project key")
+    projectKey: z.string().describe('The project key'),
   },
   getRepositories: {
-    projectKey: z.string().describe("The project key"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   getRepository: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
   },
   createBranch: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    name: z.string().describe("The name of the new branch (e.g. 'feature/login')"),
-    startPoint: z.string().describe("The commit hash or ref to branch from (e.g. 'refs/heads/master' or a commit id)")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    name: z.string().describe('The name of the new branch (e.g. \'feature/login\')'),
+    startPoint: z.string().describe('The commit hash or ref to branch from (e.g. \'refs/heads/master\' or a commit id)'),
   },
   deleteBranch: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    name: z.string().describe("The branch to delete, as a full ref (e.g. 'refs/heads/feature/login') or branch name"),
-    dryRun: z.boolean().optional().describe("If true, validate the deletion without actually removing the branch")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    name: z.string().describe('The branch to delete, as a full ref (e.g. \'refs/heads/feature/login\') or branch name'),
+    dryRun: z.boolean().optional().describe('If true, validate the deletion without actually removing the branch'),
   },
   getBranches: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    filterText: z.string().optional().describe("Optional text that the returned branch names must contain (substring match)"),
-    orderBy: z.enum(['ALPHABETICAL', 'MODIFICATION']).optional().describe("Ordering of the results: ALPHABETICAL by branch name, or MODIFICATION (most recently modified first)"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    filterText: z.string().optional().describe('Optional text that the returned branch names must contain (substring match)'),
+    orderBy: z.enum(['ALPHABETICAL', 'MODIFICATION']).optional().describe('Ordering of the results: ALPHABETICAL by branch name, or MODIFICATION (most recently modified first)'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   getDefaultBranch: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
   },
   editFile: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    path: z.string().describe("The path of the file to create or modify (e.g. 'src/index.ts')"),
-    content: z.string().describe("The full new content of the file"),
-    message: z.string().describe("The commit message"),
-    branch: z.string().describe("The branch to commit on (e.g. 'master' or 'refs/heads/master')"),
-    sourceCommitId: z.string().optional().describe("The commit id the file was last seen at. Required when editing an existing file (conflict detection); omit when creating a new file."),
-    sourceBranch: z.string().optional().describe("When set, the target branch is created from this starting branch before committing.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    path: z.string().describe('The path of the file to create or modify (e.g. \'src/index.ts\')'),
+    content: z.string().describe('The full new content of the file'),
+    message: z.string().describe('The commit message'),
+    branch: z.string().describe('The branch to commit on (e.g. \'master\' or \'refs/heads/master\')'),
+    sourceCommitId: z.string().optional().describe('The commit id the file was last seen at. Required when editing an existing file (conflict detection); omit when creating a new file.'),
+    sourceBranch: z.string().optional().describe('When set, the target branch is created from this starting branch before committing.'),
   },
   getTags: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    filterText: z.string().optional().describe("Optional text that the returned tag names must contain"),
-    orderBy: z.enum(['ALPHABETICAL', 'MODIFICATION']).optional().describe("Ordering of the results: ALPHABETICAL or MODIFICATION (most recently modified first)"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    filterText: z.string().optional().describe('Optional text that the returned tag names must contain'),
+    orderBy: z.enum(['ALPHABETICAL', 'MODIFICATION']).optional().describe('Ordering of the results: ALPHABETICAL or MODIFICATION (most recently modified first)'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   getTag: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    name: z.string().describe("The tag name (e.g. 'release-1.0.0')")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    name: z.string().describe('The tag name (e.g. \'release-1.0.0\')'),
   },
   createTag: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    name: z.string().describe("The name of the new tag"),
-    startPoint: z.string().describe("The commit hash or ref the tag should point at (e.g. 'refs/heads/master' or a commit id)"),
-    message: z.string().optional().describe("Optional message; when provided, an annotated tag is created")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    name: z.string().describe('The name of the new tag'),
+    startPoint: z.string().describe('The commit hash or ref the tag should point at (e.g. \'refs/heads/master\' or a commit id)'),
+    message: z.string().optional().describe('Optional message; when provided, an annotated tag is created'),
   },
   getCommits: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    path: z.string().optional().describe("Optional path to filter commits by"),
-    since: z.string().optional().describe("The commit ID (exclusively) to retrieve commits after"),
-    until: z.string().optional().describe("The commit ID (inclusively) to retrieve commits before"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    path: z.string().optional().describe('Optional path to filter commits by'),
+    since: z.string().optional().describe('The commit ID (exclusively) to retrieve commits after'),
+    until: z.string().optional().describe('The commit ID (inclusively) to retrieve commits before'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   listBuildStatuses: {
-    commitId: z.string().describe("The commit id (hash) whose build statuses to list. Note: build statuses are keyed by commit id globally, independent of project/repository."),
-    orderBy: z.string().optional().describe("Optional ordering of the results"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    commitId: z.string().describe('The commit id (hash) whose build statuses to list. Note: build statuses are keyed by commit id globally, independent of project/repository.'),
+    orderBy: z.string().optional().describe('Optional ordering of the results'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   addBuildStatus: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash) to attach the build status to"),
-    state: z.enum(['SUCCESSFUL', 'FAILED', 'INPROGRESS']).describe("The build state"),
-    key: z.string().describe("A unique key identifying the build (e.g. the pipeline or plan key)"),
-    url: z.string().describe("The URL to the build result"),
-    name: z.string().optional().describe("Optional display name for the build"),
-    description: z.string().optional().describe("Optional description for the build")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash) to attach the build status to'),
+    state: z.enum(['SUCCESSFUL', 'FAILED', 'INPROGRESS']).describe('The build state'),
+    key: z.string().describe('A unique key identifying the build (e.g. the pipeline or plan key)'),
+    url: z.string().describe('The URL to the build result'),
+    name: z.string().optional().describe('Optional display name for the build'),
+    description: z.string().optional().describe('Optional description for the build'),
   },
   getBuildStatus: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash)"),
-    key: z.string().describe("The unique key of the build status to fetch")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash)'),
+    key: z.string().describe('The unique key of the build status to fetch'),
   },
   setInsightReport: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash) the report is attached to"),
-    key: z.string().describe("A unique, namespaced key identifying the report (e.g. 'mycompany.eslint')"),
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash) the report is attached to'),
+    key: z.string().describe('A unique, namespaced key identifying the report (e.g. \'mycompany.eslint\')'),
     report: z.object({
-      title: z.string().describe("The report title"),
-      details: z.string().optional().describe("Detailed description"),
-      result: z.enum(['PASS', 'FAIL']).optional().describe("Overall report result"),
-      reporter: z.string().optional().describe("Name of the tool/reporter that produced the report"),
-      link: z.string().optional().describe("URL linking to the full report"),
-      logoUrl: z.string().optional().describe("URL of a logo to display"),
-      data: z.array(z.any()).optional().describe("Array of report data items ({ title, type, value })")
-    }).passthrough().describe("The Code Insights report payload")
+      title: z.string().describe('The report title'),
+      details: z.string().optional().describe('Detailed description'),
+      result: z.enum(['PASS', 'FAIL']).optional().describe('Overall report result'),
+      reporter: z.string().optional().describe('Name of the tool/reporter that produced the report'),
+      link: z.string().optional().describe('URL linking to the full report'),
+      logoUrl: z.string().optional().describe('URL of a logo to display'),
+      data: z.array(z.any()).optional().describe('Array of report data items ({ title, type, value })'),
+    }).passthrough().describe('The Code Insights report payload'),
   },
   getInsightReport: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash)"),
-    key: z.string().describe("The report key")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash)'),
+    key: z.string().describe('The report key'),
   },
   deleteInsightReport: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash)"),
-    key: z.string().describe("The report key")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash)'),
+    key: z.string().describe('The report key'),
   },
   addInsightAnnotations: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash)"),
-    key: z.string().describe("The report key the annotations belong to"),
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash)'),
+    key: z.string().describe('The report key the annotations belong to'),
     annotations: z.array(z.object({
-      externalId: z.string().describe("Unique id of the annotation within the report"),
-      path: z.string().describe("File path the annotation refers to"),
-      line: z.number().describe("Line number the annotation refers to"),
-      message: z.string().describe("The annotation message"),
-      severity: z.enum(['LOW', 'MEDIUM', 'HIGH']).describe("Annotation severity"),
-      link: z.string().optional().describe("URL with more detail"),
-      type: z.enum(['VULNERABILITY', 'CODE_SMELL', 'BUG']).optional().describe("Annotation type")
-    }).passthrough()).describe("Array of annotations to add to the report")
+      externalId: z.string().describe('Unique id of the annotation within the report'),
+      path: z.string().describe('File path the annotation refers to'),
+      line: z.number().describe('Line number the annotation refers to'),
+      message: z.string().describe('The annotation message'),
+      severity: z.enum(['LOW', 'MEDIUM', 'HIGH']).describe('Annotation severity'),
+      link: z.string().optional().describe('URL with more detail'),
+      type: z.enum(['VULNERABILITY', 'CODE_SMELL', 'BUG']).optional().describe('Annotation type'),
+    }).passthrough()).describe('Array of annotations to add to the report'),
   },
   getInsightAnnotations: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash)"),
-    key: z.string().describe("The report key")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash)'),
+    key: z.string().describe('The report key'),
   },
   deleteInsightAnnotations: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash)"),
-    key: z.string().describe("The report key"),
-    externalId: z.string().optional().describe("If given, delete only this annotation; otherwise delete all annotations of the report")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash)'),
+    key: z.string().describe('The report key'),
+    externalId: z.string().optional().describe('If given, delete only this annotation; otherwise delete all annotations of the report'),
   },
   getCommitComments: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash)"),
-    path: z.string().describe("The file path to return comments for. Required: Bitbucket only returns commit comments scoped to a file path."),
-    since: z.string().optional().describe("Optional commit id; return comments added since that commit"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash)'),
+    path: z.string().describe('The file path to return comments for. Required: Bitbucket only returns commit comments scoped to a file path.'),
+    since: z.string().optional().describe('Optional commit id; return comments added since that commit'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   addCommitComment: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash) to comment on"),
-    text: z.string().describe("The comment text"),
-    path: z.string().optional().describe("Optional file path to anchor the comment to a file"),
-    line: z.number().optional().describe("Optional line number within the file to anchor the comment to (requires path)"),
-    lineType: z.enum(['ADDED', 'REMOVED', 'CONTEXT']).optional().describe("Line type for the anchored line. Defaults to CONTEXT when a line is given.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash) to comment on'),
+    text: z.string().describe('The comment text'),
+    path: z.string().optional().describe('Optional file path to anchor the comment to a file'),
+    line: z.number().optional().describe('Optional line number within the file to anchor the comment to (requires path)'),
+    lineType: z.enum(['ADDED', 'REMOVED', 'CONTEXT']).optional().describe('Line type for the anchored line. Defaults to CONTEXT when a line is given.'),
   },
   getCommit: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash) to retrieve"),
-    path: z.string().optional().describe("Optional path; the commit is only returned if it affects this path")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash) to retrieve'),
+    path: z.string().optional().describe('Optional path; the commit is only returned if it affects this path'),
   },
   getCommitDiff: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    commitId: z.string().describe("The commit id (hash)"),
-    path: z.string().optional().describe("Optional file path to limit the diff to. Omit for the whole-commit diff."),
-    contextLines: z.string().optional().describe("Number of context lines to include around changes"),
-    whitespace: z.string().optional().describe("Optional whitespace flag which can be set to 'ignore-all'"),
-    srcPath: z.string().optional().describe("The previous path to the file, if it has been copied, moved or renamed")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash)'),
+    path: z.string().optional().describe('Optional file path to limit the diff to. Omit for the whole-commit diff.'),
+    contextLines: z.string().optional().describe('Number of context lines to include around changes'),
+    whitespace: z.string().optional().describe('Optional whitespace flag which can be set to \'ignore-all\''),
+    srcPath: z.string().optional().describe('The previous path to the file, if it has been copied, moved or renamed'),
   },
   compareRefs: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    from: z.string().describe("The source ref or commit to compare from (e.g. 'refs/heads/feature' or a commit hash)"),
-    to: z.string().describe("The target ref or commit to compare to (e.g. 'refs/heads/master')"),
-    fromRepo: z.string().optional().describe("Optional 'projectKey/repositorySlug' the 'from' ref lives in, for cross-repository comparisons"),
-    compareType: z.enum(['commits', 'changes']).optional().describe("'commits' (default) lists the commits between the refs; 'changes' lists the changed files"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    from: z.string().describe('The source ref or commit to compare from (e.g. \'refs/heads/feature\' or a commit hash)'),
+    to: z.string().describe('The target ref or commit to compare to (e.g. \'refs/heads/master\')'),
+    fromRepo: z.string().optional().describe('Optional \'projectKey/repositorySlug\' the \'from\' ref lives in, for cross-repository comparisons'),
+    compareType: z.enum(['commits', 'changes']).optional().describe('\'commits\' (default) lists the commits between the refs; \'changes\' lists the changed files'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   getFileContent: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    path: z.string().describe("The path of the file to retrieve (e.g. 'src/index.ts')"),
-    at: z.string().optional().describe("Optional commit hash or ref to read the file at (e.g. 'refs/heads/main' or a commit id). Defaults to the repository's default branch.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    path: z.string().describe('The path of the file to retrieve (e.g. \'src/index.ts\')'),
+    at: z.string().optional().describe('Optional commit hash or ref to read the file at (e.g. \'refs/heads/main\' or a commit id). Defaults to the repository\'s default branch.'),
   },
   browseRepository: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    path: z.string().optional().describe("Path to browse. Omit or pass an empty string to list the repository root. A directory path returns its children; a file path returns the file content as paginated lines."),
-    at: z.string().optional().describe("Optional commit hash or ref to browse at. Defaults to the repository's default branch."),
-    type: z.boolean().optional().describe("If true, return only the node type (FILE, DIRECTORY, or SUBMODULE) of the path instead of its content."),
-    blame: z.boolean().optional().describe("If true, include blame information in the response.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    path: z.string().optional().describe('Path to browse. Omit or pass an empty string to list the repository root. A directory path returns its children; a file path returns the file content as paginated lines.'),
+    at: z.string().optional().describe('Optional commit hash or ref to browse at. Defaults to the repository\'s default branch.'),
+    type: z.boolean().optional().describe('If true, return only the node type (FILE, DIRECTORY, or SUBMODULE) of the path instead of its content.'),
+    blame: z.boolean().optional().describe('If true, include blame information in the response.'),
   },
   getPullRequestComments: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used."),
-    output: z.enum(['summary', 'compact', 'full']).optional().describe("Choose between summary lines, compact structured output, or the full API payload. Defaults to compact."),
-    includeResolved: z.boolean().optional().describe("Include resolved comment threads and their replies. Defaults to false, so resolved threads are omitted.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
+    output: z.enum(['summary', 'compact', 'full']).optional().describe('Choose between summary lines, compact structured output, or the full API payload. Defaults to compact.'),
+    includeResolved: z.boolean().optional().describe('Include resolved comment threads and their replies. Defaults to false, so resolved threads are omitted.'),
   },
   getPullRequestChanges: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    sinceId: z.string().optional().describe("The since commit hash to stream changes for a RANGE arbitrary change scope"),
-    changeScope: z.string().optional().describe("UNREVIEWED for unreviewed changes, RANGE for changes between commits, ALL for all changes (default)"),
-    untilId: z.string().optional().describe("The until commit hash to stream changes for a RANGE arbitrary change scope"),
-    withComments: z.string().optional().describe("true to apply comment counts in the changes (default), false to stream changes without comment counts"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used."),
-    output: z.enum(['summary', 'compact', 'full']).optional().describe("Choose between summary lines, compact structured output, or the full API payload. Defaults to compact.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    sinceId: z.string().optional().describe('The since commit hash to stream changes for a RANGE arbitrary change scope'),
+    changeScope: z.string().optional().describe('UNREVIEWED for unreviewed changes, RANGE for changes between commits, ALL for all changes (default)'),
+    untilId: z.string().optional().describe('The until commit hash to stream changes for a RANGE arbitrary change scope'),
+    withComments: z.string().optional().describe('true to apply comment counts in the changes (default), false to stream changes without comment counts'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
+    output: z.enum(['summary', 'compact', 'full']).optional().describe('Choose between summary lines, compact structured output, or the full API payload. Defaults to compact.'),
   },
   postPullRequestComment: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    text: z.string().describe("The comment text"),
-    parentId: z.number().optional().describe("Parent comment ID for replies"),
-    filePath: z.string().optional().describe("File path for file-specific comments"),
-    startLine: z.number().optional().describe("First line of a multiline range. Provide together with 'line' (the last line) to span multiple lines. REQUIRED for a multi-line ```suggestion: the anchored range (startLine..line) is exactly what 'Apply suggestion' replaces — omit it and only the single 'line' is replaced, leaving the rest. Requires Bitbucket DC >= 9.3.0 for multiline suggestions."),
-    startLineType: z.enum(['ADDED', 'REMOVED', 'CONTEXT']).optional().describe("Line type for the start line of a multiline range. Defaults to the same value as lineType if omitted."),
-    line: z.number().optional().describe("Single-line comments: the line. Multiline: the LAST line of the range (use startLine for the first). For a ```suggestion this is the last replaced line."),
-    lineType: z.enum(['ADDED', 'REMOVED', 'CONTEXT']).optional().describe("Line type for 'line' (the end line, or the only line for single-line comments). Use 'ADDED'/'CONTEXT' for the new/target file, 'REMOVED' for the original/source file."),
-    pending: z.boolean().optional().describe("If true, creates a pending (draft) comment not visible to others until the review is submitted via bitbucket_submitPullRequestReview. Only works when filePath is provided — top-level PR comments (no filePath) are always posted live."),
-    severity: z.enum(['NORMAL', 'BLOCKER']).optional().describe("Comment severity. Use 'BLOCKER' to post the comment as a task that must be resolved before the PR can be merged. Defaults to 'NORMAL' (regular comment)."),
-    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    text: z.string().describe('The comment text'),
+    parentId: z.number().optional().describe('Parent comment ID for replies'),
+    filePath: z.string().optional().describe('File path for file-specific comments'),
+    startLine: z.number().optional().describe('First line of a multiline range. Provide together with \'line\' (the last line) to span multiple lines. REQUIRED for a multi-line ```suggestion: the anchored range (startLine..line) is exactly what \'Apply suggestion\' replaces — omit it and only the single \'line\' is replaced, leaving the rest. Requires Bitbucket DC >= 9.3.0 for multiline suggestions.'),
+    startLineType: z.enum(['ADDED', 'REMOVED', 'CONTEXT']).optional().describe('Line type for the start line of a multiline range. Defaults to the same value as lineType if omitted.'),
+    line: z.number().optional().describe('Single-line comments: the line. Multiline: the LAST line of the range (use startLine for the first). For a ```suggestion this is the last replaced line.'),
+    lineType: z.enum(['ADDED', 'REMOVED', 'CONTEXT']).optional().describe('Line type for \'line\' (the end line, or the only line for single-line comments). Use \'ADDED\'/\'CONTEXT\' for the new/target file, \'REMOVED\' for the original/source file.'),
+    pending: z.boolean().optional().describe('If true, creates a pending (draft) comment not visible to others until the review is submitted via bitbucket_submitPullRequestReview. Only works when filePath is provided — top-level PR comments (no filePath) are always posted live.'),
+    severity: z.enum(['NORMAL', 'BLOCKER']).optional().describe('Comment severity. Use \'BLOCKER\' to post the comment as a task that must be resolved before the PR can be merged. Defaults to \'NORMAL\' (regular comment).'),
+    output: z.enum(['ack', 'full']).optional().describe('Return a compact acknowledgement or the full API response. Defaults to ack.'),
   },
   updatePullRequestComment: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    commentId: z.string().describe("The ID of the comment to update"),
-    version: z.number().describe("The current version of the comment, required for optimistic locking. Get it from bitbucket_getPR_CommentsAndAction or from the response of the original post/update."),
-    text: z.string().optional().describe("New comment text. Omit to leave unchanged."),
-    state: z.enum(['OPEN', 'RESOLVED']).optional().describe("New state. 'RESOLVED' resolves the comment thread — on a regular comment this is the 'Resolve' button in the UI; on a BLOCKER (task) comment it also ticks the task. 'OPEN' reopens the thread (un-ticks the task). Resolution is driven by the root comment's state."),
-    severity: z.enum(['NORMAL', 'BLOCKER']).optional().describe("New severity. Use 'BLOCKER' to convert a comment into a task, 'NORMAL' to convert it back."),
-    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    commentId: z.string().describe('The ID of the comment to update'),
+    version: z.number().describe('The current version of the comment, required for optimistic locking. Get it from bitbucket_getPR_CommentsAndAction or from the response of the original post/update.'),
+    text: z.string().optional().describe('New comment text. Omit to leave unchanged.'),
+    state: z.enum(['OPEN', 'RESOLVED']).optional().describe('New state. \'RESOLVED\' resolves the comment thread — on a regular comment this is the \'Resolve\' button in the UI; on a BLOCKER (task) comment it also ticks the task. \'OPEN\' reopens the thread (un-ticks the task). Resolution is driven by the root comment\'s state.'),
+    severity: z.enum(['NORMAL', 'BLOCKER']).optional().describe('New severity. Use \'BLOCKER\' to convert a comment into a task, \'NORMAL\' to convert it back.'),
+    output: z.enum(['ack', 'full']).optional().describe('Return a compact acknowledgement or the full API response. Defaults to ack.'),
   },
   getUser: {
-    userSlug: z.string().optional().describe("Exact slug of the user to look up (e.g. 'tdepole'). Use this to confirm a known slug or fetch a user's details."),
-    filter: z.string().optional().describe("Search string to find users by name or email. Use this to discover a user's slug when it is not known.")
+    userSlug: z.string().optional().describe('Exact slug of the user to look up (e.g. \'tdepole\'). Use this to confirm a known slug or fetch a user\'s details.'),
+    filter: z.string().optional().describe('Search string to find users by name or email. Use this to discover a user\'s slug when it is not known.'),
   },
   submitPullRequestReview: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    userSlug: z.string().describe("The username/slug of the PAT token owner — the same user whose credentials are in BITBUCKET_API_TOKEN. Resolution order: (1) author.slug from any comment posted this session, (2) reviewers/participants array from getPullRequest, (3) bitbucket_getUser with a name/email filter."),
-    status: z.enum(['APPROVED', 'NEEDS_WORK', 'UNAPPROVED']).describe("The review verdict: APPROVED, NEEDS_WORK, or UNAPPROVED"),
-    lastReviewedCommit: z.string().optional().describe("Optional hash of the last commit reviewed, used to track review progress")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    userSlug: z.string().describe('The username/slug of the PAT token owner — the same user whose credentials are in BITBUCKET_API_TOKEN. Resolution order: (1) author.slug from any comment posted this session, (2) reviewers/participants array from getPullRequest, (3) bitbucket_getUser with a name/email filter.'),
+    status: z.enum(['APPROVED', 'NEEDS_WORK', 'UNAPPROVED']).describe('The review verdict: APPROVED, NEEDS_WORK, or UNAPPROVED'),
+    lastReviewedCommit: z.string().optional().describe('Optional hash of the last commit reviewed, used to track review progress'),
   },
   getPullRequestDiff: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    path: z.string().describe("The path to the file which should be diffed. Note: Before getting diff, use getPullRequestChanges to understand what files were changed in the PR"),
-    contextLines: z.string().optional().describe("Number of context lines to include around added/removed lines in the diff"),
-    sinceId: z.string().optional().describe("The since commit hash to stream a diff between two arbitrary hashes"),
-    srcPath: z.string().optional().describe("The previous path to the file, if the file has been copied, moved or renamed"),
-    diffType: z.string().optional().describe("The type of diff being requested"),
-    untilId: z.string().optional().describe("The until commit hash to stream a diff between two arbitrary hashes"),
-    whitespace: z.string().optional().describe("Optional whitespace flag which can be set to 'ignore-all'")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    path: z.string().describe('The path to the file which should be diffed. Note: Before getting diff, use getPullRequestChanges to understand what files were changed in the PR'),
+    contextLines: z.string().optional().describe('Number of context lines to include around added/removed lines in the diff'),
+    sinceId: z.string().optional().describe('The since commit hash to stream a diff between two arbitrary hashes'),
+    srcPath: z.string().optional().describe('The previous path to the file, if the file has been copied, moved or renamed'),
+    diffType: z.string().optional().describe('The type of diff being requested'),
+    untilId: z.string().optional().describe('The until commit hash to stream a diff between two arbitrary hashes'),
+    whitespace: z.string().optional().describe('Optional whitespace flag which can be set to \'ignore-all\''),
   },
   createPullRequest: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    title: z.string().describe("The pull request title"),
-    description: z.string().optional().describe("The pull request description"),
-    fromRefId: z.string().describe("The source branch reference ID (e.g., 'refs/heads/feature-branch')"),
-    toRefId: z.string().describe("The destination branch reference ID (e.g., 'refs/heads/main')"),
-    draft: z.boolean().optional().describe("If true, the pull request is created as a draft (work-in-progress) and cannot be merged until marked ready."),
-    reviewers: z.array(z.string()).optional().describe("Optional array of reviewer usernames (use the 'name' field from Bitbucket user objects, not 'slug')"),
-    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    title: z.string().describe('The pull request title'),
+    description: z.string().optional().describe('The pull request description'),
+    fromRefId: z.string().describe('The source branch reference ID (e.g., \'refs/heads/feature-branch\')'),
+    toRefId: z.string().describe('The destination branch reference ID (e.g., \'refs/heads/main\')'),
+    draft: z.boolean().optional().describe('If true, the pull request is created as a draft (work-in-progress) and cannot be merged until marked ready.'),
+    reviewers: z.array(z.string()).optional().describe('Optional array of reviewer usernames (use the \'name\' field from Bitbucket user objects, not \'slug\')'),
+    output: z.enum(['ack', 'full']).optional().describe('Return a compact acknowledgement or the full API response. Defaults to ack.'),
   },
   updatePullRequest: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    version: z.number().describe("The current version of the pull request (required for optimistic locking). Obtain this by calling bitbucket_getPullRequest first."),
-    title: z.string().optional().describe("The new title for the pull request"),
-    description: z.string().optional().describe("The new description for the pull request"),
-    draft: z.boolean().optional().describe("If provided, sets the draft (work-in-progress) status of the pull request. Pass true to mark as draft, false to mark as ready for review."),
-    reviewers: z.array(z.string()).optional().describe("Optional array of reviewer usernames to set (use the 'name' field from Bitbucket user objects, not 'slug')"),
-    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    version: z.number().describe('The current version of the pull request (required for optimistic locking). Obtain this by calling bitbucket_getPullRequest first.'),
+    title: z.string().optional().describe('The new title for the pull request'),
+    description: z.string().optional().describe('The new description for the pull request'),
+    draft: z.boolean().optional().describe('If provided, sets the draft (work-in-progress) status of the pull request. Pass true to mark as draft, false to mark as ready for review.'),
+    reviewers: z.array(z.string()).optional().describe('Optional array of reviewer usernames to set (use the \'name\' field from Bitbucket user objects, not \'slug\')'),
+    output: z.enum(['ack', 'full']).optional().describe('Return a compact acknowledgement or the full API response. Defaults to ack.'),
   },
   canMergePullRequest: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
   },
   mergePullRequest: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    version: z.number().describe("The current version of the pull request (required for optimistic locking). Obtain it via bitbucket_getPullRequest. Use bitbucket_canMergePullRequest first to confirm there are no merge vetoes."),
-    message: z.string().optional().describe("Optional custom merge commit message"),
-    strategyId: z.string().optional().describe("Optional merge strategy id, e.g. 'no-ff', 'ff', 'ff-only', 'rebase-no-ff', or 'squash'. Must be enabled on the repository. Defaults to the repository's configured strategy."),
-    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    version: z.number().describe('The current version of the pull request (required for optimistic locking). Obtain it via bitbucket_getPullRequest. Use bitbucket_canMergePullRequest first to confirm there are no merge vetoes.'),
+    message: z.string().optional().describe('Optional custom merge commit message'),
+    strategyId: z.string().optional().describe('Optional merge strategy id, e.g. \'no-ff\', \'ff\', \'ff-only\', \'rebase-no-ff\', or \'squash\'. Must be enabled on the repository. Defaults to the repository\'s configured strategy.'),
+    output: z.enum(['ack', 'full']).optional().describe('Return a compact acknowledgement or the full API response. Defaults to ack.'),
   },
   declinePullRequest: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    version: z.number().describe("The current version of the pull request (required for optimistic locking). Obtain it via bitbucket_getPullRequest."),
-    comment: z.string().optional().describe("Optional comment explaining why the pull request is being declined"),
-    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    version: z.number().describe('The current version of the pull request (required for optimistic locking). Obtain it via bitbucket_getPullRequest.'),
+    comment: z.string().optional().describe('Optional comment explaining why the pull request is being declined'),
+    output: z.enum(['ack', 'full']).optional().describe('Return a compact acknowledgement or the full API response. Defaults to ack.'),
   },
   reopenPullRequest: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    version: z.number().describe("The current version of the declined pull request (required for optimistic locking). Obtain it via bitbucket_getPullRequest."),
-    output: z.enum(['ack', 'full']).optional().describe("Return a compact acknowledgement or the full API response. Defaults to ack.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    version: z.number().describe('The current version of the declined pull request (required for optimistic locking). Obtain it via bitbucket_getPullRequest.'),
+    output: z.enum(['ack', 'full']).optional().describe('Return a compact acknowledgement or the full API response. Defaults to ack.'),
   },
   addPullRequestReviewer: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    userSlug: z.string().describe("The username/name of the user to add as a reviewer (use the 'name' field from Bitbucket user objects). Adds a single reviewer without replacing the existing ones, unlike bitbucket_updatePullRequest.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    userSlug: z.string().describe('The username/name of the user to add as a reviewer (use the \'name\' field from Bitbucket user objects). Adds a single reviewer without replacing the existing ones, unlike bitbucket_updatePullRequest.'),
   },
   removePullRequestReviewer: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    userSlug: z.string().describe("The username/name of the reviewer to remove. The user remains a participant but loses the REVIEWER role.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    userSlug: z.string().describe('The username/name of the reviewer to remove. The user remains a participant but loses the REVIEWER role.'),
   },
   getPullRequestParticipants: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   getRequiredReviewers: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    sourceRefId: z.string().describe("The ID of the source ref (e.g., 'refs/heads/feature-branch')"),
-    targetRefId: z.string().describe("The ID of the target ref (e.g., 'refs/heads/main')"),
-    sourceRepoId: z.string().optional().describe("Optional ID of the repository in which the source ref exists"),
-    targetRepoId: z.string().optional().describe("Optional ID of the repository in which the target ref exists")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    sourceRefId: z.string().describe('The ID of the source ref (e.g., \'refs/heads/feature-branch\')'),
+    targetRefId: z.string().describe('The ID of the target ref (e.g., \'refs/heads/main\')'),
+    sourceRepoId: z.string().optional().describe('Optional ID of the repository in which the source ref exists'),
+    targetRepoId: z.string().optional().describe('Optional ID of the repository in which the target ref exists'),
   },
   getDashboardPullRequests: {
-    role: z.enum(['AUTHOR', 'REVIEWER', 'PARTICIPANT']).optional().default('AUTHOR').describe("Filter by the user's role in the PR: AUTHOR (default), REVIEWER, or PARTICIPANT"),
-    state: z.enum(['OPEN', 'DECLINED', 'MERGED']).optional().default('OPEN').describe("Filter by PR state: OPEN (default), DECLINED, or MERGED"),
-    closedSince: z.number().optional().describe("Timestamp in milliseconds. If state is not OPEN, return only PRs closed after this date"),
-    order: z.enum(['NEWEST', 'OLDEST', 'PARTICIPANT']).optional().default('NEWEST').describe("Order of results: NEWEST (default), OLDEST, or PARTICIPANT"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    role: z.enum(['AUTHOR', 'REVIEWER', 'PARTICIPANT']).optional().default('AUTHOR').describe('Filter by the user\'s role in the PR: AUTHOR (default), REVIEWER, or PARTICIPANT'),
+    state: z.enum(['OPEN', 'DECLINED', 'MERGED']).optional().default('OPEN').describe('Filter by PR state: OPEN (default), DECLINED, or MERGED'),
+    closedSince: z.number().optional().describe('Timestamp in milliseconds. If state is not OPEN, return only PRs closed after this date'),
+    order: z.enum(['NEWEST', 'OLDEST', 'PARTICIPANT']).optional().default('NEWEST').describe('Order of results: NEWEST (default), OLDEST, or PARTICIPANT'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   getInboxPullRequests: {
-    start: z.number().optional().describe("Start number for the page (inclusive). If not passed, first page is assumed"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    start: z.number().optional().describe('Start number for the page (inclusive). If not passed, first page is assumed'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   getBranchRestrictions: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    matcherType: z.enum(['BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe("Filter by matcher type"),
-    matcherId: z.string().optional().describe("Filter by matcher id (requires matcherType)"),
-    type: z.enum(['read-only', 'no-deletes', 'fast-forward-only', 'pull-request-only', 'no-creates']).optional().describe("Filter by restriction type"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    matcherType: z.enum(['BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe('Filter by matcher type'),
+    matcherId: z.string().optional().describe('Filter by matcher id (requires matcherType)'),
+    type: z.enum(['read-only', 'no-deletes', 'fast-forward-only', 'pull-request-only', 'no-creates']).optional().describe('Filter by restriction type'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   createBranchRestriction: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    type: z.enum(['read-only', 'no-deletes', 'fast-forward-only', 'pull-request-only', 'no-creates']).describe("The restriction type: read-only (prevent changes), no-deletes, fast-forward-only (prevent rewriting history), pull-request-only (prevent changes without a PR), no-creates"),
-    matcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe("Matcher type for the restricted ref"),
-    matcherValue: z.string().describe("Matcher value. For BRANCH use a ref id like 'refs/heads/main'; for PATTERN use the pattern; for MODEL_* use the model id; for ANY_REF use 'ANY_REF'."),
-    matcherDisplayId: z.string().optional().describe("Display value for the matcher (defaults to the matcher value, e.g. 'main' for 'refs/heads/main')"),
-    exemptUserSlugs: z.array(z.string()).optional().describe("User slugs exempt from the restriction"),
-    exemptGroupNames: z.array(z.string()).optional().describe("Group names exempt from the restriction"),
-    exemptAccessKeyIds: z.array(z.number()).optional().describe("SSH access key IDs exempt from the restriction")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    type: z.enum(['read-only', 'no-deletes', 'fast-forward-only', 'pull-request-only', 'no-creates']).describe('The restriction type: read-only (prevent changes), no-deletes, fast-forward-only (prevent rewriting history), pull-request-only (prevent changes without a PR), no-creates'),
+    matcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe('Matcher type for the restricted ref'),
+    matcherValue: z.string().describe('Matcher value. For BRANCH use a ref id like \'refs/heads/main\'; for PATTERN use the pattern; for MODEL_* use the model id; for ANY_REF use \'ANY_REF\'.'),
+    matcherDisplayId: z.string().optional().describe('Display value for the matcher (defaults to the matcher value, e.g. \'main\' for \'refs/heads/main\')'),
+    exemptUserSlugs: z.array(z.string()).optional().describe('User slugs exempt from the restriction'),
+    exemptGroupNames: z.array(z.string()).optional().describe('Group names exempt from the restriction'),
+    exemptAccessKeyIds: z.array(z.number()).optional().describe('SSH access key IDs exempt from the restriction'),
   },
   getBranchRestriction: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    id: z.string().describe("The restriction ID")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    id: z.string().describe('The restriction ID'),
   },
   deleteBranchRestriction: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    id: z.string().describe("The restriction ID")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    id: z.string().describe('The restriction ID'),
   },
   getBranchModel: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
   },
   setBranchModel: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
     development: z.object({
-      refId: z.string().describe("Ref id for the development branch, e.g. 'refs/heads/develop'"),
-      useDefault: z.boolean().optional().describe("If true, use the repository's default branch as development instead of refId")
-    }).describe("Development branch configuration"),
+      refId: z.string().describe('Ref id for the development branch, e.g. \'refs/heads/develop\''),
+      useDefault: z.boolean().optional().describe('If true, use the repository\'s default branch as development instead of refId'),
+    }).describe('Development branch configuration'),
     production: z.object({
-      refId: z.string().describe("Ref id for the production branch, e.g. 'refs/heads/master'"),
-      useDefault: z.boolean().optional().describe("If true, use the repository's default branch as production instead of refId")
-    }).optional().describe("Optional production branch configuration"),
+      refId: z.string().describe('Ref id for the production branch, e.g. \'refs/heads/master\''),
+      useDefault: z.boolean().optional().describe('If true, use the repository\'s default branch as production instead of refId'),
+    }).optional().describe('Optional production branch configuration'),
     types: z.array(z.object({
-      id: z.enum(['BUGFIX', 'FEATURE', 'HOTFIX', 'RELEASE']).describe("Branch type identifier"),
-      prefix: z.string().optional().describe("Branch name prefix for this type, e.g. 'feature/'"),
-      enabled: z.boolean().optional().describe("Whether this branch type is enabled")
-    })).optional().describe("Optional branch type configuration (prefixes for bugfix/feature/hotfix/release branches)")
+      id: z.enum(['BUGFIX', 'FEATURE', 'HOTFIX', 'RELEASE']).describe('Branch type identifier'),
+      prefix: z.string().optional().describe('Branch name prefix for this type, e.g. \'feature/\''),
+      enabled: z.boolean().optional().describe('Whether this branch type is enabled'),
+    })).optional().describe('Optional branch type configuration (prefixes for bugfix/feature/hotfix/release branches)'),
   },
   deleteBranchModel: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
   },
   searchCode: {
-    query: z.string().describe("The search query. Supports Bitbucket search modifiers, e.g. 'project:TEST authenticate', 'repo:TEST/demo TODO' (the repo modifier must be 'repo:projectkey/repositoryslug'), 'ext:ts useState'. Scope to a project or repository inside the query text."),
-    limit: z.number().optional().describe("Maximum number of matching files to return. If not passed, the package default page size is used."),
-    secondaryLimit: z.number().optional().describe("Maximum number of hit contexts (matching code snippets) to return per file")
+    query: z.string().describe('The search query. Supports Bitbucket search modifiers, e.g. \'project:TEST authenticate\', \'repo:TEST/demo TODO\' (the repo modifier must be \'repo:projectkey/repositoryslug\'), \'ext:ts useState\'. Scope to a project or repository inside the query text.'),
+    limit: z.number().optional().describe('Maximum number of matching files to return. If not passed, the package default page size is used.'),
+    secondaryLimit: z.number().optional().describe('Maximum number of hit contexts (matching code snippets) to return per file'),
   },
   getDefaultReviewerConditions: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
   },
   createDefaultReviewerCondition: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    sourceMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe("Matcher type for the source ref"),
-    sourceMatcherValue: z.string().describe("Matcher value for the source ref. For ANY_REF use 'ANY_REF'; for BRANCH use a ref id like 'refs/heads/main'; for PATTERN use the pattern; for MODEL_* use the model id."),
-    targetMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe("Matcher type for the target ref"),
-    targetMatcherValue: z.string().describe("Matcher value for the target ref (see sourceMatcherValue)"),
-    reviewerIds: z.array(z.number()).describe("Numeric user IDs of the default reviewers. Resolve a username to its numeric id via bitbucket_getUser."),
-    requiredApprovals: z.number().optional().describe("Number of approvals required from the default reviewers"),
-    sourceMatcherDisplayId: z.string().optional().describe("Display value for the source matcher (defaults to the matcher value, e.g. 'main' for 'refs/heads/main')"),
-    targetMatcherDisplayId: z.string().optional().describe("Display value for the target matcher (defaults to the matcher value)")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    sourceMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe('Matcher type for the source ref'),
+    sourceMatcherValue: z.string().describe('Matcher value for the source ref. For ANY_REF use \'ANY_REF\'; for BRANCH use a ref id like \'refs/heads/main\'; for PATTERN use the pattern; for MODEL_* use the model id.'),
+    targetMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe('Matcher type for the target ref'),
+    targetMatcherValue: z.string().describe('Matcher value for the target ref (see sourceMatcherValue)'),
+    reviewerIds: z.array(z.number()).describe('Numeric user IDs of the default reviewers. Resolve a username to its numeric id via bitbucket_getUser.'),
+    requiredApprovals: z.number().optional().describe('Number of approvals required from the default reviewers'),
+    sourceMatcherDisplayId: z.string().optional().describe('Display value for the source matcher (defaults to the matcher value, e.g. \'main\' for \'refs/heads/main\')'),
+    targetMatcherDisplayId: z.string().optional().describe('Display value for the target matcher (defaults to the matcher value)'),
   },
   updateDefaultReviewerCondition: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    id: z.string().describe("The ID of the condition to update"),
-    sourceMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe("Matcher type for the source ref"),
-    sourceMatcherValue: z.string().describe("Matcher value for the source ref"),
-    targetMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe("Matcher type for the target ref"),
-    targetMatcherValue: z.string().describe("Matcher value for the target ref"),
-    reviewerIds: z.array(z.number()).describe("Numeric user IDs of the default reviewers. The update replaces the full condition, so pass the complete desired set."),
-    requiredApprovals: z.number().optional().describe("Number of approvals required from the default reviewers"),
-    sourceMatcherDisplayId: z.string().optional().describe("Display value for the source matcher (defaults to the matcher value)"),
-    targetMatcherDisplayId: z.string().optional().describe("Display value for the target matcher (defaults to the matcher value)")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    id: z.string().describe('The ID of the condition to update'),
+    sourceMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe('Matcher type for the source ref'),
+    sourceMatcherValue: z.string().describe('Matcher value for the source ref'),
+    targetMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe('Matcher type for the target ref'),
+    targetMatcherValue: z.string().describe('Matcher value for the target ref'),
+    reviewerIds: z.array(z.number()).describe('Numeric user IDs of the default reviewers. The update replaces the full condition, so pass the complete desired set.'),
+    requiredApprovals: z.number().optional().describe('Number of approvals required from the default reviewers'),
+    sourceMatcherDisplayId: z.string().optional().describe('Display value for the source matcher (defaults to the matcher value)'),
+    targetMatcherDisplayId: z.string().optional().describe('Display value for the target matcher (defaults to the matcher value)'),
   },
   deleteDefaultReviewerCondition: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    id: z.string().describe("The ID of the condition to delete")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    id: z.string().describe('The ID of the condition to delete'),
   },
   getRequiredBuildsMergeChecks: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   createRequiredBuildsMergeCheck: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    buildParentKeys: z.array(z.string()).describe("Non-empty list of build parent keys that must have green builds for the check to pass"),
-    refMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe("Matcher type for the target ref the check applies to"),
-    refMatcherValue: z.string().describe("Matcher value for the target ref. For BRANCH use a ref id like 'refs/heads/main'; for PATTERN use the pattern; for MODEL_* use the model id; for ANY_REF use 'ANY_REF'."),
-    refMatcherDisplayId: z.string().optional().describe("Display value for the ref matcher (defaults to the matcher value)"),
-    exemptRefMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe("Matcher type for source refs exempt from the check"),
-    exemptRefMatcherValue: z.string().optional().describe("Matcher value for source refs exempt from the check"),
-    exemptRefMatcherDisplayId: z.string().optional().describe("Display value for the exempt ref matcher (defaults to its value)")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    buildParentKeys: z.array(z.string()).describe('Non-empty list of build parent keys that must have green builds for the check to pass'),
+    refMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe('Matcher type for the target ref the check applies to'),
+    refMatcherValue: z.string().describe('Matcher value for the target ref. For BRANCH use a ref id like \'refs/heads/main\'; for PATTERN use the pattern; for MODEL_* use the model id; for ANY_REF use \'ANY_REF\'.'),
+    refMatcherDisplayId: z.string().optional().describe('Display value for the ref matcher (defaults to the matcher value)'),
+    exemptRefMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe('Matcher type for source refs exempt from the check'),
+    exemptRefMatcherValue: z.string().optional().describe('Matcher value for source refs exempt from the check'),
+    exemptRefMatcherDisplayId: z.string().optional().describe('Display value for the exempt ref matcher (defaults to its value)'),
   },
   updateRequiredBuildsMergeCheck: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    id: z.string().describe("The ID of the merge check to update"),
-    buildParentKeys: z.array(z.string()).describe("Non-empty list of build parent keys. The update replaces the whole check, so pass the complete desired list."),
-    refMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe("Matcher type for the target ref"),
-    refMatcherValue: z.string().describe("Matcher value for the target ref"),
-    refMatcherDisplayId: z.string().optional().describe("Display value for the ref matcher (defaults to the matcher value)"),
-    exemptRefMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe("Matcher type for source refs exempt from the check"),
-    exemptRefMatcherValue: z.string().optional().describe("Matcher value for source refs exempt from the check"),
-    exemptRefMatcherDisplayId: z.string().optional().describe("Display value for the exempt ref matcher (defaults to its value)")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    id: z.string().describe('The ID of the merge check to update'),
+    buildParentKeys: z.array(z.string()).describe('Non-empty list of build parent keys. The update replaces the whole check, so pass the complete desired list.'),
+    refMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe('Matcher type for the target ref'),
+    refMatcherValue: z.string().describe('Matcher value for the target ref'),
+    refMatcherDisplayId: z.string().optional().describe('Display value for the ref matcher (defaults to the matcher value)'),
+    exemptRefMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe('Matcher type for source refs exempt from the check'),
+    exemptRefMatcherValue: z.string().optional().describe('Matcher value for source refs exempt from the check'),
+    exemptRefMatcherDisplayId: z.string().optional().describe('Display value for the exempt ref matcher (defaults to its value)'),
   },
   deleteRequiredBuildsMergeCheck: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    id: z.string().describe("The ID of the merge check to delete")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    id: z.string().describe('The ID of the merge check to delete'),
   },
   deletePullRequestComment: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    commentId: z.string().describe("The ID of the comment to delete"),
-    version: z.number().describe("The current version of the comment, required for optimistic locking. A comment with replies cannot be deleted.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    commentId: z.string().describe('The ID of the comment to delete'),
+    version: z.number().describe('The current version of the comment, required for optimistic locking. A comment with replies cannot be deleted.'),
   },
   applyPullRequestSuggestion: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID"),
-    commentId: z.string().describe("The ID of the comment that contains the code suggestion"),
-    commentVersion: z.number().describe("The current version of the comment containing the suggestion"),
-    pullRequestVersion: z.number().describe("The current version of the pull request"),
-    commitMessage: z.string().describe("Commit message for the commit that applies the suggestion. Required and must be non-empty."),
-    suggestionIndex: z.number().optional().describe("Index of the suggestion within the comment when it contains several. Defaults to the first suggestion.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    commentId: z.string().describe('The ID of the comment that contains the code suggestion'),
+    commentVersion: z.number().describe('The current version of the comment containing the suggestion'),
+    pullRequestVersion: z.number().describe('The current version of the pull request'),
+    commitMessage: z.string().describe('Commit message for the commit that applies the suggestion. Required and must be non-empty.'),
+    suggestionIndex: z.number().optional().describe('Index of the suggestion within the comment when it contains several. Defaults to the first suggestion.'),
   },
   watchPullRequest: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
   },
   unwatchPullRequest: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    pullRequestId: z.string().describe("The pull request ID")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
   },
   createProject: {
-    key: z.string().describe("The project key (e.g. 'PROJ'). Used in URLs and must be unique."),
-    name: z.string().describe("The project name"),
-    description: z.string().optional().describe("Optional project description")
+    key: z.string().describe('The project key (e.g. \'PROJ\'). Used in URLs and must be unique.'),
+    name: z.string().describe('The project name'),
+    description: z.string().optional().describe('Optional project description'),
   },
   updateProject: {
-    key: z.string().describe("The project key. The key itself is never changed by this operation."),
-    name: z.string().optional().describe("New project name"),
-    description: z.string().optional().describe("New project description")
+    key: z.string().describe('The project key. The key itself is never changed by this operation.'),
+    name: z.string().optional().describe('New project name'),
+    description: z.string().optional().describe('New project description'),
   },
   deleteProject: {
-    key: z.string().describe("The project key. The project must contain no repositories.")
+    key: z.string().describe('The project key. The project must contain no repositories.'),
   },
   createRepository: {
-    projectKey: z.string().describe("The project key the repository will be created in"),
-    name: z.string().describe("The repository name"),
-    scmId: z.string().optional().describe("The SCM type. Defaults to 'git'."),
-    defaultBranch: z.string().optional().describe("Optional default branch for the new repository (e.g. 'main')")
+    projectKey: z.string().describe('The project key the repository will be created in'),
+    name: z.string().describe('The repository name'),
+    scmId: z.string().optional().describe('The SCM type. Defaults to \'git\'.'),
+    defaultBranch: z.string().optional().describe('Optional default branch for the new repository (e.g. \'main\')'),
   },
   updateRepository: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    name: z.string().optional().describe("New repository name. Changing the name may change the slug."),
-    description: z.string().optional().describe("New repository description"),
-    defaultBranch: z.string().optional().describe("New default branch (e.g. 'main')"),
-    targetProjectKey: z.string().optional().describe("Project key to move the repository into")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    name: z.string().optional().describe('New repository name. Changing the name may change the slug.'),
+    description: z.string().optional().describe('New repository description'),
+    defaultBranch: z.string().optional().describe('New default branch (e.g. \'main\')'),
+    targetProjectKey: z.string().optional().describe('Project key to move the repository into'),
   },
   forkRepository: {
-    projectKey: z.string().describe("The project key of the origin repository"),
-    repositorySlug: z.string().describe("The repository slug of the origin repository"),
-    name: z.string().optional().describe("Name for the fork. Defaults to the origin repository name."),
-    targetProjectKey: z.string().optional().describe("Target project key for the fork. Defaults to the user's personal project."),
-    defaultBranch: z.string().optional().describe("Default branch for the fork. Defaults to the origin's default branch.")
+    projectKey: z.string().describe('The project key of the origin repository'),
+    repositorySlug: z.string().describe('The repository slug of the origin repository'),
+    name: z.string().optional().describe('Name for the fork. Defaults to the origin repository name.'),
+    targetProjectKey: z.string().optional().describe('Target project key for the fork. Defaults to the user\'s personal project.'),
+    defaultBranch: z.string().optional().describe('Default branch for the fork. Defaults to the origin\'s default branch.'),
   },
   getRepositoryForks: {
-    projectKey: z.string().describe("The project key of the origin repository"),
-    repositorySlug: z.string().describe("The repository slug of the origin repository"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key of the origin repository'),
+    repositorySlug: z.string().describe('The repository slug of the origin repository'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   deleteRepository: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
   },
   getWebhooks: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    event: z.string().optional().describe("Optional webhook event ID to filter for (e.g. 'repo:refs_changed', 'pr:opened')"),
-    statistics: z.boolean().optional().describe("If true, include invocation statistics for each webhook")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    event: z.string().optional().describe('Optional webhook event ID to filter for (e.g. \'repo:refs_changed\', \'pr:opened\')'),
+    statistics: z.boolean().optional().describe('If true, include invocation statistics for each webhook'),
   },
   getWebhook: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    webhookId: z.string().describe("The ID of the webhook"),
-    statistics: z.boolean().optional().describe("If true, include invocation statistics for the webhook")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    webhookId: z.string().describe('The ID of the webhook'),
+    statistics: z.boolean().optional().describe('If true, include invocation statistics for the webhook'),
   },
   createWebhook: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    name: z.string().describe("The webhook name"),
-    url: z.string().describe("The endpoint URL the webhook will POST to"),
-    events: z.array(z.string()).describe("List of event IDs to subscribe to (e.g. ['repo:refs_changed', 'pr:opened', 'pr:merged'])"),
-    active: z.boolean().optional().describe("Whether the webhook is enabled. Defaults to true on the server side."),
-    secret: z.string().optional().describe("Optional secret used to sign webhook payloads (HMAC)"),
-    sslVerificationRequired: z.boolean().optional().describe("Whether SSL verification is required for the endpoint URL")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    name: z.string().describe('The webhook name'),
+    url: z.string().describe('The endpoint URL the webhook will POST to'),
+    events: z.array(z.string()).describe('List of event IDs to subscribe to (e.g. [\'repo:refs_changed\', \'pr:opened\', \'pr:merged\'])'),
+    active: z.boolean().optional().describe('Whether the webhook is enabled. Defaults to true on the server side.'),
+    secret: z.string().optional().describe('Optional secret used to sign webhook payloads (HMAC)'),
+    sslVerificationRequired: z.boolean().optional().describe('Whether SSL verification is required for the endpoint URL'),
   },
   updateWebhook: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    webhookId: z.string().describe("The ID of the webhook to update"),
-    name: z.string().describe("The webhook name"),
-    url: z.string().describe("The endpoint URL the webhook will POST to"),
-    events: z.array(z.string()).describe("List of event IDs to subscribe to. This replaces the existing event set."),
-    active: z.boolean().optional().describe("Whether the webhook is enabled"),
-    secret: z.string().optional().describe("Optional secret used to sign webhook payloads (HMAC)"),
-    sslVerificationRequired: z.boolean().optional().describe("Whether SSL verification is required for the endpoint URL")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    webhookId: z.string().describe('The ID of the webhook to update'),
+    name: z.string().describe('The webhook name'),
+    url: z.string().describe('The endpoint URL the webhook will POST to'),
+    events: z.array(z.string()).describe('List of event IDs to subscribe to. This replaces the existing event set.'),
+    active: z.boolean().optional().describe('Whether the webhook is enabled'),
+    secret: z.string().optional().describe('Optional secret used to sign webhook payloads (HMAC)'),
+    sslVerificationRequired: z.boolean().optional().describe('Whether SSL verification is required for the endpoint URL'),
   },
   deleteWebhook: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    webhookId: z.string().describe("The ID of the webhook to delete")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    webhookId: z.string().describe('The ID of the webhook to delete'),
   },
   getAccessTokens: {
-    scope: z.enum(['user', 'project', 'repo']).describe("The token scope: 'user' for personal access tokens, 'project' for project-scoped tokens, 'repo' for repository-scoped tokens"),
-    userSlug: z.string().optional().describe("The user slug. Required when scope is 'user'."),
-    projectKey: z.string().optional().describe("The project key. Required when scope is 'project' or 'repo'."),
-    repositorySlug: z.string().optional().describe("The repository slug. Required when scope is 'repo'."),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    scope: z.enum(['user', 'project', 'repo']).describe('The token scope: \'user\' for personal access tokens, \'project\' for project-scoped tokens, \'repo\' for repository-scoped tokens'),
+    userSlug: z.string().optional().describe('The user slug. Required when scope is \'user\'.'),
+    projectKey: z.string().optional().describe('The project key. Required when scope is \'project\' or \'repo\'.'),
+    repositorySlug: z.string().optional().describe('The repository slug. Required when scope is \'repo\'.'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   createAccessToken: {
-    scope: z.enum(['user', 'project', 'repo']).describe("The token scope: 'user' for personal access tokens, 'project' for project-scoped tokens, 'repo' for repository-scoped tokens"),
-    name: z.string().describe("The name of the new access token"),
-    permissions: z.array(z.string()).describe("The permissions to grant the token, e.g. ['REPO_READ', 'REPO_WRITE', 'REPO_ADMIN'] for repo scope, ['PROJECT_READ', 'PROJECT_WRITE', 'PROJECT_ADMIN'] for project scope, or a mix of project/repo permissions for a personal (user) token"),
-    expiryDays: z.number().optional().describe("Optional number of days until the token expires. Omit for a non-expiring token, if allowed by the instance's token expiration policy."),
-    userSlug: z.string().optional().describe("The user slug. Required when scope is 'user'."),
-    projectKey: z.string().optional().describe("The project key. Required when scope is 'project' or 'repo'."),
-    repositorySlug: z.string().optional().describe("The repository slug. Required when scope is 'repo'.")
+    scope: z.enum(['user', 'project', 'repo']).describe('The token scope: \'user\' for personal access tokens, \'project\' for project-scoped tokens, \'repo\' for repository-scoped tokens'),
+    name: z.string().describe('The name of the new access token'),
+    permissions: z.array(z.string()).describe('The permissions to grant the token, e.g. [\'REPO_READ\', \'REPO_WRITE\', \'REPO_ADMIN\'] for repo scope, [\'PROJECT_READ\', \'PROJECT_WRITE\', \'PROJECT_ADMIN\'] for project scope, or a mix of project/repo permissions for a personal (user) token'),
+    expiryDays: z.number().optional().describe('Optional number of days until the token expires. Omit for a non-expiring token, if allowed by the instance\'s token expiration policy.'),
+    userSlug: z.string().optional().describe('The user slug. Required when scope is \'user\'.'),
+    projectKey: z.string().optional().describe('The project key. Required when scope is \'project\' or \'repo\'.'),
+    repositorySlug: z.string().optional().describe('The repository slug. Required when scope is \'repo\'.'),
   },
   deleteAccessToken: {
-    scope: z.enum(['user', 'project', 'repo']).describe("The token scope: 'user' for personal access tokens, 'project' for project-scoped tokens, 'repo' for repository-scoped tokens"),
-    tokenId: z.string().describe("The ID of the token to delete"),
-    userSlug: z.string().optional().describe("The user slug. Required when scope is 'user'."),
-    projectKey: z.string().optional().describe("The project key. Required when scope is 'project' or 'repo'."),
-    repositorySlug: z.string().optional().describe("The repository slug. Required when scope is 'repo'.")
+    scope: z.enum(['user', 'project', 'repo']).describe('The token scope: \'user\' for personal access tokens, \'project\' for project-scoped tokens, \'repo\' for repository-scoped tokens'),
+    tokenId: z.string().describe('The ID of the token to delete'),
+    userSlug: z.string().optional().describe('The user slug. Required when scope is \'user\'.'),
+    projectKey: z.string().optional().describe('The project key. Required when scope is \'project\' or \'repo\'.'),
+    repositorySlug: z.string().optional().describe('The repository slug. Required when scope is \'repo\'.'),
   },
   getProjectPermissions: {
-    projectKey: z.string().describe("The project key"),
-    filter: z.string().optional().describe("Optional filter applied to both returned user and group names"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return per principal type. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    filter: z.string().optional().describe('Optional filter applied to both returned user and group names'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return per principal type. If not passed, the package default page size is used.'),
   },
   setProjectUserPermission: {
-    projectKey: z.string().describe("The project key"),
-    name: z.string().describe("The username to grant the permission to"),
-    permission: z.enum(['PROJECT_READ', 'PROJECT_WRITE', 'PROJECT_ADMIN']).describe("The permission to grant")
+    projectKey: z.string().describe('The project key'),
+    name: z.string().describe('The username to grant the permission to'),
+    permission: z.enum(['PROJECT_READ', 'PROJECT_WRITE', 'PROJECT_ADMIN']).describe('The permission to grant'),
   },
   setProjectGroupPermission: {
-    projectKey: z.string().describe("The project key"),
-    name: z.string().describe("The group name to grant the permission to"),
-    permission: z.enum(['PROJECT_READ', 'PROJECT_WRITE', 'PROJECT_ADMIN']).describe("The permission to grant")
+    projectKey: z.string().describe('The project key'),
+    name: z.string().describe('The group name to grant the permission to'),
+    permission: z.enum(['PROJECT_READ', 'PROJECT_WRITE', 'PROJECT_ADMIN']).describe('The permission to grant'),
   },
   revokeProjectPermission: {
-    projectKey: z.string().describe("The project key"),
-    user: z.string().optional().describe("Username whose project permissions should be revoked"),
-    group: z.string().optional().describe("Group name whose project permissions should be revoked. At least one of user or group must be provided.")
+    projectKey: z.string().describe('The project key'),
+    user: z.string().optional().describe('Username whose project permissions should be revoked'),
+    group: z.string().optional().describe('Group name whose project permissions should be revoked. At least one of user or group must be provided.'),
   },
   getRepoPermissions: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    filter: z.string().optional().describe("Optional filter applied to both returned user and group names"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return per principal type. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    filter: z.string().optional().describe('Optional filter applied to both returned user and group names'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return per principal type. If not passed, the package default page size is used.'),
   },
   setRepoUserPermission: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    name: z.string().describe("The username to grant the permission to"),
-    permission: z.enum(['REPO_READ', 'REPO_WRITE', 'REPO_ADMIN']).describe("The permission to grant")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    name: z.string().describe('The username to grant the permission to'),
+    permission: z.enum(['REPO_READ', 'REPO_WRITE', 'REPO_ADMIN']).describe('The permission to grant'),
   },
   setRepoGroupPermission: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    name: z.string().describe("The group name to grant the permission to"),
-    permission: z.enum(['REPO_READ', 'REPO_WRITE', 'REPO_ADMIN']).describe("The permission to grant")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    name: z.string().describe('The group name to grant the permission to'),
+    permission: z.enum(['REPO_READ', 'REPO_WRITE', 'REPO_ADMIN']).describe('The permission to grant'),
   },
   revokeRepoPermission: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    user: z.string().optional().describe("Username whose repository permissions should be revoked"),
-    group: z.string().optional().describe("Group name whose repository permissions should be revoked. At least one of user or group must be provided.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    user: z.string().optional().describe('Username whose repository permissions should be revoked'),
+    group: z.string().optional().describe('Group name whose repository permissions should be revoked. At least one of user or group must be provided.'),
   },
   getSshKeys: {
-    userName: z.string().optional().describe("Username to retrieve SSH keys for. Defaults to the currently authenticated user; retrieving another user's keys requires ADMIN permission."),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return (defaults to the package page size)")
+    userName: z.string().optional().describe('Username to retrieve SSH keys for. Defaults to the currently authenticated user; retrieving another user\'s keys requires ADMIN permission.'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return (defaults to the package page size)'),
   },
   addSshKey: {
-    text: z.string().describe("The public key text (e.g. 'ssh-rsa AAAA... comment')"),
-    userName: z.string().optional().describe("Username to add the SSH key for. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.")
+    text: z.string().describe('The public key text (e.g. \'ssh-rsa AAAA... comment\')'),
+    userName: z.string().optional().describe('Username to add the SSH key for. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.'),
   },
   deleteSshKey: {
-    keyId: z.string().describe("The ID of the SSH key to delete")
+    keyId: z.string().describe('The ID of the SSH key to delete'),
   },
   getGpgKeys: {
-    user: z.string().optional().describe("Username to retrieve GPG keys for. Defaults to the currently authenticated user; retrieving another user's keys requires ADMIN permission."),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return (defaults to the package page size)")
+    user: z.string().optional().describe('Username to retrieve GPG keys for. Defaults to the currently authenticated user; retrieving another user\'s keys requires ADMIN permission.'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return (defaults to the package page size)'),
   },
   addGpgKey: {
-    text: z.string().describe("The ASCII-armored GPG public key text"),
-    user: z.string().optional().describe("Username to add the GPG key for. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.")
+    text: z.string().describe('The ASCII-armored GPG public key text'),
+    user: z.string().optional().describe('Username to add the GPG key for. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.'),
   },
   deleteGpgKey: {
-    fingerprintOrId: z.string().describe("The GPG key ID or fingerprint to delete")
+    fingerprintOrId: z.string().describe('The GPG key ID or fingerprint to delete'),
   },
   setDefaultBranch: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    branchId: z.string().describe("The full ref ID of the branch to set as default (e.g. 'refs/heads/main')")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    branchId: z.string().describe('The full ref ID of the branch to set as default (e.g. \'refs/heads/main\')'),
   },
   getPullRequestSettings: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
   },
   updatePullRequestSettings: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    settings: z.record(z.string(), z.any()).describe("Settings to update; only the provided keys are changed. Known keys: mergeConfig, requiredApprovers, requiredAllApprovers, requiredAllTasksComplete, requiredSuccessfulBuilds, 'com.atlassian.bitbucket.server.bundled-hooks.requiredApproversMergeHook', 'com.atlassian.bitbucket.server.bitbucket-build.requiredBuildsMergeCheck'")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    settings: z.record(z.string(), z.any()).describe('Settings to update; only the provided keys are changed. Known keys: mergeConfig, requiredApprovers, requiredAllApprovers, requiredAllTasksComplete, requiredSuccessfulBuilds, \'com.atlassian.bitbucket.server.bundled-hooks.requiredApproversMergeHook\', \'com.atlassian.bitbucket.server.bitbucket-build.requiredBuildsMergeCheck\''),
   },
   getAutoDeclineSettings: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
   },
   setAutoDeclineSettings: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    enabled: z.boolean().describe("Whether auto-decline of inactive pull requests is enabled"),
-    inactivityWeeks: z.number().optional().describe("Number of weeks of inactivity before a pull request is auto-declined. Must be one of 1, 2, 4, 8, or 12.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    enabled: z.boolean().describe('Whether auto-decline of inactive pull requests is enabled'),
+    inactivityWeeks: z.number().optional().describe('Number of weeks of inactivity before a pull request is auto-declined. Must be one of 1, 2, 4, 8, or 12.'),
   },
   deleteAutoDeclineSettings: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
   },
   getAutoMergeSettings: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
   },
   setAutoMergeSettings: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    enabled: z.boolean().describe("Whether pull requests are automatically merged once all merge checks pass")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    enabled: z.boolean().describe('Whether pull requests are automatically merged once all merge checks pass'),
   },
   deleteAutoMergeSettings: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
   },
   getRepoHooks: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    type: z.enum(['PRE_RECEIVE', 'POST_RECEIVE']).optional().describe("Optional hook type to filter by"),
-    start: z.number().optional().describe("Start number for pagination"),
-    limit: z.number().optional().describe("Number of items to return. If not passed, the package default page size is used.")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    type: z.enum(['PRE_RECEIVE', 'POST_RECEIVE']).optional().describe('Optional hook type to filter by'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   enableRepoHook: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    hookKey: z.string().describe("The hook key (e.g. 'com.atlassian.bitbucket.server.bundled-hooks:requiredApproversMergeHook')")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    hookKey: z.string().describe('The hook key (e.g. \'com.atlassian.bitbucket.server.bundled-hooks:requiredApproversMergeHook\')'),
   },
   disableRepoHook: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    hookKey: z.string().describe("The hook key")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    hookKey: z.string().describe('The hook key'),
   },
   getRepoHookSettings: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    hookKey: z.string().describe("The hook key")
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    hookKey: z.string().describe('The hook key'),
   },
   setRepoHookSettings: {
-    projectKey: z.string().describe("The project key"),
-    repositorySlug: z.string().describe("The repository slug"),
-    hookKey: z.string().describe("The hook key"),
-    settings: z.record(z.string(), z.any()).describe("The raw settings document for the hook. Structure is decided by the hook's plugin.")
-  }
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    hookKey: z.string().describe('The hook key'),
+    settings: z.record(z.string(), z.any()).describe('The raw settings document for the hook. Structure is decided by the hook\'s plugin.'),
+  },
 };

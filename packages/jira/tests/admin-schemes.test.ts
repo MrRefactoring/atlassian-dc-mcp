@@ -729,7 +729,7 @@ describe('JiraService', () => {
       expect(WorkflowschemeService.updateWorkflowMapping).toHaveBeenCalledWith(
         2,
         { workflow: 'jira', issueTypes: ['10001'], defaultMapping: true, updateDraftIfNeeded: undefined },
-        'jira'
+        'jira',
       );
     });
 

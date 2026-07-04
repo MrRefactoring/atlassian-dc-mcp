@@ -67,6 +67,7 @@ class WatchManager {
 
     if (this.isBuilding) {
       this.rebuildQueued = true;
+
       return;
     }
 
@@ -106,8 +107,8 @@ class WatchManager {
       cwd: this.packageDir,
       env: {
         ...process.env,
-        PORT: '3098'
-      }
+        PORT: '3098',
+      },
     });
 
     this.runProcess.on('error', (err) => {

@@ -17,6 +17,7 @@ export class SetupValueValidator {
       if (url.protocol !== 'http:' && url.protocol !== 'https:') {
         return 'must use http or https';
       }
+
       return true;
     } catch {
       return 'enter a host name or http(s) URL';
@@ -34,11 +35,13 @@ export class SetupValueValidator {
     if (/^https?:\/\//i.test(value)) {
       try {
         new URL(value);
+
         return true;
       } catch {
         return 'enter a valid http(s) URL';
       }
     }
+
     return value.startsWith('/') ? true : 'enter a path starting with / or a full http(s) URL';
   }
 
@@ -47,11 +50,13 @@ export class SetupValueValidator {
     if (value.length === 0) {
       return true;
     }
+
     return /\s/.test(value) ? 'must not contain whitespace' : true;
   }
 
   static pageSize(raw: string): ValidationResult {
     const trimmed = raw.trim();
+
     return /^\d+$/.test(trimmed) && Number.parseInt(trimmed, 10) > 0
       ? true
       : 'enter a positive integer';

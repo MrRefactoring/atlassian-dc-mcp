@@ -48,6 +48,7 @@ function parsePositiveInteger(value: string | undefined): number | undefined {
     return undefined;
   }
   const parsed = Number.parseInt(trimmed, 10);
+
   return parsed > 0 ? parsed : undefined;
 }
 

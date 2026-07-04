@@ -48,7 +48,7 @@ const DEFAULT_MAX_PAGES = 50;
  */
 export async function paginateAll<T>(
   fetchPage: (startAt: number) => Promise<PageResult<T>>,
-  options: PaginateAllOptions = {}
+  options: PaginateAllOptions = {},
 ): Promise<T[]> {
   const maxItems = options.maxItems ?? DEFAULT_MAX_ITEMS;
   const maxPages = options.maxPages ?? DEFAULT_MAX_PAGES;

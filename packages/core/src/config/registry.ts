@@ -44,6 +44,7 @@ export class DefaultConfigRegistry implements ConfigRegistry {
         return { value, from: { sourceId: source.id, detail: source.describe() } };
       }
     }
+
     return { value: undefined };
   }
 
@@ -54,6 +55,7 @@ export class DefaultConfigRegistry implements ConfigRegistry {
         locations.push({ sourceId: source.id, detail: source.describe() });
       }
     }
+
     return locations;
   }
 
@@ -65,12 +67,14 @@ export class DefaultConfigRegistry implements ConfigRegistry {
         return source;
       }
     }
+
     return undefined;
   }
 }
 
 export function buildDefaultRegistry(options: { profile?: string } = {}): DefaultConfigRegistry {
   const { profile } = options;
+
   return new DefaultConfigRegistry([
     new ProcessEnvSource(),
     new EnvFileSource(),

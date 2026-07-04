@@ -5,7 +5,7 @@ import { PermissionManagementService, PullRequestsService } from '../src/bitbuck
 import { request } from '../src/bitbucket-client/core/request.js';
 
 vi.mock('../src/bitbucket-client/core/request.js', () => ({
-  request: vi.fn()
+  request: vi.fn(),
 }));
 
 const mockRequest = vi.mocked(request);
@@ -16,20 +16,20 @@ vi.mock('../src/bitbucket-client/index.js', () => ({
     getUsersWithAnyPermission2: vi.fn(),
     revokePermissions1: vi.fn(),
     setPermissionForGroup: vi.fn(),
-    setPermissionForUser: vi.fn()
+    setPermissionForUser: vi.fn(),
   },
   PullRequestsService: {
     create: vi.fn(),
     get3: vi.fn(),
     getPage: vi.fn(),
     getReviewers: vi.fn(),
-    streamChanges1: vi.fn()
+    streamChanges1: vi.fn(),
   },
   OpenAPI: {
     BASE: '',
     TOKEN: '',
-    VERSION: ''
-  }
+    VERSION: '',
+  },
 }));
 
 describe('BitbucketService', () => {
@@ -142,14 +142,14 @@ describe('BitbucketService', () => {
           body: {
             query: 'app',
             entities: { code: {} },
-            limits: { primary: 25 }
+            limits: { primary: 25 },
           },
           mediaType: 'application/json',
           errors: {
             400: 'The search query was malformed.',
             401: 'The currently authenticated user is not permitted to search.',
           },
-        }
+        },
       );
     });
 
@@ -166,9 +166,9 @@ describe('BitbucketService', () => {
           body: {
             query: 'repo:demo TODO',
             entities: { code: {} },
-            limits: { primary: 10, secondary: 5 }
+            limits: { primary: 10, secondary: 5 },
           },
-        })
+        }),
       );
     });
 
@@ -193,7 +193,7 @@ describe('BitbucketService', () => {
         'TEST',
         'test-repo',
         undefined, undefined, undefined, undefined, undefined,
-        undefined, undefined, undefined, undefined, 25
+        undefined, undefined, undefined, undefined, 25,
       );
     });
 
@@ -214,7 +214,7 @@ describe('BitbucketService', () => {
 
       expect(PullRequestsService.streamChanges1).toHaveBeenCalledWith(
         'TEST', '1', 'test-repo',
-        undefined, undefined, undefined, undefined, undefined, 25
+        undefined, undefined, undefined, undefined, undefined, 25,
       );
     });
 
@@ -224,7 +224,7 @@ describe('BitbucketService', () => {
 
       await bitbucketService.createPullRequest(
         'test', 'Test-Repo', 'title', 'desc',
-        'refs/heads/feature', 'refs/heads/main'
+        'refs/heads/feature', 'refs/heads/main',
       );
 
       expect(PullRequestsService.create).toHaveBeenCalledWith(
@@ -234,10 +234,10 @@ describe('BitbucketService', () => {
           fromRef: expect.objectContaining({
             repository: expect.objectContaining({
               slug: 'test-repo',
-              project: { key: 'TEST' }
-            })
-          })
-        })
+              project: { key: 'TEST' },
+            }),
+          }),
+        }),
       );
     });
 
@@ -246,12 +246,12 @@ describe('BitbucketService', () => {
       (PullRequestsService.getReviewers as Mock).mockResolvedValue(mockData);
 
       await bitbucketService.getRequiredReviewers(
-        'test', 'Test-Repo', 'refs/heads/feature', 'refs/heads/main'
+        'test', 'Test-Repo', 'refs/heads/feature', 'refs/heads/main',
       );
 
       expect(PullRequestsService.getReviewers).toHaveBeenCalledWith(
         'TEST', 'test-repo', undefined, undefined,
-        'refs/heads/feature', 'refs/heads/main'
+        'refs/heads/feature', 'refs/heads/main',
       );
     });
   });

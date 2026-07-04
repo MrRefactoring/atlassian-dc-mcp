@@ -15,6 +15,7 @@ const HOME_DIR_NAME = '.atlassian-dc-mcp';
 function getHomeFilePath(product: ProductDefinition | string, profile?: string): string {
   const id = typeof product === 'string' ? product : product.id;
   const suffix = profile ? `.${profile}` : '';
+
   return path.join(os.homedir(), HOME_DIR_NAME, `${id}${suffix}.env`);
 }
 
@@ -26,6 +27,7 @@ function serializeValue(value: string): string {
   if (!needsQuoting(value)) {
     return value;
   }
+
   return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }
 
@@ -34,6 +36,7 @@ function serialize(values: ParsedEnvironment): string {
   for (const [key, raw] of Object.entries(values)) {
     lines.push(`${key}=${serializeValue(raw)}`);
   }
+
   return lines.length > 0 ? `${lines.join('\n')}\n` : '';
 }
 
@@ -54,6 +57,7 @@ export class HomeFileSource implements WritableSource {
 
   read(product: ProductDefinition, key: ConfigKey): string | undefined {
     const values = this.loadFile(product);
+
     return getNonEmptyValue(values[product.envVars[key]]);
   }
 

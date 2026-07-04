@@ -222,7 +222,7 @@ describe('JiraService', () => {
       expect(UserService.changeUserPassword).toHaveBeenCalledWith(
         { password: 'new-pass', currentPassword: undefined },
         undefined,
-        'jdoe'
+        'jdoe',
       );
     });
 

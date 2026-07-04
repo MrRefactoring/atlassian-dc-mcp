@@ -29,6 +29,7 @@ function isKeychainSecretKey(key: ConfigKey): key is KeychainSecretKey {
 
 function accountFor(product: ProductDefinition, key: KeychainSecretKey, profile?: string): string {
   const infix = profile ? `-${profile}` : '';
+
   return `${product.id}${infix}-${key}`;
 }
 
@@ -71,6 +72,7 @@ export class MacosKeychainSource implements WritableSource {
     const value = this.findPassword(product, key);
     this.cache.set(cacheKey, value);
     this.cacheWarmed.add(cacheKey);
+
     return value;
   }
 
@@ -126,6 +128,7 @@ export class MacosKeychainSource implements WritableSource {
         ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-a', accountFor(product, key, this.profile), '-w'],
         { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', timeout: KEYCHAIN_TIMEOUT_MS },
       );
+
       return String(stdout).replace(/\n$/, '');
     } catch {
       // exit 44 = not found; any other failure (locked keychain, etc.) is

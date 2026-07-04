@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { simplifyInboxPullRequests, SimplifiedInboxPRResponse } from '../src/inbox-pr-mapper.js';
+import type { SimplifiedInboxPRResponse } from '../src/inbox-pr-mapper.js';
+import { simplifyInboxPullRequests } from '../src/inbox-pr-mapper.js';
 
 describe('simplifyInboxPullRequests', () => {
   const makePR = (overrides: Record<string, unknown> = {}) => ({
@@ -155,7 +156,7 @@ describe('simplifyInboxPullRequests', () => {
     const result = simplifyInboxPullRequests(response) as SimplifiedInboxPRResponse;
 
     expect(result.pullRequests[0].link).toBe(
-      'https://bitbucket.example.com/projects/PROJ/repos/myproject-api/pull-requests/101'
+      'https://bitbucket.example.com/projects/PROJ/repos/myproject-api/pull-requests/101',
     );
   });
 

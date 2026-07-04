@@ -18,7 +18,7 @@ import {
 vi.mock('../src/jira-client/core/request.js', () => ({
   request: vi.fn(),
   resolve: vi.fn(async (_options: unknown, resolver: unknown) =>
-    typeof resolver === 'function' ? (resolver as () => unknown)() : resolver
+    typeof resolver === 'function' ? (resolver as () => unknown)() : resolver,
   ),
 }));
 

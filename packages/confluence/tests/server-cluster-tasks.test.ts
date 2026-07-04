@@ -203,7 +203,7 @@ describe('ConfluenceService backup/restore and instance metrics', () => {
     await service.findBackupRestoreJobs('jdoe', 'ENG', '2024-01-01T00:00:00.000Z', 'FINISHED', '2024-02-01T00:00:00.000Z', 'BACKUP', 10, 'SITE');
 
     expect(BACKUP_AND_RESTORE.findJobs).toHaveBeenCalledWith(
-      'jdoe', 'ENG', '2024-01-01T00:00:00.000Z', 'FINISHED', '2024-02-01T00:00:00.000Z', 'BACKUP', '10', 'SITE'
+      'jdoe', 'ENG', '2024-01-01T00:00:00.000Z', 'FINISHED', '2024-02-01T00:00:00.000Z', 'BACKUP', '10', 'SITE',
     );
   });
 
