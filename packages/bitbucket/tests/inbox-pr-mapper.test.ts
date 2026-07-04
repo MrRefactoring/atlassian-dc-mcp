@@ -1,4 +1,5 @@
-import { simplifyInboxPullRequests, SimplifiedInboxPRResponse } from '../inbox-pr-mapper.js';
+import { describe, it, expect } from 'vitest';
+import { simplifyInboxPullRequests, SimplifiedInboxPRResponse } from '../src/inbox-pr-mapper.js';
 
 describe('simplifyInboxPullRequests', () => {
   const makePR = (overrides: Record<string, unknown> = {}) => ({

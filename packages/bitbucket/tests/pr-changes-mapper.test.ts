@@ -1,7 +1,8 @@
+import { describe, it, expect } from 'vitest';
 import {
   simplifyBitbucketPRChanges,
   getChangesSummary
-} from '../pr-changes-mapper.js';
+} from '../src/pr-changes-mapper.js';
 
 describe('PR Changes Mapper', () => {
   // Test data based on the example from the issue description

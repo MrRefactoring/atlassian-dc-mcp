@@ -1,17 +1,19 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { Mock, MockInstance } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
-import { BitbucketService } from '../bitbucket-service.js';
-import { PullRequestsService } from '../bitbucket-client/index.js';
+import { BitbucketService } from '../src/bitbucket-service.js';
+import { PullRequestsService } from '../src/bitbucket-client/index.js';
 
-jest.mock('../bitbucket-client/index.js', () => ({
+vi.mock('../src/bitbucket-client/index.js', () => ({
   PullRequestsService: {
-    getActivities: jest.fn(),
-    streamChanges1: jest.fn(),
-    createComment2: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
+    getActivities: vi.fn(),
+    streamChanges1: vi.fn(),
+    createComment2: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
   },
   ProjectService: {},
   RepositoryService: {},
@@ -72,16 +74,16 @@ function createComment(overrides: Record<string, unknown> = {}) {
 describe('BitbucketService token optimization paths', () => {
   let service: BitbucketService;
   let tempHome: string;
-  let homedirSpy: jest.SpyInstance;
+  let homedirSpy: MockInstance;
   const originalPlatform = process.platform;
 
   beforeEach(() => {
     tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'bitbucket-token-opt-home-'));
-    homedirSpy = jest.spyOn(os, 'homedir').mockReturnValue(tempHome);
+    homedirSpy = vi.spyOn(os, 'homedir').mockReturnValue(tempHome);
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
     initializeRuntimeConfig();
     service = new BitbucketService('test-host', 'test-token');
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -111,7 +113,7 @@ describe('BitbucketService token optimization paths', () => {
     };
 
     it('returns compact output by default', async () => {
-      (PullRequestsService.getActivities as jest.Mock).mockResolvedValue(mockActivityResponse);
+      (PullRequestsService.getActivities as Mock).mockResolvedValue(mockActivityResponse);
 
       const result = await service.getPullRequestCommentsAndActions('TEST', 'repo', '123');
 
@@ -181,7 +183,7 @@ describe('BitbucketService token optimization paths', () => {
         ],
       };
 
-      (PullRequestsService.getActivities as jest.Mock).mockResolvedValue(resolvedActivityResponse);
+      (PullRequestsService.getActivities as Mock).mockResolvedValue(resolvedActivityResponse);
 
       const defaultResult = await service.getPullRequestCommentsAndActions('TEST', 'repo', '123');
       const includeResolvedResult = await service.getPullRequestCommentsAndActions('TEST', 'repo', '123', undefined, undefined, 'compact', true);
@@ -255,7 +257,7 @@ describe('BitbucketService token optimization paths', () => {
     });
 
     it('returns summary output when requested', async () => {
-      (PullRequestsService.getActivities as jest.Mock).mockResolvedValue(mockActivityResponse);
+      (PullRequestsService.getActivities as Mock).mockResolvedValue(mockActivityResponse);
 
       const result = await service.getPullRequestCommentsAndActions('TEST', 'repo', '123', 5, 10, 'summary');
 
@@ -274,7 +276,7 @@ describe('BitbucketService token optimization paths', () => {
     });
 
     it('returns the raw payload when output is full', async () => {
-      (PullRequestsService.getActivities as jest.Mock).mockResolvedValue(mockActivityResponse);
+      (PullRequestsService.getActivities as Mock).mockResolvedValue(mockActivityResponse);
 
       const result = await service.getPullRequestCommentsAndActions('TEST', 'repo', '123', undefined, undefined, 'full');
 
@@ -314,7 +316,7 @@ describe('BitbucketService token optimization paths', () => {
     };
 
     it('returns compact output by default', async () => {
-      (PullRequestsService.streamChanges1 as jest.Mock).mockResolvedValue(mockChangesResponse);
+      (PullRequestsService.streamChanges1 as Mock).mockResolvedValue(mockChangesResponse);
 
       const result = await service.getPullRequestChanges('TEST', 'repo', '123');
 
@@ -349,7 +351,7 @@ describe('BitbucketService token optimization paths', () => {
     });
 
     it('returns summary output when requested', async () => {
-      (PullRequestsService.streamChanges1 as jest.Mock).mockResolvedValue(mockChangesResponse);
+      (PullRequestsService.streamChanges1 as Mock).mockResolvedValue(mockChangesResponse);
 
       const result = await service.getPullRequestChanges('TEST', 'repo', '123', undefined, undefined, undefined, undefined, undefined, undefined, 'summary');
 
@@ -372,7 +374,7 @@ describe('BitbucketService token optimization paths', () => {
     });
 
     it('returns the raw payload when output is full', async () => {
-      (PullRequestsService.streamChanges1 as jest.Mock).mockResolvedValue(mockChangesResponse);
+      (PullRequestsService.streamChanges1 as Mock).mockResolvedValue(mockChangesResponse);
 
       const result = await service.getPullRequestChanges('TEST', 'repo', '123', undefined, undefined, undefined, undefined, undefined, undefined, 'full');
 
@@ -388,7 +390,7 @@ describe('BitbucketService token optimization paths', () => {
         text: 'Raw comment',
         state: 'OPEN',
       };
-      (PullRequestsService.createComment2 as jest.Mock).mockResolvedValue(mockComment);
+      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
 
       const result = await service.postPullRequestComment('TEST', 'repo', '123', 'Raw comment', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'full');
 
@@ -403,7 +405,7 @@ describe('BitbucketService token optimization paths', () => {
         title: 'Raw create',
         state: 'OPEN',
       };
-      (PullRequestsService.create as jest.Mock).mockResolvedValue(mockPullRequest);
+      (PullRequestsService.create as Mock).mockResolvedValue(mockPullRequest);
 
       const result = await service.createPullRequest('TEST', 'repo', 'Raw create', undefined, 'refs/heads/feature', 'refs/heads/main', undefined, undefined, 'full');
 
@@ -418,7 +420,7 @@ describe('BitbucketService token optimization paths', () => {
         title: 'Raw update',
         state: 'OPEN',
       };
-      (PullRequestsService.update as jest.Mock).mockResolvedValue(mockPullRequest);
+      (PullRequestsService.update as Mock).mockResolvedValue(mockPullRequest);
 
       const result = await service.updatePullRequest('TEST', 'repo', '123', 1, 'Raw update', undefined, undefined, undefined, 'full');
 
