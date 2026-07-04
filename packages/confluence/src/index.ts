@@ -1130,6 +1130,17 @@ server.tool(
   }
 );
 
+// Add Confluence cluster administration tool
+server.tool(
+  "confluence_getClusterNodes",
+  `Get the status of each node in a ${confluenceInstanceType}'s cluster. Requires permission to view cluster information.`,
+  confluenceToolSchemas.getClusterNodes,
+  async ({ limit, start }) => {
+    const result = await confluenceService.getClusterNodes(limit, start);
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "confluence-page",
   new ResourceTemplate("confluence://page/{pageId}", { list: undefined }),

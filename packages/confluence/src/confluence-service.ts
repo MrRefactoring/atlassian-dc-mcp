@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, ServerInformationService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluence-client/index.js';
+import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ClusterInformationService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, ServerInformationService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluence-client/index.js';
 import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -1243,6 +1243,17 @@ export class ConfluenceService {
     return handleApiOperation(() => ServerInformationService.index2(), 'Error getting server information');
   }
 
+  /**
+   * Get a paginated list of node statuses in a Confluence cluster. Requires permission
+   * to view cluster information.
+   */
+  async getClusterNodes(limit?: number, start?: number) {
+    return handleApiOperation(
+      () => ClusterInformationService.getClusterNodeStatuses(limit?.toString(), start?.toString()),
+      'Error getting cluster node statuses'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -1779,5 +1790,9 @@ export const confluenceToolSchemas = {
   testWebhook: {
     url: z.string().describe("The endpoint URL to test connectivity against")
   },
-  getServerInfo: {}
+  getServerInfo: {},
+  getClusterNodes: {
+    limit: z.number().optional().describe("Maximum number of node statuses to return"),
+    start: z.number().optional().describe("Start index for pagination")
+  }
 };

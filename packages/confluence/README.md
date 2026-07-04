@@ -168,7 +168,7 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-The server registers 94 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
+The server registers 95 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
 #### Content — CRUD & search (CQL)
 
@@ -311,3 +311,7 @@ The server registers 94 tools, grouped below by area. All tools operate against 
 #### Server information
 
 - `confluence_getServerInfo` — Get build/version information about the Confluence instance
+
+#### Cluster information
+
+- `confluence_getClusterNodes` — Get the status of each node in a Confluence cluster (requires permission to view cluster information)
