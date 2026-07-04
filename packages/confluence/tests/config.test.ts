@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Confluence config', () => {
   const originalEnv = process.env;
@@ -8,7 +9,7 @@ describe('Confluence config', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    jest.resetModules();
+    vi.resetModules();
     process.env = { ...originalEnv };
     delete process.env.ATLASSIAN_DC_MCP_CONFIG_FILE;
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'confluence-config-'));
@@ -27,7 +28,7 @@ describe('Confluence config', () => {
   it('uses the configured page size when the env var is a positive integer', async () => {
     process.env.CONFLUENCE_DEFAULT_PAGE_SIZE = '40';
 
-    const { getDefaultPageSize } = await import('../config.js');
+    const { getDefaultPageSize } = await import('../src/config.js');
 
     expect(getDefaultPageSize()).toBe(40);
   });
@@ -35,7 +36,7 @@ describe('Confluence config', () => {
   it('falls back to 25 when the env var is invalid', async () => {
     process.env.CONFLUENCE_DEFAULT_PAGE_SIZE = '0';
 
-    const { getDefaultPageSize } = await import('../config.js');
+    const { getDefaultPageSize } = await import('../src/config.js');
 
     expect(getDefaultPageSize()).toBe(25);
   });
@@ -45,7 +46,7 @@ describe('Confluence config', () => {
     fs.writeFileSync(sharedConfigPath, 'CONFLUENCE_HOST=file-host\nCONFLUENCE_API_TOKEN=file-token\nCONFLUENCE_DEFAULT_PAGE_SIZE=35\n');
     process.env.ATLASSIAN_DC_MCP_CONFIG_FILE = sharedConfigPath;
 
-    const { getConfluenceRuntimeConfig, getDefaultPageSize } = await import('../config.js');
+    const { getConfluenceRuntimeConfig, getDefaultPageSize } = await import('../src/config.js');
 
     expect(getDefaultPageSize()).toBe(35);
     expect(getConfluenceRuntimeConfig().token).toBe('file-token');
@@ -57,7 +58,7 @@ describe('Confluence config', () => {
     process.env.ATLASSIAN_DC_MCP_CONFIG_FILE = sharedConfigPath;
     process.env.CONFLUENCE_DEFAULT_PAGE_SIZE = '45';
 
-    const { getDefaultPageSize } = await import('../config.js');
+    const { getDefaultPageSize } = await import('../src/config.js');
 
     expect(getDefaultPageSize()).toBe(45);
   });
