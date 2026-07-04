@@ -18,6 +18,7 @@
   "scripts": {
     "build": "pnpm --filter datacenter-mcp-core build && pnpm -r build",
     "test": "pnpm -r test",
+    "test:ci": "pnpm -r --workspace-concurrency=1 test",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

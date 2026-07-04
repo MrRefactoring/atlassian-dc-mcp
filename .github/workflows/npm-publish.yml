@@ -33,7 +33,7 @@ jobs:
       - name: Typecheck
         run: pnpm run typecheck
       - name: Test
-        run: pnpm run test
+        run: pnpm run test:ci
 
   version:
     needs: build
