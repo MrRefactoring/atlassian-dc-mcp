@@ -16,6 +16,7 @@ import {
   CustomFieldOptionService,
   CustomFieldsService,
   DashboardService,
+  EmailTemplatesService,
   EpicService,
   FieldService,
   FilterService,
@@ -51,11 +52,13 @@ import {
   SearchService,
   SecuritylevelService,
   ServerInfoService,
+  SessionService,
   SprintService,
   StatusService,
   UniversalAvatarService,
   UserService,
   VersionService,
+  WebsudoService,
   WorkflowService,
   WorkflowschemeService,
   WorklogService,
@@ -434,6 +437,21 @@ jest.mock('../jira-client/index.js', () => ({
     processRequests: jest.fn(),
     getProgressBulk: jest.fn(),
     getProgress: jest.fn(),
+  },
+  EmailTemplatesService: {
+    downloadEmailTemplates: jest.fn(),
+    uploadEmailTemplates: jest.fn(),
+    applyEmailTemplates: jest.fn(),
+    revertEmailTemplatesToDefault: jest.fn(),
+    getEmailTypes: jest.fn(),
+  },
+  SessionService: {
+    currentUser: jest.fn(),
+    login: jest.fn(),
+    logout: jest.fn(),
+  },
+  WebsudoService: {
+    release: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -4597,6 +4615,144 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('No re-indexing task found');
+    });
+  });
+
+  describe('email templates', () => {
+    describe('downloadEmailTemplates', () => {
+      let fetchSpy: jest.SpiedFunction<typeof fetch>;
+
+      beforeEach(() => {
+        fetchSpy = jest.spyOn(global, 'fetch');
+      });
+
+      afterEach(() => {
+        fetchSpy.mockRestore();
+      });
+
+      it('downloads and base64-encodes the email templates zip', async () => {
+        fetchSpy.mockResolvedValue({
+          ok: true,
+          arrayBuffer: async () => Buffer.from('zip-bytes'),
+        } as unknown as Response);
+
+        const result = await jiraService.downloadEmailTemplates();
+
+        expect(result.success).toBe(true);
+        expect(result.data).toEqual({ contentBase64: Buffer.from('zip-bytes').toString('base64') });
+        expect(fetchSpy).toHaveBeenCalledWith('https://test-host/rest/api/2/email-templates', expect.objectContaining({
+          headers: { Authorization: 'Bearer test-token' },
+        }));
+      });
+
+      it('fails when the download request is not ok', async () => {
+        fetchSpy.mockResolvedValue({ ok: false, status: 403, statusText: 'Forbidden' } as unknown as Response);
+
+        const result = await jiraService.downloadEmailTemplates();
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Failed to download email templates: 403 Forbidden');
+      });
+    });
+
+    it('uploads email templates as a zip file', async () => {
+      const mockResult = { success: true };
+      (EmailTemplatesService.uploadEmailTemplates as jest.Mock).mockResolvedValue(mockResult);
+
+      const result = await jiraService.uploadEmailTemplates('emlsaXA=');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockResult);
+      expect(EmailTemplatesService.uploadEmailTemplates).toHaveBeenCalledWith(expect.any(File));
+    });
+
+    it('applies previously uploaded email templates', async () => {
+      (EmailTemplatesService.applyEmailTemplates as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.applyEmailTemplates();
+
+      expect(result.success).toBe(true);
+      expect(EmailTemplatesService.applyEmailTemplates).toHaveBeenCalledWith();
+    });
+
+    it('resets email templates to default', async () => {
+      (EmailTemplatesService.revertEmailTemplatesToDefault as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.resetEmailTemplatesToDefault();
+
+      expect(result.success).toBe(true);
+      expect(EmailTemplatesService.revertEmailTemplatesToDefault).toHaveBeenCalledWith();
+    });
+
+    it('gets email template types', async () => {
+      const mockTypes = [{ id: 'IssueCreated', name: 'Issue Created' }];
+      (EmailTemplatesService.getEmailTypes as jest.Mock).mockResolvedValue(mockTypes);
+
+      const result = await jiraService.getEmailTemplateTypes();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockTypes);
+      expect(EmailTemplatesService.getEmailTypes).toHaveBeenCalledWith();
+    });
+
+    it('handles errors', async () => {
+      (EmailTemplatesService.getEmailTypes as jest.Mock).mockRejectedValue(new Error('User is not a system admin'));
+
+      const result = await jiraService.getEmailTemplateTypes();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('User is not a system admin');
+    });
+  });
+
+  describe('session and websudo', () => {
+    it('gets the current session', async () => {
+      const mockUser = { self: 'https://test-host/rest/api/2/user?username=jdoe', name: 'jdoe' };
+      (SessionService.currentUser as jest.Mock).mockResolvedValue(mockUser);
+
+      const result = await jiraService.getCurrentSession();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockUser);
+      expect(SessionService.currentUser).toHaveBeenCalledWith();
+    });
+
+    it('creates a new session', async () => {
+      const mockAuth = { session: { name: 'JSESSIONID', value: 'abc123' } };
+      (SessionService.login as jest.Mock).mockResolvedValue(mockAuth);
+
+      const result = await jiraService.createSession('jdoe', 'hunter2');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockAuth);
+      expect(SessionService.login).toHaveBeenCalledWith({ username: 'jdoe', password: 'hunter2' });
+    });
+
+    it('deletes the current session', async () => {
+      (SessionService.logout as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteSession();
+
+      expect(result.success).toBe(true);
+      expect(SessionService.logout).toHaveBeenCalledWith();
+    });
+
+    it('releases the current WebSudo session', async () => {
+      (WebsudoService.release as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.releaseWebSudo();
+
+      expect(result.success).toBe(true);
+      expect(WebsudoService.release).toHaveBeenCalledWith();
+    });
+
+    it('handles errors', async () => {
+      (SessionService.login as jest.Mock).mockRejectedValue(new Error('Invalid credentials'));
+
+      const result = await jiraService.createSession('jdoe', 'wrong-password');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid credentials');
     });
   });
 
