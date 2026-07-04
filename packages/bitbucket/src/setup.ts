@@ -1,4 +1,5 @@
-import { describeValidationError, runSetupCli } from 'datacenter-mcp-core';
+import { describeValidationError } from 'datacenter-mcp-core';
+import { runSetupCli } from 'datacenter-mcp-core/setup-cli';
 import { BITBUCKET_PRODUCT } from './config.js';
 import { BitbucketService } from './bitbucket-service.js';
 

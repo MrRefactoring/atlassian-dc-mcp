@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const sub = process.argv[2];
 if (sub === 'setup') {
-  await import('../build/setup.js');
+  await import('../dist/setup.js');
 } else {
-  await import('../build/index.js');
+  await import('../dist/index.js');
 }

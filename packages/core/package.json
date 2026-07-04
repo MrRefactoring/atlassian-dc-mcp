@@ -1,9 +1,16 @@
 {
   "name": "datacenter-mcp-core",
   "version": "0.2.0",
-  "main": "build/index.js",
+  "main": "dist/index.js",
   "type": "module",
   "private": false,
+  "exports": {
+    ".": "./dist/index.js",
+    "./setup-cli": "./dist/setup-cli.js"
+  },
+  "files": [
+    "dist"
+  ],
   "description": "Shared utilities for the Atlassian Data Center MCP servers. Not affiliated with Atlassian.",
   "keywords": [
     "mcp",
@@ -27,10 +34,10 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
-    "@inquirer/prompts": "7.10.1",
+    "@inquirer/prompts": "8.5.2",
     "@modelcontextprotocol/sdk": "^1.27.1",
-    "dotenv": "16.4.7",
-    "zod": "3.25.76"
+    "dotenv": "17.4.2",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@types/node": "^26.1.0",

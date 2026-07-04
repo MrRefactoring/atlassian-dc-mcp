@@ -11,9 +11,10 @@
     "composite": true,
     "declarationMap": true,
     "sourceMap": true,
-    "types": ["node", "jest"],
+    "types": ["node"],
     "paths": {
-      "datacenter-mcp-core": ["./packages/core/src"]
+      "datacenter-mcp-core": ["./packages/core/src"],
+      "datacenter-mcp-core/setup-cli": ["./packages/core/src/setup-cli"]
     }
   },
   "references": [

@@ -10,7 +10,6 @@ export default tseslint.config(
     // by parallel background agents live under the repo root too; never lint
     // another branch's checkout.
     ignores: [
-      '**/build/**',
       '**/dist/**',
       '**/coverage/**',
       '**/*-client/**',

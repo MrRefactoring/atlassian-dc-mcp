@@ -1,4 +1,5 @@
-import { describeValidationError, runSetupCli } from 'datacenter-mcp-core';
+import { describeValidationError } from 'datacenter-mcp-core';
+import { runSetupCli } from 'datacenter-mcp-core/setup-cli';
 import { CONFLUENCE_PRODUCT } from './config.js';
 import { ConfluenceService } from './confluence-service.js';
 
