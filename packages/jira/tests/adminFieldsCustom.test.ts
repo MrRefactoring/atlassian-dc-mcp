@@ -5,9 +5,9 @@ import {
   CustomFieldsService,
   FieldService,
   ScreensService,
-} from '../src/jira-client/index.js';
+} from '../src/jiraClient/index.js';
 
-vi.mock('../src/jira-client/index.js', () => ({
+vi.mock('../src/jiraClient/index.js', () => ({
   CustomFieldsService: {
     getCustomFields: vi.fn(),
     bulkDeleteCustomFields: vi.fn(),

@@ -29,7 +29,7 @@ pnpm --filter jira-datacenter-mcp exec vitest run -t 'test name'
 # Typecheck (tsc --noEmit over src + tests; vitest itself doesn't type-check)
 pnpm typecheck
 
-# Lint (ESLint flat config, root-level — covers all packages; generated *-client/ dirs are excluded)
+# Lint (ESLint flat config, root-level — covers all packages; generated *Client/ dirs are excluded)
 pnpm lint
 pnpm lint:fix
 
@@ -58,7 +58,7 @@ Each product package follows the same three-layer shape:
 
 - **`src/index.ts`** — entry point. Initializes runtime config, validates required env vars, constructs the service, creates an MCP server via `createMcpServer`, registers one `server.tool(...)` call per capability (name, description, Zod schema, handler), then calls `connectServer` to start listening on stdio. This file is a flat, repetitive list of tool registrations — when adding a new tool, follow the existing pattern rather than introducing abstraction.
 - **`src/<product>Service.ts`** — a `<Product>Service` class wrapping the generated API client. Exposes one method per tool, each delegating to `handleApiOperation` (from `core`) for consistent success/error response shaping. Also exports the `zod` schemas (`jiraToolSchemas`, etc.) consumed by `index.ts`.
-- **`src/<product>-client/`** — a generated OpenAPI client (services + models + `core/` request plumbing) committed to the repo, not regenerated at build time. Treat files here as generated output: prefer changing how `<product>Service.ts` calls into them over hand-editing generated code.
+- **`src/<product>Client/`** — a generated OpenAPI client (services + models + `core/` request plumbing) committed to the repo, not regenerated at build time. Treat files here as generated output: prefer changing how `<product>Service.ts` calls into them over hand-editing generated code.
 - **`src/config.ts`** — declares a `ProductDefinition` (env var names, default API base path, strippable suffixes) and exposes `get<Product>RuntimeConfig()` / `getMissingConfig()` built on `core`'s config layer.
 - **`src/setup.ts`** — wires the product's `ProductDefinition` into `core`'s shared `runSetupCli`, producing the product's `setup` subcommand (see `bin/`).
 

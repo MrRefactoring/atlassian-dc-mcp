@@ -1,20 +1,20 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { request as __request } from '../src/jira-client/core/request.js';
+import { request as __request } from '../src/jiraClient/core/request.js';
 import { JiraService } from '../src/jiraService.js';
 import {
   IssueService,
   OpenAPI,
   SearchService,
-} from '../src/jira-client/index.js';
+} from '../src/jiraClient/index.js';
 
-vi.mock('../src/jira-client/core/request.js', () => ({
+vi.mock('../src/jiraClient/core/request.js', () => ({
   request: vi.fn(),
   resolve: vi.fn(async (_options: unknown, resolver: unknown) =>
     typeof resolver === 'function' ? (resolver as () => unknown)() : resolver,
   ),
 }));
 
-vi.mock('../src/jira-client/index.js', () => ({
+vi.mock('../src/jiraClient/index.js', () => ({
   SearchService: {
     searchUsingSearchRequest: vi.fn(),
   },

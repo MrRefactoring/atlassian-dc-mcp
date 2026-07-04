@@ -5,9 +5,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { BitbucketService } from '../src/bitbucketService.js';
-import { PullRequestsService } from '../src/bitbucket-client/index.js';
+import { PullRequestsService } from '../src/bitbucketClient/index.js';
 
-vi.mock('../src/bitbucket-client/index.js', () => ({
+vi.mock('../src/bitbucketClient/index.js', () => ({
   PullRequestsService: {
     getActivities: vi.fn(),
     streamChanges1: vi.fn(),

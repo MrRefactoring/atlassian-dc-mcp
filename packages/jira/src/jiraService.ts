@@ -60,15 +60,15 @@ import {
   WorkflowService,
   WorkflowschemeService,
   WorklogService,
-} from './jira-client/index.js';
-import type { VersionMoveBean } from './jira-client/models/versionMoveBean.js';
-import type { MoveFieldBean } from './jira-client/models/moveFieldBean.js';
-import type { ProjectInputBean } from './jira-client/models/projectInputBean.js';
-import type { ProjectUpdateBean } from './jira-client/models/projectUpdateBean.js';
-import type { RemoteIssueLinkCreateOrUpdateRequest } from './jira-client/models/remoteIssueLinkCreateOrUpdateRequest.js';
-import { request as __request, resolve as __resolveAuth } from './jira-client/core/request.js';
-import type { StringList } from './jira-client/models/stringList.js';
-import type { FilePart } from './jira-client/models/filePart.js';
+} from './jiraClient/index.js';
+import type { VersionMoveBean } from './jiraClient/models/versionMoveBean.js';
+import type { MoveFieldBean } from './jiraClient/models/moveFieldBean.js';
+import type { ProjectInputBean } from './jiraClient/models/projectInputBean.js';
+import type { ProjectUpdateBean } from './jiraClient/models/projectUpdateBean.js';
+import type { RemoteIssueLinkCreateOrUpdateRequest } from './jiraClient/models/remoteIssueLinkCreateOrUpdateRequest.js';
+import { request as __request, resolve as __resolveAuth } from './jiraClient/core/request.js';
+import type { StringList } from './jiraClient/models/stringList.js';
+import type { FilePart } from './jiraClient/models/filePart.js';
 import { getDefaultPageSize, getMissingConfig, JIRA_PRODUCT } from './config.js';
 
 const DEFAULT_SEARCH_FIELDS = ['summary', 'description', 'status', 'assignee', 'reporter', 'priority', 'issuetype', 'labels', 'updated'];

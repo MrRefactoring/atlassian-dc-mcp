@@ -5,16 +5,16 @@ import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { BitbucketService } from '../src/bitbucketService.js';
-import { OpenAPI } from '../src/bitbucket-client/index.js';
-import { request } from '../src/bitbucket-client/core/request.js';
+import { OpenAPI } from '../src/bitbucketClient/index.js';
+import { request } from '../src/bitbucketClient/core/request.js';
 
-vi.mock('../src/bitbucket-client/core/request.js', () => ({
+vi.mock('../src/bitbucketClient/core/request.js', () => ({
   request: vi.fn(),
 }));
 
 const mockRequest = vi.mocked(request);
 
-vi.mock('../src/bitbucket-client/index.js', () => ({
+vi.mock('../src/bitbucketClient/index.js', () => ({
   OpenAPI: {
     BASE: '',
     TOKEN: '',

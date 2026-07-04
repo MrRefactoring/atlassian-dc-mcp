@@ -4,9 +4,9 @@ import {
   DashboardService,
   FilterService,
   JqlService,
-} from '../src/jira-client/index.js';
+} from '../src/jiraClient/index.js';
 
-vi.mock('../src/jira-client/index.js', () => ({
+vi.mock('../src/jiraClient/index.js', () => ({
   FilterService: {
     createFilter: vi.fn(),
     getFilter: vi.fn(),

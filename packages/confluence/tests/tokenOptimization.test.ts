@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import { ContentResourceService, SearchService } from '../src/confluence-client/index.js';
+import { ContentResourceService, SearchService } from '../src/confluenceClient/index.js';
 import { ConfluenceService } from '../src/confluenceService.js';
 
-vi.mock('../src/confluence-client/index.js', () => ({
+vi.mock('../src/confluenceClient/index.js', () => ({
   ContentResourceService: {
     getContentById: vi.fn(),
     createContent: vi.fn(),

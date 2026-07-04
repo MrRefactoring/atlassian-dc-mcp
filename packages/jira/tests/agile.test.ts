@@ -5,9 +5,9 @@ import {
   BoardService,
   EpicService,
   SprintService,
-} from '../src/jira-client/index.js';
+} from '../src/jiraClient/index.js';
 
-vi.mock('../src/jira-client/index.js', () => ({
+vi.mock('../src/jiraClient/index.js', () => ({
   BoardService: {
     getAllBoards: vi.fn(),
     getBoard: vi.fn(),

@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { BitbucketService } from '../src/bitbucketService.js';
-import { ProjectService, RepositoryService, PullRequestsService } from '../src/bitbucket-client/index.js';
+import { ProjectService, RepositoryService, PullRequestsService } from '../src/bitbucketClient/index.js';
 
-vi.mock('../src/bitbucket-client/index.js', () => ({
+vi.mock('../src/bitbucketClient/index.js', () => ({
   ProjectService: {
     createRepository: vi.fn(),
     deleteRepository: vi.fn(),

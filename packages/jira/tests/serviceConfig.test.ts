@@ -4,9 +4,9 @@ import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import { JiraService } from '../src/jiraService.js';
-import { OpenAPI } from '../src/jira-client/index.js';
+import { OpenAPI } from '../src/jiraClient/index.js';
 
-vi.mock('../src/jira-client/index.js', () => ({
+vi.mock('../src/jiraClient/index.js', () => ({
   OpenAPI: {
     BASE: '',
     TOKEN: '',

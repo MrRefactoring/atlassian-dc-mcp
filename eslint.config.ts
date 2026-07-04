@@ -16,7 +16,7 @@ export default tseslint.config(
     ignores: [
       '**/dist/**',
       '**/coverage/**',
-      '**/*-client/**',
+      '**/*Client/**',
       '.worktrees/**',
       '.claude/worktrees/**',
     ],

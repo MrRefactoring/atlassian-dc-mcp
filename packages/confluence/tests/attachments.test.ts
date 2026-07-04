@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import { AttachmentsService } from '../src/confluence-client/index.js';
+import { AttachmentsService } from '../src/confluenceClient/index.js';
 import { ConfluenceService } from '../src/confluenceService.js';
 
 const ATTACHMENTS = AttachmentsService as unknown as Record<string, Mock>;
 
-vi.mock('../src/confluence-client/index.js', () => ({
+vi.mock('../src/confluenceClient/index.js', () => ({
   AttachmentsService: {
     getAttachments: vi.fn(),
     createAttachments: vi.fn(),
@@ -49,7 +49,7 @@ describe('ConfluenceService attachments', () => {
   });
 
   it('sends the X-Atlassian-Token header required by attachment endpoints', async () => {
-    const { OpenAPI } = await vi.importMock('../src/confluence-client/index.js') as { OpenAPI: { HEADERS?: Record<string, string> } };
+    const { OpenAPI } = await vi.importMock('../src/confluenceClient/index.js') as { OpenAPI: { HEADERS?: Record<string, string> } };
     expect(OpenAPI.HEADERS).toEqual({ 'X-Atlassian-Token': 'no-check' });
   });
 
