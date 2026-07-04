@@ -2423,6 +2423,36 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_getApplicationProperty",
+  `Get an application property by key from the ${jiraInstanceType}`,
+  jiraToolSchemas.getApplicationProperty,
+  async ({ permissionLevel, key, keyFilter }) => {
+    const result = await jiraService.getApplicationProperty(permissionLevel, key, keyFilter);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getAdvancedSettings",
+  `Get all advanced settings application properties (General Configuration > Advanced Settings) in the ${jiraInstanceType}`,
+  jiraToolSchemas.getAdvancedSettings,
+  async () => {
+    const result = await jiraService.getAdvancedSettings();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_setApplicationProperty",
+  `Update an application property's value in the ${jiraInstanceType}`,
+  jiraToolSchemas.setApplicationProperty,
+  async ({ id, value }) => {
+    const result = await jiraService.setApplicationProperty(id, value);
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "jira-issue",
   new ResourceTemplate("jira://issue/{issueKey}", { list: undefined }),

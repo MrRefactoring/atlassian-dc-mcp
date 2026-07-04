@@ -4,6 +4,7 @@ import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { JiraService } from '../jira-service.js';
 import {
+  ApplicationPropertiesService,
   ApplicationroleService,
   AttachmentService,
   AvatarService,
@@ -308,6 +309,11 @@ jest.mock('../jira-client/index.js', () => ({
   ApplicationroleService: {
     getAll: jest.fn(),
     get4: jest.fn(),
+  },
+  ApplicationPropertiesService: {
+    getProperty: jest.fn(),
+    getAdvancedSettings: jest.fn(),
+    setPropertyViaRestfulTable: jest.fn(),
   },
   MypreferencesService: {
     getPreference: jest.fn(),
@@ -4262,6 +4268,56 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Invalid license');
+    });
+  });
+
+  describe('application properties', () => {
+    it('gets an application property', async () => {
+      const mockProperty = { key: 'jira.clone.prefix', value: 'CLONE -' };
+      (ApplicationPropertiesService.getProperty as jest.Mock).mockResolvedValue(mockProperty);
+
+      const result = await jiraService.getApplicationProperty('ADMIN', 'jira.clone.prefix', 'jira.lf.*');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProperty);
+      expect(ApplicationPropertiesService.getProperty).toHaveBeenCalledWith('ADMIN', 'jira.clone.prefix', 'jira.lf.*');
+    });
+
+    it('gets advanced settings', async () => {
+      const mockSettings = [{ key: 'jira.clone.prefix', value: 'CLONE -' }];
+      (ApplicationPropertiesService.getAdvancedSettings as jest.Mock).mockResolvedValue(mockSettings);
+
+      const result = await jiraService.getAdvancedSettings();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSettings);
+      expect(ApplicationPropertiesService.getAdvancedSettings).toHaveBeenCalledWith();
+    });
+
+    it('sets an application property via the raw PUT request', async () => {
+      const mockProperty = { key: 'jira.clone.prefix', value: 'COPY -' };
+      (__request as jest.Mock).mockResolvedValue(mockProperty);
+
+      const result = await jiraService.setApplicationProperty('jira.clone.prefix', 'COPY -');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockProperty);
+      expect(__request).toHaveBeenCalledWith(OpenAPI, {
+        method: 'PUT',
+        url: '/api/2/application-properties/{id}',
+        path: { id: 'jira.clone.prefix' },
+        body: { id: 'jira.clone.prefix', value: 'COPY -' },
+        mediaType: 'application/json',
+      });
+    });
+
+    it('handles errors', async () => {
+      (ApplicationPropertiesService.getProperty as jest.Mock).mockRejectedValue(new Error('Not authorized'));
+
+      const result = await jiraService.getApplicationProperty('ADMIN', 'jira.clone.prefix');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Not authorized');
     });
   });
 

@@ -189,7 +189,7 @@ Besides tools, this server exposes one MCP resource template so an issue can be 
 
 ### Available Tools
 
-This server exposes 236 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 239 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -518,3 +518,9 @@ Arbitrary JSON key/value metadata attachable to issues, projects, and comments.
 
 - `jira_getServerInfo` — Get general server information (version, build number, deployment type).
 - `jira_validateLicense` — Validate a license string against the current server installation.
+
+#### Application properties
+
+- `jira_getApplicationProperty` — Get an application property by key.
+- `jira_getAdvancedSettings` — Get all advanced settings application properties (General Configuration > Advanced Settings).
+- `jira_setApplicationProperty` — Update an application property's value.

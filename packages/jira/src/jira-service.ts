@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import {
+  ApplicationPropertiesService,
   ApplicationroleService,
   AttachmentService,
   AvatarService,
@@ -1901,6 +1902,35 @@ export class JiraService {
     );
   }
 
+  async getApplicationProperty(permissionLevel: string, key: string, keyFilter?: string) {
+    return handleApiOperation(
+      () => ApplicationPropertiesService.getProperty(permissionLevel, key, keyFilter),
+      'Error getting application property'
+    );
+  }
+
+  async getAdvancedSettings() {
+    return handleApiOperation(
+      () => ApplicationPropertiesService.getAdvancedSettings(),
+      'Error getting advanced settings'
+    );
+  }
+
+  async setApplicationProperty(id: string, value: string) {
+    // The generated client's setPropertyViaRestfulTable(id) omits the request body entirely,
+    // so this calls the endpoint directly with the {id, value} JSON body the REST API expects.
+    return handleApiOperation(
+      () => __request(OpenAPI, {
+        method: 'PUT',
+        url: '/api/2/application-properties/{id}',
+        path: { id },
+        body: { id, value },
+        mediaType: 'application/json',
+      }),
+      'Error setting application property'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -2996,5 +3026,15 @@ export const jiraToolSchemas = {
   validateLicense: {
     licenseString: z.string().describe("The license string to validate against the current server installation")
   },
-  getServerInfo: {}
+  getServerInfo: {},
+  getApplicationProperty: {
+    permissionLevel: z.string().describe("Permission level of all items when fetching a list, e.g. 'ADMIN' or 'SYSADMIN'"),
+    key: z.string().describe("Property key to fetch, e.g. 'jira.clone.prefix'"),
+    keyFilter: z.string().optional().describe("Regex to filter a list of properties by the start of their key, e.g. 'jira.lf.*'")
+  },
+  getAdvancedSettings: {},
+  setApplicationProperty: {
+    id: z.string().describe("Property key to update, e.g. 'jira.clone.prefix'"),
+    value: z.string().describe("New value for the property")
+  }
 };
