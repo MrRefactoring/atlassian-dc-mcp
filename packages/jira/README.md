@@ -189,7 +189,7 @@ Besides tools, this server exposes one MCP resource template so an issue can be 
 
 ### Available Tools
 
-This server exposes 234 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 236 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -513,3 +513,8 @@ Arbitrary JSON key/value metadata attachable to issues, projects, and comments.
 - `jira_removeFieldFromScreenTab` — Remove a field from a screen tab.
 - `jira_moveScreenTabField` — Move a field's position on a screen tab.
 - `jira_updateScreenTabFieldShowWhenEmpty` — Update whether a field on a screen tab shows a 'no value' indicator when empty.
+
+#### Server info & license
+
+- `jira_getServerInfo` — Get general server information (version, build number, deployment type).
+- `jira_validateLicense` — Validate a license string against the current server installation.
