@@ -1,22 +1,27 @@
 import { z } from 'zod';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import {
+  ApplicationPropertiesService,
   ApplicationroleService,
   AttachmentService,
   AvatarService,
   BacklogService,
   BoardService,
+  ClusterService,
   CommentService,
   ComponentService,
   CustomFieldOptionService,
   CustomFieldsService,
   DashboardService,
+  EmailTemplatesService,
   EpicService,
   FieldService,
   FilterService,
   GroupService,
   GroupsService,
   GroupuserpickerService,
+  IndexService,
+  IndexSnapshotService,
   IssueLinkService,
   IssueLinkTypeService,
   IssueService,
@@ -24,6 +29,7 @@ import {
   IssuetypeschemeService,
   IssuetypeService,
   JqlService,
+  LicenseValidatorService,
   MypermissionsService,
   MypreferencesService,
   MyselfService,
@@ -37,16 +43,20 @@ import {
   ProjectService,
   ProjectsService,
   ProjectvalidateService,
+  ReindexService,
   ResolutionService,
   RoleService,
   ScreensService,
   SearchService,
   SecuritylevelService,
+  ServerInfoService,
+  SessionService,
   SprintService,
   StatusService,
   UniversalAvatarService,
   UserService,
   VersionService,
+  WebsudoService,
   WorkflowService,
   WorkflowschemeService,
   WorklogService,
@@ -1885,6 +1895,261 @@ export class JiraService {
     );
   }
 
+  async getServerInfo() {
+    return handleApiOperation(
+      () => ServerInfoService.getServerInfo(),
+      'Error getting server info'
+    );
+  }
+
+  async validateLicense(licenseString: string) {
+    return handleApiOperation(
+      () => LicenseValidatorService.validate(licenseString),
+      'Error validating license'
+    );
+  }
+
+  async getApplicationProperty(permissionLevel: string, key: string, keyFilter?: string) {
+    return handleApiOperation(
+      () => ApplicationPropertiesService.getProperty(permissionLevel, key, keyFilter),
+      'Error getting application property'
+    );
+  }
+
+  async getAdvancedSettings() {
+    return handleApiOperation(
+      () => ApplicationPropertiesService.getAdvancedSettings(),
+      'Error getting advanced settings'
+    );
+  }
+
+  async setApplicationProperty(id: string, value: string) {
+    // The generated client's setPropertyViaRestfulTable(id) omits the request body entirely,
+    // so this calls the endpoint directly with the {id, value} JSON body the REST API expects.
+    return handleApiOperation(
+      () => __request(OpenAPI, {
+        method: 'PUT',
+        url: '/api/2/application-properties/{id}',
+        path: { id },
+        body: { id, value },
+        mediaType: 'application/json',
+      }),
+      'Error setting application property'
+    );
+  }
+
+  async getClusterNodes() {
+    return handleApiOperation(
+      () => ClusterService.getAllNodes(),
+      'Error getting cluster nodes'
+    );
+  }
+
+  async deleteClusterNode(nodeId: string) {
+    return handleApiOperation(
+      () => ClusterService.deleteNode(nodeId),
+      'Error deleting cluster node'
+    );
+  }
+
+  async setClusterNodeOffline(nodeId: string) {
+    return handleApiOperation(
+      () => ClusterService.changeNodeStateToOffline(nodeId),
+      'Error setting cluster node offline'
+    );
+  }
+
+  /** @deprecated Lucene-specific; planned for removal in Jira 11. */
+  async requestClusterNodeIndexSnapshot(nodeId: string) {
+    return handleApiOperation(
+      () => ClusterService.requestCurrentIndexFromNode(nodeId),
+      'Error requesting cluster node index snapshot'
+    );
+  }
+
+  async approveClusterUpgrade() {
+    return handleApiOperation(
+      () => ClusterService.approveUpgrade(),
+      'Error approving cluster upgrade'
+    );
+  }
+
+  async cancelClusterUpgrade() {
+    return handleApiOperation(
+      () => ClusterService.cancelUpgrade(),
+      'Error cancelling cluster upgrade'
+    );
+  }
+
+  async retryClusterUpgrade() {
+    return handleApiOperation(
+      () => ClusterService.acknowledgeErrors(),
+      'Error retrying cluster upgrade'
+    );
+  }
+
+  async startClusterUpgrade() {
+    return handleApiOperation(
+      () => ClusterService.setReadyToUpgrade(),
+      'Error starting cluster upgrade'
+    );
+  }
+
+  async getClusterUpgradeState() {
+    return handleApiOperation(
+      () => ClusterService.getState(),
+      'Error getting cluster upgrade state'
+    );
+  }
+
+  async getIndexSummary() {
+    return handleApiOperation(
+      () => IndexService.getIndexSummary(),
+      'Error getting index summary'
+    );
+  }
+
+  async listIndexSnapshots() {
+    return handleApiOperation(
+      () => IndexSnapshotService.listIndexSnapshot(),
+      'Error listing index snapshots'
+    );
+  }
+
+  async createIndexSnapshot() {
+    return handleApiOperation(
+      () => IndexSnapshotService.createIndexSnapshot(),
+      'Error creating index snapshot'
+    );
+  }
+
+  async getIndexSnapshotStatus() {
+    return handleApiOperation(
+      () => IndexSnapshotService.isIndexSnapshotRunning(),
+      'Error getting index snapshot status'
+    );
+  }
+
+  async getReindexInfo(taskId?: number) {
+    return handleApiOperation(
+      () => ReindexService.getReindexInfo(taskId),
+      'Error getting reindex info'
+    );
+  }
+
+  async startReindex(indexChangeHistory = false, type?: string, indexWorklogs = false, indexComments = false) {
+    return handleApiOperation(
+      () => ReindexService.reindex(indexChangeHistory, type, indexWorklogs, indexComments),
+      'Error starting reindex'
+    );
+  }
+
+  async reindexIssues(issueIds?: string[], indexChangeHistory = false, indexWorklogs = false, indexComments = false) {
+    return handleApiOperation(
+      () => ReindexService.reindexIssues(issueIds, indexChangeHistory, indexWorklogs, indexComments),
+      'Error reindexing issues'
+    );
+  }
+
+  async getReindexProgress(taskId?: number) {
+    return handleApiOperation(
+      () => ReindexService.getReindexProgress(taskId),
+      'Error getting reindex progress'
+    );
+  }
+
+  async processReindexRequests() {
+    return handleApiOperation(
+      () => ReindexService.processRequests(),
+      'Error processing reindex requests'
+    );
+  }
+
+  async getReindexRequestsProgress(requestIds?: number[]) {
+    return handleApiOperation(
+      () => ReindexService.getProgressBulk(requestIds),
+      'Error getting reindex requests progress'
+    );
+  }
+
+  async getReindexRequestProgress(requestId: number) {
+    return handleApiOperation(
+      () => ReindexService.getProgress(requestId),
+      'Error getting reindex request progress'
+    );
+  }
+
+  async downloadEmailTemplates() {
+    return handleApiOperation(async () => {
+      const url = `${OpenAPI.BASE}/api/2/email-templates`;
+      const token = await __resolveAuth({ method: 'GET', url }, OpenAPI.TOKEN);
+      const response = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to download email templates: ${response.status} ${response.statusText}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      return { contentBase64: Buffer.from(arrayBuffer).toString('base64') };
+    }, 'Error downloading email templates');
+  }
+
+  async uploadEmailTemplates(contentBase64: string) {
+    return handleApiOperation(() => {
+      const file = new File([Buffer.from(contentBase64, 'base64')], 'email-templates.zip');
+      return EmailTemplatesService.uploadEmailTemplates(file as unknown as Record<string, any>);
+    }, 'Error uploading email templates');
+  }
+
+  async applyEmailTemplates() {
+    return handleApiOperation(
+      () => EmailTemplatesService.applyEmailTemplates(),
+      'Error applying uploaded email templates'
+    );
+  }
+
+  async resetEmailTemplatesToDefault() {
+    return handleApiOperation(
+      () => EmailTemplatesService.revertEmailTemplatesToDefault(),
+      'Error resetting email templates to default'
+    );
+  }
+
+  async getEmailTemplateTypes() {
+    return handleApiOperation(
+      () => EmailTemplatesService.getEmailTypes(),
+      'Error getting email template types'
+    );
+  }
+
+  async getCurrentSession() {
+    return handleApiOperation(
+      () => SessionService.currentUser(),
+      'Error getting current session'
+    );
+  }
+
+  async createSession(username: string, password: string) {
+    return handleApiOperation(
+      () => SessionService.login({ username, password }),
+      'Error creating session'
+    );
+  }
+
+  async deleteSession() {
+    return handleApiOperation(
+      () => SessionService.logout(),
+      'Error deleting session'
+    );
+  }
+
+  async releaseWebSudo() {
+    return handleApiOperation(
+      () => WebsudoService.release(),
+      'Error releasing WebSudo session'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -2976,5 +3241,77 @@ export const jiraToolSchemas = {
     tabId: z.number().describe("Id of the tab"),
     fieldId: z.string().describe("Id of the field"),
     showWhenEmpty: z.boolean().describe("Whether to show a 'no value' indicator for this field on the screen when it is empty")
-  }
+  },
+  validateLicense: {
+    licenseString: z.string().describe("The license string to validate against the current server installation")
+  },
+  getServerInfo: {},
+  getApplicationProperty: {
+    permissionLevel: z.string().describe("Permission level of all items when fetching a list, e.g. 'ADMIN' or 'SYSADMIN'"),
+    key: z.string().describe("Property key to fetch, e.g. 'jira.clone.prefix'"),
+    keyFilter: z.string().optional().describe("Regex to filter a list of properties by the start of their key, e.g. 'jira.lf.*'")
+  },
+  getAdvancedSettings: {},
+  setApplicationProperty: {
+    id: z.string().describe("Property key to update, e.g. 'jira.clone.prefix'"),
+    value: z.string().describe("New value for the property")
+  },
+  getClusterNodes: {},
+  deleteClusterNode: {
+    nodeId: z.string().describe("Id of the node to delete. The node must be OFFLINE.")
+  },
+  setClusterNodeOffline: {
+    nodeId: z.string().describe("Id of the node to change state. The node must be reporting as active but not alive.")
+  },
+  requestClusterNodeIndexSnapshot: {
+    nodeId: z.string().describe("Id of the node to request an index snapshot from")
+  },
+  approveClusterUpgrade: {},
+  cancelClusterUpgrade: {},
+  retryClusterUpgrade: {},
+  startClusterUpgrade: {},
+  getClusterUpgradeState: {},
+  getIndexSummary: {},
+  listIndexSnapshots: {},
+  createIndexSnapshot: {},
+  getIndexSnapshotStatus: {},
+  getReindexInfo: {
+    taskId: z.number().optional().describe("Id of a specific reindex task to get information for. When omitted, returns the active or most recent reindex.")
+  },
+  startReindex: {
+    indexChangeHistory: z.boolean().optional().describe("Whether to reindex change history (default false)"),
+    type: z.string().optional().describe("Type of reindex to perform, e.g. 'BACKGROUND_PREFERRED', 'FOREGROUND', or 'BACKGROUND'"),
+    indexWorklogs: z.boolean().optional().describe("Whether to reindex worklogs (default false)"),
+    indexComments: z.boolean().optional().describe("Whether to reindex comments (default false)")
+  },
+  reindexIssues: {
+    issueIds: z.array(z.string()).optional().describe("Ids of the issues to reindex"),
+    indexChangeHistory: z.boolean().optional().describe("Whether to reindex change history (default false)"),
+    indexWorklogs: z.boolean().optional().describe("Whether to reindex worklogs (default false)"),
+    indexComments: z.boolean().optional().describe("Whether to reindex comments (default false)")
+  },
+  getReindexProgress: {
+    taskId: z.number().optional().describe("Id of a specific reindex task to get progress for. When omitted, returns the active or most recent reindex.")
+  },
+  processReindexRequests: {},
+  getReindexRequestsProgress: {
+    requestIds: z.array(z.number()).optional().describe("Ids of the reindex requests to get progress for")
+  },
+  getReindexRequestProgress: {
+    requestId: z.number().describe("Id of the reindex request to get progress for")
+  },
+  downloadEmailTemplates: {},
+  uploadEmailTemplates: {
+    contentBase64: z.string().describe("Base64-encoded contents of the email templates zip file to upload")
+  },
+  applyEmailTemplates: {},
+  resetEmailTemplatesToDefault: {},
+  getEmailTemplateTypes: {},
+  getCurrentSession: {},
+  createSession: {
+    username: z.string().describe("Username to authenticate with"),
+    password: z.string().describe("Password to authenticate with")
+  },
+  deleteSession: {},
+  releaseWebSudo: {}
 };

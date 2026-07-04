@@ -189,7 +189,7 @@ Besides tools, this server exposes one MCP resource template so an issue can be 
 
 ### Available Tools
 
-This server exposes 234 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 268 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -513,3 +513,58 @@ Arbitrary JSON key/value metadata attachable to issues, projects, and comments.
 - `jira_removeFieldFromScreenTab` — Remove a field from a screen tab.
 - `jira_moveScreenTabField` — Move a field's position on a screen tab.
 - `jira_updateScreenTabFieldShowWhenEmpty` — Update whether a field on a screen tab shows a 'no value' indicator when empty.
+
+#### Server info & license
+
+- `jira_getServerInfo` — Get general server information (version, build number, deployment type).
+- `jira_validateLicense` — Validate a license string against the current server installation.
+
+#### Application properties
+
+- `jira_getApplicationProperty` — Get an application property by key.
+- `jira_getAdvancedSettings` — Get all advanced settings application properties (General Configuration > Advanced Settings).
+- `jira_setApplicationProperty` — Update an application property's value.
+
+#### Cluster administration
+
+- `jira_getClusterNodes` — Get all nodes in the cluster.
+- `jira_deleteClusterNode` — Delete an OFFLINE node from the cluster.
+- `jira_setClusterNodeOffline` — Change a cluster node's state to OFFLINE.
+- `jira_requestClusterNodeIndexSnapshot` — Request an index snapshot from a cluster node (deprecated, Lucene-specific, planned for removal in Jira 11).
+- `jira_approveClusterUpgrade` — Approve an ongoing zero-downtime cluster upgrade.
+- `jira_cancelClusterUpgrade` — Cancel an ongoing zero-downtime cluster upgrade.
+- `jira_retryClusterUpgrade` — Retry a failed zero-downtime cluster upgrade.
+- `jira_startClusterUpgrade` — Start a zero-downtime cluster upgrade.
+- `jira_getClusterUpgradeState` — Get the current state of the zero-downtime cluster upgrade.
+
+#### Index & index snapshots
+
+- `jira_getIndexSummary` — Get a summary of the issue index condition of the current node.
+- `jira_listIndexSnapshots` — List available index snapshots (absolute paths with timestamps).
+- `jira_createIndexSnapshot` — Start creating an index snapshot, if none is already in progress.
+- `jira_getIndexSnapshotStatus` — Check whether index snapshot creation is currently running.
+
+#### Reindex
+
+- `jira_getReindexInfo` — Get information on the active or most recent system reindex.
+- `jira_startReindex` — Kick off a full system reindex. Requires admin permissions.
+- `jira_reindexIssues` — Synchronously reindex one or more individual issues.
+- `jira_getReindexProgress` — Get progress information on the active or most recent system reindex.
+- `jira_processReindexRequests` — Execute any pending reindex requests.
+- `jira_getReindexRequestsProgress` — Get the progress of multiple reindex requests.
+- `jira_getReindexRequestProgress` — Get the progress of a single reindex request.
+
+#### Email templates
+
+- `jira_downloadEmailTemplates` — Download the current email templates as a base64-encoded zip file.
+- `jira_uploadEmailTemplates` — Upload a base64-encoded zip file of email templates to a temporary folder.
+- `jira_applyEmailTemplates` — Replace the current email templates with the previously uploaded pack.
+- `jira_resetEmailTemplatesToDefault` — Replace the current email templates with the default templates.
+- `jira_getEmailTemplateTypes` — Get the list of root email templates mapped to event types.
+
+#### Session & WebSudo
+
+- `jira_getCurrentSession` — Get information about the currently authenticated user's session.
+- `jira_createSession` — Create a new authenticated session using a username and password.
+- `jira_deleteSession` — Log out the current user, destroying their session.
+- `jira_releaseWebSudo` — Invalidate the current WebSudo (elevated permission) session.
