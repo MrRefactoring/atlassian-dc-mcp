@@ -1,4 +1,5 @@
-import { describeValidationError } from '../setup/describe-error.js';
+import { describe, expect, it } from 'vitest';
+import { describeValidationError } from '../src/setup/describe-error.js';
 
 describe('describeValidationError', () => {
   it('formats HTTP errors with status, URL, and a 401 hint', () => {

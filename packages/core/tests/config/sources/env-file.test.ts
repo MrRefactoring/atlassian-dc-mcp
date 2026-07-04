@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { EnvFileSource, ATLASSIAN_DC_MCP_CONFIG_FILE_ENV_VAR } from '../../sources/env-file.js';
-import type { ProductDefinition } from '../../source.js';
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { EnvFileSource, ATLASSIAN_DC_MCP_CONFIG_FILE_ENV_VAR } from '../../../src/config/sources/env-file.js';
+import type { ProductDefinition } from '../../../src/config/source.js';
 
 const JIRA: ProductDefinition = {
   id: 'jira',

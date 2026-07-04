@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import type { ProductDefinition } from '../config/source.js';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
+import type { ProductDefinition } from '../src/config/source.js';
 
 const JIRA: ProductDefinition = {
   id: 'jira',
@@ -43,10 +44,10 @@ describe('runtime config facade', () => {
   const originalEnv = process.env;
   let tempDir: string;
   let tempHome: string;
-  let homedirSpy: jest.SpyInstance;
+  let homedirSpy: MockInstance;
 
   beforeEach(() => {
-    jest.resetModules();
+    vi.resetModules();
     process.env = { ...originalEnv };
     delete process.env.ATLASSIAN_DC_MCP_CONFIG_FILE;
     delete process.env.JIRA_HOST;
@@ -60,7 +61,7 @@ describe('runtime config facade', () => {
     delete process.env.BITBUCKET_API_TOKEN;
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'atlassian-dc-mcp-config-'));
     tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'atlassian-dc-mcp-home-'));
-    homedirSpy = jest.spyOn(os, 'homedir').mockReturnValue(tempHome);
+    homedirSpy = vi.spyOn(os, 'homedir').mockReturnValue(tempHome);
   });
 
   afterEach(() => {
@@ -78,7 +79,7 @@ describe('runtime config facade', () => {
     fs.writeFileSync(sharedConfigPath, 'JIRA_HOST=file-host\nJIRA_API_TOKEN=file-token\n');
     process.env.ATLASSIAN_DC_MCP_CONFIG_FILE = sharedConfigPath;
 
-    const { getProductRuntimeConfig, initializeRuntimeConfig } = await import('../index.js');
+    const { getProductRuntimeConfig, initializeRuntimeConfig } = await import('../src/index.js');
     initializeRuntimeConfig({ cwd: tempDir });
     expect(getProductRuntimeConfig(JIRA)).toEqual({
       host: 'file-host',
@@ -90,7 +91,7 @@ describe('runtime config facade', () => {
 
   it('throws when the explicit shared config file is missing', async () => {
     process.env.ATLASSIAN_DC_MCP_CONFIG_FILE = path.join(tempDir, 'missing.env');
-    const { initializeRuntimeConfig } = await import('../index.js');
+    const { initializeRuntimeConfig } = await import('../src/index.js');
     expect(() => initializeRuntimeConfig({ cwd: tempDir })).toThrow(
       `ATLASSIAN_DC_MCP_CONFIG_FILE points to a missing file: ${path.join(tempDir, 'missing.env')}`,
     );
@@ -98,7 +99,7 @@ describe('runtime config facade', () => {
 
   it('requires an absolute shared config file path', async () => {
     process.env.ATLASSIAN_DC_MCP_CONFIG_FILE = 'relative/shared.env';
-    const { initializeRuntimeConfig } = await import('../index.js');
+    const { initializeRuntimeConfig } = await import('../src/index.js');
     expect(() => initializeRuntimeConfig({ cwd: tempDir })).toThrow(
       'ATLASSIAN_DC_MCP_CONFIG_FILE must be an absolute path: relative/shared.env',
     );
@@ -111,7 +112,7 @@ describe('runtime config facade', () => {
     process.env.JIRA_API_TOKEN = 'env-token';
     process.env.JIRA_DEFAULT_PAGE_SIZE = '10';
 
-    const { getProductRuntimeConfig, initializeRuntimeConfig } = await import('../index.js');
+    const { getProductRuntimeConfig, initializeRuntimeConfig } = await import('../src/index.js');
     initializeRuntimeConfig({ cwd: tempDir });
     expect(getProductRuntimeConfig(JIRA)).toEqual({
       host: 'file-host',
@@ -126,7 +127,7 @@ describe('runtime config facade', () => {
       path.join(tempDir, '.env'),
       'CONFLUENCE_HOST=cwd-host\nCONFLUENCE_API_TOKEN=cwd-token\nCONFLUENCE_DEFAULT_PAGE_SIZE=30\n',
     );
-    const { getProductRuntimeConfig, initializeRuntimeConfig } = await import('../index.js');
+    const { getProductRuntimeConfig, initializeRuntimeConfig } = await import('../src/index.js');
     initializeRuntimeConfig({ cwd: tempDir });
     expect(getProductRuntimeConfig(CONFLUENCE)).toEqual({
       host: 'cwd-host',
@@ -143,7 +144,7 @@ describe('runtime config facade', () => {
     fs.utimesSync(sharedConfigPath, initialTime, initialTime);
     process.env.ATLASSIAN_DC_MCP_CONFIG_FILE = sharedConfigPath;
 
-    const { getProductRuntimeConfig, initializeRuntimeConfig } = await import('../index.js');
+    const { getProductRuntimeConfig, initializeRuntimeConfig } = await import('../src/index.js');
     initializeRuntimeConfig({ cwd: tempDir });
     expect(getProductRuntimeConfig(BITBUCKET).token).toBe('token-a');
 
@@ -161,7 +162,7 @@ describe('runtime config facade', () => {
       'JIRA_HOST=home-host\nJIRA_API_TOKEN=home-token\n',
       { mode: 0o600 },
     );
-    const { getProductRuntimeConfig, initializeRuntimeConfig } = await import('../index.js');
+    const { getProductRuntimeConfig, initializeRuntimeConfig } = await import('../src/index.js');
     initializeRuntimeConfig({ cwd: tempDir });
     const config = getProductRuntimeConfig(JIRA);
     expect(config.host).toBe('home-host');

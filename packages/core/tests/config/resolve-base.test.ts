@@ -1,4 +1,5 @@
-import { resolveOpenApiBase } from '../resolve-base.js';
+import { describe, expect, it } from 'vitest';
+import { resolveOpenApiBase } from '../../src/config/resolve-base.js';
 
 describe('resolveOpenApiBase', () => {
   it('combines bare host with default base path', () => {
