@@ -41,10 +41,6 @@ pnpm dev:jira
 pnpm dev:confluence
 pnpm dev:bitbucket
 
-# Live-debug a running MCP server over stdio
-pnpm debug
-pnpm debug:verbose
-
 # Changeset for a release-worthy PR
 pnpm changeset
 ```

@@ -6,5 +6,5 @@
     "declaration": false,
     "declarationMap": false
   },
-  "include": ["eslint.config.ts", "packages/*/vitest.config.ts"]
+  "include": ["eslint.config.ts", "scripts/**/*.ts", "packages/*/vitest.config.ts"]
 }
