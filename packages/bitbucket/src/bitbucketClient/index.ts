@@ -286,18 +286,10 @@ export type { UserUpdateWithCredentials } from './models/userUpdateWithCredentia
 
 export { AuthenticationService } from './services/authenticationService.js';
 export { BuildsAndDeploymentsService } from './services/buildsAndDeploymentsService.js';
-export { CapabilitiesService } from './services/capabilitiesService.js';
-export { DashboardService } from './services/dashboardService.js';
-export { DefaultService } from './services/defaultService.js';
 export { DeprecatedService } from './services/deprecatedService.js';
-export { JiraIntegrationService } from './services/jiraIntegrationService.js';
-export { MarkupService } from './services/markupService.js';
-export { MirroringMirrorService } from './services/mirroringMirrorService.js';
-export { MirroringUpstreamService } from './services/mirroringUpstreamService.js';
 export { PermissionManagementService } from './services/permissionManagementService.js';
 export { ProjectService } from './services/projectService.js';
 export { PullRequestsService } from './services/pullRequestsService.js';
 export { RepositoryService } from './services/repositoryService.js';
 export { SecurityService } from './services/securityService.js';
-export { SystemMaintenanceService } from './services/systemMaintenanceService.js';
 
