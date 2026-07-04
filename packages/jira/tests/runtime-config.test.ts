@@ -2,10 +2,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
-import { getJiraRuntimeConfig } from '../config.js';
-import { JiraService } from '../jira-service.js';
-import { OpenAPI } from '../jira-client/core/OpenAPI.js';
-import { getHeaders } from '../jira-client/core/request.js';
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { getJiraRuntimeConfig } from '../src/config.js';
+import { JiraService } from '../src/jira-service.js';
+import { OpenAPI } from '../src/jira-client/core/OpenAPI.js';
+import { getHeaders } from '../src/jira-client/core/request.js';
 
 describe('Jira runtime config integration', () => {
   const originalEnv = process.env;
