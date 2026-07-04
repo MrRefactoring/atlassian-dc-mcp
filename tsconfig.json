@@ -14,7 +14,7 @@
     "types": ["node"],
     "paths": {
       "datacenter-mcp-core": ["./packages/core/src"],
-      "datacenter-mcp-core/setup-cli": ["./packages/core/src/setup-cli"]
+      "datacenter-mcp-core/setup-cli": ["./packages/core/src/setupCli"]
     }
   },
   "references": [

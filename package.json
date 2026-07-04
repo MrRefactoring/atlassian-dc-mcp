@@ -26,7 +26,7 @@
     "dev:confluence": "pnpm --filter confluence-datacenter-mcp dev",
     "dev:bitbucket": "pnpm --filter bitbucket-datacenter-mcp dev",
     "changeset": "changeset",
-    "version": "changeset version && tsx scripts/sync-versions.ts && pnpm install --lockfile-only",
+    "version": "changeset version && tsx scripts/syncVersions.ts && pnpm install --lockfile-only",
     "release": "pnpm run build && changeset publish"
   },
   "devDependencies": {

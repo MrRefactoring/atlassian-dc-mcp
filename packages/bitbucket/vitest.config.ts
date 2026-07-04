@@ -8,7 +8,7 @@ export default defineConfig({
   },
   resolve: {
     alias: [
-      { find: /^datacenter-mcp-core\/setup-cli$/, replacement: path.resolve(__dirname, '../core/src/setup-cli.ts') },
+      { find: /^datacenter-mcp-core\/setup-cli$/, replacement: path.resolve(__dirname, '../core/src/setupCli.ts') },
       { find: /^datacenter-mcp-core$/, replacement: path.resolve(__dirname, '../core/src/index.ts') },
     ],
   },

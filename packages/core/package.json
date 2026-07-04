@@ -6,7 +6,7 @@
   "private": false,
   "exports": {
     ".": "./dist/index.js",
-    "./setup-cli": "./dist/setup-cli.js"
+    "./setup-cli": "./dist/setupCli.js"
   },
   "files": [
     "dist"

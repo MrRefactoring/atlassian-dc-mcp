@@ -1,5 +1,5 @@
 import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from 'datacenter-mcp-core';
-import { JiraService, jiraToolSchemas } from './jira-service.js';
+import { JiraService, jiraToolSchemas } from './jiraService.js';
 import { getDefaultPageSize, getJiraRuntimeConfig } from './config.js';
 import { createRequire } from 'node:module';
 import { z } from 'zod';

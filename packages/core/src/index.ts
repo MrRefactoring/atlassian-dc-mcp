@@ -5,10 +5,10 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { logger } from './logger.js';
 
-export * from './api-error-handler.js';
+export * from './apiErrorHandler.js';
 export * from './pagination.js';
 export * from './config/index.js';
-export { describeValidationError } from './setup/describe-error.js';
+export { describeValidationError } from './setup/describeError.js';
 export { parseSetupArgs, printSetupHelp, SetupArgsError, type ParsedSetupArgs } from './setup/args.js';
 export { logger, type Logger, type LogLevel, type LogFields, LOG_LEVEL_ENV_VAR } from './logger.js';
 

@@ -1,7 +1,7 @@
 import { describeValidationError } from 'datacenter-mcp-core';
 import { runSetupCli } from 'datacenter-mcp-core/setup-cli';
 import { BITBUCKET_PRODUCT } from './config.js';
-import { BitbucketService } from './bitbucket-service.js';
+import { BitbucketService } from './bitbucketService.js';
 
 await runSetupCli(BITBUCKET_PRODUCT, {
   validateCredentials: async ({ host, apiBasePath, token, username, password }) => {

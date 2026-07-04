@@ -1,7 +1,7 @@
 import { connectServer, createMcpServer, formatToolResponse, initializeRuntimeConfig } from 'datacenter-mcp-core';
-import type { ConfluenceContent, ConfluenceSpace } from './confluence-service.js';
-import { ConfluenceService, confluenceToolSchemas } from './confluence-service.js';
-import { shapeConfluenceMutationAck } from './confluence-response-mapper.js';
+import type { ConfluenceContent, ConfluenceSpace } from './confluenceService.js';
+import { ConfluenceService, confluenceToolSchemas } from './confluenceService.js';
+import { shapeConfluenceMutationAck } from './confluenceResponseMapper.js';
 import { getConfluenceRuntimeConfig, getDefaultPageSize } from './config.js';
 import { createRequire } from 'node:module';
 import { z } from 'zod';
