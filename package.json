@@ -25,11 +25,8 @@
     "dev:jira": "pnpm --filter jira-datacenter-mcp dev",
     "dev:confluence": "pnpm --filter confluence-datacenter-mcp dev",
     "dev:bitbucket": "pnpm --filter bitbucket-datacenter-mcp dev",
-    "debug": "node mcp-live-debug.js",
-    "debug:verbose": "node mcp-live-debug.js --verbose",
-    "debug:ts": "tsx watch",
     "changeset": "changeset",
-    "version": "changeset version && node scripts/sync-versions.js && pnpm install --lockfile-only",
+    "version": "changeset version && tsx scripts/sync-versions.ts && pnpm install --lockfile-only",
     "release": "pnpm run build && changeset publish"
   },
   "devDependencies": {
