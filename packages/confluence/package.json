@@ -28,7 +28,8 @@
     "dev": "tsx watch src/index.ts",
     "inspect": "mcp-inspector node build/index.js",
     "inspect:dev": "mcp-inspector ts-node src/index.ts",
-    "test": "jest --passWithNoTests"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
     "datacenter-mcp-core": "workspace:^",
@@ -38,10 +39,9 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/inspector": "^0.21.1",
-    "@types/jest": "^30.0.0",
-    "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
-    "tsx": "^4.22.5"
+    "tsx": "^4.22.5",
+    "vitest": "^4.1.9"
   },
   "mcpName": "io.github.MrRefactoring/atlassian-dc-mcp-confluence",
   "publishConfig": {
