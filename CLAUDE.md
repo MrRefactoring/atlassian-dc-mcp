@@ -17,14 +17,17 @@ pnpm --filter confluence-datacenter-mcp build
 pnpm --filter bitbucket-datacenter-mcp build
 pnpm --filter datacenter-mcp-core build
 
-# Run all tests (Jest, per package)
+# Run all tests (Vitest, per package)
 pnpm test
 
 # Run tests for one package
 pnpm --filter jira-datacenter-mcp test
 
 # Run a single test by name
-pnpm --filter jira-datacenter-mcp exec jest -t 'test name'
+pnpm --filter jira-datacenter-mcp exec vitest run -t 'test name'
+
+# Typecheck (tsc --noEmit over src + tests; vitest itself doesn't type-check)
+pnpm typecheck
 
 # Lint (ESLint flat config, root-level — covers all packages; generated *-client/ dirs are excluded)
 pnpm lint

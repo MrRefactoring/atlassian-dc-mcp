@@ -43,11 +43,7 @@ jobs:
               const changelog = fs.readFileSync(path, 'utf8')
               const re = new RegExp(`^## ${escaped}[^\\n]*\\n([\\s\\S]*?)(?=\\n#{1,2}(?!#)|(?![\\s\\S]))`, 'm')
               const match = changelog.match(re)
-              // Strip the one-time "All notable changes..." preamble that sits
-              // between the migrated legacy changelog and the first changesets entry.
-              const body = match
-                ? match[1].replace(/All notable changes to this project will be documented in this file\.\s*\nSee \[Conventional Commits\]\([^)]*\) for commit guidelines\.\s*/, '').trim()
-                : ''
+              const body = match ? match[1].trim() : ''
               if (body) sections.push(`## ${name}\n\n${body}`)
             }
 
@@ -92,6 +88,9 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+      - name: Typecheck
+        run: pnpm run typecheck
 
       - name: Test
         run: pnpm run test
