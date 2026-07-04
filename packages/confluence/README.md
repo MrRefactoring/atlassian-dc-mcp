@@ -168,7 +168,7 @@ pnpm --filter confluence-datacenter-mcp test
 
 ### Available Tools
 
-The server registers 93 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
+The server registers 94 tools, grouped below by area. All tools operate against a Confluence Data Center edition instance.
 
 #### Content — CRUD & search (CQL)
 
@@ -307,3 +307,7 @@ The server registers 93 tools, grouped below by area. All tools operate against 
 - `confluence_getWebhookStatistics` — Get invocation statistics for a webhook (requires administrator permission)
 - `confluence_getWebhookStatisticsSummary` — Get the invocation statistics summary for a webhook (requires administrator permission)
 - `confluence_testWebhook` — Test connectivity to a webhook endpoint URL (requires administrator permission)
+
+#### Server information
+
+- `confluence_getServerInfo` — Get build/version information about the Confluence instance

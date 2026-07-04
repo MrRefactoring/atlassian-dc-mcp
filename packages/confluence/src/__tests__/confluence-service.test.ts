@@ -16,6 +16,7 @@ import {
   GroupService,
   OpenAPI,
   SearchService,
+  ServerInformationService,
   SpacePermissionsService,
   SpaceService,
   SpacePropertyService,
@@ -46,6 +47,7 @@ const ADMIN_USERS = AdminUsersService as unknown as Record<string, jest.Mock>;
 const CONTENT_BLUEPRINT = ContentBlueprintService as unknown as Record<string, jest.Mock>;
 const CONTENT_BODY = ContentBodyService as unknown as Record<string, jest.Mock>;
 const WEBHOOKS = WebhooksService as unknown as Record<string, jest.Mock>;
+const SERVER_INFORMATION = ServerInformationService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -184,6 +186,9 @@ jest.mock('../confluence-client/index.js', () => ({
     getStatistics: jest.fn(),
     getStatisticsSummary: jest.fn(),
     testWebhook: jest.fn(),
+  },
+  ServerInformationService: {
+    index2: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -1987,6 +1992,32 @@ describe('ConfluenceService webhooks', () => {
     WEBHOOKS.testWebhook.mockRejectedValue(new Error('boom'));
 
     const result = await service.testWebhook('https://example.com/webhook');
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ConfluenceService.getServerInfo', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets server information', async () => {
+    SERVER_INFORMATION.index2.mockResolvedValue({ version: '8.5.0', buildNumber: 8500 });
+
+    const result = await service.getServerInfo();
+
+    expect(SERVER_INFORMATION.index2).toHaveBeenCalledWith();
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting server information', async () => {
+    SERVER_INFORMATION.index2.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getServerInfo();
 
     expect(result.success).toBe(false);
   });
