@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -8,7 +9,7 @@ describe('Bitbucket config', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    jest.resetModules();
+    vi.resetModules();
     process.env = { ...originalEnv };
     delete process.env.ATLASSIAN_DC_MCP_CONFIG_FILE;
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bitbucket-config-'));
@@ -27,7 +28,7 @@ describe('Bitbucket config', () => {
   it('uses the configured page size when the env var is a positive integer', async () => {
     process.env.BITBUCKET_DEFAULT_PAGE_SIZE = '40';
 
-    const { getDefaultPageSize } = await import('../config.js');
+    const { getDefaultPageSize } = await import('../src/config.js');
 
     expect(getDefaultPageSize()).toBe(40);
   });
@@ -35,7 +36,7 @@ describe('Bitbucket config', () => {
   it('falls back to 25 when the env var is invalid', async () => {
     process.env.BITBUCKET_DEFAULT_PAGE_SIZE = '-1';
 
-    const { getDefaultPageSize } = await import('../config.js');
+    const { getDefaultPageSize } = await import('../src/config.js');
 
     expect(getDefaultPageSize()).toBe(25);
   });
@@ -45,7 +46,7 @@ describe('Bitbucket config', () => {
     fs.writeFileSync(sharedConfigPath, 'BITBUCKET_HOST=file-host\nBITBUCKET_API_TOKEN=file-token\nBITBUCKET_DEFAULT_PAGE_SIZE=35\n');
     process.env.ATLASSIAN_DC_MCP_CONFIG_FILE = sharedConfigPath;
 
-    const { getBitbucketRuntimeConfig, getDefaultPageSize } = await import('../config.js');
+    const { getBitbucketRuntimeConfig, getDefaultPageSize } = await import('../src/config.js');
 
     expect(getDefaultPageSize()).toBe(35);
     expect(getBitbucketRuntimeConfig().token).toBe('file-token');
@@ -57,7 +58,7 @@ describe('Bitbucket config', () => {
     process.env.ATLASSIAN_DC_MCP_CONFIG_FILE = sharedConfigPath;
     process.env.BITBUCKET_DEFAULT_PAGE_SIZE = '45';
 
-    const { getDefaultPageSize } = await import('../config.js');
+    const { getDefaultPageSize } = await import('../src/config.js');
 
     expect(getDefaultPageSize()).toBe(45);
   });
