@@ -1,11 +1,12 @@
-import { logger, LOG_LEVEL_ENV_VAR } from '../logger.js';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
+import { logger, LOG_LEVEL_ENV_VAR } from '../src/logger.js';
 
 describe('logger', () => {
-  let writeSpy: jest.SpyInstance;
+  let writeSpy: MockInstance;
   const originalLevel = process.env[LOG_LEVEL_ENV_VAR];
 
   beforeEach(() => {
-    writeSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -23,7 +24,7 @@ describe('logger', () => {
   }
 
   it('writes to stderr, never stdout', () => {
-    const stdoutSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     logger.info('hello');
     expect(writeSpy).toHaveBeenCalledTimes(1);
     expect(stdoutSpy).not.toHaveBeenCalled();

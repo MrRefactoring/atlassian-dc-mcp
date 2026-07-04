@@ -1,16 +1,17 @@
-import { DefaultConfigRegistry } from '../config/registry.js';
-import { HomeFileSource } from '../config/sources/home-file.js';
-import { MacosKeychainSource, type KeychainDeps } from '../config/sources/macos-keychain.js';
-import { ProcessEnvSource } from '../config/sources/process-env.js';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { DefaultConfigRegistry } from '../src/config/registry.js';
+import { HomeFileSource } from '../src/config/sources/home-file.js';
+import { MacosKeychainSource, type KeychainDeps } from '../src/config/sources/macos-keychain.js';
+import { ProcessEnvSource } from '../src/config/sources/process-env.js';
 import {
   runSetup,
   type CredentialValidationContext,
   type CredentialValidationResult,
   type SetupPrompts,
   type ValidateCredentials,
-} from '../setup-cli.js';
-import type { ParsedSetupArgs } from '../setup/args.js';
-import type { ConfigKey, ProductDefinition } from '../config/source.js';
+} from '../src/setup-cli.js';
+import type { ParsedSetupArgs } from '../src/setup/args.js';
+import type { ConfigKey, ProductDefinition } from '../src/config/source.js';
 
 function makeArgs(overrides: Partial<ParsedSetupArgs> = {}): ParsedSetupArgs {
   return {
@@ -264,7 +265,7 @@ describe('runSetup', () => {
 
   it('exits without writing when validation fails and user declines retry or save-anyway', async () => {
     const validator = new StubCredentialValidator().reject('401 Unauthorized');
-    const exitFn = jest.fn();
+    const exitFn = vi.fn();
     const registry = makeRegistry(keychain, home);
 
     await runSetup(JIRA, {
@@ -336,7 +337,7 @@ describe('runSetup', () => {
     const exitErr: Error & { name: string } = Object.assign(new Error('closed'), {
       name: 'ExitPromptError',
     });
-    const exitFn = jest.fn();
+    const exitFn = vi.fn();
     const registry = makeRegistry(keychain, home);
     await runSetup(JIRA, {
       registry,
@@ -355,7 +356,7 @@ describe('runSetup', () => {
 
   it('skips the host prompt when --host is passed and still prompts for the rest', async () => {
     const inputCalls: string[] = [];
-    const passwordCalls = jest.fn(async (opts: { message: string }) =>
+    const passwordCalls = vi.fn(async (opts: { message: string }) =>
       opts.message.startsWith('API token') ? 'secret' : '',
     );
     const registry = makeRegistry(keychain, home);
@@ -535,7 +536,7 @@ describe('runSetup', () => {
 
     it('writes everything without prompts when all required fields come from CLI args', async () => {
       const validator = new StubCredentialValidator();
-      const exitFn = jest.fn();
+      const exitFn = vi.fn();
       const registry = makeRegistry(keychain, home);
       const prompts = nonInteractivePrompts();
 
@@ -565,7 +566,7 @@ describe('runSetup', () => {
 
     it('succeeds for anonymous access when --token is missing and there is no existing token', async () => {
       const validator = new StubCredentialValidator();
-      const exitFn = jest.fn();
+      const exitFn = vi.fn();
       const registry = makeRegistry(keychain, home);
 
       await runSetup(JIRA, {
@@ -588,7 +589,7 @@ describe('runSetup', () => {
     it('reuses an existing keychain token without rewriting it when --token is omitted', async () => {
       keychain.store = 'kept-token';
       const validator = new StubCredentialValidator();
-      const exitFn = jest.fn();
+      const exitFn = vi.fn();
       const registry = makeRegistry(keychain, home);
 
       await runSetup(JIRA, {
@@ -611,7 +612,7 @@ describe('runSetup', () => {
     });
 
     it('exits 1 with a format error when --default-page-size is not a positive integer', async () => {
-      const exitFn = jest.fn();
+      const exitFn = vi.fn();
       const registry = makeRegistry(keychain, home);
 
       await runSetup(JIRA, {
@@ -635,8 +636,8 @@ describe('runSetup', () => {
 
     it('exits 1 on credential rejection without retrying or asking to save anyway', async () => {
       const validator = new StubCredentialValidator().reject('401 Unauthorized');
-      const exitFn = jest.fn();
-      const confirmFn = jest.fn(async () => false);
+      const exitFn = vi.fn();
+      const confirmFn = vi.fn(async () => false);
       const registry = makeRegistry(keychain, home);
 
       await runSetup(JIRA, {

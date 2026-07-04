@@ -1,4 +1,5 @@
-import { parseSetupArgs, printSetupHelp, SetupArgsError } from '../setup/args.js';
+import { describe, expect, it } from 'vitest';
+import { parseSetupArgs, printSetupHelp, SetupArgsError } from '../src/setup/args.js';
 
 describe('parseSetupArgs', () => {
   it('returns defaults for an empty argv', () => {

@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { HomeFileSource, getHomeFilePath, HOME_DIR_NAME } from '../../sources/home-file.js';
-import type { ProductDefinition } from '../../source.js';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
+import { HomeFileSource, getHomeFilePath, HOME_DIR_NAME } from '../../../src/config/sources/home-file.js';
+import type { ProductDefinition } from '../../../src/config/source.js';
 
 const JIRA: ProductDefinition = {
   id: 'jira',
@@ -30,11 +31,11 @@ const CONFLUENCE: ProductDefinition = {
 
 describe('HomeFileSource', () => {
   let tempHome: string;
-  let homedirSpy: jest.SpyInstance;
+  let homedirSpy: MockInstance;
 
   beforeEach(() => {
     tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'home-file-src-'));
-    homedirSpy = jest.spyOn(os, 'homedir').mockReturnValue(tempHome);
+    homedirSpy = vi.spyOn(os, 'homedir').mockReturnValue(tempHome);
   });
 
   afterEach(() => {
@@ -118,7 +119,7 @@ describe('HomeFileSource', () => {
 
   it('removes the temp file if rename fails', () => {
     const source = new HomeFileSource();
-    const renameSpy = jest.spyOn(fs, 'renameSync').mockImplementation(() => {
+    const renameSpy = vi.spyOn(fs, 'renameSync').mockImplementation(() => {
       throw new Error('boom');
     });
     try {

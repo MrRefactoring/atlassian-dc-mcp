@@ -1,5 +1,6 @@
-import { ProcessEnvSource } from '../../sources/process-env.js';
-import type { ProductDefinition } from '../../source.js';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { ProcessEnvSource } from '../../../src/config/sources/process-env.js';
+import type { ProductDefinition } from '../../../src/config/source.js';
 
 const JIRA: ProductDefinition = {
   id: 'jira',

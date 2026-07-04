@@ -1,5 +1,6 @@
-import { MacosKeychainSource, SECURITY_BINARY, type KeychainDeps } from '../../sources/macos-keychain.js';
-import type { ProductDefinition } from '../../source.js';
+import { describe, expect, it, vi } from 'vitest';
+import { MacosKeychainSource, SECURITY_BINARY, type KeychainDeps } from '../../../src/config/sources/macos-keychain.js';
+import type { ProductDefinition } from '../../../src/config/source.js';
 
 const JIRA: ProductDefinition = {
   id: 'jira',
@@ -15,8 +16,8 @@ const JIRA: ProductDefinition = {
 
 function makeDeps(overrides: Partial<KeychainDeps> = {}) {
   return {
-    execFileSync: jest.fn(),
-    existsSync: jest.fn(() => true),
+    execFileSync: vi.fn(),
+    existsSync: vi.fn(() => true),
     getPlatform: () => 'darwin' as NodeJS.Platform,
     ...overrides,
   };
@@ -33,12 +34,12 @@ describe('MacosKeychainSource', () => {
   });
 
   it('isAvailable is false when binary is missing', () => {
-    const deps = makeDeps({ existsSync: jest.fn(() => false) });
+    const deps = makeDeps({ existsSync: vi.fn(() => false) });
     expect(new MacosKeychainSource(deps).isAvailable()).toBe(false);
   });
 
   it('read returns token on success and strips trailing newline', () => {
-    const execFileSync = jest.fn().mockReturnValueOnce('secret-token\n');
+    const execFileSync = vi.fn().mockReturnValueOnce('secret-token\n');
     const deps = makeDeps({ execFileSync: execFileSync as unknown as KeychainDeps['execFileSync'] });
     const source = new MacosKeychainSource(deps);
     expect(source.read(JIRA, 'token')).toBe('secret-token');
@@ -50,7 +51,7 @@ describe('MacosKeychainSource', () => {
   });
 
   it('read returns undefined when security exits non-zero (not found)', () => {
-    const execFileSync = jest.fn().mockImplementationOnce(() => {
+    const execFileSync = vi.fn().mockImplementationOnce(() => {
       const err: NodeJS.ErrnoException & { status?: number } = new Error('not found');
       err.status = 44;
       throw err;
@@ -60,7 +61,7 @@ describe('MacosKeychainSource', () => {
   });
 
   it('read returns undefined when keychain is locked (non-44)', () => {
-    const execFileSync = jest.fn().mockImplementationOnce(() => {
+    const execFileSync = vi.fn().mockImplementationOnce(() => {
       const err: NodeJS.ErrnoException & { status?: number } = new Error('auth failed');
       err.status = 128;
       throw err;
@@ -70,14 +71,14 @@ describe('MacosKeychainSource', () => {
   });
 
   it('read returns undefined for non-token keys without invoking security', () => {
-    const execFileSync = jest.fn();
+    const execFileSync = vi.fn();
     const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }));
     expect(source.read(JIRA, 'host')).toBeUndefined();
     expect(execFileSync).not.toHaveBeenCalled();
   });
 
   it('caches reads', () => {
-    const execFileSync = jest.fn().mockReturnValueOnce('cached\n');
+    const execFileSync = vi.fn().mockReturnValueOnce('cached\n');
     const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }));
     source.read(JIRA, 'token');
     source.read(JIRA, 'token');
@@ -86,7 +87,7 @@ describe('MacosKeychainSource', () => {
   });
 
   it('write uses -U flag', () => {
-    const execFileSync = jest.fn().mockReturnValueOnce('');
+    const execFileSync = vi.fn().mockReturnValueOnce('');
     const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }));
     source.write(JIRA, 'token', 'abc');
     expect(execFileSync).toHaveBeenCalledWith(
@@ -97,14 +98,14 @@ describe('MacosKeychainSource', () => {
   });
 
   it('write throws when the key is not token or password', () => {
-    const execFileSync = jest.fn();
+    const execFileSync = vi.fn();
     const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }));
     expect(() => source.write(JIRA, 'host', 'x')).toThrow(/only stores the token and password keys/);
     expect(execFileSync).not.toHaveBeenCalled();
   });
 
   it('supports password with its own keychain account, independent from token', () => {
-    const execFileSync = jest.fn().mockReturnValue('');
+    const execFileSync = vi.fn().mockReturnValue('');
     const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }));
 
     source.write(JIRA, 'password', 'the-password');
@@ -129,7 +130,7 @@ describe('MacosKeychainSource', () => {
   });
 
   it('caches token and password independently', () => {
-    const execFileSync = jest
+    const execFileSync = vi
       .fn()
       .mockReturnValueOnce('token-value\n')
       .mockReturnValueOnce('password-value\n');
@@ -144,7 +145,7 @@ describe('MacosKeychainSource', () => {
 
   it('round-trips a token containing shell metacharacters', () => {
     const tricky = 'a\'b"c$d`e';
-    const execFileSync = jest
+    const execFileSync = vi
       .fn()
       .mockImplementationOnce(() => '')
       .mockImplementationOnce(() => `${tricky}\n`);
@@ -156,7 +157,7 @@ describe('MacosKeychainSource', () => {
   });
 
   it('clear invokes delete-generic-password and caches undefined', () => {
-    const execFileSync = jest.fn().mockImplementationOnce(() => '');
+    const execFileSync = vi.fn().mockImplementationOnce(() => '');
     const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }));
     source.clear(JIRA, 'token');
     expect(execFileSync).toHaveBeenCalledWith(
@@ -168,7 +169,7 @@ describe('MacosKeychainSource', () => {
   });
 
   it('clear swallows errors', () => {
-    const execFileSync = jest.fn().mockImplementationOnce(() => {
+    const execFileSync = vi.fn().mockImplementationOnce(() => {
       throw new Error('not found');
     });
     const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }));
@@ -177,7 +178,7 @@ describe('MacosKeychainSource', () => {
 
   describe('profiles', () => {
     it('write uses a profile-suffixed account name', () => {
-      const execFileSync = jest.fn().mockReturnValueOnce('');
+      const execFileSync = vi.fn().mockReturnValueOnce('');
       const source = new MacosKeychainSource(makeDeps({ execFileSync: execFileSync as any }), { profile: 'work' });
       source.write(JIRA, 'token', 'abc');
       expect(execFileSync).toHaveBeenCalledWith(
@@ -189,7 +190,7 @@ describe('MacosKeychainSource', () => {
 
     it('a profiled source and the default source use different accounts and do not share storage', () => {
       const store = new Map<string, string>();
-      const execFileSync = jest.fn((_bin: string, args: string[]) => {
+      const execFileSync = vi.fn((_bin: string, args: string[]) => {
         const accountIndex = args.indexOf('-a') + 1;
         const account = args[accountIndex];
         if (args[0] === 'add-generic-password') {

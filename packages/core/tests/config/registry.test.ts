@@ -1,16 +1,17 @@
 import os from 'node:os';
 import fs from 'node:fs';
 import path from 'node:path';
-import { buildDefaultRegistry, DefaultConfigRegistry } from '../registry.js';
-import { HomeFileSource, getHomeFilePath } from '../sources/home-file.js';
-import { MacosKeychainSource } from '../sources/macos-keychain.js';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
+import { buildDefaultRegistry, DefaultConfigRegistry } from '../../src/config/registry.js';
+import { HomeFileSource, getHomeFilePath } from '../../src/config/sources/home-file.js';
+import { MacosKeychainSource } from '../../src/config/sources/macos-keychain.js';
 import type {
   ConfigKey,
   ProductDefinition,
   ReadableSource,
   SourceId,
   WritableSource,
-} from '../source.js';
+} from '../../src/config/source.js';
 
 const PRODUCT: ProductDefinition = {
   id: 'jira',
@@ -126,11 +127,11 @@ describe('DefaultConfigRegistry', () => {
 
 describe('buildDefaultRegistry', () => {
   let tempHome: string;
-  let homedirSpy: jest.SpyInstance;
+  let homedirSpy: MockInstance;
 
   beforeEach(() => {
     tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'build-default-registry-'));
-    homedirSpy = jest.spyOn(os, 'homedir').mockReturnValue(tempHome);
+    homedirSpy = vi.spyOn(os, 'homedir').mockReturnValue(tempHome);
   });
 
   afterEach(() => {
