@@ -189,7 +189,7 @@ Besides tools, this server exposes one MCP resource template so an issue can be 
 
 ### Available Tools
 
-This server exposes 259 tools, grouped below by area. Every tool name is prefixed with `jira_`.
+This server exposes 268 tools, grouped below by area. Every tool name is prefixed with `jira_`.
 
 #### Issues — core
 
@@ -553,3 +553,18 @@ Arbitrary JSON key/value metadata attachable to issues, projects, and comments.
 - `jira_processReindexRequests` — Execute any pending reindex requests.
 - `jira_getReindexRequestsProgress` — Get the progress of multiple reindex requests.
 - `jira_getReindexRequestProgress` — Get the progress of a single reindex request.
+
+#### Email templates
+
+- `jira_downloadEmailTemplates` — Download the current email templates as a base64-encoded zip file.
+- `jira_uploadEmailTemplates` — Upload a base64-encoded zip file of email templates to a temporary folder.
+- `jira_applyEmailTemplates` — Replace the current email templates with the previously uploaded pack.
+- `jira_resetEmailTemplatesToDefault` — Replace the current email templates with the default templates.
+- `jira_getEmailTemplateTypes` — Get the list of root email templates mapped to event types.
+
+#### Session & WebSudo
+
+- `jira_getCurrentSession` — Get information about the currently authenticated user's session.
+- `jira_createSession` — Create a new authenticated session using a username and password.
+- `jira_deleteSession` — Log out the current user, destroying their session.
+- `jira_releaseWebSudo` — Invalidate the current WebSudo (elevated permission) session.

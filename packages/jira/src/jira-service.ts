@@ -13,6 +13,7 @@ import {
   CustomFieldOptionService,
   CustomFieldsService,
   DashboardService,
+  EmailTemplatesService,
   EpicService,
   FieldService,
   FilterService,
@@ -49,11 +50,13 @@ import {
   SearchService,
   SecuritylevelService,
   ServerInfoService,
+  SessionService,
   SprintService,
   StatusService,
   UniversalAvatarService,
   UserService,
   VersionService,
+  WebsudoService,
   WorkflowService,
   WorkflowschemeService,
   WorklogService,
@@ -2076,6 +2079,77 @@ export class JiraService {
     );
   }
 
+  async downloadEmailTemplates() {
+    return handleApiOperation(async () => {
+      const url = `${OpenAPI.BASE}/api/2/email-templates`;
+      const token = await __resolveAuth({ method: 'GET', url }, OpenAPI.TOKEN);
+      const response = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to download email templates: ${response.status} ${response.statusText}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      return { contentBase64: Buffer.from(arrayBuffer).toString('base64') };
+    }, 'Error downloading email templates');
+  }
+
+  async uploadEmailTemplates(contentBase64: string) {
+    return handleApiOperation(() => {
+      const file = new File([Buffer.from(contentBase64, 'base64')], 'email-templates.zip');
+      return EmailTemplatesService.uploadEmailTemplates(file as unknown as Record<string, any>);
+    }, 'Error uploading email templates');
+  }
+
+  async applyEmailTemplates() {
+    return handleApiOperation(
+      () => EmailTemplatesService.applyEmailTemplates(),
+      'Error applying uploaded email templates'
+    );
+  }
+
+  async resetEmailTemplatesToDefault() {
+    return handleApiOperation(
+      () => EmailTemplatesService.revertEmailTemplatesToDefault(),
+      'Error resetting email templates to default'
+    );
+  }
+
+  async getEmailTemplateTypes() {
+    return handleApiOperation(
+      () => EmailTemplatesService.getEmailTypes(),
+      'Error getting email template types'
+    );
+  }
+
+  async getCurrentSession() {
+    return handleApiOperation(
+      () => SessionService.currentUser(),
+      'Error getting current session'
+    );
+  }
+
+  async createSession(username: string, password: string) {
+    return handleApiOperation(
+      () => SessionService.login({ username, password }),
+      'Error creating session'
+    );
+  }
+
+  async deleteSession() {
+    return handleApiOperation(
+      () => SessionService.logout(),
+      'Error deleting session'
+    );
+  }
+
+  async releaseWebSudo() {
+    return handleApiOperation(
+      () => WebsudoService.release(),
+      'Error releasing WebSudo session'
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await MyselfService.getUser();
   }
@@ -3225,5 +3299,19 @@ export const jiraToolSchemas = {
   },
   getReindexRequestProgress: {
     requestId: z.number().describe("Id of the reindex request to get progress for")
-  }
+  },
+  downloadEmailTemplates: {},
+  uploadEmailTemplates: {
+    contentBase64: z.string().describe("Base64-encoded contents of the email templates zip file to upload")
+  },
+  applyEmailTemplates: {},
+  resetEmailTemplatesToDefault: {},
+  getEmailTemplateTypes: {},
+  getCurrentSession: {},
+  createSession: {
+    username: z.string().describe("Username to authenticate with"),
+    password: z.string().describe("Password to authenticate with")
+  },
+  deleteSession: {},
+  releaseWebSudo: {}
 };

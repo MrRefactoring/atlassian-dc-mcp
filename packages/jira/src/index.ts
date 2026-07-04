@@ -2653,6 +2653,96 @@ server.tool(
   }
 );
 
+server.tool(
+  "jira_downloadEmailTemplates",
+  `Download the current email templates as a base64-encoded zip file from the ${jiraInstanceType}`,
+  jiraToolSchemas.downloadEmailTemplates,
+  async () => {
+    const result = await jiraService.downloadEmailTemplates();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_uploadEmailTemplates",
+  `Upload a base64-encoded zip file of email templates to a temporary folder in the ${jiraInstanceType}. Call jira_applyEmailTemplates to make it active.`,
+  jiraToolSchemas.uploadEmailTemplates,
+  async ({ contentBase64 }) => {
+    const result = await jiraService.uploadEmailTemplates(contentBase64);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_applyEmailTemplates",
+  `Replace the current email templates with the previously uploaded pack in the ${jiraInstanceType}`,
+  jiraToolSchemas.applyEmailTemplates,
+  async () => {
+    const result = await jiraService.applyEmailTemplates();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_resetEmailTemplatesToDefault",
+  `Replace the current email templates with the default templates shipped with the ${jiraInstanceType}`,
+  jiraToolSchemas.resetEmailTemplatesToDefault,
+  async () => {
+    const result = await jiraService.resetEmailTemplatesToDefault();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getEmailTemplateTypes",
+  `Get the list of root email templates mapped to event types in the ${jiraInstanceType}`,
+  jiraToolSchemas.getEmailTemplateTypes,
+  async () => {
+    const result = await jiraService.getEmailTemplateTypes();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_getCurrentSession",
+  `Get information about the currently authenticated user's session in the ${jiraInstanceType}`,
+  jiraToolSchemas.getCurrentSession,
+  async () => {
+    const result = await jiraService.getCurrentSession();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_createSession",
+  `Create a new authenticated session in the ${jiraInstanceType} using a username and password`,
+  jiraToolSchemas.createSession,
+  async ({ username, password }) => {
+    const result = await jiraService.createSession(username, password);
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_deleteSession",
+  `Log out the current user, destroying their session, in the ${jiraInstanceType}`,
+  jiraToolSchemas.deleteSession,
+  async () => {
+    const result = await jiraService.deleteSession();
+    return formatToolResponse(result);
+  }
+);
+
+server.tool(
+  "jira_releaseWebSudo",
+  `Invalidate the current WebSudo (elevated permission) session in the ${jiraInstanceType}`,
+  jiraToolSchemas.releaseWebSudo,
+  async () => {
+    const result = await jiraService.releaseWebSudo();
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "jira-issue",
   new ResourceTemplate("jira://issue/{issueKey}", { list: undefined }),
