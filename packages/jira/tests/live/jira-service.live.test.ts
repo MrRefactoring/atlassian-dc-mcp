@@ -20,8 +20,9 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { ATLASSIAN_DC_MCP_CONFIG_FILE_ENV_VAR, initializeRuntimeConfig } from 'datacenter-mcp-core';
-import { JiraService } from '../../jira-service.js';
-import { getDefaultPageSize, getJiraRuntimeConfig } from '../../config.js';
+import { beforeAll, describe, expect, it } from 'vitest';
+import { JiraService } from '../../src/jira-service.js';
+import { getDefaultPageSize, getJiraRuntimeConfig } from '../../src/config.js';
 
 const LIVE_ENV_PATH = path.resolve(process.cwd(), '.env.live');
 const hasLiveConfig = existsSync(LIVE_ENV_PATH);
