@@ -15,6 +15,7 @@ import {
   ContentRestrictionsService,
   ContentWatchersService,
   GroupService,
+  LongTaskService,
   OpenAPI,
   SearchService,
   ServerInformationService,
@@ -50,6 +51,7 @@ const CONTENT_BODY = ContentBodyService as unknown as Record<string, jest.Mock>;
 const WEBHOOKS = WebhooksService as unknown as Record<string, jest.Mock>;
 const SERVER_INFORMATION = ServerInformationService as unknown as Record<string, jest.Mock>;
 const CLUSTER_INFORMATION = ClusterInformationService as unknown as Record<string, jest.Mock>;
+const LONG_TASK = LongTaskService as unknown as Record<string, jest.Mock>;
 
 jest.mock('../confluence-client/index.js', () => ({
   ContentResourceService: {
@@ -194,6 +196,10 @@ jest.mock('../confluence-client/index.js', () => ({
   },
   ClusterInformationService: {
     getClusterNodeStatuses: jest.fn(),
+  },
+  LongTaskService: {
+    getTask: jest.fn(),
+    getTasks: jest.fn(),
   },
   OpenAPI: {
     BASE: '',
@@ -2057,6 +2063,48 @@ describe('ConfluenceService.getClusterNodes', () => {
     CLUSTER_INFORMATION.getClusterNodeStatuses.mockRejectedValue(new Error('boom'));
 
     const result = await service.getClusterNodes();
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ConfluenceService long-running tasks', () => {
+  let service: ConfluenceService;
+
+  beforeEach(() => {
+    service = new ConfluenceService('test-host', 'test-token');
+    jest.clearAllMocks();
+  });
+
+  it('gets a single long-running task by ID', async () => {
+    LONG_TASK.getTask.mockResolvedValue({ id: 'task-1', percentageComplete: 50 });
+
+    const result = await service.getLongRunningTask('task-1', 'status');
+
+    expect(LONG_TASK.getTask).toHaveBeenCalledWith('task-1', 'status');
+    expect(result.success).toBe(true);
+  });
+
+  it('forwards API errors when getting a long-running task', async () => {
+    LONG_TASK.getTask.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getLongRunningTask('task-1');
+
+    expect(result.success).toBe(false);
+  });
+
+  it('gets all long-running tasks with pagination', async () => {
+    LONG_TASK.getTasks.mockResolvedValue({ results: [] });
+
+    await service.getLongRunningTasks('status', 10, 0);
+
+    expect(LONG_TASK.getTasks).toHaveBeenCalledWith('status', '10', '0');
+  });
+
+  it('forwards API errors when getting long-running tasks', async () => {
+    LONG_TASK.getTasks.mockRejectedValue(new Error('boom'));
+
+    const result = await service.getLongRunningTasks();
 
     expect(result.success).toBe(false);
   });
