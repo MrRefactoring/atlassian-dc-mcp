@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluence-client/index.js';
+import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, ChildContentService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, OpenAPI, SearchService, ServerInformationService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluence-client/index.js';
 import type { Content, MockAttachmentRequest } from './confluence-client/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -1235,6 +1235,14 @@ export class ConfluenceService {
     return handleApiOperation(() => WebhooksService.testWebhook(url), 'Error testing webhook');
   }
 
+  /**
+   * Get information about the application build running on this Confluence instance
+   * (version, build number, etc). Requires authentication.
+   */
+  async getServerInfo() {
+    return handleApiOperation(() => ServerInformationService.index2(), 'Error getting server information');
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -1770,5 +1778,6 @@ export const confluenceToolSchemas = {
   },
   testWebhook: {
     url: z.string().describe("The endpoint URL to test connectivity against")
-  }
+  },
+  getServerInfo: {}
 };

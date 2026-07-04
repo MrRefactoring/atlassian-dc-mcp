@@ -1119,6 +1119,17 @@ server.tool(
   }
 );
 
+// Add Confluence server administration tool
+server.tool(
+  "confluence_getServerInfo",
+  `Get build/version information about the ${confluenceInstanceType}`,
+  confluenceToolSchemas.getServerInfo,
+  async () => {
+    const result = await confluenceService.getServerInfo();
+    return formatToolResponse(result);
+  }
+);
+
 server.registerResource(
   "confluence-page",
   new ResourceTemplate("confluence://page/{pageId}", { list: undefined }),
