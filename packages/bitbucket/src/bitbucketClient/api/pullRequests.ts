@@ -3,16 +3,10 @@ import { enc } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
 import { z } from 'zod';
 import { ChangeSchema, CommentSchema, PullRequestActivitySchema, PullRequestConditionSchema, PullRequestMergeabilitySchema, PullRequestParticipantSchema, PullRequestSchema } from '../models/index.js';
-import type { ApplicationUser, ApplySuggestionRequest, Change, Comment, DefaultReviewersRequest, PullRequest, PullRequestActivity, PullRequestAssignParticipantRoleRequest, PullRequestAssignStatusRequest, PullRequestCondition, PullRequestDeclineRequest, PullRequestMergeRequest, PullRequestMergeability, PullRequestParticipant, PullRequestReopenRequest, ReviewerGroup } from '../models/index.js';
+import type { Change, Comment, PullRequest, PullRequestActivity, PullRequestCondition, PullRequestMergeability, PullRequestParticipant } from '../models/index.js';
+import type { ApplySuggestion, AssignParticipantRole, CanMerge, Create, CreatePullRequestComment, CreatePullRequestCondition, Decline, DeleteComment, DeletePullRequestCondition, GetPullRequest, GetActivities, GetPage, GetPullRequestConditions, GetReviewers, ListParticipants, Merge, Reopen, StreamPullRequestChanges, UnassignParticipantRole, Unwatch, Update, UpdateComment, UpdatePullRequestCondition, UpdateStatus, Watch } from '../parameters/index.js';
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/comments/{commentId}/apply-suggestion */
-export interface ApplySuggestion {
-  projectKey: string;
-  commentId: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  requestBody?: ApplySuggestionRequest;
-}
 export function applySuggestion(client: HttpClient, params: ApplySuggestion): Promise<void> {
   return client.sendRequest({
     method: 'POST',
@@ -23,12 +17,6 @@ export function applySuggestion(client: HttpClient, params: ApplySuggestion): Pr
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/participants */
-export interface AssignParticipantRole {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  requestBody: PullRequestAssignParticipantRoleRequest;
-}
 export function assignParticipantRole(client: HttpClient, params: AssignParticipantRole): Promise<PullRequestParticipant> {
   return client.sendRequest({
     method: 'POST',
@@ -40,11 +28,6 @@ export function assignParticipantRole(client: HttpClient, params: AssignParticip
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/merge */
-export interface CanMerge {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-}
 export function canMerge(client: HttpClient, params: CanMerge): Promise<PullRequestMergeability> {
   return client.sendRequest({
     method: 'GET',
@@ -54,11 +37,6 @@ export function canMerge(client: HttpClient, params: CanMerge): Promise<PullRequ
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests */
-export interface Create {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: PullRequest;
-}
 export function create(client: HttpClient, params: Create): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
@@ -70,13 +48,7 @@ export function create(client: HttpClient, params: Create): Promise<PullRequest>
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/comments */
-export interface CreateComment {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  requestBody?: Comment;
-}
-export function createComment(client: HttpClient, params: CreateComment): Promise<Comment> {
+export function createComment(client: HttpClient, params: CreatePullRequestComment): Promise<Comment> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/comments`,
@@ -87,11 +59,6 @@ export function createComment(client: HttpClient, params: CreateComment): Promis
 }
 
 /** POST /default-reviewers/latest/projects/{projectKey}/repos/{repositorySlug}/condition */
-export interface CreatePullRequestCondition {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: DefaultReviewersRequest;
-}
 export function createPullRequestCondition(client: HttpClient, params: CreatePullRequestCondition): Promise<PullRequestCondition> {
   return client.sendRequest({
     method: 'POST',
@@ -103,13 +70,6 @@ export function createPullRequestCondition(client: HttpClient, params: CreatePul
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/decline */
-export interface Decline {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  version?: string;
-  requestBody?: PullRequestDeclineRequest;
-}
 export function decline(client: HttpClient, params: Decline): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
@@ -122,13 +82,6 @@ export function decline(client: HttpClient, params: Decline): Promise<PullReques
 }
 
 /** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/comments/{commentId} */
-export interface DeleteComment {
-  projectKey: string;
-  commentId: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  version?: string;
-}
 export function deleteComment(client: HttpClient, params: DeleteComment): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -138,11 +91,6 @@ export function deleteComment(client: HttpClient, params: DeleteComment): Promis
 }
 
 /** DELETE /default-reviewers/latest/projects/{projectKey}/repos/{repositorySlug}/condition/{id} */
-export interface DeletePullRequestCondition {
-  projectKey: string;
-  id: number;
-  repositorySlug: string;
-}
 export function deletePullRequestCondition(client: HttpClient, params: DeletePullRequestCondition): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -151,12 +99,7 @@ export function deletePullRequestCondition(client: HttpClient, params: DeletePul
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId} */
-export interface Get {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-}
-export function get(client: HttpClient, params: Get): Promise<PullRequest> {
+export function get(client: HttpClient, params: GetPullRequest): Promise<PullRequest> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}`,
@@ -165,15 +108,6 @@ export function get(client: HttpClient, params: Get): Promise<PullRequest> {
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/activities */
-export interface GetActivities {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  fromType?: string;
-  fromId?: string;
-  start?: number;
-  limit?: number;
-}
 export function getActivities(client: HttpClient, params: GetActivities): Promise<RestPage<PullRequestActivity>> {
   return client.sendRequest({
     method: 'GET',
@@ -184,20 +118,6 @@ export function getActivities(client: HttpClient, params: GetActivities): Promis
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests */
-export interface GetPage {
-  projectKey: string;
-  repositorySlug: string;
-  withAttributes?: string;
-  at?: string;
-  withProperties?: string;
-  draft?: string;
-  filterText?: string;
-  state?: string;
-  order?: string;
-  direction?: string;
-  start?: number;
-  limit?: number;
-}
 export function getPage(client: HttpClient, params: GetPage): Promise<RestPage<PullRequest>> {
   return client.sendRequest({
     method: 'GET',
@@ -208,10 +128,6 @@ export function getPage(client: HttpClient, params: GetPage): Promise<RestPage<P
 }
 
 /** GET /default-reviewers/latest/projects/{projectKey}/repos/{repositorySlug}/conditions */
-export interface GetPullRequestConditions {
-  projectKey: string;
-  repositorySlug: string;
-}
 export function getPullRequestConditions(client: HttpClient, params: GetPullRequestConditions): Promise<PullRequestCondition[]> {
   return client.sendRequest({
     method: 'GET',
@@ -221,14 +137,6 @@ export function getPullRequestConditions(client: HttpClient, params: GetPullRequ
 }
 
 /** GET /default-reviewers/latest/projects/{projectKey}/repos/{repositorySlug}/reviewers */
-export interface GetReviewers {
-  projectKey: string;
-  repositorySlug: string;
-  targetRepoId?: string;
-  sourceRepoId?: string;
-  sourceRefId?: string;
-  targetRefId?: string;
-}
 export function getReviewers(client: HttpClient, params: GetReviewers): Promise<PullRequestCondition[]> {
   return client.sendRequest({
     method: 'GET',
@@ -239,13 +147,6 @@ export function getReviewers(client: HttpClient, params: GetReviewers): Promise<
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/participants */
-export interface ListParticipants {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  start?: number;
-  limit?: number;
-}
 export function listParticipants(client: HttpClient, params: ListParticipants): Promise<RestPage<PullRequestParticipant>> {
   return client.sendRequest({
     method: 'GET',
@@ -256,13 +157,6 @@ export function listParticipants(client: HttpClient, params: ListParticipants): 
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/merge */
-export interface Merge {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  version?: string;
-  requestBody?: PullRequestMergeRequest;
-}
 export function merge(client: HttpClient, params: Merge): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
@@ -275,13 +169,6 @@ export function merge(client: HttpClient, params: Merge): Promise<PullRequest> {
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/reopen */
-export interface Reopen {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  version?: string;
-  requestBody?: PullRequestReopenRequest;
-}
 export function reopen(client: HttpClient, params: Reopen): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
@@ -294,18 +181,7 @@ export function reopen(client: HttpClient, params: Reopen): Promise<PullRequest>
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/changes */
-export interface StreamChanges {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  sinceId?: string;
-  changeScope?: string;
-  untilId?: string;
-  withComments?: string;
-  start?: number;
-  limit?: number;
-}
-export function streamChanges(client: HttpClient, params: StreamChanges): Promise<Change> {
+export function streamChanges(client: HttpClient, params: StreamPullRequestChanges): Promise<Change> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/changes`,
@@ -315,12 +191,6 @@ export function streamChanges(client: HttpClient, params: StreamChanges): Promis
 }
 
 /** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/participants/{userSlug} */
-export interface UnassignParticipantRole {
-  projectKey: string;
-  userSlug: string;
-  pullRequestId: string;
-  repositorySlug: string;
-}
 export function unassignParticipantRole(client: HttpClient, params: UnassignParticipantRole): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -329,11 +199,6 @@ export function unassignParticipantRole(client: HttpClient, params: UnassignPart
 }
 
 /** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/watch */
-export interface Unwatch {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-}
 export function unwatch(client: HttpClient, params: Unwatch): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -342,12 +207,6 @@ export function unwatch(client: HttpClient, params: Unwatch): Promise<void> {
 }
 
 /** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId} */
-export interface Update {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  requestBody?: PullRequest;
-}
 export function update(client: HttpClient, params: Update): Promise<PullRequest> {
   return client.sendRequest({
     method: 'PUT',
@@ -359,13 +218,6 @@ export function update(client: HttpClient, params: Update): Promise<PullRequest>
 }
 
 /** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/comments/{commentId} */
-export interface UpdateComment {
-  projectKey: string;
-  commentId: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  requestBody?: Comment;
-}
 export function updateComment(client: HttpClient, params: UpdateComment): Promise<Comment> {
   return client.sendRequest({
     method: 'PUT',
@@ -377,32 +229,6 @@ export function updateComment(client: HttpClient, params: UpdateComment): Promis
 }
 
 /** PUT /default-reviewers/latest/projects/{projectKey}/repos/{repositorySlug}/condition/{id} */
-export interface UpdatePullRequestCondition {
-  projectKey: string;
-  id: string;
-  repositorySlug: string;
-  requestBody?: {
-    requiredApprovals?: number;
-    reviewerGroups?: Array<ReviewerGroup>;
-    reviewers?: Array<ApplicationUser>;
-    sourceMatcher?: {
-      displayId?: string;
-      id?: string;
-      type?: {
-        id?: 'ANY_REF' | 'BRANCH' | 'PATTERN' | 'MODEL_CATEGORY' | 'MODEL_BRANCH';
-        name?: string;
-      };
-    };
-    targetMatcher?: {
-      displayId?: string;
-      id?: string;
-      type?: {
-        id?: 'ANY_REF' | 'BRANCH' | 'PATTERN' | 'MODEL_CATEGORY' | 'MODEL_BRANCH';
-        name?: string;
-      };
-    };
-  };
-}
 export function updatePullRequestCondition(client: HttpClient, params: UpdatePullRequestCondition): Promise<PullRequestCondition> {
   return client.sendRequest({
     method: 'PUT',
@@ -414,14 +240,6 @@ export function updatePullRequestCondition(client: HttpClient, params: UpdatePul
 }
 
 /** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/participants/{userSlug} */
-export interface UpdateStatus {
-  projectKey: string;
-  userSlug: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  requestBody: PullRequestAssignStatusRequest;
-  version?: string;
-}
 export function updateStatus(client: HttpClient, params: UpdateStatus): Promise<PullRequestParticipant> {
   return client.sendRequest({
     method: 'PUT',
@@ -434,11 +252,6 @@ export function updateStatus(client: HttpClient, params: UpdateStatus): Promise<
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/watch */
-export interface Watch {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-}
 export function watch(client: HttpClient, params: Watch): Promise<void> {
   return client.sendRequest({
     method: 'POST',

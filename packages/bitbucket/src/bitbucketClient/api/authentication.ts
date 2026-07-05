@@ -2,27 +2,10 @@ import type { HttpClient } from '../core/types.js';
 import { enc } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
 import { AccessTokenSchema, RawAccessTokenSchema, SshKeySchema } from '../models/index.js';
-import type { AccessToken, AccessTokenRequest, RawAccessToken, SshKey } from '../models/index.js';
+import type { AccessToken, RawAccessToken, SshKey } from '../models/index.js';
+import type { AddSshKey, CreateProjectAccessToken, CreateRepositoryAccessToken, CreateUserAccessToken, DeleteProjectAccessToken, DeleteRepositoryAccessToken, DeleteSshKey, DeleteUserAccessToken, GetProjectAccessTokens, GetRepositoryAccessTokens, GetSshKeys, GetUserAccessTokens } from '../parameters/index.js';
 
 /** POST /ssh/latest/keys */
-export interface AddSshKey {
-  user?: any;
-  requestBody?: {
-    algorithmType?: string;
-    bitLength?: number;
-    readonly createdDate?: string;
-    expiryDays?: number;
-    readonly fingerprint?: string;
-    readonly id?: number;
-    label?: string;
-    readonly lastAuthenticated?: string;
-    text?: string;
-    /**
-             * Contains a warning about the key, for example that it's deprecated
-             */
-    readonly warning?: string;
-  };
-}
 export function addSshKey(client: HttpClient, params: AddSshKey): Promise<SshKey> {
   return client.sendRequest({
     method: 'POST',
@@ -35,10 +18,6 @@ export function addSshKey(client: HttpClient, params: AddSshKey): Promise<SshKey
 }
 
 /** PUT /access-tokens/latest/projects/{projectKey} */
-export interface CreateProjectAccessToken {
-  projectKey: string;
-  requestBody?: AccessTokenRequest;
-}
 export function createProjectAccessToken(client: HttpClient, params: CreateProjectAccessToken): Promise<RawAccessToken> {
   return client.sendRequest({
     method: 'PUT',
@@ -50,11 +29,6 @@ export function createProjectAccessToken(client: HttpClient, params: CreateProje
 }
 
 /** PUT /access-tokens/latest/projects/{projectKey}/repos/{repositorySlug} */
-export interface CreateRepositoryAccessToken {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: AccessTokenRequest;
-}
 export function createRepositoryAccessToken(client: HttpClient, params: CreateRepositoryAccessToken): Promise<RawAccessToken> {
   return client.sendRequest({
     method: 'PUT',
@@ -66,10 +40,6 @@ export function createRepositoryAccessToken(client: HttpClient, params: CreateRe
 }
 
 /** PUT /access-tokens/latest/users/{userSlug} */
-export interface CreateUserAccessToken {
-  userSlug: string;
-  requestBody?: AccessTokenRequest;
-}
 export function createUserAccessToken(client: HttpClient, params: CreateUserAccessToken): Promise<RawAccessToken> {
   return client.sendRequest({
     method: 'PUT',
@@ -81,10 +51,6 @@ export function createUserAccessToken(client: HttpClient, params: CreateUserAcce
 }
 
 /** DELETE /access-tokens/latest/projects/{projectKey}/{tokenId} */
-export interface DeleteProjectAccessToken {
-  projectKey: string;
-  tokenId: string;
-}
 export function deleteProjectAccessToken(client: HttpClient, params: DeleteProjectAccessToken): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -93,11 +59,6 @@ export function deleteProjectAccessToken(client: HttpClient, params: DeleteProje
 }
 
 /** DELETE /access-tokens/latest/projects/{projectKey}/repos/{repositorySlug}/{tokenId} */
-export interface DeleteRepositoryAccessToken {
-  projectKey: string;
-  tokenId: string;
-  repositorySlug: string;
-}
 export function deleteRepositoryAccessToken(client: HttpClient, params: DeleteRepositoryAccessToken): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -106,9 +67,6 @@ export function deleteRepositoryAccessToken(client: HttpClient, params: DeleteRe
 }
 
 /** DELETE /ssh/latest/keys/{keyId} */
-export interface DeleteSshKey {
-  keyId: string;
-}
 export function deleteSshKey(client: HttpClient, params: DeleteSshKey): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -117,10 +75,6 @@ export function deleteSshKey(client: HttpClient, params: DeleteSshKey): Promise<
 }
 
 /** DELETE /access-tokens/latest/users/{userSlug}/{tokenId} */
-export interface DeleteUserAccessToken {
-  tokenId: string;
-  userSlug: string;
-}
 export function deleteUserAccessToken(client: HttpClient, params: DeleteUserAccessToken): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -129,11 +83,6 @@ export function deleteUserAccessToken(client: HttpClient, params: DeleteUserAcce
 }
 
 /** GET /access-tokens/latest/projects/{projectKey} */
-export interface GetProjectAccessTokens {
-  projectKey: string;
-  start?: number;
-  limit?: number;
-}
 export function getProjectAccessTokens(client: HttpClient, params: GetProjectAccessTokens): Promise<RestPage<AccessToken>> {
   return client.sendRequest({
     method: 'GET',
@@ -144,12 +93,6 @@ export function getProjectAccessTokens(client: HttpClient, params: GetProjectAcc
 }
 
 /** GET /access-tokens/latest/projects/{projectKey}/repos/{repositorySlug} */
-export interface GetRepositoryAccessTokens {
-  projectKey: string;
-  repositorySlug: string;
-  start?: number;
-  limit?: number;
-}
 export function getRepositoryAccessTokens(client: HttpClient, params: GetRepositoryAccessTokens): Promise<RestPage<AccessToken>> {
   return client.sendRequest({
     method: 'GET',
@@ -160,12 +103,6 @@ export function getRepositoryAccessTokens(client: HttpClient, params: GetReposit
 }
 
 /** GET /ssh/latest/keys */
-export interface GetSshKeys {
-  userName?: string;
-  user?: string;
-  start?: number;
-  limit?: number;
-}
 export function getSshKeys(client: HttpClient, params: GetSshKeys): Promise<RestPage<SshKey>> {
   return client.sendRequest({
     method: 'GET',
@@ -176,11 +113,6 @@ export function getSshKeys(client: HttpClient, params: GetSshKeys): Promise<Rest
 }
 
 /** GET /access-tokens/latest/users/{userSlug} */
-export interface GetUserAccessTokens {
-  userSlug: string;
-  start?: number;
-  limit?: number;
-}
 export function getUserAccessTokens(client: HttpClient, params: GetUserAccessTokens): Promise<RestPage<AccessToken>> {
   return client.sendRequest({
     method: 'GET',

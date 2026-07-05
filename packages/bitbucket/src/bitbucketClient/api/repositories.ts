@@ -2,14 +2,10 @@ import type { HttpClient } from '../core/types.js';
 import { enc } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
 import { SettingsSchema, AutoDeclineSettingsSchema, AutoMergeRestrictedSettingsSchema, BranchSchema, ChangeSchema, CommentSchema, CommitSchema, DiffSchema, RefRestrictionSchema, RepositoryHookSchema, RepositoryPullRequestSettingsSchema, TagSchema, WebhookSchema } from '../models/index.js';
-import type { MultipartFormData, Settings, AutoDeclineSettings, AutoDeclineSettingsRequest, AutoMergeRestrictedSettings, AutoMergeSettingsRequest, Branch, BranchCreateRequest, BranchDeleteRequest, Change, Comment, Commit, CreateTagRequest, Diff, RefRestriction, RepositoryHook, RepositoryPullRequestSettings, RestrictionRequest, Tag, Webhook } from '../models/index.js';
+import type { Settings, AutoDeclineSettings, AutoMergeRestrictedSettings, Branch, Change, Comment, Commit, Diff, RefRestriction, RepositoryHook, RepositoryPullRequestSettings, Tag, Webhook } from '../models/index.js';
+import type { CreateBranch, CreateCommitComment, CreateRestrictions, CreateTagForRepository, CreateWebhook, DeleteAutoDeclineSettings, DeleteAutoMergeSettings, DeleteBranch, DeleteRestriction, DeleteWebhook, DisableHook, EditFile, EnableHook, FindWebhooks, GetAutoDeclineSettings, GetAutoMergeSettings, GetBranches, GetComments, GetCommit, GetCommits, GetContent, GetDefaultBranch, GetPullRequestSettings, GetRepositoryHooks, GetRestriction, GetRestrictions, GetSettings, GetTag, GetTags, GetWebhook, SetAutoDeclineSettings, SetAutoMergeSettings, SetSettings, StreamCompareChanges, StreamCommits, StreamDiff, StreamRaw, UpdatePullRequestSettings, UpdateWebhook } from '../parameters/index.js';
 
 /** POST /branch-utils/latest/projects/{projectKey}/repos/{repositorySlug}/branches */
-export interface CreateBranch {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody: BranchCreateRequest;
-}
 export function createBranch(client: HttpClient, params: CreateBranch): Promise<Branch> {
   return client.sendRequest({
     method: 'POST',
@@ -21,14 +17,7 @@ export function createBranch(client: HttpClient, params: CreateBranch): Promise<
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/comments */
-export interface CreateComment {
-  projectKey: string;
-  commitId: string;
-  repositorySlug: string;
-  since?: string;
-  requestBody?: Comment;
-}
-export function createComment(client: HttpClient, params: CreateComment): Promise<Comment> {
+export function createComment(client: HttpClient, params: CreateCommitComment): Promise<Comment> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/comments`,
@@ -40,11 +29,6 @@ export function createComment(client: HttpClient, params: CreateComment): Promis
 }
 
 /** POST /branch-permissions/latest/projects/{projectKey}/repos/{repositorySlug}/restrictions */
-export interface CreateRestrictions {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: Array<RestrictionRequest>;
-}
 export function createRestrictions(client: HttpClient, params: CreateRestrictions): Promise<RefRestriction> {
   return client.sendRequest({
     method: 'POST',
@@ -56,11 +40,6 @@ export function createRestrictions(client: HttpClient, params: CreateRestriction
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/tags */
-export interface CreateTagForRepository {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: CreateTagRequest;
-}
 export function createTagForRepository(client: HttpClient, params: CreateTagForRepository): Promise<Tag> {
   return client.sendRequest({
     method: 'POST',
@@ -72,11 +51,6 @@ export function createTagForRepository(client: HttpClient, params: CreateTagForR
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/webhooks */
-export interface CreateWebhook {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: Webhook;
-}
 export function createWebhook(client: HttpClient, params: CreateWebhook): Promise<Webhook> {
   return client.sendRequest({
     method: 'POST',
@@ -88,10 +62,6 @@ export function createWebhook(client: HttpClient, params: CreateWebhook): Promis
 }
 
 /** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/auto-decline */
-export interface DeleteAutoDeclineSettings {
-  projectKey: string;
-  repositorySlug: string;
-}
 export function deleteAutoDeclineSettings(client: HttpClient, params: DeleteAutoDeclineSettings): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -100,10 +70,6 @@ export function deleteAutoDeclineSettings(client: HttpClient, params: DeleteAuto
 }
 
 /** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/auto-merge */
-export interface DeleteAutoMergeSettings {
-  projectKey: string;
-  repositorySlug: string;
-}
 export function deleteAutoMergeSettings(client: HttpClient, params: DeleteAutoMergeSettings): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -112,11 +78,6 @@ export function deleteAutoMergeSettings(client: HttpClient, params: DeleteAutoMe
 }
 
 /** DELETE /branch-utils/latest/projects/{projectKey}/repos/{repositorySlug}/branches */
-export interface DeleteBranch {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: BranchDeleteRequest;
-}
 export function deleteBranch(client: HttpClient, params: DeleteBranch): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -127,11 +88,6 @@ export function deleteBranch(client: HttpClient, params: DeleteBranch): Promise<
 }
 
 /** DELETE /branch-permissions/latest/projects/{projectKey}/repos/{repositorySlug}/restrictions/{id} */
-export interface DeleteRestriction {
-  projectKey: string;
-  id: string;
-  repositorySlug: string;
-}
 export function deleteRestriction(client: HttpClient, params: DeleteRestriction): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -140,11 +96,6 @@ export function deleteRestriction(client: HttpClient, params: DeleteRestriction)
 }
 
 /** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug}/webhooks/{webhookId} */
-export interface DeleteWebhook {
-  projectKey: string;
-  webhookId: string;
-  repositorySlug: string;
-}
 export function deleteWebhook(client: HttpClient, params: DeleteWebhook): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -153,11 +104,6 @@ export function deleteWebhook(client: HttpClient, params: DeleteWebhook): Promis
 }
 
 /** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/hooks/{hookKey}/enabled */
-export interface DisableHook {
-  projectKey: string;
-  hookKey: string;
-  repositorySlug: string;
-}
 export function disableHook(client: HttpClient, params: DisableHook): Promise<RepositoryHook> {
   return client.sendRequest({
     method: 'DELETE',
@@ -167,12 +113,6 @@ export function disableHook(client: HttpClient, params: DisableHook): Promise<Re
 }
 
 /** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/browse/{path} */
-export interface EditFile {
-  path: string;
-  projectKey: string;
-  repositorySlug: string;
-  formData?: MultipartFormData;
-}
 export function editFile(client: HttpClient, params: EditFile): Promise<Commit> {
   return client.sendRequest({
     method: 'PUT',
@@ -183,12 +123,6 @@ export function editFile(client: HttpClient, params: EditFile): Promise<Commit> 
 }
 
 /** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/hooks/{hookKey}/enabled */
-export interface EnableHook {
-  projectKey: string;
-  hookKey: string;
-  repositorySlug: string;
-  contentLength?: string;
-}
 export function enableHook(client: HttpClient, params: EnableHook): Promise<RepositoryHook> {
   return client.sendRequest({
     method: 'PUT',
@@ -198,12 +132,6 @@ export function enableHook(client: HttpClient, params: EnableHook): Promise<Repo
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/webhooks */
-export interface FindWebhooks {
-  projectKey: string;
-  repositorySlug: string;
-  event?: string;
-  statistics?: boolean;
-}
 export function findWebhooks(client: HttpClient, params: FindWebhooks): Promise<RestPage<Webhook>> {
   return client.sendRequest({
     method: 'GET',
@@ -214,10 +142,6 @@ export function findWebhooks(client: HttpClient, params: FindWebhooks): Promise<
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/auto-decline */
-export interface GetAutoDeclineSettings {
-  projectKey: string;
-  repositorySlug: string;
-}
 export function getAutoDeclineSettings(client: HttpClient, params: GetAutoDeclineSettings): Promise<AutoDeclineSettings> {
   return client.sendRequest({
     method: 'GET',
@@ -227,10 +151,6 @@ export function getAutoDeclineSettings(client: HttpClient, params: GetAutoDeclin
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/auto-merge */
-export interface GetAutoMergeSettings {
-  projectKey: string;
-  repositorySlug: string;
-}
 export function getAutoMergeSettings(client: HttpClient, params: GetAutoMergeSettings): Promise<AutoMergeRestrictedSettings> {
   return client.sendRequest({
     method: 'GET',
@@ -240,18 +160,6 @@ export function getAutoMergeSettings(client: HttpClient, params: GetAutoMergeSet
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/branches */
-export interface GetBranches {
-  projectKey: string;
-  repositorySlug: string;
-  boostMatches?: boolean;
-  context?: string;
-  orderBy?: 'ALPHABETICAL' | 'MODIFICATION';
-  details?: boolean;
-  filterText?: string;
-  base?: string;
-  start?: number;
-  limit?: number;
-}
 export function getBranches(client: HttpClient, params: GetBranches): Promise<RestPage<Branch>> {
   return client.sendRequest({
     method: 'GET',
@@ -262,15 +170,6 @@ export function getBranches(client: HttpClient, params: GetBranches): Promise<Re
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/comments */
-export interface GetComments {
-  projectKey: string;
-  commitId: string;
-  repositorySlug: string;
-  path?: string;
-  since?: string;
-  start?: number;
-  limit?: number;
-}
 export function getComments(client: HttpClient, params: GetComments): Promise<RestPage<Comment>> {
   return client.sendRequest({
     method: 'GET',
@@ -281,12 +180,6 @@ export function getComments(client: HttpClient, params: GetComments): Promise<Re
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId} */
-export interface GetCommit {
-  projectKey: string;
-  commitId: string;
-  repositorySlug: string;
-  path?: string;
-}
 export function getCommit(client: HttpClient, params: GetCommit): Promise<Commit> {
   return client.sendRequest({
     method: 'GET',
@@ -297,21 +190,6 @@ export function getCommit(client: HttpClient, params: GetCommit): Promise<Commit
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/commits */
-export interface GetCommits {
-  projectKey: string;
-  repositorySlug: string;
-  avatarScheme?: string;
-  path?: string;
-  withCounts?: string;
-  followRenames?: string;
-  until?: string;
-  avatarSize?: string;
-  since?: string;
-  merges?: string;
-  ignoreMissing?: string;
-  start?: number;
-  limit?: number;
-}
 export function getCommits(client: HttpClient, params: GetCommits): Promise<RestPage<Commit>> {
   return client.sendRequest({
     method: 'GET',
@@ -322,16 +200,6 @@ export function getCommits(client: HttpClient, params: GetCommits): Promise<Rest
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/browse/{path} */
-export interface GetContent {
-  path: string;
-  projectKey: string;
-  repositorySlug: string;
-  noContent?: string;
-  at?: string;
-  size?: string;
-  blame?: string;
-  type?: string;
-}
 export function getContent(client: HttpClient, params: GetContent): Promise<unknown> {
   return client.sendRequest({
     method: 'GET',
@@ -341,10 +209,6 @@ export function getContent(client: HttpClient, params: GetContent): Promise<unkn
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/branches/default */
-export interface GetDefaultBranch {
-  projectKey: string;
-  repositorySlug: string;
-}
 export function getDefaultBranch(client: HttpClient, params: GetDefaultBranch): Promise<Branch> {
   return client.sendRequest({
     method: 'GET',
@@ -354,10 +218,6 @@ export function getDefaultBranch(client: HttpClient, params: GetDefaultBranch): 
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/pull-requests */
-export interface GetPullRequestSettings {
-  projectKey: string;
-  repositorySlug: string;
-}
 export function getPullRequestSettings(client: HttpClient, params: GetPullRequestSettings): Promise<RepositoryPullRequestSettings> {
   return client.sendRequest({
     method: 'GET',
@@ -367,13 +227,6 @@ export function getPullRequestSettings(client: HttpClient, params: GetPullReques
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/hooks */
-export interface GetRepositoryHooks {
-  projectKey: string;
-  repositorySlug: string;
-  type?: 'PRE_RECEIVE' | 'POST_RECEIVE';
-  start?: number;
-  limit?: number;
-}
 export function getRepositoryHooks(client: HttpClient, params: GetRepositoryHooks): Promise<RestPage<RepositoryHook>> {
   return client.sendRequest({
     method: 'GET',
@@ -384,11 +237,6 @@ export function getRepositoryHooks(client: HttpClient, params: GetRepositoryHook
 }
 
 /** GET /branch-permissions/latest/projects/{projectKey}/repos/{repositorySlug}/restrictions/{id} */
-export interface GetRestriction {
-  projectKey: string;
-  id: string;
-  repositorySlug: string;
-}
 export function getRestriction(client: HttpClient, params: GetRestriction): Promise<RefRestriction> {
   return client.sendRequest({
     method: 'GET',
@@ -398,15 +246,6 @@ export function getRestriction(client: HttpClient, params: GetRestriction): Prom
 }
 
 /** GET /branch-permissions/latest/projects/{projectKey}/repos/{repositorySlug}/restrictions */
-export interface GetRestrictions {
-  projectKey: string;
-  repositorySlug: string;
-  matcherType?: 'BRANCH' | 'PATTERN' | 'MODEL_CATEGORY' | 'MODEL_BRANCH';
-  matcherId?: string;
-  type?: 'read-only' | 'no-deletes' | 'fast-forward-only' | 'pull-request-only' | 'no-creates';
-  start?: number;
-  limit?: number;
-}
 export function getRestrictions(client: HttpClient, params: GetRestrictions): Promise<RestPage<RefRestriction>> {
   return client.sendRequest({
     method: 'GET',
@@ -417,11 +256,6 @@ export function getRestrictions(client: HttpClient, params: GetRestrictions): Pr
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/hooks/{hookKey}/settings */
-export interface GetSettings {
-  projectKey: string;
-  hookKey: string;
-  repositorySlug: string;
-}
 export function getSettings(client: HttpClient, params: GetSettings): Promise<Settings> {
   return client.sendRequest({
     method: 'GET',
@@ -431,11 +265,6 @@ export function getSettings(client: HttpClient, params: GetSettings): Promise<Se
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/tags/{name} */
-export interface GetTag {
-  projectKey: string;
-  name: string;
-  repositorySlug: string;
-}
 export function getTag(client: HttpClient, params: GetTag): Promise<Tag> {
   return client.sendRequest({
     method: 'GET',
@@ -445,14 +274,6 @@ export function getTag(client: HttpClient, params: GetTag): Promise<Tag> {
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/tags */
-export interface GetTags {
-  projectKey: string;
-  repositorySlug: string;
-  orderBy?: string;
-  filterText?: string;
-  start?: number;
-  limit?: number;
-}
 export function getTags(client: HttpClient, params: GetTags): Promise<RestPage<Tag>> {
   return client.sendRequest({
     method: 'GET',
@@ -463,12 +284,6 @@ export function getTags(client: HttpClient, params: GetTags): Promise<RestPage<T
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/webhooks/{webhookId} */
-export interface GetWebhook {
-  projectKey: string;
-  webhookId: string;
-  repositorySlug: string;
-  statistics?: string;
-}
 export function getWebhook(client: HttpClient, params: GetWebhook): Promise<Webhook> {
   return client.sendRequest({
     method: 'GET',
@@ -479,11 +294,6 @@ export function getWebhook(client: HttpClient, params: GetWebhook): Promise<Webh
 }
 
 /** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/auto-decline */
-export interface SetAutoDeclineSettings {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: AutoDeclineSettingsRequest;
-}
 export function setAutoDeclineSettings(client: HttpClient, params: SetAutoDeclineSettings): Promise<AutoDeclineSettings> {
   return client.sendRequest({
     method: 'PUT',
@@ -495,11 +305,6 @@ export function setAutoDeclineSettings(client: HttpClient, params: SetAutoDeclin
 }
 
 /** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/auto-merge */
-export interface SetAutoMergeSettings {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: AutoMergeSettingsRequest;
-}
 export function setAutoMergeSettings(client: HttpClient, params: SetAutoMergeSettings): Promise<AutoMergeRestrictedSettings> {
   return client.sendRequest({
     method: 'PUT',
@@ -511,12 +316,6 @@ export function setAutoMergeSettings(client: HttpClient, params: SetAutoMergeSet
 }
 
 /** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/hooks/{hookKey}/settings */
-export interface SetSettings {
-  projectKey: string;
-  hookKey: string;
-  repositorySlug: string;
-  requestBody?: Settings;
-}
 export function setSettings(client: HttpClient, params: SetSettings): Promise<Settings> {
   return client.sendRequest({
     method: 'PUT',
@@ -528,16 +327,7 @@ export function setSettings(client: HttpClient, params: SetSettings): Promise<Se
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/compare/changes */
-export interface StreamChanges {
-  projectKey: string;
-  repositorySlug: string;
-  fromRepo?: string;
-  from?: string;
-  to?: string;
-  start?: number;
-  limit?: number;
-}
-export function streamChanges(client: HttpClient, params: StreamChanges): Promise<RestPage<Change>> {
+export function streamChanges(client: HttpClient, params: StreamCompareChanges): Promise<RestPage<Change>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/compare/changes`,
@@ -547,15 +337,6 @@ export function streamChanges(client: HttpClient, params: StreamChanges): Promis
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/compare/commits */
-export interface StreamCommits {
-  projectKey: string;
-  repositorySlug: string;
-  fromRepo?: string;
-  from?: string;
-  to?: string;
-  start?: number;
-  limit?: number;
-}
 export function streamCommits(client: HttpClient, params: StreamCommits): Promise<RestPage<Commit>> {
   return client.sendRequest({
     method: 'GET',
@@ -566,21 +347,6 @@ export function streamCommits(client: HttpClient, params: StreamCommits): Promis
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/diff/{path} */
-export interface StreamDiff {
-  commitId: string;
-  repositorySlug: string;
-  path: string;
-  projectKey: string;
-  srcPath?: string;
-  avatarSize?: string;
-  filter?: string;
-  avatarScheme?: string;
-  contextLines?: string;
-  autoSrcPath?: string;
-  whitespace?: string;
-  withComments?: string;
-  since?: string;
-}
 export function streamDiff(client: HttpClient, params: StreamDiff): Promise<Diff> {
   return client.sendRequest({
     method: 'GET',
@@ -591,16 +357,6 @@ export function streamDiff(client: HttpClient, params: StreamDiff): Promise<Diff
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/raw/{path} */
-export interface StreamRaw {
-  path: string;
-  projectKey: string;
-  repositorySlug: string;
-  at?: string;
-  markup?: string;
-  htmlEscape?: string;
-  includeHeadingId?: string;
-  hardwrap?: string;
-}
 export function streamRaw(client: HttpClient, params: StreamRaw): Promise<string> {
   return client.sendRequest({
     method: 'GET',
@@ -610,11 +366,6 @@ export function streamRaw(client: HttpClient, params: StreamRaw): Promise<string
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/settings/pull-requests */
-export interface UpdatePullRequestSettings {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: RepositoryPullRequestSettings;
-}
 export function updatePullRequestSettings(client: HttpClient, params: UpdatePullRequestSettings): Promise<RepositoryPullRequestSettings> {
   return client.sendRequest({
     method: 'POST',
@@ -626,12 +377,6 @@ export function updatePullRequestSettings(client: HttpClient, params: UpdatePull
 }
 
 /** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/webhooks/{webhookId} */
-export interface UpdateWebhook {
-  projectKey: string;
-  webhookId: string;
-  repositorySlug: string;
-  requestBody?: Webhook;
-}
 export function updateWebhook(client: HttpClient, params: UpdateWebhook): Promise<Webhook> {
   return client.sendRequest({
     method: 'PUT',
