@@ -1,6 +1,7 @@
-import type { HttpClient } from '../core/types.js';
-import { route, pickBody } from '../core/types.js';
-import { restPage, type RestPage } from '../core/page.js';
+import type { HttpClient } from '../interface/index.js';
+import { route, pickBody } from '../core/helpers.js';
+import { restPage } from '../core/page.js';
+import type { RestPage } from '../interface/index.js';
 import { AccessTokenSchema, RawAccessTokenSchema, SshKeySchema, AccessTokenRequestSchema } from '../models/index.js';
 import type { AccessToken, RawAccessToken, SshKey } from '../models/index.js';
 import type { AddSshKey, CreateProjectAccessToken, CreateRepositoryAccessToken, CreateUserAccessToken, DeleteProjectAccessToken, DeleteRepositoryAccessToken, DeleteSshKey, DeleteUserAccessToken, GetProjectAccessTokens, GetRepositoryAccessTokens, GetSshKeys, GetUserAccessTokens } from '../parameters/index.js';

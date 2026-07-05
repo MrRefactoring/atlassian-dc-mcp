@@ -1,6 +1,7 @@
-import type { HttpClient } from '../core/types.js';
-import { route, pickBody } from '../core/types.js';
-import { restPage, type RestPage } from '../core/page.js';
+import type { HttpClient } from '../interface/index.js';
+import { route, pickBody } from '../core/helpers.js';
+import { restPage } from '../core/page.js';
+import type { RestPage } from '../interface/index.js';
 import { BuildStatusSchema, InsightAnnotationsResponseSchema, InsightReportSchema, RequiredBuildConditionSchema, BuildStatusSetRequestSchema, BulkAddInsightAnnotationRequestSchema, RequiredBuildConditionSetRequestSchema, SetInsightReportRequestSchema } from '../models/index.js';
 import type { BuildStatus, InsightAnnotationsResponse, InsightReport, RequiredBuildCondition } from '../models/index.js';
 import type { Add, AddAnnotations, CreateRequiredBuildsMergeCheck, DeleteACodeInsightsReport, DeleteAnnotations, DeleteRequiredBuildsMergeCheck, GetBuildStatus, GetACodeInsightsReport, GetAnnotations, GetBuildStatusStats, GetPageOfRequiredBuildsMergeChecks, SetACodeInsightsReport, UpdateRequiredBuildsMergeCheck } from '../parameters/index.js';

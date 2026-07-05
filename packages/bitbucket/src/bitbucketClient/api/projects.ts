@@ -1,6 +1,7 @@
-import type { HttpClient } from '../core/types.js';
-import { route, pickBody } from '../core/types.js';
-import { restPage, type RestPage } from '../core/page.js';
+import type { HttpClient } from '../interface/index.js';
+import { route, pickBody } from '../core/helpers.js';
+import { restPage } from '../core/page.js';
+import type { RestPage } from '../interface/index.js';
 import { PermittedGroupSchema, PermittedUserSchema, ProjectSchema, RepositorySchema, BranchSchema } from '../models/index.js';
 import type { PermittedGroup, PermittedUser, Project, Repository } from '../models/index.js';
 import type { CreateProject, CreateRepository, DeleteProject, DeleteRepository, ForkRepository, GetForkedRepositories, GetProjectGroupsWithAnyPermission, GetProject, GetProjects, GetRepositories, GetRepository, GetProjectUsersWithAnyPermission, RevokeProjectPermissions, SetDefaultBranch, SetPermissionForGroups, SetPermissionForUsers, UpdateProject, UpdateRepository } from '../parameters/index.js';
