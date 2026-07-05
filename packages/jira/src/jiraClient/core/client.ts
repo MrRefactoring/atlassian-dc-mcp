@@ -19,7 +19,14 @@ export function createJiraClient(config: HttpClientConfig) {
   // responses parse strictly, but a schema that doesn't match a real response passes
   // through raw (with a logged warning) instead of rejecting it. Callers can override —
   // the live-verification sweep opts into strict parsing with `softValidation: false`.
-  const http = createHttpClient({ ...config, softValidation: config.softValidation ?? true });
+  // `X-Atlassian-Token: no-check` opts out of Jira's XSRF form-token check. It is a no-op
+  // for the many endpoints that already exempt JSON-body requests, but bodyless mutations
+  // (e.g. PUT .../showWhenEmpty/{value}) are otherwise rejected with "XSRF check failed".
+  const http = createHttpClient({
+    ...config,
+    softValidation: config.softValidation ?? true,
+    headers: { 'X-Atlassian-Token': 'no-check', ...config.headers },
+  });
 
   return {
     admin: bindGroup(admin, http),

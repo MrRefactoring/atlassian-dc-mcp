@@ -278,12 +278,12 @@ export function getAllSystemAvatars(client: HttpClient, params: { type: string }
   });
 }
 
-export function getAssociatedProjects(client: HttpClient, params: { schemeId: string; expand?: string }): Promise<ProjectBean> {
+export function getAssociatedProjects(client: HttpClient, params: { schemeId: string; expand?: string }): Promise<ProjectBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/issuetypescheme/${params.schemeId}/associations`,
     searchParams: { expand: params.expand },
-    schema: ProjectBeanSchema,
+    schema: z.array(ProjectBeanSchema),
   });
 }
 
@@ -514,12 +514,14 @@ export function getProjectRolesById(client: HttpClient, params: { id: number }):
   });
 }
 
-export function getProperty(client: HttpClient, params: { permissionLevel: string; key: string; keyFilter?: string }): Promise<Property[]> {
+export function getProperty(client: HttpClient, params: { permissionLevel: string; key: string; keyFilter?: string }): Promise<Property | Property[]> {
   return client.sendRequest({
+    // `/application-properties` returns a single property when `key` is given and an
+    // array otherwise, so the response schema accepts either shape.
     method: 'GET',
     url: route`/api/2/application-properties`,
     searchParams: { permissionLevel: params.permissionLevel, keyFilter: params.keyFilter, key: params.key },
-    schema: z.array(PropertySchema),
+    schema: z.union([PropertySchema, z.array(PropertySchema)]),
   });
 }
 
@@ -637,6 +639,7 @@ export function release(client: HttpClient, params: { requestBody?: string }): P
     method: 'DELETE',
     url: route`/auth/1/websudo`,
     body: params.requestBody,
+    contentType: 'application/json',
   });
 }
 
@@ -735,6 +738,7 @@ export function validate(client: HttpClient, params: { requestBody: string }): P
     method: 'POST',
     url: route`/api/2/licenseValidator`,
     body: params.requestBody,
+    contentType: 'application/json',
     schema: LicenseValidationResultsSchema,
   });
 }

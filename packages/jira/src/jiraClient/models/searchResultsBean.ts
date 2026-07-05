@@ -3,7 +3,7 @@ import { IssueBeanSchema, type IssueBean } from './issueBean.js';
 import { JsonTypeBeanSchema, type JsonTypeBean } from './jsonTypeBean.js';
 
 export type SearchResultsBean = {
-  expand?: string;
+  expand?: string | null;
   issues?: Array<IssueBean>;
   maxResults?: number;
   names?: Record<string, string>;
@@ -14,7 +14,7 @@ export type SearchResultsBean = {
 };
 
 export const SearchResultsBeanSchema = z.lazy(() => z.looseObject({
-  expand: z.string().optional(),
+  expand: z.string().nullish(),
   issues: z.array(IssueBeanSchema).optional(),
   maxResults: z.number().optional(),
   names: z.record(z.string(), z.string()).nullish(),

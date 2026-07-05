@@ -52,12 +52,12 @@ export function getBoard(client: HttpClient, params: { boardId: number }): Promi
   });
 }
 
-export function getBoardIssuesForEpic(client: HttpClient, params: { epicId: number; boardId: number; expand?: string; jql?: string; maxResults?: number; validateQuery?: boolean; fields?: Array<StringList>; startAt?: number }): Promise<IssueBean> {
+export function getBoardIssuesForEpic(client: HttpClient, params: { epicId: number; boardId: number; expand?: string; jql?: string; maxResults?: number; validateQuery?: boolean; fields?: Array<StringList>; startAt?: number }): Promise<SearchResultsBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/agile/1.0/board/${params.boardId}/epic/${params.epicId}/issue`,
     searchParams: { expand: params.expand, jql: params.jql, maxResults: params.maxResults, validateQuery: params.validateQuery, fields: params.fields, startAt: params.startAt },
-    schema: IssueBeanSchema,
+    schema: SearchResultsBeanSchema,
   });
 }
 
