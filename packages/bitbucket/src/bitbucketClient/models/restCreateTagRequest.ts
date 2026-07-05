@@ -1,10 +1,9 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestCreateTagRequest = {
-    message?: string;
-    name?: string;
-    startPoint?: string;
-};
+import { z } from 'zod';
 
+export const RestCreateTagRequestSchema = z.looseObject({
+  message: z.string().optional(),
+  name: z.string().optional(),
+  startPoint: z.string().optional(),
+});
+
+export type RestCreateTagRequest = z.infer<typeof RestCreateTagRequestSchema>;

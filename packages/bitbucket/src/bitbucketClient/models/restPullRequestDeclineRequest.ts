@@ -1,9 +1,8 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestPullRequestDeclineRequest = {
-    comment?: string;
-    version?: number;
-};
+import { z } from 'zod';
 
+export const RestPullRequestDeclineRequestSchema = z.looseObject({
+  comment: z.string().optional(),
+  version: z.number().optional(),
+});
+
+export type RestPullRequestDeclineRequest = z.infer<typeof RestPullRequestDeclineRequestSchema>;

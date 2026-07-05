@@ -1,26 +1,22 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { ApiRequestOptions } from './apiRequestOptions.js';
-import type { ApiResult } from './apiResult.js';
-
+/**
+ * Error thrown by {@link HttpClient.sendRequest} on a non-2xx response.
+ *
+ * The `{ status, statusText, body }` shape is a contract with `handleApiOperation`
+ * in `datacenter-mcp-core` (see its `isApiClientError`): it drives retry decisions
+ * for 429/5xx and shapes the error surfaced to callers. Keep these three fields.
+ */
 export class ApiError extends Error {
-    public readonly url: string;
-    public readonly status: number;
-    public readonly statusText: string;
-    public readonly body: any;
-    public readonly request: ApiRequestOptions;
+  readonly url: string;
+  readonly status: number;
+  readonly statusText: string;
+  readonly body: unknown;
 
-    constructor(request: ApiRequestOptions, response: ApiResult, message: string) {
-        super(message);
-
-        this.name = 'ApiError';
-        this.url = response.url;
-        this.status = response.status;
-        this.statusText = response.statusText;
-        this.body = response.body;
-        this.request = request;
-    }
+  constructor(args: { url: string; status: number; statusText: string; body: unknown; message: string }) {
+    super(args.message);
+    this.name = 'ApiError';
+    this.url = args.url;
+    this.status = args.status;
+    this.statusText = args.statusText;
+    this.body = args.body;
+  }
 }
-

@@ -1,14 +1,13 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestSingleAddInsightAnnotationRequest = {
-    externalId?: string;
-    line?: number;
-    link?: string;
-    message: string;
-    path?: string;
-    severity: string;
-    type?: string;
-};
+import { z } from 'zod';
 
+export const RestSingleAddInsightAnnotationRequestSchema = z.looseObject({
+  externalId: z.string().optional(),
+  line: z.number().optional(),
+  link: z.string().optional(),
+  message: z.string(),
+  path: z.string().optional(),
+  severity: z.string(),
+  type: z.string().optional(),
+});
+
+export type RestSingleAddInsightAnnotationRequest = z.infer<typeof RestSingleAddInsightAnnotationRequestSchema>;

@@ -1,10 +1,9 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestAccessTokenRequest = {
-    expiryDays?: number;
-    name?: string;
-    permissions?: Array<string>;
-};
+import { z } from 'zod';
 
+export const RestAccessTokenRequestSchema = z.looseObject({
+  expiryDays: z.number().optional(),
+  name: z.string().optional(),
+  permissions: z.array(z.string()).optional(),
+});
+
+export type RestAccessTokenRequest = z.infer<typeof RestAccessTokenRequestSchema>;

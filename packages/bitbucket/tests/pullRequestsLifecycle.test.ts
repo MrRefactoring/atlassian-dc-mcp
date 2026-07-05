@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { BitbucketService } from '../src/bitbucketService.js';
-import { PullRequestsService } from '../src/bitbucketClient/index.js';
 
-vi.mock('../src/bitbucketClient/index.js', () => ({
-  PullRequestsService: {
+const bb = vi.hoisted(() => ({
+  pullRequests: {
     canMerge: vi.fn(),
     merge: vi.fn(),
     decline: vi.fn(),
@@ -15,11 +14,11 @@ vi.mock('../src/bitbucketClient/index.js', () => ({
     listParticipants: vi.fn(),
     updateStatus: vi.fn(),
   },
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-  },
+}));
+
+vi.mock('../src/bitbucketClient/index.js', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createBitbucketClient: () => bb,
 }));
 
 describe('BitbucketService', () => {
@@ -36,7 +35,7 @@ describe('BitbucketService', () => {
   describe('canMergePullRequest', () => {
     it('should successfully check mergeability', async () => {
       const mockMergeability = { canMerge: true, conflicted: false, vetoes: [] };
-      (PullRequestsService.canMerge as Mock).mockResolvedValue(mockMergeability);
+      (bb.pullRequests.canMerge as Mock).mockResolvedValue(mockMergeability);
 
       const result = await bitbucketService.canMergePullRequest(
         mockProjectKey,
@@ -46,16 +45,16 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockMergeability);
-      expect(PullRequestsService.canMerge).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-      );
+      expect(bb.pullRequests.canMerge).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+      });
     });
 
     it('should handle API errors gracefully', async () => {
       const mockError = new Error('API Error');
-      (PullRequestsService.canMerge as Mock).mockRejectedValue(mockError);
+      (bb.pullRequests.canMerge as Mock).mockRejectedValue(mockError);
 
       const result = await bitbucketService.canMergePullRequest(
         mockProjectKey,
@@ -78,7 +77,7 @@ describe('BitbucketService', () => {
         fromRef: { id: 'refs/heads/feature-branch' },
         toRef: { id: 'refs/heads/main' },
       };
-      (PullRequestsService.merge as Mock).mockResolvedValue(mockMergedPR);
+      (bb.pullRequests.merge as Mock).mockResolvedValue(mockMergedPR);
 
       const result = await bitbucketService.mergePullRequest(
         mockProjectKey,
@@ -97,18 +96,18 @@ describe('BitbucketService', () => {
         toRefId: 'refs/heads/main',
         reviewerCount: 0,
       });
-      expect(PullRequestsService.merge).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        '1',
-        {},
-      );
+      expect(bb.pullRequests.merge).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        version: '1',
+        requestBody: {},
+      });
     });
 
     it('should pass message and strategyId in the request body', async () => {
       const mockMergedPR = { id: 1, version: 2, state: 'MERGED' };
-      (PullRequestsService.merge as Mock).mockResolvedValue(mockMergedPR);
+      (bb.pullRequests.merge as Mock).mockResolvedValue(mockMergedPR);
 
       await bitbucketService.mergePullRequest(
         mockProjectKey,
@@ -119,18 +118,18 @@ describe('BitbucketService', () => {
         'squash',
       );
 
-      expect(PullRequestsService.merge).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        '1',
-        { message: 'Custom merge message', strategyId: 'squash' },
-      );
+      expect(bb.pullRequests.merge).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        version: '1',
+        requestBody: { message: 'Custom merge message', strategyId: 'squash' },
+      });
     });
 
     it('should return the full response when output is full', async () => {
       const mockMergedPR = { id: 1, version: 2, state: 'MERGED' };
-      (PullRequestsService.merge as Mock).mockResolvedValue(mockMergedPR);
+      (bb.pullRequests.merge as Mock).mockResolvedValue(mockMergedPR);
 
       const result = await bitbucketService.mergePullRequest(
         mockProjectKey,
@@ -148,7 +147,7 @@ describe('BitbucketService', () => {
 
     it('should handle merge veto errors gracefully', async () => {
       const mockError = new Error('The pull request has unresolved tasks');
-      (PullRequestsService.merge as Mock).mockRejectedValue(mockError);
+      (bb.pullRequests.merge as Mock).mockRejectedValue(mockError);
 
       const result = await bitbucketService.mergePullRequest(
         mockProjectKey,
@@ -170,7 +169,7 @@ describe('BitbucketService', () => {
         title: 'Test PR',
         state: 'DECLINED',
       };
-      (PullRequestsService.decline as Mock).mockResolvedValue(mockDeclinedPR);
+      (bb.pullRequests.decline as Mock).mockResolvedValue(mockDeclinedPR);
 
       const result = await bitbucketService.declinePullRequest(
         mockProjectKey,
@@ -187,18 +186,18 @@ describe('BitbucketService', () => {
         state: 'DECLINED',
         reviewerCount: 0,
       });
-      expect(PullRequestsService.decline).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        '1',
-        {},
-      );
+      expect(bb.pullRequests.decline).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        version: '1',
+        requestBody: {},
+      });
     });
 
     it('should pass an optional comment in the request body', async () => {
       const mockDeclinedPR = { id: 1, version: 2, state: 'DECLINED' };
-      (PullRequestsService.decline as Mock).mockResolvedValue(mockDeclinedPR);
+      (bb.pullRequests.decline as Mock).mockResolvedValue(mockDeclinedPR);
 
       await bitbucketService.declinePullRequest(
         mockProjectKey,
@@ -208,18 +207,18 @@ describe('BitbucketService', () => {
         'Superseded by another PR',
       );
 
-      expect(PullRequestsService.decline).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        '1',
-        { comment: 'Superseded by another PR' },
-      );
+      expect(bb.pullRequests.decline).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        version: '1',
+        requestBody: { comment: 'Superseded by another PR' },
+      });
     });
 
     it('should handle API errors gracefully', async () => {
       const mockError = new Error('API Error');
-      (PullRequestsService.decline as Mock).mockRejectedValue(mockError);
+      (bb.pullRequests.decline as Mock).mockRejectedValue(mockError);
 
       const result = await bitbucketService.declinePullRequest(
         mockProjectKey,
@@ -241,7 +240,7 @@ describe('BitbucketService', () => {
         title: 'Test PR',
         state: 'OPEN',
       };
-      (PullRequestsService.reopen as Mock).mockResolvedValue(mockReopenedPR);
+      (bb.pullRequests.reopen as Mock).mockResolvedValue(mockReopenedPR);
 
       const result = await bitbucketService.reopenPullRequest(
         mockProjectKey,
@@ -258,18 +257,18 @@ describe('BitbucketService', () => {
         state: 'OPEN',
         reviewerCount: 0,
       });
-      expect(PullRequestsService.reopen).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        '2',
-        {},
-      );
+      expect(bb.pullRequests.reopen).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        version: '2',
+        requestBody: {},
+      });
     });
 
     it('should handle API errors gracefully', async () => {
       const mockError = new Error('Pull request is not declined');
-      (PullRequestsService.reopen as Mock).mockRejectedValue(mockError);
+      (bb.pullRequests.reopen as Mock).mockRejectedValue(mockError);
 
       const result = await bitbucketService.reopenPullRequest(
         mockProjectKey,
@@ -294,7 +293,7 @@ describe('BitbucketService', () => {
           ],
         },
       ];
-      (PullRequestsService.getReviewers as Mock).mockResolvedValue(mockReviewersData);
+      (bb.pullRequests.getReviewers as Mock).mockResolvedValue(mockReviewersData);
 
       const result = await bitbucketService.getRequiredReviewers(
         mockProjectKey,
@@ -305,14 +304,14 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockReviewersData);
-      expect(PullRequestsService.getReviewers).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockRepositorySlug,
-        undefined, // targetRepoId
-        undefined, // sourceRepoId
-        'refs/heads/feature',
-        'refs/heads/main',
-      );
+      expect(bb.pullRequests.getReviewers).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        repositorySlug: mockRepositorySlug,
+        targetRepoId: undefined,
+        sourceRepoId: undefined,
+        sourceRefId: 'refs/heads/feature',
+        targetRefId: 'refs/heads/main',
+      });
     });
 
     it('should successfully get required reviewers with all parameters', async () => {
@@ -324,7 +323,7 @@ describe('BitbucketService', () => {
           ],
         },
       ];
-      (PullRequestsService.getReviewers as Mock).mockResolvedValue(mockReviewersData);
+      (bb.pullRequests.getReviewers as Mock).mockResolvedValue(mockReviewersData);
 
       const result = await bitbucketService.getRequiredReviewers(
         mockProjectKey,
@@ -337,19 +336,19 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockReviewersData);
-      expect(PullRequestsService.getReviewers).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockRepositorySlug,
-        '456', // targetRepoId
-        '123', // sourceRepoId
-        'refs/heads/feature',
-        'refs/heads/main',
-      );
+      expect(bb.pullRequests.getReviewers).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        repositorySlug: mockRepositorySlug,
+        targetRepoId: '456',
+        sourceRepoId: '123',
+        sourceRefId: 'refs/heads/feature',
+        targetRefId: 'refs/heads/main',
+      });
     });
 
     it('should handle errors when getting required reviewers', async () => {
       const mockError = new Error('API Error');
-      (PullRequestsService.getReviewers as Mock).mockRejectedValue(mockError);
+      (bb.pullRequests.getReviewers as Mock).mockRejectedValue(mockError);
 
       const result = await bitbucketService.getRequiredReviewers(
         mockProjectKey,
@@ -366,7 +365,7 @@ describe('BitbucketService', () => {
   describe('addPullRequestReviewer', () => {
     it('should add a reviewer to a pull request', async () => {
       const mockParticipant = { user: { name: 'reviewer1' }, role: 'REVIEWER' };
-      (PullRequestsService.assignParticipantRole as Mock).mockResolvedValue(mockParticipant);
+      (bb.pullRequests.assignParticipantRole as Mock).mockResolvedValue(mockParticipant);
 
       const result = await bitbucketService.addPullRequestReviewer(
         mockProjectKey,
@@ -377,16 +376,16 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockParticipant);
-      expect(PullRequestsService.assignParticipantRole).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        { user: { name: 'reviewer1' }, role: 'REVIEWER' },
-      );
+      expect(bb.pullRequests.assignParticipantRole).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        requestBody: { user: { name: 'reviewer1' }, role: 'REVIEWER' },
+      });
     });
 
     it('should handle API errors gracefully', async () => {
-      (PullRequestsService.assignParticipantRole as Mock).mockRejectedValue(new Error('API Error'));
+      (bb.pullRequests.assignParticipantRole as Mock).mockRejectedValue(new Error('API Error'));
       const result = await bitbucketService.addPullRequestReviewer(
         mockProjectKey,
         mockRepositorySlug,
@@ -400,7 +399,7 @@ describe('BitbucketService', () => {
 
   describe('removePullRequestReviewer', () => {
     it('should remove a reviewer from a pull request', async () => {
-      (PullRequestsService.unassignParticipantRole as Mock).mockResolvedValue(undefined);
+      (bb.pullRequests.unassignParticipantRole as Mock).mockResolvedValue(undefined);
 
       const result = await bitbucketService.removePullRequestReviewer(
         mockProjectKey,
@@ -411,16 +410,16 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ removed: true, userSlug: 'reviewer1' });
-      expect(PullRequestsService.unassignParticipantRole).toHaveBeenCalledWith(
-        mockProjectKey,
-        'reviewer1',
-        mockPullRequestId,
-        mockRepositorySlug,
-      );
+      expect(bb.pullRequests.unassignParticipantRole).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        userSlug: 'reviewer1',
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+      });
     });
 
     it('should handle API errors gracefully', async () => {
-      (PullRequestsService.unassignParticipantRole as Mock).mockRejectedValue(new Error('API Error'));
+      (bb.pullRequests.unassignParticipantRole as Mock).mockRejectedValue(new Error('API Error'));
       const result = await bitbucketService.removePullRequestReviewer(
         mockProjectKey,
         mockRepositorySlug,
@@ -441,7 +440,7 @@ describe('BitbucketService', () => {
         ],
         isLastPage: true,
       };
-      (PullRequestsService.listParticipants as Mock).mockResolvedValue(mockData);
+      (bb.pullRequests.listParticipants as Mock).mockResolvedValue(mockData);
 
       const result = await bitbucketService.getPullRequestParticipants(
         mockProjectKey,
@@ -451,13 +450,17 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
-      expect(PullRequestsService.listParticipants).toHaveBeenCalledWith(
-        mockProjectKey, mockPullRequestId, mockRepositorySlug, undefined, 25,
-      );
+      expect(bb.pullRequests.listParticipants).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        start: undefined,
+        limit: 25,
+      });
     });
 
     it('should handle API errors gracefully', async () => {
-      (PullRequestsService.listParticipants as Mock).mockRejectedValue(new Error('API Error'));
+      (bb.pullRequests.listParticipants as Mock).mockRejectedValue(new Error('API Error'));
 
       const result = await bitbucketService.getPullRequestParticipants(
         mockProjectKey,
@@ -479,7 +482,7 @@ describe('BitbucketService', () => {
         role: 'REVIEWER',
         status: 'NEEDS_WORK',
       };
-      (PullRequestsService.updateStatus as Mock).mockResolvedValue(mockParticipant);
+      (bb.pullRequests.updateStatus as Mock).mockResolvedValue(mockParticipant);
 
       const result = await bitbucketService.submitPullRequestReview(
         mockProjectKey,
@@ -491,18 +494,18 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockParticipant);
-      expect(PullRequestsService.updateStatus).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockUserSlug,
-        mockPullRequestId,
-        mockRepositorySlug,
-        { status: 'NEEDS_WORK' },
-      );
+      expect(bb.pullRequests.updateStatus).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        userSlug: mockUserSlug,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        requestBody: { status: 'NEEDS_WORK' },
+      });
     });
 
     it('should submit an APPROVED review', async () => {
       const mockParticipant = { user: { name: mockUserSlug }, status: 'APPROVED' };
-      (PullRequestsService.updateStatus as Mock).mockResolvedValue(mockParticipant);
+      (bb.pullRequests.updateStatus as Mock).mockResolvedValue(mockParticipant);
 
       const result = await bitbucketService.submitPullRequestReview(
         mockProjectKey,
@@ -513,18 +516,18 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(PullRequestsService.updateStatus).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockUserSlug,
-        mockPullRequestId,
-        mockRepositorySlug,
-        { status: 'APPROVED' },
-      );
+      expect(bb.pullRequests.updateStatus).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        userSlug: mockUserSlug,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        requestBody: { status: 'APPROVED' },
+      });
     });
 
     it('should include lastReviewedCommit when provided', async () => {
       const mockParticipant = { user: { name: mockUserSlug }, status: 'NEEDS_WORK' };
-      (PullRequestsService.updateStatus as Mock).mockResolvedValue(mockParticipant);
+      (bb.pullRequests.updateStatus as Mock).mockResolvedValue(mockParticipant);
 
       await bitbucketService.submitPullRequestReview(
         mockProjectKey,
@@ -535,18 +538,18 @@ describe('BitbucketService', () => {
         'abc123def456',
       );
 
-      expect(PullRequestsService.updateStatus).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockUserSlug,
-        mockPullRequestId,
-        mockRepositorySlug,
-        { status: 'NEEDS_WORK', lastReviewedCommit: 'abc123def456' },
-      );
+      expect(bb.pullRequests.updateStatus).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        userSlug: mockUserSlug,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        requestBody: { status: 'NEEDS_WORK', lastReviewedCommit: 'abc123def456' },
+      });
     });
 
     it('should handle API errors gracefully', async () => {
       const mockError = new Error('Forbidden');
-      (PullRequestsService.updateStatus as Mock).mockRejectedValue(mockError);
+      (bb.pullRequests.updateStatus as Mock).mockRejectedValue(mockError);
 
       const result = await bitbucketService.submitPullRequestReview(
         mockProjectKey,

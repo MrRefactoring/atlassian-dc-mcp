@@ -1,7 +1,13 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestRefMatcher = {
-};
+import { z } from 'zod';
 
+export const RestRefMatcherSchema = z.looseObject({
+  id: z.string().optional(),
+  displayId: z.string().optional(),
+  type: z.looseObject({
+    id: z.string().optional(),
+    name: z.string().optional(),
+  }).optional(),
+  active: z.boolean().optional(),
+});
+
+export type RestRefMatcher = z.infer<typeof RestRefMatcherSchema>;

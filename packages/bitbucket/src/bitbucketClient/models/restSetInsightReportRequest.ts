@@ -1,18 +1,16 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { RestInsightReportData } from './restInsightReportData.js';
-export type RestSetInsightReportRequest = {
-    coverageProviderKey?: string;
-    createdDate?: number;
-    data: Array<RestInsightReportData>;
-    details?: string;
-    link?: string;
-    logoUrl?: string;
-    reporter?: string;
-    result?: string;
-    title: string;
-};
+import { z } from 'zod';
+import { RestInsightReportDataSchema } from './restInsightReportData.js';
 
+export const RestSetInsightReportRequestSchema = z.looseObject({
+  coverageProviderKey: z.string().optional(),
+  createdDate: z.number().optional(),
+  data: z.array(RestInsightReportDataSchema),
+  details: z.string().optional(),
+  link: z.string().optional(),
+  logoUrl: z.string().optional(),
+  reporter: z.string().optional(),
+  result: z.string().optional(),
+  title: z.string(),
+});
 
+export type RestSetInsightReportRequest = z.infer<typeof RestSetInsightReportRequestSchema>;

@@ -1,31 +1,21 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestBuildStatusSetRequest = {
-    buildNumber?: string;
-    description?: string;
-    duration?: number;
-    key: string;
-    lastUpdated?: number;
-    name?: string;
-    parent?: string;
-    ref?: string;
-    state: RestBuildStatusSetRequest.state;
-    testResults?: {
-        failed?: number;
-        skipped?: number;
-        successful?: number;
-    };
-    url: string;
-};
-export namespace RestBuildStatusSetRequest {
-    export enum state {
-        CANCELLED = 'CANCELLED',
-        FAILED = 'FAILED',
-        INPROGRESS = 'INPROGRESS',
-        SUCCESSFUL = 'SUCCESSFUL',
-        UNKNOWN = 'UNKNOWN',
-    }
-}
+import { z } from 'zod';
 
+export const RestBuildStatusSetRequestSchema = z.looseObject({
+  buildNumber: z.string().optional(),
+  description: z.string().optional(),
+  duration: z.number().optional(),
+  key: z.string(),
+  lastUpdated: z.number().optional(),
+  name: z.string().optional(),
+  parent: z.string().optional(),
+  ref: z.string().optional(),
+  state: z.enum(['CANCELLED', 'FAILED', 'INPROGRESS', 'SUCCESSFUL', 'UNKNOWN']),
+  testResults: z.looseObject({
+    failed: z.number().optional(),
+    skipped: z.number().optional(),
+    successful: z.number().optional(),
+  }).optional(),
+  url: z.string(),
+});
+
+export type RestBuildStatusSetRequest = z.infer<typeof RestBuildStatusSetRequestSchema>;

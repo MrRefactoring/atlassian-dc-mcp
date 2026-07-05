@@ -1,8 +1,7 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestAutoMergeSettingsRequest = {
-    enabled?: boolean;
-};
+import { z } from 'zod';
 
+export const RestAutoMergeSettingsRequestSchema = z.looseObject({
+  enabled: z.boolean().optional(),
+});
+
+export type RestAutoMergeSettingsRequest = z.infer<typeof RestAutoMergeSettingsRequestSchema>;
