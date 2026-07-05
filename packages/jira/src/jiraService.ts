@@ -1,72 +1,11 @@
 import { z } from 'zod';
-import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
-import {
-  ApplicationPropertiesService,
-  ApplicationroleService,
-  AttachmentService,
-  AvatarService,
-  BacklogService,
-  BoardService,
-  ClusterService,
-  CommentService,
-  ComponentService,
-  CustomFieldOptionService,
-  CustomFieldsService,
-  DashboardService,
-  EmailTemplatesService,
-  EpicService,
-  FieldService,
-  FilterService,
-  GroupService,
-  GroupsService,
-  GroupuserpickerService,
-  IndexService,
-  IndexSnapshotService,
-  IssueLinkService,
-  IssueLinkTypeService,
-  IssueService,
-  IssuesecurityschemesService,
-  IssuetypeschemeService,
-  IssuetypeService,
-  JqlService,
-  LicenseValidatorService,
-  MypermissionsService,
-  MypreferencesService,
-  MyselfService,
-  NotificationschemeService,
-  OpenAPI,
-  PermissionsService,
-  PermissionschemeService,
-  PriorityschemesService,
-  PriorityService,
-  ProjectCategoryService,
-  ProjectService,
-  ProjectsService,
-  ProjectvalidateService,
-  ReindexService,
-  ResolutionService,
-  RoleService,
-  ScreensService,
-  SearchService,
-  SecuritylevelService,
-  ServerInfoService,
-  SessionService,
-  SprintService,
-  StatusService,
-  UniversalAvatarService,
-  UserService,
-  VersionService,
-  WebsudoService,
-  WorkflowService,
-  WorkflowschemeService,
-  WorklogService,
-} from './jiraClient/index.js';
+import { handleApiOperation, resolveOpenApiBase, route } from 'datacenter-mcp-core';
+import { createJiraClient, type JiraClient } from './jiraClient/index.js';
 import type { VersionMoveBean } from './jiraClient/models/versionMoveBean.js';
 import type { MoveFieldBean } from './jiraClient/models/moveFieldBean.js';
 import type { ProjectInputBean } from './jiraClient/models/projectInputBean.js';
 import type { ProjectUpdateBean } from './jiraClient/models/projectUpdateBean.js';
 import type { RemoteIssueLinkCreateOrUpdateRequest } from './jiraClient/models/remoteIssueLinkCreateOrUpdateRequest.js';
-import { request as __request, resolve as __resolveAuth } from './jiraClient/core/request.js';
 import type { StringList } from './jiraClient/models/stringList.js';
 import type { FilePart } from './jiraClient/models/filePart.js';
 import { getDefaultPageSize, getMissingConfig, JIRA_PRODUCT } from './config.js';
@@ -82,16 +21,10 @@ function toIssueFieldSelection(fields: string[]): Array<StringList> {
   return fields as unknown as Array<StringList>;
 }
 
-function resolveCredential(value: string | (() => string | undefined) | undefined) {
-  return async () => {
-    const resolved = typeof value === 'function' ? value() : value;
-
-    return resolved ?? '';
-  };
-}
-
 export class JiraService {
   private readonly getPageSize: () => number;
+  private readonly jira: JiraClient;
+  private readonly resolveToken: () => string | undefined;
 
   constructor(
     host: string | undefined,
@@ -101,47 +34,49 @@ export class JiraService {
     username?: string | (() => string | undefined),
     password?: string | (() => string | undefined),
   ) {
-    OpenAPI.BASE = resolveOpenApiBase({
-      host,
-      apiBasePath,
-      defaultBasePath: JIRA_PRODUCT.defaultApiBasePath ?? '/rest',
-      strippableSuffixes: JIRA_PRODUCT.apiBasePathStrippableSuffixes,
+    this.jira = createJiraClient({
+      baseUrl: resolveOpenApiBase({
+        host,
+        apiBasePath,
+        defaultBasePath: JIRA_PRODUCT.defaultApiBasePath ?? '/rest',
+        strippableSuffixes: JIRA_PRODUCT.apiBasePathStrippableSuffixes,
+      }),
+      token,
+      username,
+      password,
     });
-    OpenAPI.TOKEN = resolveCredential(token);
-    OpenAPI.USERNAME = resolveCredential(username);
-    OpenAPI.PASSWORD = resolveCredential(password);
-    OpenAPI.VERSION = '2';
+    this.resolveToken = () => (typeof token === 'function' ? token() : token);
     this.getPageSize = getPageSize;
   }
 
   async searchIssues(jql: string, startAt?: number, expand?: string[], maxResults?: number, fields?: string[]) {
     return handleApiOperation(() => {
-      return SearchService.searchUsingSearchRequest({
+      return this.jira.issues.searchByJql({ requestBody: {
         jql,
         maxResults: maxResults ?? this.getPageSize(),
         fields: fields ?? DEFAULT_SEARCH_FIELDS,
         expand,
         startAt,
-      });
+      } });
     }, 'Error searching issues');
   }
 
   async getIssue(issueKey: string, expand?: string, fields?: string[]) {
     return handleApiOperation(
-      () => IssueService.getIssue(issueKey, expand, toIssueFieldSelection(fields ?? DEFAULT_ISSUE_FIELDS)),
+      () => this.jira.issues.getIssue({ issueIdOrKey: issueKey, expand, fields: toIssueFieldSelection(fields ?? DEFAULT_ISSUE_FIELDS) }),
       'Error getting issue',
     );
   }
 
   async getIssueComments(issueKey: string, expand?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => IssueService.getComments(issueKey, expand, (maxResults ?? this.getPageSize()).toString(), undefined, startAt?.toString()),
+      () => this.jira.issues.getComments({ issueIdOrKey: issueKey, expand, maxResults: (maxResults ?? this.getPageSize()).toString(), startAt: startAt?.toString() }),
       'Error getting issue comments',
     );
   }
 
   async postIssueComment(issueKey: string, comment: string) {
-    return handleApiOperation(() => IssueService.addComment(issueKey, undefined, { body: comment }), 'Error posting issue comment');
+    return handleApiOperation(() => this.jira.issues.addComment({ issueIdOrKey: issueKey, requestBody: { body: comment } }), 'Error posting issue comment');
   }
 
   async createIssue(params: {
@@ -163,7 +98,7 @@ export class JiraService {
         ? { ...standardFields, ...params.customFields }
         : standardFields;
 
-      return IssueService.createIssue(true, { fields });
+      return this.jira.issues.createIssue({ updateHistory: true, requestBody: { fields } });
     }, 'Error creating issue');
   }
 
@@ -190,13 +125,13 @@ export class JiraService {
         ? { ...standardFields, ...params.customFields }
         : standardFields;
 
-      return IssueService.editIssue(params.issueKey, 'true', { fields });
+      return this.jira.issues.editIssue({ issueIdOrKey: params.issueKey, notifyUsers: 'true', requestBody: { fields } });
     }, 'Error updating issue');
   }
 
   async getTransitions(issueKey: string) {
     return handleApiOperation(
-      () => IssueService.getTransitions(issueKey),
+      () => this.jira.issues.getTransitions({ issueIdOrKey: issueKey }),
       'Error getting transitions',
     );
   }
@@ -209,17 +144,17 @@ export class JiraService {
     return handleApiOperation(async () => {
       const issueId = await this.resolveIssueId(issueKey);
 
-      return __request(OpenAPI, {
+      return this.jira.request({
         method: 'GET',
         url: '/dev-status/1.0/issue/detail',
-        query: { issueId, applicationType, dataType },
+        searchParams: { issueId, applicationType, dataType },
       });
     }, 'Error getting issue development info');
   }
 
   private async resolveIssueId(issueKey: string): Promise<string> {
     // The dev-status API is keyed by the numeric issue id, not the issue key.
-    const issue = await IssueService.getIssue(issueKey, undefined, toIssueFieldSelection(['id']));
+    const issue = await this.jira.issues.getIssue({ issueIdOrKey: issueKey, fields: toIssueFieldSelection(['id']) });
     if (!issue?.id) {
       throw new Error(`Could not resolve numeric id for issue ${issueKey}`);
     }
@@ -244,62 +179,62 @@ export class JiraService {
         Object.assign(requestBody, params.customFields);
       }
 
-      return IssueService.doTransition(params.issueKey, requestBody);
+      return this.jira.issues.doTransition({ issueIdOrKey: params.issueKey, requestBody });
     }, 'Error transitioning issue');
   }
 
   async getProjects(includeArchived?: boolean, expand?: string, recent?: number) {
     return handleApiOperation(
-      () => ProjectService.getAllProjects(includeArchived, expand, recent),
+      () => this.jira.projects.getAllProjects({ includeArchived, expand, recent }),
       'Error getting projects',
     );
   }
 
   async searchProjects(query: string, maxResults?: number, allowEmptyQuery?: boolean) {
     return handleApiOperation(
-      () => ProjectsService.searchForProjects(maxResults, query, allowEmptyQuery),
+      () => this.jira.projects.searchForProjects({ maxResults, query, allowEmptyQuery }),
       'Error searching projects',
     );
   }
 
   async getProject(projectIdOrKey: string, expand?: string) {
     return handleApiOperation(
-      () => ProjectService.getProject(projectIdOrKey, expand),
+      () => this.jira.projects.getProjectProject({ projectIdOrKey, expand }),
       'Error getting project',
     );
   }
 
   async getProjectComponents(projectIdOrKey: string) {
     return handleApiOperation(
-      () => ProjectService.getProjectComponents(projectIdOrKey),
+      () => this.jira.projects.getProjectComponents({ projectIdOrKey }),
       'Error getting project components',
     );
   }
 
   async getProjectVersions(projectIdOrKey: string, expand?: string) {
     return handleApiOperation(
-      () => ProjectService.getProjectVersions(projectIdOrKey, expand),
+      () => this.jira.projects.getProjectVersions({ projectIdOrKey, expand }),
       'Error getting project versions',
     );
   }
 
   async createProject(project: Omit<ProjectInputBean, 'assigneeType'> & { assigneeType?: 'PROJECT_LEAD' | 'UNASSIGNED' }) {
     return handleApiOperation(
-      () => ProjectService.createProject(project as ProjectInputBean),
+      () => this.jira.projects.createProject({ requestBody: project as ProjectInputBean }),
       'Error creating project',
     );
   }
 
   async updateProject(projectIdOrKey: string, project: Omit<ProjectUpdateBean, 'assigneeType'> & { assigneeType?: 'PROJECT_LEAD' | 'UNASSIGNED' }, expand?: string) {
     return handleApiOperation(
-      () => ProjectService.updateProject(projectIdOrKey, project as ProjectUpdateBean, expand),
+      () => this.jira.projects.updateProject({ projectIdOrKey, requestBody: project as ProjectUpdateBean, expand }),
       'Error updating project',
     );
   }
 
   async deleteProject(projectIdOrKey: string) {
     const result = await handleApiOperation(
-      () => ProjectService.deleteProject(projectIdOrKey),
+      () => this.jira.projects.deleteProject({ projectIdOrKey }),
       'Error deleting project',
     );
     if (result.success) {
@@ -311,7 +246,7 @@ export class JiraService {
 
   async archiveProject(projectIdOrKey: string) {
     const result = await handleApiOperation(
-      () => ProjectService.archiveProject(projectIdOrKey),
+      () => this.jira.projects.archiveProject({ projectIdOrKey }),
       'Error archiving project',
     );
     if (result.success) {
@@ -323,198 +258,198 @@ export class JiraService {
 
   async restoreProject(projectIdOrKey: string) {
     return handleApiOperation(
-      () => ProjectService.restoreProject(projectIdOrKey),
+      () => this.jira.projects.restoreProject({ projectIdOrKey }),
       'Error restoring project',
     );
   }
 
   async getProjectPropertyKeys(projectIdOrKey: string) {
     return handleApiOperation(
-      () => ProjectService.getPropertiesKeys3(projectIdOrKey),
+      () => this.jira.projects.getPropertiesKeys({ projectIdOrKey }),
       'Error getting project property keys',
     );
   }
 
   async getProjectProperty(projectIdOrKey: string, propertyKey: string) {
     return handleApiOperation(
-      () => ProjectService.getProperty5(propertyKey, projectIdOrKey),
+      () => this.jira.projects.getProperty({ propertyKey, projectIdOrKey }),
       'Error getting project property',
     );
   }
 
   async setProjectProperty(projectIdOrKey: string, propertyKey: string, value: string) {
     return handleApiOperation(
-      () => ProjectService.setProperty4(propertyKey, projectIdOrKey, { key: propertyKey, value }),
+      () => this.jira.projects.setProperty({ propertyKey, projectIdOrKey, requestBody: { key: propertyKey, value } }),
       'Error setting project property',
     );
   }
 
   async deleteProjectProperty(projectIdOrKey: string, propertyKey: string) {
     return handleApiOperation(
-      () => ProjectService.deleteProperty5(propertyKey, projectIdOrKey),
+      () => this.jira.projects.deleteProperty({ propertyKey, projectIdOrKey }),
       'Error deleting project property',
     );
   }
 
   async getIssueTypes() {
-    return handleApiOperation(() => IssuetypeService.getIssueAllTypes(), 'Error getting issue types');
+    return handleApiOperation(() => this.jira.workflows.getIssueAllTypes({}), 'Error getting issue types');
   }
 
   async getPriorities() {
-    return handleApiOperation(() => PriorityService.getPriorities(), 'Error getting priorities');
+    return handleApiOperation(() => this.jira.workflows.getPriorities({}), 'Error getting priorities');
   }
 
   async getResolutions() {
-    return handleApiOperation(() => ResolutionService.getResolutions(), 'Error getting resolutions');
+    return handleApiOperation(() => this.jira.workflows.getResolutions({}), 'Error getting resolutions');
   }
 
   async getStatuses() {
-    return handleApiOperation(() => StatusService.getStatuses(), 'Error getting statuses');
+    return handleApiOperation(() => this.jira.workflows.getStatuses({}), 'Error getting statuses');
   }
 
   async getCreateIssueMetaIssueTypes(projectIdOrKey: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => IssueService.getCreateIssueMetaProjectIssueTypes(projectIdOrKey, maxResults?.toString(), startAt?.toString()),
+      () => this.jira.issues.getCreateIssueMetaProjectIssueTypes({ projectIdOrKey, maxResults: maxResults?.toString(), startAt: startAt?.toString() }),
       'Error getting create-issue metadata issue types',
     );
   }
 
   async getCreateIssueMetaFields(projectIdOrKey: string, issueTypeId: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => IssueService.getCreateIssueMetaFields(issueTypeId, projectIdOrKey, maxResults?.toString(), startAt?.toString()),
+      () => this.jira.issues.getCreateIssueMetaFields({ issueTypeId, projectIdOrKey, maxResults: maxResults?.toString(), startAt: startAt?.toString() }),
       'Error getting create-issue metadata fields',
     );
   }
 
   async getEditIssueMeta(issueKey: string) {
-    return handleApiOperation(() => IssueService.getEditIssueMeta(issueKey), 'Error getting edit-issue metadata');
+    return handleApiOperation(() => this.jira.issues.getEditIssueMeta({ issueIdOrKey: issueKey }), 'Error getting edit-issue metadata');
   }
 
   async deleteIssue(issueKey: string, deleteSubtasks?: boolean) {
     return handleApiOperation(
-      () => IssueService.deleteIssue(issueKey, deleteSubtasks?.toString()),
+      () => this.jira.issues.deleteIssue({ issueIdOrKey: issueKey, deleteSubtasks: deleteSubtasks?.toString() }),
       'Error deleting issue',
     );
   }
 
   async updateIssueComment(issueKey: string, commentId: string, comment: string) {
     return handleApiOperation(
-      () => IssueService.updateComment(issueKey, commentId, undefined, { body: comment }),
+      () => this.jira.issues.updateComment({ issueIdOrKey: issueKey, id: commentId, requestBody: { body: comment } }),
       'Error updating issue comment',
     );
   }
 
   async deleteIssueComment(issueKey: string, commentId: string) {
     return handleApiOperation(
-      () => IssueService.deleteComment(issueKey, commentId),
+      () => this.jira.issues.deleteComment({ issueIdOrKey: issueKey, id: commentId }),
       'Error deleting issue comment',
     );
   }
 
   async getCommentPropertyKeys(commentId: string) {
     return handleApiOperation(
-      () => CommentService.getPropertiesKeys1(commentId),
+      () => this.jira.issues.getCommentPropertiesKeys({ commentId }),
       'Error getting comment property keys',
     );
   }
 
   async getCommentProperty(commentId: string, propertyKey: string) {
     return handleApiOperation(
-      () => CommentService.getProperty2(propertyKey, commentId),
+      () => this.jira.issues.getCommentProperty({ propertyKey, commentId }),
       'Error getting comment property',
     );
   }
 
   async setCommentProperty(commentId: string, propertyKey: string, value: string) {
     return handleApiOperation(
-      () => CommentService.setProperty1(propertyKey, commentId, value),
+      () => this.jira.issues.setCommentProperty({ propertyKey, commentId, requestBody: value }),
       'Error setting comment property',
     );
   }
 
   async deleteCommentProperty(commentId: string, propertyKey: string) {
     return handleApiOperation(
-      () => CommentService.deleteProperty2(propertyKey, commentId),
+      () => this.jira.issues.deleteCommentProperty({ propertyKey, commentId }),
       'Error deleting comment property',
     );
   }
 
   async getIssueWatchers(issueKey: string) {
-    return handleApiOperation(() => IssueService.getIssueWatchers(issueKey), 'Error getting issue watchers');
+    return handleApiOperation(() => this.jira.issues.getIssueWatchers({ issueIdOrKey: issueKey }), 'Error getting issue watchers');
   }
 
   async addIssueWatcher(issueKey: string, username: string) {
     return handleApiOperation(
-      () => IssueService.addWatcher1(issueKey, undefined, username),
+      () => this.jira.issues.addWatcher({ issueIdOrKey: issueKey, requestBody: username }),
       'Error adding issue watcher',
     );
   }
 
   async removeIssueWatcher(issueKey: string, username: string) {
     return handleApiOperation(
-      () => IssueService.removeWatcher1(issueKey, username),
+      () => this.jira.issues.removeWatcher({ issueIdOrKey: issueKey, userName: username }),
       'Error removing issue watcher',
     );
   }
 
   async getIssueVotes(issueKey: string) {
-    return handleApiOperation(() => IssueService.getVotes(issueKey), 'Error getting issue votes');
+    return handleApiOperation(() => this.jira.issues.getVotes({ issueIdOrKey: issueKey }), 'Error getting issue votes');
   }
 
   async addIssueVote(issueKey: string) {
-    return handleApiOperation(() => IssueService.addVote(issueKey), 'Error adding issue vote');
+    return handleApiOperation(() => this.jira.issues.addVote({ issueIdOrKey: issueKey }), 'Error adding issue vote');
   }
 
   async removeIssueVote(issueKey: string) {
-    return handleApiOperation(() => IssueService.removeVote(issueKey), 'Error removing issue vote');
+    return handleApiOperation(() => this.jira.issues.removeVote({ issueIdOrKey: issueKey }), 'Error removing issue vote');
   }
 
   async getIssueWorklogs(issueKey: string) {
-    return handleApiOperation(() => IssueService.getIssueWorklog(issueKey), 'Error getting issue worklogs');
+    return handleApiOperation(() => this.jira.issues.getIssueWorklog({ issueIdOrKey: issueKey }), 'Error getting issue worklogs');
   }
 
   async addIssueWorklog(issueKey: string, timeSpent: string, comment?: string, started?: string) {
     return handleApiOperation(
-      () => IssueService.addWorklog(issueKey, undefined, undefined, undefined, { timeSpent, comment, started }),
+      () => this.jira.issues.addWorklog({ issueIdOrKey: issueKey, requestBody: { timeSpent, comment, started } }),
       'Error adding issue worklog',
     );
   }
 
   async getIssueWorklog(issueKey: string, worklogId: string) {
-    return handleApiOperation(() => IssueService.getWorklog(issueKey, worklogId), 'Error getting issue worklog');
+    return handleApiOperation(() => this.jira.issues.getWorklog({ issueIdOrKey: issueKey, id: worklogId }), 'Error getting issue worklog');
   }
 
   async updateIssueWorklog(issueKey: string, worklogId: string, timeSpent?: string, comment?: string, started?: string) {
     return handleApiOperation(
-      () => IssueService.updateWorklog(issueKey, worklogId, undefined, undefined, { timeSpent, comment, started }),
+      () => this.jira.issues.updateWorklog({ issueIdOrKey: issueKey, id: worklogId, requestBody: { timeSpent, comment, started } }),
       'Error updating issue worklog',
     );
   }
 
   async deleteIssueWorklog(issueKey: string, worklogId: string) {
     return handleApiOperation(
-      () => IssueService.deleteWorklog(issueKey, worklogId),
+      () => this.jira.issues.deleteWorklog({ issueIdOrKey: issueKey, id: worklogId }),
       'Error deleting issue worklog',
     );
   }
 
   async getWorklogsDeletedSince(since?: number) {
     return handleApiOperation(
-      () => WorklogService.getIdsOfWorklogsDeletedSince(since),
+      () => this.jira.issues.getIdsOfWorklogsDeletedSince({ since }),
       'Error getting worklogs deleted since given time',
     );
   }
 
   async getWorklogsModifiedSince(since?: number) {
     return handleApiOperation(
-      () => WorklogService.getIdsOfWorklogsModifiedSince(since),
+      () => this.jira.issues.getIdsOfWorklogsModifiedSince({ since }),
       'Error getting worklogs modified since given time',
     );
   }
 
   async getWorklogsForIds(worklogIds: number[]) {
     return handleApiOperation(
-      () => WorklogService.getWorklogsForIds({ ids: worklogIds }),
+      () => this.jira.issues.getWorklogsForIds({ requestBody: { ids: worklogIds } }),
       'Error getting worklogs for ids',
     );
   }
@@ -523,26 +458,26 @@ export class JiraService {
     return handleApiOperation(() => {
       const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
 
-      return IssueService.addAttachment(issueKey, { file } as unknown as Blob);
+      return this.jira.issues.addAttachment({ issueIdOrKey: issueKey, formData: { file } as unknown as Blob });
     }, 'Error adding issue attachment');
   }
 
   async getAttachmentMeta() {
-    return handleApiOperation(() => AttachmentService.getAttachmentMeta(), 'Error getting attachment capabilities');
+    return handleApiOperation(() => this.jira.issues.getAttachmentMeta({}), 'Error getting attachment capabilities');
   }
 
   async getAttachment(attachmentId: string) {
-    return handleApiOperation(() => AttachmentService.getAttachment(attachmentId), 'Error getting attachment');
+    return handleApiOperation(() => this.jira.issues.getAttachment({ id: attachmentId }), 'Error getting attachment');
   }
 
   async getAttachmentContent(attachmentId: string) {
     return handleApiOperation(async () => {
-      const meta = await AttachmentService.getAttachment(attachmentId) as Record<string, any>;
+      const meta = await this.jira.issues.getAttachment({ id: attachmentId }) as Record<string, any>;
       const contentUrl = meta?.content;
       if (!contentUrl) {
         throw new Error('Attachment metadata did not include a content URL');
       }
-      const token = await __resolveAuth({ method: 'GET', url: contentUrl }, OpenAPI.TOKEN);
+      const token = this.resolveToken();
       const response = await fetch(contentUrl, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
@@ -562,29 +497,29 @@ export class JiraService {
 
   async deleteAttachment(attachmentId: string) {
     return handleApiOperation(
-      () => AttachmentService.removeAttachment(attachmentId),
+      () => this.jira.issues.removeAttachment({ id: attachmentId }),
       'Error deleting attachment',
     );
   }
 
   async linkIssues(inwardIssueKey: string, outwardIssueKey: string, linkTypeName: string, comment?: string) {
     return handleApiOperation(
-      () => IssueLinkService.linkIssues({
+      () => this.jira.issues.linkIssues({ requestBody: {
         inwardIssue: { key: inwardIssueKey },
         outwardIssue: { key: outwardIssueKey },
         type: { name: linkTypeName },
         ...(comment ? { comment: { body: comment } } : {}),
-      }),
+      } }),
       'Error linking issues',
     );
   }
 
   async getIssueLink(linkId: string) {
-    return handleApiOperation(() => IssueLinkService.getIssueLink(linkId), 'Error getting issue link');
+    return handleApiOperation(() => this.jira.issues.getIssueLink({ linkId }), 'Error getting issue link');
   }
 
   async deleteIssueLink(linkId: string) {
-    return handleApiOperation(() => IssueLinkService.deleteIssueLink(linkId), 'Error deleting issue link');
+    return handleApiOperation(() => this.jira.issues.deleteIssueLink({ linkId }), 'Error deleting issue link');
   }
 
   private buildRemoteIssueLinkBody(params: {
@@ -612,14 +547,14 @@ export class JiraService {
 
   async getRemoteIssueLinks(issueIdOrKey: string, globalId?: string) {
     return handleApiOperation(
-      () => IssueService.getRemoteIssueLinks(issueIdOrKey, globalId),
+      () => this.jira.issues.getRemoteIssueLinks({ issueIdOrKey, globalId }),
       'Error getting remote issue links',
     );
   }
 
   async getRemoteIssueLink(issueIdOrKey: string, linkId: string) {
     return handleApiOperation(
-      () => IssueService.getRemoteIssueLinkById(linkId, issueIdOrKey),
+      () => this.jira.issues.getRemoteIssueLinkById({ linkId, issueIdOrKey }),
       'Error getting remote issue link',
     );
   }
@@ -634,7 +569,7 @@ export class JiraService {
     applicationType?: string;
   }) {
     return handleApiOperation(
-      () => IssueService.createOrUpdateRemoteIssueLink(issueIdOrKey, this.buildRemoteIssueLinkBody(params)),
+      () => this.jira.issues.createOrUpdateRemoteIssueLink({ issueIdOrKey, requestBody: this.buildRemoteIssueLinkBody(params) }),
       'Error creating or updating remote issue link',
     );
   }
@@ -649,7 +584,7 @@ export class JiraService {
     applicationType?: string;
   }) {
     const result = await handleApiOperation(
-      () => IssueService.updateRemoteIssueLink(linkId, issueIdOrKey, this.buildRemoteIssueLinkBody(params)),
+      () => this.jira.issues.updateRemoteIssueLink({ linkId, issueIdOrKey, requestBody: this.buildRemoteIssueLinkBody(params) }),
       'Error updating remote issue link',
     );
     if (result.success) {
@@ -661,7 +596,7 @@ export class JiraService {
 
   async deleteRemoteIssueLink(issueIdOrKey: string, linkId: string) {
     const result = await handleApiOperation(
-      () => IssueService.deleteRemoteIssueLinkById(linkId, issueIdOrKey),
+      () => this.jira.issues.deleteRemoteIssueLinkById({ linkId, issueIdOrKey }),
       'Error deleting remote issue link',
     );
     if (result.success) {
@@ -673,7 +608,7 @@ export class JiraService {
 
   async deleteRemoteIssueLinkByGlobalId(issueIdOrKey: string, globalId: string) {
     const result = await handleApiOperation(
-      () => IssueService.deleteRemoteIssueLinkByGlobalId(issueIdOrKey, globalId),
+      () => this.jira.issues.deleteRemoteIssueLinkByGlobalId({ issueIdOrKey, globalId }),
       'Error deleting remote issue link',
     );
     if (result.success) {
@@ -685,276 +620,276 @@ export class JiraService {
 
   async assignIssue(issueKey: string, username: string | null) {
     return handleApiOperation(
-      () => IssueService.assign(issueKey, { name: username } as unknown as { name: string }),
+      () => this.jira.issues.assign({ issueIdOrKey: issueKey, requestBody: { name: username } as unknown as { name: string } }),
       'Error assigning issue',
     );
   }
 
   async createComponent(projectKey: string, name: string, description?: string, leadUserName?: string) {
     return handleApiOperation(
-      () => ComponentService.createComponent({ project: projectKey, name, description, leadUserName }),
+      () => this.jira.projects.createComponent({ requestBody: { project: projectKey, name, description, leadUserName } }),
       'Error creating component',
     );
   }
 
   async getComponents(maxResults?: number, query?: string, projectIds?: string) {
     return handleApiOperation(
-      () => ComponentService.getPaginatedComponents(maxResults?.toString(), query, projectIds),
+      () => this.jira.projects.getPaginatedComponents({ maxResults: maxResults?.toString(), query, projectIds }),
       'Error getting components',
     );
   }
 
   async getComponent(componentId: string) {
-    return handleApiOperation(() => ComponentService.getComponent(componentId), 'Error getting component');
+    return handleApiOperation(() => this.jira.projects.getComponent({ id: componentId }), 'Error getting component');
   }
 
   async updateComponent(componentId: string, name?: string, description?: string, leadUserName?: string) {
     return handleApiOperation(
-      () => ComponentService.updateComponent(componentId, { name, description, leadUserName }),
+      () => this.jira.projects.updateComponent({ id: componentId, requestBody: { name, description, leadUserName } }),
       'Error updating component',
     );
   }
 
   async deleteComponent(componentId: string, moveIssuesTo?: string) {
     return handleApiOperation(
-      () => ComponentService.delete(componentId, moveIssuesTo),
+      () => this.jira.projects.componentDelete({ id: componentId, moveIssuesTo }),
       'Error deleting component',
     );
   }
 
   async getComponentRelatedIssues(componentId: string) {
     return handleApiOperation(
-      () => ComponentService.getComponentRelatedIssues(componentId),
+      () => this.jira.projects.getComponentRelatedIssues({ id: componentId }),
       'Error getting component related issue counts',
     );
   }
 
   async createVersion(projectKey: string, name: string, description?: string, releaseDate?: string, startDate?: string) {
     return handleApiOperation(
-      () => VersionService.createVersion({ project: projectKey, name, description, releaseDate, startDate }),
+      () => this.jira.projects.createVersion({ requestBody: { project: projectKey, name, description, releaseDate, startDate } }),
       'Error creating version',
     );
   }
 
   async getVersions(projectIds?: number[], query?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => VersionService.getPaginatedVersions(maxResults ?? 100, query ?? '', projectIds, startAt),
+      () => this.jira.projects.getPaginatedVersions({ maxResults: maxResults ?? 100, query: query ?? '', projectIds, startAt }),
       'Error getting versions',
     );
   }
 
   async getVersion(versionId: string, expand?: string) {
-    return handleApiOperation(() => VersionService.getVersion(versionId, expand), 'Error getting version');
+    return handleApiOperation(() => this.jira.projects.getVersion({ id: versionId, expand }), 'Error getting version');
   }
 
   async updateVersion(versionId: string, name?: string, description?: string, released?: boolean, archived?: boolean, releaseDate?: string) {
     return handleApiOperation(
-      () => VersionService.updateVersion(versionId, { name, description, released, archived, releaseDate }),
+      () => this.jira.projects.updateVersion({ id: versionId, requestBody: { name, description, released, archived, releaseDate } }),
       'Error updating version',
     );
   }
 
   async deleteAndReplaceVersion(versionId: string, moveFixIssuesTo?: number, moveAffectedIssuesTo?: number) {
     return handleApiOperation(
-      () => VersionService.delete1(versionId, { moveFixIssuesTo, moveAffectedIssuesTo }),
+      () => this.jira.projects.versionDelete({ id: versionId, requestBody: { moveFixIssuesTo, moveAffectedIssuesTo } }),
       'Error deleting version',
     );
   }
 
   async mergeVersion(versionId: string, moveIssuesToVersionId: string) {
     return handleApiOperation(
-      () => VersionService.merge(moveIssuesToVersionId, versionId),
+      () => this.jira.projects.merge({ moveIssuesTo: moveIssuesToVersionId, id: versionId }),
       'Error merging version',
     );
   }
 
   async moveVersion(versionId: string, position?: 'Earlier' | 'Later' | 'First' | 'Last', after?: string) {
     return handleApiOperation(
-      () => VersionService.moveVersion(versionId, { position: position as VersionMoveBean.position | undefined, after }),
+      () => this.jira.projects.moveVersion({ id: versionId, requestBody: { position: position as VersionMoveBean.position | undefined, after } }),
       'Error moving version',
     );
   }
 
   async getVersionRelatedIssues(versionId: string) {
     return handleApiOperation(
-      () => VersionService.getVersionRelatedIssues(versionId),
+      () => this.jira.projects.getVersionRelatedIssues({ id: versionId }),
       'Error getting version related issue counts',
     );
   }
 
   async getVersionUnresolvedIssues(versionId: string) {
     return handleApiOperation(
-      () => VersionService.getVersionUnresolvedIssues(versionId),
+      () => this.jira.projects.getVersionUnresolvedIssues({ id: versionId }),
       'Error getting version unresolved issue counts',
     );
   }
 
   async getProjectRoles(projectIdOrKey: string) {
-    return handleApiOperation(() => ProjectService.getProjectRoles(projectIdOrKey), 'Error getting project roles');
+    return handleApiOperation(() => this.jira.projects.getProjectRoles({ projectIdOrKey }), 'Error getting project roles');
   }
 
   async getProjectRole(projectIdOrKey: string, roleId: number) {
     return handleApiOperation(
-      () => ProjectService.getProjectRole(projectIdOrKey, roleId),
+      () => this.jira.projects.getProjectRole({ projectIdOrKey, id: roleId }),
       'Error getting project role',
     );
   }
 
   async setProjectRoleActors(projectIdOrKey: string, roleId: number, categorisedActors: Record<string, string[]>) {
     return handleApiOperation(
-      () => ProjectService.setActors(projectIdOrKey, roleId, { categorisedActors, id: roleId }),
+      () => this.jira.projects.setActors({ projectIdOrKey, id: roleId, requestBody: { categorisedActors, id: roleId } }),
       'Error setting project role actors',
     );
   }
 
   async addProjectRoleActors(projectIdOrKey: string, roleId: number, users?: string[], groups?: string[]) {
     return handleApiOperation(
-      () => ProjectService.addActorUsers(projectIdOrKey, roleId, {
+      () => this.jira.projects.addActorUsers({ projectIdOrKey, id: roleId, requestBody: {
         ...(users ? { user: users } : {}),
         ...(groups ? { group: groups } : {}),
-      }),
+      } }),
       'Error adding project role actors',
     );
   }
 
   async deleteProjectRoleActor(projectIdOrKey: string, roleId: number, user?: string, group?: string) {
     return handleApiOperation(
-      () => ProjectService.deleteActor(projectIdOrKey, roleId, user, group),
+      () => this.jira.projects.deleteActor({ projectIdOrKey, id: roleId, user, group }),
       'Error deleting project role actor',
     );
   }
 
   async getUser(username?: string, key?: string, includeDeleted?: boolean) {
     return handleApiOperation(
-      () => UserService.getUser1(includeDeleted, key, username),
+      () => this.jira.users.getUserUser({ includeDeleted, key, username }),
       'Error getting user',
     );
   }
 
   async findUsers(username: string, maxResults?: number, startAt?: number, includeActive?: boolean, includeInactive?: boolean) {
     return handleApiOperation(
-      () => UserService.findUsers(includeInactive, maxResults, includeActive, startAt, username),
+      () => this.jira.users.findUsers({ includeInactive, maxResults, includeActive, startAt, username }),
       'Error finding users',
     );
   }
 
   async findAssignableUsers(project: string, issueKey?: string, username?: string, maxResults?: number) {
     return handleApiOperation(
-      () => UserService.findAssignableUsers1(issueKey, maxResults ?? 50, project, undefined, username),
+      () => this.jira.users.findAssignableUsers({ issueKey, maxResults: maxResults ?? 50, project, username }),
       'Error finding assignable users',
     );
   }
 
   async createGroup(name: string) {
-    return handleApiOperation(() => GroupService.createGroup({ name }), 'Error creating group');
+    return handleApiOperation(() => this.jira.users.createGroup({ requestBody: { name } }), 'Error creating group');
   }
 
   async deleteGroup(groupname: string, swapGroup?: string) {
     return handleApiOperation(
-      () => GroupService.removeGroup(groupname, swapGroup),
+      () => this.jira.users.removeGroup({ groupname, swapGroup }),
       'Error deleting group',
     );
   }
 
   async getGroupUsers(groupname: string, includeInactiveUsers?: boolean, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => GroupService.getUsersFromGroup(groupname, includeInactiveUsers?.toString(), maxResults?.toString(), startAt?.toString()),
+      () => this.jira.users.getUsersFromGroup({ groupname, includeInactiveUsers: includeInactiveUsers?.toString(), maxResults: maxResults?.toString(), startAt: startAt?.toString() }),
       'Error getting group users',
     );
   }
 
   async addUserToGroup(groupname: string, username: string) {
     return handleApiOperation(
-      () => GroupService.addUserToGroup(groupname, { name: username }),
+      () => this.jira.users.addUserToGroup({ groupname, requestBody: { name: username } }),
       'Error adding user to group',
     );
   }
 
   async removeUserFromGroup(groupname: string, username: string) {
     return handleApiOperation(
-      () => GroupService.removeUserFromGroup(groupname, username),
+      () => this.jira.users.removeUserFromGroup({ groupname, username }),
       'Error removing user from group',
     );
   }
 
   async findGroups(query?: string, maxResults?: number, exclude?: string, userName?: string) {
     return handleApiOperation(
-      () => GroupsService.findGroups(maxResults?.toString(), query, exclude, userName),
+      () => this.jira.users.findGroups({ maxResults: maxResults?.toString(), query, exclude, userName }),
       'Error finding groups',
     );
   }
 
   async findUsersAndGroups(query: string, maxResults?: number, showAvatar?: boolean, issueTypeId?: string, projectId?: string, fieldId?: string) {
     return handleApiOperation(
-      () => GroupuserpickerService.findUsersAndGroups(issueTypeId, maxResults?.toString(), query, showAvatar?.toString(), projectId, fieldId),
+      () => this.jira.users.findUsersAndGroups({ issueTypeId, maxResults: maxResults?.toString(), query, showAvatar: showAvatar?.toString(), projectId, fieldId }),
       'Error finding users and groups',
     );
   }
 
   async createFilter(name: string, jql: string, description?: string, favourite?: boolean) {
     return handleApiOperation(
-      () => FilterService.createFilter(undefined, { name, jql, description, favourite }),
+      () => this.jira.admin.createFilter({ requestBody: { name, jql, description, favourite } }),
       'Error creating filter',
     );
   }
 
   async getFilter(filterId: string, expand?: string[]) {
-    return handleApiOperation(() => FilterService.getFilter(filterId, expand), 'Error getting filter');
+    return handleApiOperation(() => this.jira.admin.getFilter({ id: filterId, expand }), 'Error getting filter');
   }
 
   async updateFilter(filterId: string, name?: string, jql?: string, description?: string, favourite?: boolean) {
     return handleApiOperation(
-      () => FilterService.editFilter(filterId, undefined, { name, jql, description, favourite }),
+      () => this.jira.admin.editFilter({ id: filterId, requestBody: { name, jql, description, favourite } }),
       'Error updating filter',
     );
   }
 
   async deleteFilter(filterId: string) {
-    return handleApiOperation(() => FilterService.deleteFilter(filterId), 'Error deleting filter');
+    return handleApiOperation(() => this.jira.admin.deleteFilter({ id: filterId }), 'Error deleting filter');
   }
 
   async getFavouriteFilters() {
     return handleApiOperation(
-      () => FilterService.getFavouriteFilters(),
+      () => this.jira.admin.getFavouriteFilters({}),
       'Error getting favourite filters',
     );
   }
 
   async getDashboards(filter?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => DashboardService.list(filter, maxResults?.toString(), startAt?.toString()),
+      () => this.jira.admin.list({ filter, maxResults: maxResults?.toString(), startAt: startAt?.toString() }),
       'Error getting dashboards',
     );
   }
 
   async getDashboard(dashboardId: string) {
-    return handleApiOperation(() => DashboardService.getDashboard(dashboardId), 'Error getting dashboard');
+    return handleApiOperation(() => this.jira.admin.getDashboard({ id: dashboardId }), 'Error getting dashboard');
   }
 
   async getIssueLinkTypes() {
     return handleApiOperation(
-      () => IssueLinkTypeService.getIssueLinkTypes(),
+      () => this.jira.issues.getIssueLinkTypes({}),
       'Error getting issue link types',
     );
   }
 
   async createIssueLinkType(name: string, inward: string, outward: string) {
     return handleApiOperation(
-      () => IssueLinkTypeService.createIssueLinkType({ name, inward, outward }),
+      () => this.jira.issues.createIssueLinkType({ requestBody: { name, inward, outward } }),
       'Error creating issue link type',
     );
   }
 
   async updateIssueLinkType(issueLinkTypeId: string, name?: string, inward?: string, outward?: string) {
     return handleApiOperation(
-      () => IssueLinkTypeService.updateIssueLinkType(issueLinkTypeId, { name, inward, outward }),
+      () => this.jira.issues.updateIssueLinkType({ issueLinkTypeId, requestBody: { name, inward, outward } }),
       'Error updating issue link type',
     );
   }
 
   async deleteIssueLinkType(issueLinkTypeId: string) {
     return handleApiOperation(
-      () => IssueLinkTypeService.deleteIssueLinkType(issueLinkTypeId),
+      () => this.jira.issues.deleteIssueLinkType({ issueLinkTypeId }),
       'Error deleting issue link type',
     );
   }
@@ -971,62 +906,62 @@ export class JiraService {
         },
       }));
 
-      return IssueService.createIssues({ issueUpdates });
+      return this.jira.issues.createIssues({ requestBody: { issueUpdates } });
     }, 'Error bulk creating issues');
   }
 
   async archiveIssues(issueKeysOrJql: string, notifyUsers?: boolean) {
     return handleApiOperation(
-      () => IssueService.archiveIssues(notifyUsers?.toString(), issueKeysOrJql),
+      () => this.jira.issues.archiveIssues({ notifyUsers: notifyUsers?.toString(), requestBody: issueKeysOrJql }),
       'Error bulk archiving issues',
     );
   }
 
   async archiveIssue(issueKey: string, notifyUsers?: boolean) {
     return handleApiOperation(
-      () => IssueService.archiveIssue(issueKey, notifyUsers?.toString()),
+      () => this.jira.issues.archiveIssue({ issueIdOrKey: issueKey, notifyUsers: notifyUsers?.toString() }),
       'Error archiving issue',
     );
   }
 
   async restoreIssue(issueKey: string, notifyUsers?: boolean) {
     return handleApiOperation(
-      () => IssueService.restoreIssue(issueKey, notifyUsers?.toString()),
+      () => this.jira.issues.restoreIssue({ issueIdOrKey: issueKey, notifyUsers: notifyUsers?.toString() }),
       'Error restoring issue',
     );
   }
 
   async rankIssues(issueKeys: string[], rankBeforeIssue?: string, rankAfterIssue?: string, rankCustomFieldId?: number) {
     return handleApiOperation(
-      () => IssueService.rankIssues({ issues: issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId }),
+      () => this.jira.issues.rankIssues({ requestBody: { issues: issueKeys, rankBeforeIssue, rankAfterIssue, rankCustomFieldId } }),
       'Error ranking issues',
     );
   }
 
   async getIssuePropertyKeys(issueKey: string) {
     return handleApiOperation(
-      () => IssueService.getPropertiesKeys2(issueKey),
+      () => this.jira.issues.getIssuePropertiesKeys({ issueIdOrKey: issueKey }),
       'Error getting issue property keys',
     );
   }
 
   async getIssueProperty(issueKey: string, propertyKey: string) {
     return handleApiOperation(
-      () => IssueService.getProperty3(propertyKey, issueKey),
+      () => this.jira.issues.getIssueProperty({ propertyKey, issueIdOrKey: issueKey }),
       'Error getting issue property',
     );
   }
 
   async setIssueProperty(issueKey: string, propertyKey: string, value: string) {
     return handleApiOperation(
-      () => IssueService.setProperty2(propertyKey, issueKey, value),
+      () => this.jira.issues.setIssueProperty({ propertyKey, issueIdOrKey: issueKey, requestBody: value }),
       'Error setting issue property',
     );
   }
 
   async deleteIssueProperty(issueKey: string, propertyKey: string) {
     return handleApiOperation(
-      () => IssueService.deleteProperty3(propertyKey, issueKey),
+      () => this.jira.issues.deleteIssueProperty({ propertyKey, issueIdOrKey: issueKey }),
       'Error deleting issue property',
     );
   }
@@ -1045,7 +980,7 @@ export class JiraService {
     restrictToGroupNames?: string[],
   ) {
     return handleApiOperation(
-      () => IssueService.notify(issueKey, {
+      () => this.jira.issues.notify({ issueIdOrKey: issueKey, requestBody: {
         subject,
         textBody,
         htmlBody,
@@ -1058,679 +993,660 @@ export class JiraService {
           groups: toGroupNames?.map((name) => ({ name })),
         },
         restrict: restrictToGroupNames ? { groups: restrictToGroupNames.map((name) => ({ name })) } : undefined,
-      }),
+      } }),
       'Error sending issue notification',
     );
   }
 
   async setCommentPinned(issueKey: string, commentId: string, pinned: boolean) {
     return handleApiOperation(
-      () => IssueService.setPinComment(issueKey, commentId, pinned),
+      () => this.jira.issues.setPinComment({ issueIdOrKey: issueKey, id: commentId, requestBody: pinned }),
       'Error setting comment pinned state',
     );
   }
 
   async getPinnedComments(issueKey: string) {
     return handleApiOperation(
-      () => IssueService.getPinnedComments(issueKey),
+      () => this.jira.issues.getPinnedComments({ issueIdOrKey: issueKey }),
       'Error getting pinned comments',
     );
   }
 
   async getBoards(maxResults?: number, name?: string, projectKeyOrId?: string, startAt?: number) {
     return handleApiOperation(
-      () => BoardService.getAllBoards(maxResults, name, projectKeyOrId, undefined, startAt),
+      () => this.jira.agile.getAllBoards({ maxResults, name, projectKeyOrId, startAt }),
       'Error getting boards',
     );
   }
 
   async getBoard(boardId: number) {
-    return handleApiOperation(() => BoardService.getBoard(boardId), 'Error getting board');
+    return handleApiOperation(() => this.jira.agile.getBoard({ boardId }), 'Error getting board');
   }
 
   async getBoardConfiguration(boardId: number) {
     return handleApiOperation(
-      () => BoardService.getConfiguration(boardId),
+      () => this.jira.agile.getConfiguration({ boardId }),
       'Error getting board configuration',
     );
   }
 
   async getBoardIssues(boardId: number, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => BoardService.getIssuesForBoard(boardId, undefined, jql, maxResults, undefined, undefined, startAt),
+      () => this.jira.agile.getIssuesForBoard({ boardId, jql, maxResults, startAt }),
       'Error getting board issues',
     );
   }
 
   async getBoardSprints(boardId: number, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => BoardService.getAllSprints(boardId, maxResults, undefined, startAt),
+      () => this.jira.agile.getAllSprints({ boardId, maxResults, startAt }),
       'Error getting board sprints',
     );
   }
 
   async getBoardVersions(boardId: number, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => BoardService.getAllVersions(boardId, maxResults, undefined, startAt),
+      () => this.jira.agile.getAllVersions({ boardId, maxResults, startAt }),
       'Error getting board versions',
     );
   }
 
   async getBoardBacklogIssues(boardId: number, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => BoardService.getIssuesForBacklog(boardId, undefined, jql, maxResults, undefined, undefined, startAt),
+      () => this.jira.agile.getIssuesForBacklog({ boardId, jql, maxResults, startAt }),
       'Error getting board backlog issues',
     );
   }
 
   async getBoardEpics(boardId: number, maxResults?: number, done?: boolean, startAt?: number) {
     return handleApiOperation(
-      () => BoardService.getEpics(boardId, maxResults, done?.toString(), startAt),
+      () => this.jira.agile.getEpics({ boardId, maxResults, done: done?.toString(), startAt }),
       'Error getting board epics',
     );
   }
 
   async getBoardIssuesWithoutEpic(boardId: number, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => BoardService.getIssuesWithoutEpic(boardId, undefined, jql, maxResults, undefined, undefined, startAt),
+      () => this.jira.agile.getIssuesWithoutEpic({ boardId, jql, maxResults, startAt }),
       'Error getting board issues without an epic',
     );
   }
 
   async getBoardEpicIssues(boardId: number, epicId: number, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => BoardService.getIssuesForEpic(epicId, boardId, undefined, jql, maxResults, undefined, undefined, startAt),
+      () => this.jira.agile.getBoardIssuesForEpic({ epicId, boardId, jql, maxResults, startAt }),
       'Error getting board epic issues',
     );
   }
 
   async moveIssuesToBacklog(issueKeys: string[]) {
     return handleApiOperation(
-      () => BacklogService.moveIssuesToBacklog({ issues: issueKeys }),
+      () => this.jira.agile.moveIssuesToBacklog({ requestBody: { issues: issueKeys } }),
       'Error moving issues to backlog',
     );
   }
 
   async createSprint(name: string, originBoardId: number, startDate?: string, endDate?: string, goal?: string) {
     return handleApiOperation(
-      () => SprintService.createSprint({ name, originBoardId, startDate, endDate, goal }),
+      () => this.jira.agile.createSprint({ requestBody: { name, originBoardId, startDate, endDate, goal } }),
       'Error creating sprint',
     );
   }
 
   async getSprint(sprintId: number) {
-    return handleApiOperation(() => SprintService.getSprint(sprintId), 'Error getting sprint');
+    return handleApiOperation(() => this.jira.agile.getSprint({ sprintId }), 'Error getting sprint');
   }
 
   async updateSprint(sprintId: number, name?: string, startDate?: string, endDate?: string, goal?: string, state?: string) {
     return handleApiOperation(
-      () => SprintService.updateSprint(sprintId, { name, startDate, endDate, goal, state }),
+      () => this.jira.agile.updateSprint({ sprintId, requestBody: { name, startDate, endDate, goal, state } }),
       'Error updating sprint',
     );
   }
 
   async deleteSprint(sprintId: number) {
-    return handleApiOperation(() => SprintService.deleteSprint(sprintId), 'Error deleting sprint');
+    return handleApiOperation(() => this.jira.agile.deleteSprint({ sprintId }), 'Error deleting sprint');
   }
 
   async getSprintIssues(sprintId: number, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => SprintService.getIssuesForSprint1(sprintId, undefined, jql, maxResults, undefined, undefined, startAt),
+      () => this.jira.agile.getIssuesForSprint({ sprintId, jql, maxResults, startAt }),
       'Error getting sprint issues',
     );
   }
 
   async moveIssuesToSprint(sprintId: number, issueKeys: string[]) {
     return handleApiOperation(
-      () => SprintService.moveIssuesToSprint(sprintId, { issues: issueKeys }),
+      () => this.jira.agile.moveIssuesToSprint({ sprintId, requestBody: { issues: issueKeys } }),
       'Error moving issues to sprint',
     );
   }
 
   async getEpic(epicIdOrKey: string) {
-    return handleApiOperation(() => EpicService.getEpic(epicIdOrKey), 'Error getting epic');
+    return handleApiOperation(() => this.jira.agile.getEpic({ epicIdOrKey }), 'Error getting epic');
   }
 
   async updateEpic(epicIdOrKey: string, name?: string, summary?: string, done?: boolean) {
     return handleApiOperation(
-      () => EpicService.partiallyUpdateEpic(epicIdOrKey, { name, summary, done }),
+      () => this.jira.agile.partiallyUpdateEpic({ epicIdOrKey, requestBody: { name, summary, done } }),
       'Error updating epic',
     );
   }
 
   async getEpicIssues(epicIdOrKey: string, jql?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => EpicService.getIssuesForEpic1(epicIdOrKey, undefined, jql, maxResults, undefined, undefined, startAt),
+      () => this.jira.agile.getEpicIssuesForEpic({ epicIdOrKey, jql, maxResults, startAt }),
       'Error getting epic issues',
     );
   }
 
   async moveIssuesToEpic(epicIdOrKey: string, issueKeys: string[]) {
     return handleApiOperation(
-      () => EpicService.moveIssuesToEpic(epicIdOrKey, { issues: issueKeys }),
+      () => this.jira.agile.moveIssuesToEpic({ epicIdOrKey, requestBody: { issues: issueKeys } }),
       'Error moving issues to epic',
     );
   }
 
   async rankEpic(epicIdOrKey: string, rankBeforeEpic?: string, rankAfterEpic?: string, rankCustomFieldId?: number) {
     return handleApiOperation(
-      () => EpicService.rankEpics(epicIdOrKey, { rankBeforeEpic, rankAfterEpic, rankCustomFieldId }),
+      () => this.jira.agile.rankEpics({ epicIdOrKey, requestBody: { rankBeforeEpic, rankAfterEpic, rankCustomFieldId } }),
       'Error ranking epic',
     );
   }
 
   async getPermissionSchemes(expand?: string) {
     return handleApiOperation(
-      () => PermissionschemeService.getPermissionSchemes(expand),
+      () => this.jira.admin.getPermissionSchemes({ expand }),
       'Error getting permission schemes',
     );
   }
 
   async getPermissionScheme(schemeId: number, expand?: string) {
     return handleApiOperation(
-      () => PermissionschemeService.getPermissionScheme(schemeId, expand),
+      () => this.jira.admin.getPermissionScheme({ schemeId, expand }),
       'Error getting permission scheme',
     );
   }
 
   async createPermissionScheme(name: string, description?: string, permissions?: Array<{ permission: string; holderType: string; holderParameter?: string }>) {
     return handleApiOperation(
-      () => PermissionschemeService.createPermissionScheme(undefined, {
+      () => this.jira.admin.createPermissionScheme({ requestBody: {
         name,
         description,
         permissions: permissions?.map(({ permission, holderType, holderParameter }) => ({
           permission,
           holder: { type: holderType, parameter: holderParameter },
         })),
-      }),
+      } }),
       'Error creating permission scheme',
     );
   }
 
   async updatePermissionScheme(schemeId: number, name?: string, description?: string, permissions?: Array<{ permission: string; holderType: string; holderParameter?: string }>) {
     return handleApiOperation(
-      () => PermissionschemeService.updatePermissionScheme(schemeId, undefined, {
+      () => this.jira.admin.updatePermissionScheme({ schemeId, requestBody: {
         name,
         description,
         permissions: permissions?.map(({ permission, holderType, holderParameter }) => ({
           permission,
           holder: { type: holderType, parameter: holderParameter },
         })),
-      }),
+      } }),
       'Error updating permission scheme',
     );
   }
 
   async deletePermissionScheme(schemeId: number) {
     return handleApiOperation(
-      () => PermissionschemeService.deletePermissionScheme(schemeId),
+      () => this.jira.admin.deletePermissionScheme({ schemeId }),
       'Error deleting permission scheme',
     );
   }
 
   async getPermissionSchemeGrants(schemeId: number, expand?: string) {
     return handleApiOperation(
-      () => PermissionschemeService.getPermissionSchemeGrants(schemeId, expand),
+      () => this.jira.admin.getPermissionSchemeGrants({ schemeId, expand }),
       'Error getting permission scheme grants',
     );
   }
 
   async createPermissionGrant(schemeId: number, permission: string, holderType: string, holderParameter?: string) {
     return handleApiOperation(
-      () => PermissionschemeService.createPermissionGrant(schemeId, undefined, {
+      () => this.jira.admin.createPermissionGrant({ schemeId, requestBody: {
         permission,
         holder: { type: holderType, parameter: holderParameter },
-      }),
+      } }),
       'Error creating permission grant',
     );
   }
 
   async deletePermissionGrant(schemeId: number, permissionId: number) {
     return handleApiOperation(
-      () => PermissionschemeService.deletePermissionSchemeEntity(permissionId, schemeId),
+      () => this.jira.admin.deletePermissionSchemeEntity({ permissionId, schemeId }),
       'Error deleting permission grant',
     );
   }
 
   async getIssueTypeSchemes() {
     return handleApiOperation(
-      () => IssuetypeschemeService.getAllIssueTypeSchemes(),
+      () => this.jira.admin.getAllIssueTypeSchemes({}),
       'Error getting issue type schemes',
     );
   }
 
   async createIssueTypeScheme(name: string, description?: string, issueTypeIds?: string[], defaultIssueTypeId?: string) {
     return handleApiOperation(
-      () => IssuetypeschemeService.createIssueTypeScheme({ name, description, issueTypeIds, defaultIssueTypeId }),
+      () => this.jira.admin.createIssueTypeScheme({ requestBody: { name, description, issueTypeIds, defaultIssueTypeId } }),
       'Error creating issue type scheme',
     );
   }
 
   async getIssueTypeScheme(schemeId: string) {
     return handleApiOperation(
-      () => IssuetypeschemeService.getIssueTypeScheme(schemeId),
+      () => this.jira.admin.getIssueTypeScheme({ schemeId }),
       'Error getting issue type scheme',
     );
   }
 
   async updateIssueTypeScheme(schemeId: string, name?: string, description?: string, issueTypeIds?: string[], defaultIssueTypeId?: string) {
     return handleApiOperation(
-      () => IssuetypeschemeService.updateIssueTypeScheme(schemeId, { name, description, issueTypeIds, defaultIssueTypeId }),
+      () => this.jira.admin.updateIssueTypeScheme({ schemeId, requestBody: { name, description, issueTypeIds, defaultIssueTypeId } }),
       'Error updating issue type scheme',
     );
   }
 
   async deleteIssueTypeScheme(schemeId: string) {
     return handleApiOperation(
-      () => IssuetypeschemeService.deleteIssueTypeScheme(schemeId),
+      () => this.jira.admin.deleteIssueTypeScheme({ schemeId }),
       'Error deleting issue type scheme',
     );
   }
 
   async getIssueTypeSchemeProjects(schemeId: string, expand?: string) {
     return handleApiOperation(
-      () => IssuetypeschemeService.getAssociatedProjects(schemeId, expand),
+      () => this.jira.admin.getAssociatedProjects({ schemeId, expand }),
       'Error getting issue type scheme associated projects',
     );
   }
 
   async setIssueTypeSchemeProjects(schemeId: string, idsOrKeys: string[]) {
     return handleApiOperation(
-      () => IssuetypeschemeService.setProjectAssociationsForScheme(schemeId, { idsOrKeys }),
+      () => this.jira.admin.setProjectAssociationsForScheme({ schemeId, requestBody: { idsOrKeys } }),
       'Error setting issue type scheme project associations',
     );
   }
 
   async addIssueTypeSchemeProjects(schemeId: string, idsOrKeys: string[]) {
     return handleApiOperation(
-      () => IssuetypeschemeService.addProjectAssociationsToScheme(schemeId, { idsOrKeys }),
+      () => this.jira.admin.addProjectAssociationsToScheme({ schemeId, requestBody: { idsOrKeys } }),
       'Error adding issue type scheme project associations',
     );
   }
 
   async removeIssueTypeSchemeProjects(schemeId: string) {
     return handleApiOperation(
-      () => IssuetypeschemeService.removeAllProjectAssociations(schemeId),
+      () => this.jira.admin.removeAllProjectAssociations({ schemeId }),
       'Error removing issue type scheme project associations',
     );
   }
 
   async removeIssueTypeSchemeProject(schemeId: string, projIdOrKey: string) {
     return handleApiOperation(
-      () => IssuetypeschemeService.removeProjectAssociation(projIdOrKey, schemeId),
+      () => this.jira.admin.removeProjectAssociation({ projIdOrKey, schemeId }),
       'Error removing issue type scheme project association',
     );
   }
 
   async getPrioritySchemes(maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => PriorityschemesService.getPrioritySchemes(maxResults, startAt),
+      () => this.jira.admin.getPrioritySchemes({ maxResults, startAt }),
       'Error getting priority schemes',
     );
   }
 
   async createPriorityScheme(name: string, description?: string, defaultOptionId?: string, optionIds?: string[]) {
     return handleApiOperation(
-      () => PriorityschemesService.createPriorityScheme({ name, description, defaultOptionId, optionIds }),
+      () => this.jira.admin.createPriorityScheme({ requestBody: { name, description, defaultOptionId, optionIds } }),
       'Error creating priority scheme',
     );
   }
 
   async getPriorityScheme(schemeId: number) {
     return handleApiOperation(
-      () => PriorityschemesService.getPriorityScheme(schemeId),
+      () => this.jira.admin.getPriorityScheme({ schemeId }),
       'Error getting priority scheme',
     );
   }
 
   async updatePriorityScheme(schemeId: number, name?: string, description?: string, defaultOptionId?: string, optionIds?: string[]) {
     return handleApiOperation(
-      () => PriorityschemesService.updatePriorityScheme(schemeId, { name, description, defaultOptionId, optionIds }),
+      () => this.jira.admin.updatePriorityScheme({ schemeId, requestBody: { name, description, defaultOptionId, optionIds } }),
       'Error updating priority scheme',
     );
   }
 
   async deletePriorityScheme(schemeId: number) {
     return handleApiOperation(
-      () => PriorityschemesService.deletePriorityScheme(schemeId),
+      () => this.jira.admin.deletePriorityScheme({ schemeId }),
       'Error deleting priority scheme',
     );
   }
 
   async getProjectCategories() {
     return handleApiOperation(
-      () => ProjectCategoryService.getAllProjectCategories(),
+      () => this.jira.projects.getAllProjectCategories({}),
       'Error getting project categories',
     );
   }
 
   async createProjectCategory(name?: string, description?: string) {
     return handleApiOperation(
-      () => ProjectCategoryService.createProjectCategory({ name, description }),
+      () => this.jira.projects.createProjectCategory({ requestBody: { name, description } }),
       'Error creating project category',
     );
   }
 
   async getProjectCategory(id: number) {
     return handleApiOperation(
-      () => ProjectCategoryService.getProjectCategoryById(id),
+      () => this.jira.projects.getProjectCategoryById({ id }),
       'Error getting project category',
     );
   }
 
   async updateProjectCategory(id: number, name?: string, description?: string) {
     return handleApiOperation(
-      () => ProjectCategoryService.updateProjectCategory(id, { name, description }),
+      () => this.jira.projects.updateProjectCategory({ id, requestBody: { name, description } }),
       'Error updating project category',
     );
   }
 
   async deleteProjectCategory(id: number) {
     return handleApiOperation(
-      () => ProjectCategoryService.removeProjectCategory(id),
+      () => this.jira.projects.removeProjectCategory({ id }),
       'Error deleting project category',
     );
   }
 
   async getRoleDefinitions() {
     return handleApiOperation(
-      () => RoleService.getProjectRoles1(),
+      () => this.jira.admin.getProjectRoles({}),
       'Error getting role definitions',
     );
   }
 
   async createRoleDefinition(name: string, description?: string) {
     return handleApiOperation(
-      () => RoleService.createProjectRole({ name, description }),
+      () => this.jira.admin.createProjectRole({ requestBody: { name, description } }),
       'Error creating role definition',
     );
   }
 
   async getRoleDefinition(id: number) {
     return handleApiOperation(
-      () => RoleService.getProjectRolesById(id),
+      () => this.jira.admin.getProjectRolesById({ id }),
       'Error getting role definition',
     );
   }
 
   async updateRoleDefinition(id: number, name: string, description: string) {
     return handleApiOperation(
-      () => RoleService.fullyUpdateProjectRole(id, { name, description }),
+      () => this.jira.admin.fullyUpdateProjectRole({ id, requestBody: { name, description } }),
       'Error updating role definition',
     );
   }
 
   async partialUpdateRoleDefinition(id: number, name?: string, description?: string) {
     return handleApiOperation(
-      () => RoleService.partialUpdateProjectRole(id, { name, description }),
+      () => this.jira.admin.partialUpdateProjectRole({ id, requestBody: { name, description } }),
       'Error partially updating role definition',
     );
   }
 
   async deleteRoleDefinition(id: number, swap?: number) {
     return handleApiOperation(
-      () => RoleService.deleteProjectRole(id, swap),
+      () => this.jira.admin.deleteProjectRole({ id, swap }),
       'Error deleting role definition',
     );
   }
 
   async getRoleDefinitionActors(id: number) {
     return handleApiOperation(
-      () => RoleService.getProjectRoleActorsForRole(id),
+      () => this.jira.admin.getProjectRoleActorsForRole({ id }),
       'Error getting role definition actors',
     );
   }
 
   async addRoleDefinitionActors(id: number, users?: string[], groups?: string[]) {
     return handleApiOperation(
-      () => RoleService.addProjectRoleActorsToRole(id, {
+      () => this.jira.admin.addProjectRoleActorsToRole({ id, requestBody: {
         ...(users ? { user: users } : {}),
         ...(groups ? { group: groups } : {}),
-      }),
+      } }),
       'Error adding role definition actors',
     );
   }
 
   async deleteRoleDefinitionActor(id: number, user?: string, group?: string) {
     return handleApiOperation(
-      () => RoleService.deleteProjectRoleActorsFromRole(id, user, group),
+      () => this.jira.admin.deleteProjectRoleActorsFromRole({ id, user, group }),
       'Error deleting role definition actor',
     );
   }
 
   async getApplicationRoles() {
-    return handleApiOperation(() => ApplicationroleService.getAll(), 'Error getting application roles');
+    return handleApiOperation(() => this.jira.admin.getAll({}), 'Error getting application roles');
   }
 
   async getApplicationRole(key: string) {
-    return handleApiOperation(() => ApplicationroleService.get4(key), 'Error getting application role');
+    return handleApiOperation(() => this.jira.admin.get({ key }), 'Error getting application role');
   }
 
   async getWorkflows(workflowName?: string) {
     return handleApiOperation(
-      () => WorkflowService.getAllWorkflows(workflowName),
+      () => this.jira.workflows.getAllWorkflows({ workflowName }),
       'Error getting workflows',
     );
   }
 
   async getWorkflowScheme(schemeId: number, returnDraftIfExists?: boolean) {
     return handleApiOperation(
-      () => WorkflowschemeService.getById(schemeId, returnDraftIfExists),
+      () => this.jira.workflows.getById({ id: schemeId, returnDraftIfExists }),
       'Error getting workflow scheme',
     );
   }
 
   async getWorkflowSchemeDefault(schemeId: number, returnDraftIfExists?: boolean) {
     return handleApiOperation(
-      () => WorkflowschemeService.getDefault(schemeId, returnDraftIfExists),
+      () => this.jira.workflows.getDefault({ id: schemeId, returnDraftIfExists }),
       'Error getting workflow scheme default workflow',
     );
   }
 
   async getWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, returnDraftIfExists?: boolean) {
     return handleApiOperation(
-      () => WorkflowschemeService.getIssueType(issueType, schemeId, returnDraftIfExists),
+      () => this.jira.workflows.getIssueType({ issueType, id: schemeId, returnDraftIfExists }),
       'Error getting workflow scheme issue type mapping',
     );
   }
 
   async getWorkflowSchemeWorkflowMapping(schemeId: number, workflowName?: string, returnDraftIfExists?: boolean) {
     return handleApiOperation(
-      () => WorkflowschemeService.getWorkflow(schemeId, workflowName, returnDraftIfExists),
+      () => this.jira.workflows.getWorkflow({ id: schemeId, workflowName, returnDraftIfExists }),
       'Error getting workflow scheme workflow mapping',
     );
   }
 
   async createWorkflowScheme(name?: string, description?: string, defaultWorkflow?: string, issueTypeMappings?: Record<string, string>) {
     return handleApiOperation(
-      () => WorkflowschemeService.createScheme({ name, description, defaultWorkflow, issueTypeMappings }),
+      () => this.jira.workflows.createScheme({ requestBody: { name, description, defaultWorkflow, issueTypeMappings } }),
       'Error creating workflow scheme',
     );
   }
 
   async updateWorkflowScheme(schemeId: number, name?: string, description?: string, defaultWorkflow?: string, issueTypeMappings?: Record<string, string>, updateDraftIfNeeded?: boolean) {
     return handleApiOperation(
-      () => WorkflowschemeService.update(schemeId, { name, description, defaultWorkflow, issueTypeMappings, updateDraftIfNeeded }),
+      () => this.jira.workflows.update({ id: schemeId, requestBody: { name, description, defaultWorkflow, issueTypeMappings, updateDraftIfNeeded } }),
       'Error updating workflow scheme',
     );
   }
 
   async deleteWorkflowScheme(schemeId: number) {
     return handleApiOperation(
-      () => WorkflowschemeService.deleteScheme(schemeId),
+      () => this.jira.workflows.deleteScheme({ id: schemeId }),
       'Error deleting workflow scheme',
     );
   }
 
   async setWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, workflow: string, updateDraftIfNeeded?: boolean) {
     return handleApiOperation(
-      () => WorkflowschemeService.setIssueType(issueType, schemeId, { issueType, workflow, updateDraftIfNeeded }),
+      () => this.jira.workflows.setIssueType({ issueType, id: schemeId, requestBody: { issueType, workflow, updateDraftIfNeeded } }),
       'Error setting workflow scheme issue type mapping',
     );
   }
 
   async deleteWorkflowSchemeIssueTypeMapping(schemeId: number, issueType: string, updateDraftIfNeeded?: boolean) {
     return handleApiOperation(
-      () => WorkflowschemeService.deleteIssueType(issueType, schemeId, updateDraftIfNeeded),
+      () => this.jira.workflows.deleteIssueType({ issueType, id: schemeId, updateDraftIfNeeded }),
       'Error deleting workflow scheme issue type mapping',
     );
   }
 
   async setWorkflowSchemeWorkflowMapping(schemeId: number, workflow: string, issueTypes?: string[], defaultMapping?: boolean, updateDraftIfNeeded?: boolean, workflowName?: string) {
     return handleApiOperation(
-      () => WorkflowschemeService.updateWorkflowMapping(schemeId, { workflow, issueTypes, defaultMapping, updateDraftIfNeeded }, workflowName),
+      () => this.jira.workflows.updateWorkflowMapping({ id: schemeId, requestBody: { workflow, issueTypes, defaultMapping, updateDraftIfNeeded }, workflowName }),
       'Error setting workflow scheme workflow mapping',
     );
   }
 
   async deleteWorkflowSchemeWorkflowMapping(schemeId: number, workflowName?: string, updateDraftIfNeeded?: boolean) {
     return handleApiOperation(
-      () => WorkflowschemeService.deleteWorkflowMapping(schemeId, updateDraftIfNeeded, workflowName),
+      () => this.jira.workflows.deleteWorkflowMapping({ id: schemeId, updateDraftIfNeeded, workflowName }),
       'Error deleting workflow scheme workflow mapping',
     );
   }
 
   async getNotificationSchemes(expand?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => NotificationschemeService.getNotificationSchemes(expand, maxResults, startAt),
+      () => this.jira.admin.getNotificationSchemes({ expand, maxResults, startAt }),
       'Error getting notification schemes',
     );
   }
 
   async getNotificationScheme(id: number, expand?: string) {
     return handleApiOperation(
-      () => NotificationschemeService.getNotificationScheme(id, expand),
+      () => this.jira.admin.getNotificationScheme({ id, expand }),
       'Error getting notification scheme',
     );
   }
 
   async getSecurityLevel(id: string) {
     return handleApiOperation(
-      () => SecuritylevelService.getIssuesecuritylevel(id),
+      () => this.jira.admin.getIssuesecuritylevel({ id }),
       'Error getting security level',
     );
   }
 
   async getIssueSecuritySchemes() {
     return handleApiOperation(
-      () => IssuesecurityschemesService.getIssueSecuritySchemes(),
+      () => this.jira.admin.getIssueSecuritySchemes({}),
       'Error getting issue security schemes',
     );
   }
 
   async getIssueSecurityScheme(id: string) {
     return handleApiOperation(
-      () => IssuesecurityschemesService.getIssueSecurityScheme(id),
+      () => this.jira.admin.getIssueSecurityScheme({ id }),
       'Error getting issue security scheme',
     );
   }
 
   async getCustomFields(sortColumn?: string, types?: string[], search?: string, maxResults?: number, sortOrder?: string, screenIds?: string[], lastValueUpdate?: string, projectIds?: string[], startAt?: number) {
     return handleApiOperation(
-      () => CustomFieldsService.getCustomFields(
-        sortColumn,
-        types?.join(','),
-        search,
-        maxResults !== undefined ? String(maxResults) : undefined,
-        sortOrder,
-        screenIds?.join(','),
-        lastValueUpdate,
-        projectIds?.join(','),
-        startAt !== undefined ? String(startAt) : undefined,
-      ),
+      () => this.jira.admin.getCustomFields({ sortColumn, types: types?.join(','), search, maxResults: maxResults !== undefined ? String(maxResults) : undefined, sortOrder, screenIds: screenIds?.join(','), lastValueUpdate, projectIds: projectIds?.join(','), startAt: startAt !== undefined ? String(startAt) : undefined }),
       'Error getting custom fields',
     );
   }
 
   async deleteCustomFields(ids: string[]) {
     return handleApiOperation(
-      () => CustomFieldsService.bulkDeleteCustomFields(ids.join(',')),
+      () => this.jira.admin.bulkDeleteCustomFields({ ids: ids.join(',') }),
       'Error deleting custom fields',
     );
   }
 
   async getCustomFieldOptions(customFieldId: string, maxResults?: number, issueTypeIds?: string[], query?: string, sortByOptionName?: boolean, useAllContexts?: boolean, page?: number, projectIds?: string[]) {
     return handleApiOperation(
-      () => CustomFieldsService.getCustomFieldOptions(
-        customFieldId,
-        maxResults !== undefined ? String(maxResults) : undefined,
-        issueTypeIds?.join(','),
-        query,
-        sortByOptionName !== undefined ? String(sortByOptionName) : undefined,
-        useAllContexts !== undefined ? String(useAllContexts) : undefined,
-        page !== undefined ? String(page) : undefined,
-        projectIds?.join(','),
-      ),
+      () => this.jira.admin.getCustomFieldOptions({ customFieldId, maxResults: maxResults !== undefined ? String(maxResults) : undefined, issueTypeIds: issueTypeIds?.join(','), query, sortByOptionName: sortByOptionName !== undefined ? String(sortByOptionName) : undefined, useAllContexts: useAllContexts !== undefined ? String(useAllContexts) : undefined, page: page !== undefined ? String(page) : undefined, projectIds: projectIds?.join(',') }),
       'Error getting custom field options',
     );
   }
 
   async getCustomFieldOption(id: string) {
     return handleApiOperation(
-      () => CustomFieldOptionService.getCustomFieldOption(id),
+      () => this.jira.admin.getCustomFieldOption({ id }),
       'Error getting custom field option',
     );
   }
 
   async createCustomField(name: string, type: string, description?: string, searcherKey?: string, issueTypeIds?: string[], projectIds?: number[]) {
     return handleApiOperation(
-      () => FieldService.createCustomField({ name, type, description, searcherKey, issueTypeIds, projectIds }),
+      () => this.jira.workflows.createCustomField({ requestBody: { name, type, description, searcherKey, issueTypeIds, projectIds } }),
       'Error creating custom field',
     );
   }
 
   async createUser(name: string, emailAddress: string, displayName?: string, password?: string, notification?: string) {
     return handleApiOperation(
-      () => UserService.createUser({ name, emailAddress, displayName, password, notification }),
+      () => this.jira.users.createUser({ requestBody: { name, emailAddress, displayName, password, notification } }),
       'Error creating user',
     );
   }
 
   async removeUser(key?: string, username?: string) {
     return handleApiOperation(
-      () => UserService.removeUser(key, username),
+      () => this.jira.users.removeUser({ key, username }),
       'Error removing user',
     );
   }
 
   async changeUserPassword(password: string, currentPassword?: string, key?: string, username?: string) {
     return handleApiOperation(
-      () => UserService.changeUserPassword({ password, currentPassword }, key, username),
+      () => this.jira.users.changeUserPassword({ requestBody: { password, currentPassword }, key, username }),
       'Error changing user password',
     );
   }
 
   async validateUserAnonymization(userKey?: string, expand?: string) {
     return handleApiOperation(
-      () => UserService.validateUserAnonymization(expand, userKey),
+      () => this.jira.users.validateUserAnonymization({ expand, userKey }),
       'Error validating user anonymization',
     );
   }
 
   async scheduleUserAnonymization(userKey?: string, newOwnerKey?: string) {
     return handleApiOperation(
-      () => UserService.scheduleUserAnonymization({ userKey, newOwnerKey }),
+      () => this.jira.users.scheduleUserAnonymization({ requestBody: { userKey, newOwnerKey } }),
       'Error scheduling user anonymization',
     );
   }
 
   async getUserAnonymizationProgress(taskId?: number) {
     return handleApiOperation(
-      () => UserService.getProgress1(taskId),
+      () => this.jira.users.getProgress({ taskId }),
       'Error getting user anonymization progress',
     );
   }
 
   async getSystemAvatars(type: string) {
     return handleApiOperation(
-      () => AvatarService.getAllSystemAvatars(type),
+      () => this.jira.admin.getAllSystemAvatars({ type }),
       'Error getting system avatars',
     );
   }
 
   async getAvatars(type: string, owningObjectId: string) {
     return handleApiOperation(
-      () => UniversalAvatarService.getAvatars(type, owningObjectId),
+      () => this.jira.admin.getAvatars({ type, owningObjectId }),
       'Error getting avatars',
     );
   }
@@ -1739,199 +1655,194 @@ export class JiraService {
     return handleApiOperation(() => {
       const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
 
-      return UniversalAvatarService.storeTemporaryAvatarUsingMultiPart2(type, owningObjectId, { file } as unknown as FilePart);
+      return this.jira.admin.storeTemporaryAvatarUsingMultiPart({ type, owningObjectId, formData: { file } as unknown as FilePart });
     }, 'Error uploading temporary avatar');
   }
 
   async createAvatarFromTemporary(type: string, owningObjectId: string, cropperOffsetX?: number, cropperOffsetY?: number, cropperWidth?: number, needsCropping?: boolean, url?: string) {
     return handleApiOperation(
-      () => UniversalAvatarService.createAvatarFromTemporary3(type, owningObjectId, {
+      () => this.jira.admin.createAvatarFromTemporary({ type, owningObjectId, requestBody: {
         cropperOffsetX, cropperOffsetY, cropperWidth, needsCropping, url,
-      }),
+      } }),
       'Error creating avatar from temporary',
     );
   }
 
   async deleteAvatar(id: number, type: string, owningObjectId: string) {
     return handleApiOperation(
-      () => UniversalAvatarService.deleteAvatar1(id, type, owningObjectId),
+      () => this.jira.admin.deleteAvatar({ id, type, owningObjectId }),
       'Error deleting avatar',
     );
   }
 
   async getMyPermissions(projectKey?: string, projectId?: string, issueKey?: string, issueId?: string) {
     return handleApiOperation(
-      () => MypermissionsService.getPermissions(issueId, projectKey, issueKey, projectId),
+      () => this.jira.users.getPermissions({ issueId, projectKey, issueKey, projectId }),
       'Error getting my permissions',
     );
   }
 
   async getAllPermissions() {
     return handleApiOperation(
-      () => PermissionsService.getAllPermissions(),
+      () => this.jira.users.getAllPermissions({}),
       'Error getting all permissions',
     );
   }
 
   async getJqlAutocompleteData() {
     return handleApiOperation(
-      () => JqlService.getAutoComplete(),
+      () => this.jira.admin.getAutoComplete({}),
       'Error getting JQL autocomplete data',
     );
   }
 
   async getJqlFieldAutocomplete(fieldName?: string, fieldValue?: string, predicateName?: string, predicateValue?: string) {
     return handleApiOperation(
-      () => JqlService.getFieldAutoCompleteForQueryString(predicateValue, predicateName, fieldName, fieldValue),
+      () => this.jira.admin.getFieldAutoCompleteForQueryString({ predicateValue, predicateName, fieldName, fieldValue }),
       'Error getting JQL field autocomplete suggestions',
     );
   }
 
   async validateProjectKey(key?: string) {
     return handleApiOperation(
-      () => ProjectvalidateService.getProject1(key),
+      () => this.jira.projects.getProjectvalidateProject({ key }),
       'Error validating project key',
     );
   }
 
   async getMyPreference(key: string) {
-    return handleApiOperation(() => MypreferencesService.getPreference(key), 'Error getting user preference');
+    return handleApiOperation(() => this.jira.users.getPreference({ key }), 'Error getting user preference');
   }
 
   async setMyPreference(key: string, value: string) {
     return handleApiOperation(
-      () => MypreferencesService.setPreference(key, value),
+      () => this.jira.users.setPreference({ key, requestBody: value }),
       'Error setting user preference',
     );
   }
 
   async deleteMyPreference(key: string) {
     return handleApiOperation(
-      () => MypreferencesService.removePreference(key),
+      () => this.jira.users.removePreference({ key }),
       'Error deleting user preference',
     );
   }
 
   async getAllScreens(search?: string, expand?: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
-      () => ScreensService.getAllScreens(
-        search,
-        expand,
-        maxResults !== undefined ? String(maxResults) : undefined,
-        startAt !== undefined ? String(startAt) : undefined,
-      ),
+      () => this.jira.workflows.getAllScreens({ search, expand, maxResults: maxResults !== undefined ? String(maxResults) : undefined, startAt: startAt !== undefined ? String(startAt) : undefined }),
       'Error getting screens',
     );
   }
 
   async addFieldToDefaultScreen(fieldId: string) {
     return handleApiOperation(
-      () => ScreensService.addFieldToDefaultScreen(fieldId),
+      () => this.jira.workflows.addFieldToDefaultScreen({ fieldId }),
       'Error adding field to default screen',
     );
   }
 
   async getScreenAvailableFields(screenId: number) {
     return handleApiOperation(
-      () => ScreensService.getFieldsToAdd(screenId),
+      () => this.jira.workflows.getFieldsToAdd({ screenId }),
       'Error getting available fields for screen',
     );
   }
 
   async getScreenTabs(screenId: number, projectKey?: string) {
     return handleApiOperation(
-      () => ScreensService.getAllTabs(screenId, projectKey),
+      () => this.jira.workflows.getAllTabs({ screenId, projectKey }),
       'Error getting screen tabs',
     );
   }
 
   async addScreenTab(screenId: number, name: string) {
     return handleApiOperation(
-      () => ScreensService.addTab(screenId, { name }),
+      () => this.jira.workflows.addTab({ screenId, requestBody: { name } }),
       'Error adding screen tab',
     );
   }
 
   async renameScreenTab(screenId: number, tabId: number, name: string) {
     return handleApiOperation(
-      () => ScreensService.renameTab(tabId, screenId, { name }),
+      () => this.jira.workflows.renameTab({ tabId, screenId, requestBody: { name } }),
       'Error renaming screen tab',
     );
   }
 
   async deleteScreenTab(screenId: number, tabId: number) {
     return handleApiOperation(
-      () => ScreensService.deleteTab(tabId, screenId),
+      () => this.jira.workflows.deleteTab({ tabId, screenId }),
       'Error deleting screen tab',
     );
   }
 
   async moveScreenTab(screenId: number, tabId: number, pos: number) {
     return handleApiOperation(
-      () => ScreensService.moveTab(tabId, screenId, pos),
+      () => this.jira.workflows.moveTab({ tabId, screenId, pos }),
       'Error moving screen tab',
     );
   }
 
   async getScreenTabFields(screenId: number, tabId: number, projectKey?: string) {
     return handleApiOperation(
-      () => ScreensService.getAllFields(tabId, screenId, projectKey),
+      () => this.jira.workflows.getAllFields({ tabId, screenId, projectKey }),
       'Error getting screen tab fields',
     );
   }
 
   async addFieldToScreenTab(screenId: number, tabId: number, fieldId: string) {
     return handleApiOperation(
-      () => ScreensService.addField(tabId, screenId, { fieldId }),
+      () => this.jira.workflows.addField({ tabId, screenId, requestBody: { fieldId } }),
       'Error adding field to screen tab',
     );
   }
 
   async removeFieldFromScreenTab(screenId: number, tabId: number, fieldId: string) {
     return handleApiOperation(
-      () => ScreensService.removeField(tabId, screenId, fieldId),
+      () => this.jira.workflows.removeField({ tabId, screenId, id: fieldId }),
       'Error removing field from screen tab',
     );
   }
 
   async moveScreenTabField(screenId: number, tabId: number, fieldId: string, after?: string, position?: 'Earlier' | 'Later' | 'First' | 'Last') {
     return handleApiOperation(
-      () => ScreensService.moveField(tabId, screenId, fieldId, { after, position: position as MoveFieldBean.position | undefined }),
+      () => this.jira.workflows.moveField({ tabId, screenId, id: fieldId, requestBody: { after, position: position as MoveFieldBean.position | undefined } }),
       'Error moving screen tab field',
     );
   }
 
   async updateScreenTabFieldShowWhenEmpty(screenId: number, tabId: number, fieldId: string, showWhenEmpty: boolean) {
     return handleApiOperation(
-      () => ScreensService.updateShowWhenEmptyIndicator(tabId, screenId, showWhenEmpty, fieldId),
+      () => this.jira.workflows.updateShowWhenEmptyIndicator({ tabId, screenId, newValue: showWhenEmpty, id: fieldId }),
       'Error updating screen tab field show-when-empty indicator',
     );
   }
 
   async getServerInfo() {
     return handleApiOperation(
-      () => ServerInfoService.getServerInfo(),
+      () => this.jira.admin.getServerInfo({}),
       'Error getting server info',
     );
   }
 
   async validateLicense(licenseString: string) {
     return handleApiOperation(
-      () => LicenseValidatorService.validate(licenseString),
+      () => this.jira.admin.validate({ requestBody: licenseString }),
       'Error validating license',
     );
   }
 
   async getApplicationProperty(permissionLevel: string, key: string, keyFilter?: string) {
     return handleApiOperation(
-      () => ApplicationPropertiesService.getProperty(permissionLevel, key, keyFilter),
+      () => this.jira.admin.getProperty({ permissionLevel, key, keyFilter }),
       'Error getting application property',
     );
   }
 
   async getAdvancedSettings() {
     return handleApiOperation(
-      () => ApplicationPropertiesService.getAdvancedSettings(),
+      () => this.jira.admin.getAdvancedSettings({}),
       'Error getting advanced settings',
     );
   }
@@ -1940,12 +1851,10 @@ export class JiraService {
     // The generated client's setPropertyViaRestfulTable(id) omits the request body entirely,
     // so this calls the endpoint directly with the {id, value} JSON body the REST API expects.
     return handleApiOperation(
-      () => __request(OpenAPI, {
+      () => this.jira.request({
         method: 'PUT',
-        url: '/api/2/application-properties/{id}',
-        path: { id },
+        url: route`/api/2/application-properties/${id}`,
         body: { id, value },
-        mediaType: 'application/json',
       }),
       'Error setting application property',
     );
@@ -1953,21 +1862,21 @@ export class JiraService {
 
   async getClusterNodes() {
     return handleApiOperation(
-      () => ClusterService.getAllNodes(),
+      () => this.jira.admin.getAllNodes({}),
       'Error getting cluster nodes',
     );
   }
 
   async deleteClusterNode(nodeId: string) {
     return handleApiOperation(
-      () => ClusterService.deleteNode(nodeId),
+      () => this.jira.admin.deleteNode({ nodeId }),
       'Error deleting cluster node',
     );
   }
 
   async setClusterNodeOffline(nodeId: string) {
     return handleApiOperation(
-      () => ClusterService.changeNodeStateToOffline(nodeId),
+      () => this.jira.admin.changeNodeStateToOffline({ nodeId }),
       'Error setting cluster node offline',
     );
   }
@@ -1975,136 +1884,132 @@ export class JiraService {
   /** @deprecated Lucene-specific; planned for removal in Jira 11. */
   async requestClusterNodeIndexSnapshot(nodeId: string) {
     return handleApiOperation(
-      () => ClusterService.requestCurrentIndexFromNode(nodeId),
+      () => this.jira.admin.requestCurrentIndexFromNode({ nodeId }),
       'Error requesting cluster node index snapshot',
     );
   }
 
   async approveClusterUpgrade() {
     return handleApiOperation(
-      () => ClusterService.approveUpgrade(),
+      () => this.jira.admin.approveUpgrade({}),
       'Error approving cluster upgrade',
     );
   }
 
   async cancelClusterUpgrade() {
     return handleApiOperation(
-      () => ClusterService.cancelUpgrade(),
+      () => this.jira.admin.cancelUpgrade({}),
       'Error cancelling cluster upgrade',
     );
   }
 
   async retryClusterUpgrade() {
     return handleApiOperation(
-      () => ClusterService.acknowledgeErrors(),
+      () => this.jira.admin.acknowledgeErrors({}),
       'Error retrying cluster upgrade',
     );
   }
 
   async startClusterUpgrade() {
     return handleApiOperation(
-      () => ClusterService.setReadyToUpgrade(),
+      () => this.jira.admin.setReadyToUpgrade({}),
       'Error starting cluster upgrade',
     );
   }
 
   async getClusterUpgradeState() {
     return handleApiOperation(
-      () => ClusterService.getState(),
+      () => this.jira.admin.getState({}),
       'Error getting cluster upgrade state',
     );
   }
 
   async getIndexSummary() {
     return handleApiOperation(
-      () => IndexService.getIndexSummary(),
+      () => this.jira.admin.getIndexSummary({}),
       'Error getting index summary',
     );
   }
 
   async listIndexSnapshots() {
     return handleApiOperation(
-      () => IndexSnapshotService.listIndexSnapshot(),
+      () => this.jira.admin.listIndexSnapshot({}),
       'Error listing index snapshots',
     );
   }
 
   async createIndexSnapshot() {
     return handleApiOperation(
-      () => IndexSnapshotService.createIndexSnapshot(),
+      () => this.jira.admin.createIndexSnapshot({}),
       'Error creating index snapshot',
     );
   }
 
   async getIndexSnapshotStatus() {
     return handleApiOperation(
-      () => IndexSnapshotService.isIndexSnapshotRunning(),
+      () => this.jira.admin.isIndexSnapshotRunning({}),
       'Error getting index snapshot status',
     );
   }
 
   async getReindexInfo(taskId?: number) {
     return handleApiOperation(
-      () => ReindexService.getReindexInfo(taskId),
+      () => this.jira.admin.getReindexInfo({ taskId }),
       'Error getting reindex info',
     );
   }
 
   async startReindex(indexChangeHistory = false, type?: string, indexWorklogs = false, indexComments = false) {
     return handleApiOperation(
-      () => ReindexService.reindex(indexChangeHistory, type, indexWorklogs, indexComments),
+      () => this.jira.admin.reindex({ indexChangeHistory, type, indexWorklogs, indexComments }),
       'Error starting reindex',
     );
   }
 
   async reindexIssues(issueIds?: string[], indexChangeHistory = false, indexWorklogs = false, indexComments = false) {
     return handleApiOperation(
-      () => ReindexService.reindexIssues(issueIds, indexChangeHistory, indexWorklogs, indexComments),
+      () => this.jira.admin.reindexIssues({ issueId: issueIds, indexChangeHistory, indexWorklogs, indexComments }),
       'Error reindexing issues',
     );
   }
 
   async getReindexProgress(taskId?: number) {
     return handleApiOperation(
-      () => ReindexService.getReindexProgress(taskId),
+      () => this.jira.admin.getReindexProgress({ taskId }),
       'Error getting reindex progress',
     );
   }
 
   async processReindexRequests() {
     return handleApiOperation(
-      () => ReindexService.processRequests(),
+      () => this.jira.admin.processRequests({}),
       'Error processing reindex requests',
     );
   }
 
   async getReindexRequestsProgress(requestIds?: number[]) {
     return handleApiOperation(
-      () => ReindexService.getProgressBulk(requestIds),
+      () => this.jira.admin.getProgressBulk({ requestId: requestIds }),
       'Error getting reindex requests progress',
     );
   }
 
   async getReindexRequestProgress(requestId: number) {
     return handleApiOperation(
-      () => ReindexService.getProgress(requestId),
+      () => this.jira.admin.getProgress({ requestId }),
       'Error getting reindex request progress',
     );
   }
 
   async downloadEmailTemplates() {
     return handleApiOperation(async () => {
-      const url = `${OpenAPI.BASE}/api/2/email-templates`;
-      const token = await __resolveAuth({ method: 'GET', url }, OpenAPI.TOKEN);
-      const response = await fetch(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      const bytes = await this.jira.request<Uint8Array>({
+        method: 'GET',
+        url: '/api/2/email-templates',
+        responseType: 'arraybuffer',
       });
-      if (!response.ok) {
-        throw new Error(`Failed to download email templates: ${response.status} ${response.statusText}`);
-      }
-      const arrayBuffer = await response.arrayBuffer();
 
-      return { contentBase64: Buffer.from(arrayBuffer).toString('base64') };
+      return { contentBase64: Buffer.from(bytes).toString('base64') };
     }, 'Error downloading email templates');
   }
 
@@ -2112,61 +2017,61 @@ export class JiraService {
     return handleApiOperation(() => {
       const file = new File([Buffer.from(contentBase64, 'base64')], 'email-templates.zip');
 
-      return EmailTemplatesService.uploadEmailTemplates(file as unknown as Record<string, any>);
+      return this.jira.admin.uploadEmailTemplates({ requestBody: file as unknown as Record<string, any> });
     }, 'Error uploading email templates');
   }
 
   async applyEmailTemplates() {
     return handleApiOperation(
-      () => EmailTemplatesService.applyEmailTemplates(),
+      () => this.jira.admin.applyEmailTemplates({}),
       'Error applying uploaded email templates',
     );
   }
 
   async resetEmailTemplatesToDefault() {
     return handleApiOperation(
-      () => EmailTemplatesService.revertEmailTemplatesToDefault(),
+      () => this.jira.admin.revertEmailTemplatesToDefault({}),
       'Error resetting email templates to default',
     );
   }
 
   async getEmailTemplateTypes() {
     return handleApiOperation(
-      () => EmailTemplatesService.getEmailTypes(),
+      () => this.jira.admin.getEmailTypes({}),
       'Error getting email template types',
     );
   }
 
   async getCurrentSession() {
     return handleApiOperation(
-      () => SessionService.currentUser(),
+      () => this.jira.admin.currentUser({}),
       'Error getting current session',
     );
   }
 
   async createSession(username: string, password: string) {
     return handleApiOperation(
-      () => SessionService.login({ username, password }),
+      () => this.jira.admin.login({ requestBody: { username, password } }),
       'Error creating session',
     );
   }
 
   async deleteSession() {
     return handleApiOperation(
-      () => SessionService.logout(),
+      () => this.jira.admin.logout({}),
       'Error deleting session',
     );
   }
 
   async releaseWebSudo() {
     return handleApiOperation(
-      () => WebsudoService.release(),
+      () => this.jira.admin.release({}),
       'Error releasing WebSudo session',
     );
   }
 
   async validateSetup(): Promise<void> {
-    await MyselfService.getUser();
+    await this.jira.users.getMyselfUser({});
   }
 
   static validateConfig(): string[] {
