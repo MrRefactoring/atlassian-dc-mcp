@@ -643,6 +643,19 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
+    'jira_get_configuration',
+    {
+      description: `Get the global configuration (which optional features — voting, watching, sub-tasks, time tracking, attachments, issue linking — are enabled) in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getConfiguration,
+    },
+    async () => {
+      const result = await service.getConfiguration();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
     'jira_set_application_property',
     {
       description: `Update an application property's value in the ${jiraInstanceType}`,

@@ -599,6 +599,57 @@ describe('JiraService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockStatuses);
     });
+
+    it('gets status categories', async () => {
+      const mockCategories = [{ id: 2, key: 'new', name: 'To Do' }];
+      (jira.workflows.getStatusCategories as Mock).mockResolvedValue(mockCategories);
+
+      const result = await jiraService.getStatusCategories();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCategories);
+      expect(jira.workflows.getStatusCategories).toHaveBeenCalledWith({});
+    });
+
+    it('gets a status category by id or key', async () => {
+      const mockCategory = { id: 2, key: 'new', name: 'To Do' };
+      (jira.workflows.getStatusCategory as Mock).mockResolvedValue(mockCategory);
+
+      const result = await jiraService.getStatusCategory('new');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockCategory);
+      expect(jira.workflows.getStatusCategory).toHaveBeenCalledWith({ idOrKey: 'new' });
+    });
+
+    it('gets the global configuration', async () => {
+      const mockConfig = { votingEnabled: true, timeTrackingEnabled: true };
+      (jira.admin.getConfiguration as Mock).mockResolvedValue(mockConfig);
+
+      const result = await jiraService.getConfiguration();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockConfig);
+      expect(jira.admin.getConfiguration).toHaveBeenCalledWith({});
+    });
+
+    it('gets issue picker suggestions', async () => {
+      const mockSuggestions = { sections: [{ id: 'cs', label: 'Current Search', issues: [] }] };
+      (jira.issues.getIssuePickerSuggestions as Mock).mockResolvedValue(mockSuggestions);
+
+      const result = await jiraService.getIssuePickerSuggestions('crawl', 'project = SS');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockSuggestions);
+      expect(jira.issues.getIssuePickerSuggestions).toHaveBeenCalledWith({
+        query: 'crawl',
+        currentJQL: 'project = SS',
+        currentIssueKey: undefined,
+        currentProjectId: undefined,
+        showSubTasks: undefined,
+        showSubTaskParent: undefined,
+      });
+    });
   });
   describe('getCreateIssueMetaIssueTypes', () => {
     it('gets issue types available for creating an issue', async () => {

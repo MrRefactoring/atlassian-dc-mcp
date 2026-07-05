@@ -382,3 +382,7 @@ export { issueLinksSchema } from './issueLinks.js';
 export type { issueLinks } from './issueLinks.js';
 export { worklogSchema } from './worklog.js';
 export type { worklog } from './worklog.js';
+export { ConfigurationBeanSchema } from './configurationBean.js';
+export type { ConfigurationBean } from './configurationBean.js';
+export { IssuePickerResultsSchema } from './issuePickerResults.js';
+export type { IssuePickerResults } from './issuePickerResults.js';
