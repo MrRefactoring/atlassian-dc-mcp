@@ -6,7 +6,7 @@
  * sites write ``route`/api/latest/projects/${projectKey}/repos/${slug}` `` instead of
  * wrapping every segment by hand.
  */
-export const route = (strings: TemplateStringsArray, ...values: (string | number)[]): string =>
+export const route = (strings: TemplateStringsArray, ...values: (string | number | boolean)[]): string =>
   strings.reduce((out, str, i) => out + str + (i < values.length ? encodeURI(String(values[i])) : ''), '');
 
 /**
