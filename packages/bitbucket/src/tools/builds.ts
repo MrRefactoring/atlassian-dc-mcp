@@ -5,7 +5,7 @@ import { bitbucketToolSchemas } from '../bitbucketService.js';
 
 export function registerBuildTools(server: McpServer, service: BitbucketService) {
   server.registerTool(
-    'bitbucket_listBuildStatuses',
+    'bitbucket_list_build_statuses',
     {
       description: 'List build statuses (CI results) for a commit. NOTE: build statuses are keyed globally by commit id, so this does not take a project/repository.',
       inputSchema: bitbucketToolSchemas.listBuildStatuses,
@@ -18,7 +18,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_addBuildStatus',
+    'bitbucket_add_build_status',
     {
       description: 'Add (or update) a build status (CI result) on a commit. state is SUCCESSFUL, FAILED, or INPROGRESS; key uniquely identifies the build and url links to its result.',
       inputSchema: bitbucketToolSchemas.addBuildStatus,
@@ -31,7 +31,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_getBuildStatus',
+    'bitbucket_get_build_status',
     {
       description: 'Get a single build status for a commit by its key.',
       inputSchema: bitbucketToolSchemas.getBuildStatus,
@@ -44,9 +44,9 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_setInsightReport',
+    'bitbucket_set_insight_report',
     {
-      description: 'Create or replace a Code Insights report on a commit (e.g. linter/scanner results). The report \'key\' must be unique and namespaced. Use bitbucket_addInsightAnnotations to attach per-line findings.',
+      description: 'Create or replace a Code Insights report on a commit (e.g. linter/scanner results). The report \'key\' must be unique and namespaced. Use bitbucket_add_insight_annotations to attach per-line findings.',
       inputSchema: bitbucketToolSchemas.setInsightReport,
     },
     async ({ projectKey, repositorySlug, commitId, key, report }) => {
@@ -57,7 +57,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_getInsightReport',
+    'bitbucket_get_insight_report',
     {
       description: 'Get a Code Insights report on a commit by its key.',
       inputSchema: bitbucketToolSchemas.getInsightReport,
@@ -70,7 +70,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_deleteInsightReport',
+    'bitbucket_delete_insight_report',
     {
       description: 'Delete a Code Insights report (and its annotations) on a commit.',
       inputSchema: bitbucketToolSchemas.deleteInsightReport,
@@ -83,9 +83,9 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_addInsightAnnotations',
+    'bitbucket_add_insight_annotations',
     {
-      description: 'Add annotations (per-file/line findings) to a Code Insights report. The report must already exist (bitbucket_setInsightReport).',
+      description: 'Add annotations (per-file/line findings) to a Code Insights report. The report must already exist (bitbucket_set_insight_report).',
       inputSchema: bitbucketToolSchemas.addInsightAnnotations,
     },
     async ({ projectKey, repositorySlug, commitId, key, annotations }) => {
@@ -96,7 +96,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_getInsightAnnotations',
+    'bitbucket_get_insight_annotations',
     {
       description: 'Get the annotations of a Code Insights report on a commit.',
       inputSchema: bitbucketToolSchemas.getInsightAnnotations,
@@ -109,7 +109,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_deleteInsightAnnotations',
+    'bitbucket_delete_insight_annotations',
     {
       description: 'Delete annotations of a Code Insights report. Pass externalId to delete a single annotation, or omit it to delete all.',
       inputSchema: bitbucketToolSchemas.deleteInsightAnnotations,
@@ -122,7 +122,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_getRequiredBuildsMergeChecks',
+    'bitbucket_get_required_builds_merge_checks',
     {
       description: 'List the required-builds merge checks configured for a Bitbucket repository. Each check requires green builds for the given build keys before a PR targeting the matched ref can be merged.',
       inputSchema: bitbucketToolSchemas.getRequiredBuildsMergeChecks,
@@ -135,7 +135,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_createRequiredBuildsMergeCheck',
+    'bitbucket_create_required_builds_merge_check',
     {
       description: 'Create a required-builds merge check on a Bitbucket repository. Requires REPO_ADMIN. Provide the build parent keys that must be green and a target ref matcher (type + value); optionally exempt source refs.',
       inputSchema: bitbucketToolSchemas.createRequiredBuildsMergeCheck,
@@ -148,7 +148,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_updateRequiredBuildsMergeCheck',
+    'bitbucket_update_required_builds_merge_check',
     {
       description: 'Update a required-builds merge check on a Bitbucket repository. Requires REPO_ADMIN. This replaces the whole check, so provide the complete desired build keys and matcher.',
       inputSchema: bitbucketToolSchemas.updateRequiredBuildsMergeCheck,
@@ -161,7 +161,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   );
 
   server.registerTool(
-    'bitbucket_deleteRequiredBuildsMergeCheck',
+    'bitbucket_delete_required_builds_merge_check',
     {
       description: 'Delete a required-builds merge check from a Bitbucket repository by its ID. Requires REPO_ADMIN.',
       inputSchema: bitbucketToolSchemas.deleteRequiredBuildsMergeCheck,

@@ -6,7 +6,7 @@ import type { JiraService } from '../jiraService.js';
 
 export function registerUserTools(server: McpServer, service: JiraService) {
   server.registerTool(
-    'jira_getUser',
+    'jira_get_user',
     {
       description: `Get details of a single user by username or key from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getUser,
@@ -19,7 +19,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_findUsers',
+    'jira_find_users',
     {
       description: `Search for users by free-text query in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.findUsers,
@@ -32,9 +32,9 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_findAssignableUsers',
+    'jira_find_assignable_users',
     {
-      description: `Search for users assignable to a project or issue in the ${jiraInstanceType}. Use before jira_assignIssue to find valid candidates.`,
+      description: `Search for users assignable to a project or issue in the ${jiraInstanceType}. Use before jira_assign_issue to find valid candidates.`,
       inputSchema: jiraToolSchemas.findAssignableUsers,
     },
     async ({ project, issueKey, username, maxResults }) => {
@@ -45,7 +45,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createGroup',
+    'jira_create_group',
     {
       description: `Create a group in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createGroup,
@@ -58,7 +58,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteGroup',
+    'jira_delete_group',
     {
       description: `Delete a group from the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteGroup,
@@ -71,7 +71,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getGroupUsers',
+    'jira_get_group_users',
     {
       description: `Get the members of a group in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getGroupUsers,
@@ -84,7 +84,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_addUserToGroup',
+    'jira_add_user_to_group',
     {
       description: `Add a user to a group in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.addUserToGroup,
@@ -97,7 +97,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_removeUserFromGroup',
+    'jira_remove_user_from_group',
     {
       description: `Remove a user from a group in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.removeUserFromGroup,
@@ -110,7 +110,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_findGroups',
+    'jira_find_groups',
     {
       description: `Search for groups by a substring match against group names in the ${jiraInstanceType}. Used for group-picker style autocomplete.`,
       inputSchema: jiraToolSchemas.findGroups,
@@ -123,7 +123,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_findUsersAndGroups',
+    'jira_find_users_and_groups',
     {
       description: `Search for users and groups matching a query, with match highlighting, in the ${jiraInstanceType}. Used for combined user/group-picker style autocomplete fields such as assignee, reporter, or a group-picker custom field.`,
       inputSchema: jiraToolSchemas.findUsersAndGroups,
@@ -136,7 +136,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createUser',
+    'jira_create_user',
     {
       description: `Create a new user in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createUser,
@@ -149,7 +149,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_removeUser',
+    'jira_remove_user',
     {
       description: `Remove a user and its references in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.removeUser,
@@ -162,7 +162,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_changeUserPassword',
+    'jira_change_user_password',
     {
       description: `Change a user's password in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.changeUserPassword,
@@ -175,7 +175,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_validateUserAnonymization',
+    'jira_validate_user_anonymization',
     {
       description: `Validate whether a user can be anonymized in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.validateUserAnonymization,
@@ -188,7 +188,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_scheduleUserAnonymization',
+    'jira_schedule_user_anonymization',
     {
       description: `Schedule a user anonymization process in the ${jiraInstanceType}. Requires system admin permission.`,
       inputSchema: jiraToolSchemas.scheduleUserAnonymization,
@@ -201,7 +201,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getUserAnonymizationProgress',
+    'jira_get_user_anonymization_progress',
     {
       description: `Get the progress of a user anonymization task in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getUserAnonymizationProgress,
@@ -214,7 +214,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getSystemAvatars',
+    'jira_get_system_avatars',
     {
       description: `Get all system avatars of a given type in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getSystemAvatars,
@@ -227,7 +227,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getAvatars',
+    'jira_get_avatars',
     {
       description: `Get all avatars (system and custom) for a given type and owner in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getAvatars,
@@ -240,9 +240,9 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_uploadTemporaryAvatar',
+    'jira_upload_temporary_avatar',
     {
-      description: `Upload a temporary avatar image in the ${jiraInstanceType}. Returns cropping instructions to pass to jira_createAvatarFromTemporary.`,
+      description: `Upload a temporary avatar image in the ${jiraInstanceType}. Returns cropping instructions to pass to jira_create_avatar_from_temporary.`,
       inputSchema: jiraToolSchemas.uploadTemporaryAvatar,
     },
     async ({ type, owningObjectId, fileName, contentBase64 }) => {
@@ -253,9 +253,9 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createAvatarFromTemporary',
+    'jira_create_avatar_from_temporary',
     {
-      description: `Finalize a temporary avatar into a real avatar in the ${jiraInstanceType}, using the cropping instructions from jira_uploadTemporaryAvatar.`,
+      description: `Finalize a temporary avatar into a real avatar in the ${jiraInstanceType}, using the cropping instructions from jira_upload_temporary_avatar.`,
       inputSchema: jiraToolSchemas.createAvatarFromTemporary,
     },
     async ({ type, owningObjectId, cropperOffsetX, cropperOffsetY, cropperWidth, needsCropping, url }) => {
@@ -266,7 +266,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteAvatar',
+    'jira_delete_avatar',
     {
       description: `Delete an avatar by id in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.deleteAvatar,
@@ -279,7 +279,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getMyPermissions',
+    'jira_get_my_permissions',
     {
       description: `Get the permissions the currently logged in user has in the ${jiraInstanceType}, optionally scoped to a project or issue`,
       inputSchema: jiraToolSchemas.getMyPermissions,
@@ -292,7 +292,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getAllPermissions',
+    'jira_get_all_permissions',
     {
       description: `Get the full catalog of permission types present in the ${jiraInstanceType} — global, project, and plugin-added`,
       inputSchema: jiraToolSchemas.getAllPermissions,
@@ -305,7 +305,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getMyPreference',
+    'jira_get_my_preference',
     {
       description: `Get a preference value for the current user by key in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getMyPreference,
@@ -318,7 +318,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_setMyPreference',
+    'jira_set_my_preference',
     {
       description: `Set a preference value for the current user by key in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.setMyPreference,
@@ -331,7 +331,7 @@ export function registerUserTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteMyPreference',
+    'jira_delete_my_preference',
     {
       description: `Remove a preference value for the current user by key in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.deleteMyPreference,

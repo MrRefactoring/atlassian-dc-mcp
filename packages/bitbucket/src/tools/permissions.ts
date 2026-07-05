@@ -5,7 +5,7 @@ import { bitbucketToolSchemas } from '../bitbucketService.js';
 
 export function registerPermissionTools(server: McpServer, service: BitbucketService) {
   server.registerTool(
-    'bitbucket_getProjectPermissions',
+    'bitbucket_get_project_permissions',
     {
       description: 'Get the users and groups granted a permission on a Bitbucket project, along with their highest permission level. Requires PROJECT_ADMIN permission (or higher) for the project.',
       inputSchema: bitbucketToolSchemas.getProjectPermissions,
@@ -18,7 +18,7 @@ export function registerPermissionTools(server: McpServer, service: BitbucketSer
   );
 
   server.registerTool(
-    'bitbucket_setProjectUserPermission',
+    'bitbucket_set_project_user_permission',
     {
       description: 'Grant or change a user\'s permission level on a Bitbucket project (PROJECT_READ, PROJECT_WRITE, or PROJECT_ADMIN). Requires PROJECT_ADMIN permission (or higher) for the project.',
       inputSchema: bitbucketToolSchemas.setProjectUserPermission,
@@ -31,7 +31,7 @@ export function registerPermissionTools(server: McpServer, service: BitbucketSer
   );
 
   server.registerTool(
-    'bitbucket_setProjectGroupPermission',
+    'bitbucket_set_project_group_permission',
     {
       description: 'Grant or change a group\'s permission level on a Bitbucket project (PROJECT_READ, PROJECT_WRITE, or PROJECT_ADMIN). Requires PROJECT_ADMIN permission (or higher) for the project.',
       inputSchema: bitbucketToolSchemas.setProjectGroupPermission,
@@ -44,7 +44,7 @@ export function registerPermissionTools(server: McpServer, service: BitbucketSer
   );
 
   server.registerTool(
-    'bitbucket_revokeProjectPermission',
+    'bitbucket_revoke_project_permission',
     {
       description: 'Revoke a user\'s and/or a group\'s permissions on a Bitbucket project. Provide at least one of user or group. Requires PROJECT_ADMIN permission (or higher) for the project.',
       inputSchema: bitbucketToolSchemas.revokeProjectPermission,
@@ -57,7 +57,7 @@ export function registerPermissionTools(server: McpServer, service: BitbucketSer
   );
 
   server.registerTool(
-    'bitbucket_getRepoPermissions',
+    'bitbucket_get_repo_permissions',
     {
       description: 'Get the users and groups granted a permission on a Bitbucket repository, along with their highest permission level. Requires REPO_ADMIN permission (or higher project/global permission).',
       inputSchema: bitbucketToolSchemas.getRepoPermissions,
@@ -70,7 +70,7 @@ export function registerPermissionTools(server: McpServer, service: BitbucketSer
   );
 
   server.registerTool(
-    'bitbucket_setRepoUserPermission',
+    'bitbucket_set_repo_user_permission',
     {
       description: 'Grant or change a user\'s permission level on a Bitbucket repository (REPO_READ, REPO_WRITE, or REPO_ADMIN). Requires REPO_ADMIN permission (or higher project/global permission).',
       inputSchema: bitbucketToolSchemas.setRepoUserPermission,
@@ -83,7 +83,7 @@ export function registerPermissionTools(server: McpServer, service: BitbucketSer
   );
 
   server.registerTool(
-    'bitbucket_setRepoGroupPermission',
+    'bitbucket_set_repo_group_permission',
     {
       description: 'Grant or change a group\'s permission level on a Bitbucket repository (REPO_READ, REPO_WRITE, or REPO_ADMIN). Requires REPO_ADMIN permission (or higher project/global permission).',
       inputSchema: bitbucketToolSchemas.setRepoGroupPermission,
@@ -96,7 +96,7 @@ export function registerPermissionTools(server: McpServer, service: BitbucketSer
   );
 
   server.registerTool(
-    'bitbucket_revokeRepoPermission',
+    'bitbucket_revoke_repo_permission',
     {
       description: 'Revoke a user\'s and/or a group\'s permissions on a Bitbucket repository. Provide at least one of user or group. Requires REPO_ADMIN permission (or higher project/global permission).',
       inputSchema: bitbucketToolSchemas.revokeRepoPermission,

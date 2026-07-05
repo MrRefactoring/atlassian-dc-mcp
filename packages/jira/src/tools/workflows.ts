@@ -6,7 +6,7 @@ import type { JiraService } from '../jiraService.js';
 
 export function registerWorkflowTools(server: McpServer, service: JiraService) {
   server.registerTool(
-    'jira_getWorkflows',
+    'jira_get_workflows',
     {
       description: `Get all workflows (or a workflow by name) in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getWorkflows,
@@ -19,7 +19,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getWorkflowScheme',
+    'jira_get_workflow_scheme',
     {
       description: `Get a workflow scheme by id in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getWorkflowScheme,
@@ -32,7 +32,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getWorkflowSchemeDefault',
+    'jira_get_workflow_scheme_default',
     {
       description: `Get the default workflow of a workflow scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getWorkflowSchemeDefault,
@@ -45,7 +45,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getWorkflowSchemeIssueTypeMapping',
+    'jira_get_workflow_scheme_issue_type_mapping',
     {
       description: `Get the workflow mapping for a specific issue type in a workflow scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getWorkflowSchemeIssueTypeMapping,
@@ -58,7 +58,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getWorkflowSchemeWorkflowMapping',
+    'jira_get_workflow_scheme_workflow_mapping',
     {
       description: `Get the issue type mappings for a workflow (or all workflows) in a workflow scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getWorkflowSchemeWorkflowMapping,
@@ -71,7 +71,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createWorkflowScheme',
+    'jira_create_workflow_scheme',
     {
       description: `Create a new workflow scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createWorkflowScheme,
@@ -84,7 +84,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updateWorkflowScheme',
+    'jira_update_workflow_scheme',
     {
       description: `Update a workflow scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.updateWorkflowScheme,
@@ -97,7 +97,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteWorkflowScheme',
+    'jira_delete_workflow_scheme',
     {
       description: `Delete a workflow scheme in the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteWorkflowScheme,
@@ -110,7 +110,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_setWorkflowSchemeIssueTypeMapping',
+    'jira_set_workflow_scheme_issue_type_mapping',
     {
       description: `Set the workflow mapping for a specific issue type in a workflow scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.setWorkflowSchemeIssueTypeMapping,
@@ -123,7 +123,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteWorkflowSchemeIssueTypeMapping',
+    'jira_delete_workflow_scheme_issue_type_mapping',
     {
       description: `Remove an issue type's workflow mapping from a workflow scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.deleteWorkflowSchemeIssueTypeMapping,
@@ -136,7 +136,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_setWorkflowSchemeWorkflowMapping',
+    'jira_set_workflow_scheme_workflow_mapping',
     {
       description: `Set (add or replace) a workflow's issue type mapping in a workflow scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.setWorkflowSchemeWorkflowMapping,
@@ -149,7 +149,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteWorkflowSchemeWorkflowMapping',
+    'jira_delete_workflow_scheme_workflow_mapping',
     {
       description: `Remove a workflow's mapping from a workflow scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.deleteWorkflowSchemeWorkflowMapping,
@@ -162,7 +162,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getAllScreens',
+    'jira_get_all_screens',
     {
       description: `Get a paginated, searchable list of field screens in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getAllScreens,
@@ -175,7 +175,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_addFieldToDefaultScreen',
+    'jira_add_field_to_default_screen',
     {
       description: `Add a field or custom field to the default screen's default tab in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.addFieldToDefaultScreen,
@@ -188,7 +188,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getScreenAvailableFields',
+    'jira_get_screen_available_fields',
     {
       description: `Get fields available to add to a screen (ones not already present on any tab) in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getScreenAvailableFields,
@@ -201,7 +201,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getScreenTabs',
+    'jira_get_screen_tabs',
     {
       description: `Get all tabs for a screen in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getScreenTabs,
@@ -214,7 +214,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_addScreenTab',
+    'jira_add_screen_tab',
     {
       description: `Add a new tab to a screen in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.addScreenTab,
@@ -227,7 +227,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_renameScreenTab',
+    'jira_rename_screen_tab',
     {
       description: `Rename a tab on a screen in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.renameScreenTab,
@@ -240,7 +240,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteScreenTab',
+    'jira_delete_screen_tab',
     {
       description: `Delete a tab from a screen in the ${jiraInstanceType}. The screen must have at least one tab remaining.`,
       inputSchema: jiraToolSchemas.deleteScreenTab,
@@ -253,7 +253,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_moveScreenTab',
+    'jira_move_screen_tab',
     {
       description: `Move a tab to a new position on a screen in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.moveScreenTab,
@@ -266,7 +266,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getScreenTabFields',
+    'jira_get_screen_tab_fields',
     {
       description: `Get all fields on a screen tab in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getScreenTabFields,
@@ -279,7 +279,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_addFieldToScreenTab',
+    'jira_add_field_to_screen_tab',
     {
       description: `Add a field to a screen tab in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.addFieldToScreenTab,
@@ -292,7 +292,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_removeFieldFromScreenTab',
+    'jira_remove_field_from_screen_tab',
     {
       description: `Remove a field from a screen tab in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.removeFieldFromScreenTab,
@@ -305,7 +305,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_moveScreenTabField',
+    'jira_move_screen_tab_field',
     {
       description: `Move a field's position on a screen tab in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.moveScreenTabField,
@@ -318,7 +318,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updateScreenTabFieldShowWhenEmpty',
+    'jira_update_screen_tab_field_show_when_empty',
     {
       description: `Update whether a field on a screen tab shows a 'no value' indicator when empty in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.updateScreenTabFieldShowWhenEmpty,

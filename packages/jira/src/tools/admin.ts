@@ -6,7 +6,7 @@ import type { JiraService } from '../jiraService.js';
 
 export function registerAdminTools(server: McpServer, service: JiraService) {
   server.registerTool(
-    'jira_createFilter',
+    'jira_create_filter',
     {
       description: `Create a saved search filter in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createFilter,
@@ -19,7 +19,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getFilter',
+    'jira_get_filter',
     {
       description: `Get a saved search filter by id from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getFilter,
@@ -32,7 +32,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updateFilter',
+    'jira_update_filter',
     {
       description: `Update a saved search filter in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.updateFilter,
@@ -45,7 +45,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteFilter',
+    'jira_delete_filter',
     {
       description: `Delete a saved search filter from the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteFilter,
@@ -58,7 +58,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getFavouriteFilters',
+    'jira_get_favourite_filters',
     {
       description: `Get the current user's favourite saved search filters in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getFavouriteFilters,
@@ -71,7 +71,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getDashboards',
+    'jira_get_dashboards',
     {
       description: `Get a list of dashboards visible to the current user in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getDashboards,
@@ -84,7 +84,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getDashboard',
+    'jira_get_dashboard',
     {
       description: `Get a single dashboard by id from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getDashboard,
@@ -97,7 +97,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueTypeSchemes',
+    'jira_get_issue_type_schemes',
     {
       description: `Get all issue type schemes visible to the user in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueTypeSchemes,
@@ -110,7 +110,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createIssueTypeScheme',
+    'jira_create_issue_type_scheme',
     {
       description: `Create a new issue type scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createIssueTypeScheme,
@@ -123,7 +123,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueTypeScheme',
+    'jira_get_issue_type_scheme',
     {
       description: `Get a single issue type scheme by id from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueTypeScheme,
@@ -136,7 +136,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updateIssueTypeScheme',
+    'jira_update_issue_type_scheme',
     {
       description: `Update an issue type scheme's name, description, or issue types in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.updateIssueTypeScheme,
@@ -149,7 +149,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteIssueTypeScheme',
+    'jira_delete_issue_type_scheme',
     {
       description: `Delete an issue type scheme in the ${jiraInstanceType}. Associated projects fall back to the default scheme.`,
       inputSchema: jiraToolSchemas.deleteIssueTypeScheme,
@@ -162,7 +162,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueTypeSchemeProjects',
+    'jira_get_issue_type_scheme_projects',
     {
       description: `Get the projects associated with an issue type scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueTypeSchemeProjects,
@@ -175,7 +175,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_setIssueTypeSchemeProjects',
+    'jira_set_issue_type_scheme_projects',
     {
       description: `Replace the project associations of an issue type scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.setIssueTypeSchemeProjects,
@@ -188,7 +188,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_addIssueTypeSchemeProjects',
+    'jira_add_issue_type_scheme_projects',
     {
       description: `Add project associations to an issue type scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.addIssueTypeSchemeProjects,
@@ -201,7 +201,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_removeIssueTypeSchemeProjects',
+    'jira_remove_issue_type_scheme_projects',
     {
       description: `Remove all project associations from an issue type scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.removeIssueTypeSchemeProjects,
@@ -214,7 +214,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_removeIssueTypeSchemeProject',
+    'jira_remove_issue_type_scheme_project',
     {
       description: `Remove a single project association from an issue type scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.removeIssueTypeSchemeProject,
@@ -227,7 +227,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getPrioritySchemes',
+    'jira_get_priority_schemes',
     {
       description: `Get all priority schemes in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getPrioritySchemes,
@@ -240,7 +240,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createPriorityScheme',
+    'jira_create_priority_scheme',
     {
       description: `Create a new priority scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createPriorityScheme,
@@ -253,7 +253,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getPriorityScheme',
+    'jira_get_priority_scheme',
     {
       description: `Get a single priority scheme by id from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getPriorityScheme,
@@ -266,7 +266,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updatePriorityScheme',
+    'jira_update_priority_scheme',
     {
       description: `Update a priority scheme's name, description, or priorities in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.updatePriorityScheme,
@@ -279,7 +279,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deletePriorityScheme',
+    'jira_delete_priority_scheme',
     {
       description: `Delete a priority scheme in the ${jiraInstanceType}. Projects using it fall back to the default priority scheme.`,
       inputSchema: jiraToolSchemas.deletePriorityScheme,
@@ -292,7 +292,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getPermissionSchemes',
+    'jira_get_permission_schemes',
     {
       description: `Get all permission schemes in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getPermissionSchemes,
@@ -305,7 +305,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getPermissionScheme',
+    'jira_get_permission_scheme',
     {
       description: `Get a single permission scheme by id from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getPermissionScheme,
@@ -318,7 +318,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createPermissionScheme',
+    'jira_create_permission_scheme',
     {
       description: `Create a new permission scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createPermissionScheme,
@@ -331,7 +331,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updatePermissionScheme',
+    'jira_update_permission_scheme',
     {
       description: `Update a permission scheme's name, description, or permission grants in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.updatePermissionScheme,
@@ -344,7 +344,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deletePermissionScheme',
+    'jira_delete_permission_scheme',
     {
       description: `Delete a permission scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.deletePermissionScheme,
@@ -357,7 +357,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getPermissionSchemeGrants',
+    'jira_get_permission_scheme_grants',
     {
       description: `Get all permission grants of a permission scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getPermissionSchemeGrants,
@@ -370,7 +370,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createPermissionGrant',
+    'jira_create_permission_grant',
     {
       description: `Create a permission grant in a permission scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createPermissionGrant,
@@ -383,7 +383,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deletePermissionGrant',
+    'jira_delete_permission_grant',
     {
       description: `Delete a permission grant from a permission scheme in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.deletePermissionGrant,
@@ -396,7 +396,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getApplicationRoles',
+    'jira_get_application_roles',
     {
       description: `Get all application roles (e.g. jira-software, jira-servicedesk) in the ${jiraInstanceType}. Read-only catalog of licensed applications.`,
       inputSchema: jiraToolSchemas.getApplicationRoles,
@@ -409,9 +409,9 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getApplicationRole',
+    'jira_get_application_role',
     {
-      description: `Get a single application role by key from the ${jiraInstanceType}. Use jira_getApplicationRoles to find valid keys.`,
+      description: `Get a single application role by key from the ${jiraInstanceType}. Use jira_get_application_roles to find valid keys.`,
       inputSchema: jiraToolSchemas.getApplicationRole,
     },
     async ({ key }) => {
@@ -422,7 +422,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getNotificationSchemes',
+    'jira_get_notification_schemes',
     {
       description: `Get a paginated list of notification schemes in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getNotificationSchemes,
@@ -435,7 +435,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getNotificationScheme',
+    'jira_get_notification_scheme',
     {
       description: `Get full details of a notification scheme by id in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getNotificationScheme,
@@ -448,7 +448,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getSecurityLevel',
+    'jira_get_security_level',
     {
       description: `Get an issue security level by id in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getSecurityLevel,
@@ -461,7 +461,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueSecuritySchemes',
+    'jira_get_issue_security_schemes',
     {
       description: `Get all issue security schemes in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueSecuritySchemes,
@@ -474,7 +474,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueSecurityScheme',
+    'jira_get_issue_security_scheme',
     {
       description: `Get an issue security scheme by id in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueSecurityScheme,
@@ -487,7 +487,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getCustomFields',
+    'jira_get_custom_fields',
     {
       description: `Get a paginated, filterable list of custom fields in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getCustomFields,
@@ -500,7 +500,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteCustomFields',
+    'jira_delete_custom_fields',
     {
       description: `Delete custom fields in bulk in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.deleteCustomFields,
@@ -513,7 +513,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getCustomFieldOptions',
+    'jira_get_custom_field_options',
     {
       description: `Get a custom field's options defined in a given context of projects and issue types in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getCustomFieldOptions,
@@ -526,7 +526,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getCustomFieldOption',
+    'jira_get_custom_field_option',
     {
       description: `Get a custom field option by id in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getCustomFieldOption,
@@ -539,7 +539,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createCustomField',
+    'jira_create_custom_field',
     {
       description: `Create a new custom field in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createCustomField,
@@ -552,7 +552,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getJqlAutocompleteData',
+    'jira_get_jql_autocomplete_data',
     {
       description: `Get the reserved words, visible field names, and function names available for building JQL queries in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getJqlAutocompleteData,
@@ -565,9 +565,9 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getJqlFieldAutocomplete',
+    'jira_get_jql_field_autocomplete',
     {
-      description: `Get value autocomplete suggestions for a JQL field while building a query in the ${jiraInstanceType}. Useful before calling jira_searchIssues to discover valid field values.`,
+      description: `Get value autocomplete suggestions for a JQL field while building a query in the ${jiraInstanceType}. Useful before calling jira_search_issues to discover valid field values.`,
       inputSchema: jiraToolSchemas.getJqlFieldAutocomplete,
     },
     async ({ fieldName, fieldValue, predicateName, predicateValue }) => {
@@ -578,7 +578,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_validateProjectKey',
+    'jira_validate_project_key',
     {
       description: `Validate a candidate project key in the ${jiraInstanceType} before creating a new project. Returns any validation errors; an empty result means the key is valid.`,
       inputSchema: jiraToolSchemas.validateProjectKey,
@@ -591,7 +591,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getServerInfo',
+    'jira_get_server_info',
     {
       description: `Get general information about the current ${jiraInstanceType} server, including version, build number, and deployment type`,
       inputSchema: jiraToolSchemas.getServerInfo,
@@ -604,7 +604,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_validateLicense',
+    'jira_validate_license',
     {
       description: `Validate a license string against the current ${jiraInstanceType} server installation`,
       inputSchema: jiraToolSchemas.validateLicense,
@@ -617,7 +617,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getApplicationProperty',
+    'jira_get_application_property',
     {
       description: `Get an application property by key from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getApplicationProperty,
@@ -630,7 +630,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getAdvancedSettings',
+    'jira_get_advanced_settings',
     {
       description: `Get all advanced settings application properties (General Configuration > Advanced Settings) in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getAdvancedSettings,
@@ -643,7 +643,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_setApplicationProperty',
+    'jira_set_application_property',
     {
       description: `Update an application property's value in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.setApplicationProperty,
@@ -656,7 +656,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getClusterNodes',
+    'jira_get_cluster_nodes',
     {
       description: `Get all nodes in the cluster in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getClusterNodes,
@@ -669,7 +669,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteClusterNode',
+    'jira_delete_cluster_node',
     {
       description: `Delete an OFFLINE node from the cluster in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.deleteClusterNode,
@@ -682,7 +682,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_setClusterNodeOffline',
+    'jira_set_cluster_node_offline',
     {
       description: `Change a cluster node's state to OFFLINE in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.setClusterNodeOffline,
@@ -695,7 +695,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_requestClusterNodeIndexSnapshot',
+    'jira_request_cluster_node_index_snapshot',
     {
       description: `Request an index snapshot from a cluster node in the ${jiraInstanceType} (deprecated, Lucene-specific, planned for removal in Jira 11)`,
       inputSchema: jiraToolSchemas.requestClusterNodeIndexSnapshot,
@@ -708,7 +708,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_approveClusterUpgrade',
+    'jira_approve_cluster_upgrade',
     {
       description: `Approve an ongoing zero-downtime cluster upgrade in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.approveClusterUpgrade,
@@ -721,7 +721,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_cancelClusterUpgrade',
+    'jira_cancel_cluster_upgrade',
     {
       description: `Cancel an ongoing zero-downtime cluster upgrade in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.cancelClusterUpgrade,
@@ -734,7 +734,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_retryClusterUpgrade',
+    'jira_retry_cluster_upgrade',
     {
       description: `Retry a failed zero-downtime cluster upgrade in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.retryClusterUpgrade,
@@ -747,7 +747,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_startClusterUpgrade',
+    'jira_start_cluster_upgrade',
     {
       description: `Start a zero-downtime cluster upgrade in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.startClusterUpgrade,
@@ -760,7 +760,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getClusterUpgradeState',
+    'jira_get_cluster_upgrade_state',
     {
       description: `Get the current state of the zero-downtime cluster upgrade in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getClusterUpgradeState,
@@ -773,7 +773,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIndexSummary',
+    'jira_get_index_summary',
     {
       description: `Get a summary of the issue index condition of the current node in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIndexSummary,
@@ -786,7 +786,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_listIndexSnapshots',
+    'jira_list_index_snapshots',
     {
       description: `List available index snapshots (absolute paths with timestamps) in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.listIndexSnapshots,
@@ -799,7 +799,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createIndexSnapshot',
+    'jira_create_index_snapshot',
     {
       description: `Start creating an index snapshot, if none is already in progress, in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createIndexSnapshot,
@@ -812,7 +812,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIndexSnapshotStatus',
+    'jira_get_index_snapshot_status',
     {
       description: `Check whether index snapshot creation is currently running in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIndexSnapshotStatus,
@@ -825,7 +825,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getReindexInfo',
+    'jira_get_reindex_info',
     {
       description: `Get information on the active or most recent system reindex in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getReindexInfo,
@@ -838,7 +838,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_startReindex',
+    'jira_start_reindex',
     {
       description: `Kick off a full system reindex in the ${jiraInstanceType}. Requires admin permissions.`,
       inputSchema: jiraToolSchemas.startReindex,
@@ -851,7 +851,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_reindexIssues',
+    'jira_reindex_issues',
     {
       description: `Synchronously reindex one or more individual issues in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.reindexIssues,
@@ -864,7 +864,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getReindexProgress',
+    'jira_get_reindex_progress',
     {
       description: `Get progress information on the active or most recent system reindex in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getReindexProgress,
@@ -877,7 +877,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_processReindexRequests',
+    'jira_process_reindex_requests',
     {
       description: `Execute any pending reindex requests in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.processReindexRequests,
@@ -890,7 +890,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getReindexRequestsProgress',
+    'jira_get_reindex_requests_progress',
     {
       description: `Get the progress of multiple reindex requests in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getReindexRequestsProgress,
@@ -903,7 +903,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getReindexRequestProgress',
+    'jira_get_reindex_request_progress',
     {
       description: `Get the progress of a single reindex request in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getReindexRequestProgress,
@@ -916,7 +916,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_downloadEmailTemplates',
+    'jira_download_email_templates',
     {
       description: `Download the current email templates as a base64-encoded zip file from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.downloadEmailTemplates,
@@ -929,9 +929,9 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_uploadEmailTemplates',
+    'jira_upload_email_templates',
     {
-      description: `Upload a base64-encoded zip file of email templates to a temporary folder in the ${jiraInstanceType}. Call jira_applyEmailTemplates to make it active.`,
+      description: `Upload a base64-encoded zip file of email templates to a temporary folder in the ${jiraInstanceType}. Call jira_apply_email_templates to make it active.`,
       inputSchema: jiraToolSchemas.uploadEmailTemplates,
     },
     async ({ contentBase64 }) => {
@@ -942,7 +942,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_applyEmailTemplates',
+    'jira_apply_email_templates',
     {
       description: `Replace the current email templates with the previously uploaded pack in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.applyEmailTemplates,
@@ -955,7 +955,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_resetEmailTemplatesToDefault',
+    'jira_reset_email_templates_to_default',
     {
       description: `Replace the current email templates with the default templates shipped with the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.resetEmailTemplatesToDefault,
@@ -968,7 +968,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getEmailTemplateTypes',
+    'jira_get_email_template_types',
     {
       description: `Get the list of root email templates mapped to event types in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getEmailTemplateTypes,
@@ -981,7 +981,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getCurrentSession',
+    'jira_get_current_session',
     {
       description: `Get information about the currently authenticated user's session in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getCurrentSession,
@@ -994,7 +994,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createSession',
+    'jira_create_session',
     {
       description: `Create a new authenticated session in the ${jiraInstanceType} using a username and password`,
       inputSchema: jiraToolSchemas.createSession,
@@ -1007,7 +1007,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteSession',
+    'jira_delete_session',
     {
       description: `Log out the current user, destroying their session, in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.deleteSession,
@@ -1020,7 +1020,7 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_releaseWebSudo',
+    'jira_release_web_sudo',
     {
       description: `Invalidate the current WebSudo (elevated permission) session in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.releaseWebSudo,

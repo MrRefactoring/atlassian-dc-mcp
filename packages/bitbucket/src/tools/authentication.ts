@@ -5,7 +5,7 @@ import { bitbucketToolSchemas } from '../bitbucketService.js';
 
 export function registerAuthenticationTools(server: McpServer, service: BitbucketService) {
   server.registerTool(
-    'bitbucket_getAccessTokens',
+    'bitbucket_get_access_tokens',
     {
       description: 'Get HTTP access tokens (PATs) for a user, project, or repository. Set scope to \'user\' (with userSlug), \'project\' (with projectKey), or \'repo\' (with projectKey and repositorySlug).',
       inputSchema: bitbucketToolSchemas.getAccessTokens,
@@ -18,7 +18,7 @@ export function registerAuthenticationTools(server: McpServer, service: Bitbucke
   );
 
   server.registerTool(
-    'bitbucket_createAccessToken',
+    'bitbucket_create_access_token',
     {
       description: 'Create an HTTP access token (PAT) for a user, project, or repository. Set scope to \'user\' (with userSlug), \'project\' (with projectKey), or \'repo\' (with projectKey and repositorySlug). The raw token value is only returned once, in the response of this call.',
       inputSchema: bitbucketToolSchemas.createAccessToken,
@@ -31,7 +31,7 @@ export function registerAuthenticationTools(server: McpServer, service: Bitbucke
   );
 
   server.registerTool(
-    'bitbucket_deleteAccessToken',
+    'bitbucket_delete_access_token',
     {
       description: 'Delete an HTTP access token (PAT) from a user, project, or repository by its ID. Set scope to \'user\' (with userSlug), \'project\' (with projectKey), or \'repo\' (with projectKey and repositorySlug).',
       inputSchema: bitbucketToolSchemas.deleteAccessToken,
@@ -44,7 +44,7 @@ export function registerAuthenticationTools(server: McpServer, service: Bitbucke
   );
 
   server.registerTool(
-    'bitbucket_getSshKeys',
+    'bitbucket_get_ssh_keys',
     {
       description: 'List the SSH keys for a user. Defaults to the currently authenticated user; retrieving another user\'s keys requires ADMIN permission.',
       inputSchema: bitbucketToolSchemas.getSshKeys,
@@ -57,7 +57,7 @@ export function registerAuthenticationTools(server: McpServer, service: Bitbucke
   );
 
   server.registerTool(
-    'bitbucket_addSshKey',
+    'bitbucket_add_ssh_key',
     {
       description: 'Add an SSH public key for a user. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.',
       inputSchema: bitbucketToolSchemas.addSshKey,
@@ -70,7 +70,7 @@ export function registerAuthenticationTools(server: McpServer, service: Bitbucke
   );
 
   server.registerTool(
-    'bitbucket_deleteSshKey',
+    'bitbucket_delete_ssh_key',
     {
       description: 'Delete an SSH key by its ID. Requires ADMIN permission.',
       inputSchema: bitbucketToolSchemas.deleteSshKey,

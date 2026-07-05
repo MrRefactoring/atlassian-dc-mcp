@@ -6,7 +6,7 @@ import type { ConfluenceService } from '../confluenceService.js';
 
 export function registerWebhookTools(server: McpServer, service: ConfluenceService) {
   server.registerTool(
-    'confluence_findWebhooks',
+    'confluence_find_webhooks',
     {
       description: `Find webhooks in ${confluenceInstanceType}. Requires administrator permission.`,
       inputSchema: confluenceToolSchemas.findWebhooks,
@@ -19,7 +19,7 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
   );
 
   server.registerTool(
-    'confluence_createWebhook',
+    'confluence_create_webhook',
     {
       description: `Create a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
       inputSchema: confluenceToolSchemas.createWebhook,
@@ -38,7 +38,7 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
   );
 
   server.registerTool(
-    'confluence_getWebhook',
+    'confluence_get_webhook',
     {
       description: `Get a webhook by ID in ${confluenceInstanceType}. Requires administrator permission.`,
       inputSchema: confluenceToolSchemas.getWebhook,
@@ -51,7 +51,7 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
   );
 
   server.registerTool(
-    'confluence_updateWebhook',
+    'confluence_update_webhook',
     {
       description: `Update an existing webhook in ${confluenceInstanceType}. Requires administrator permission.`,
       inputSchema: confluenceToolSchemas.updateWebhook,
@@ -70,7 +70,7 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
   );
 
   server.registerTool(
-    'confluence_deleteWebhook',
+    'confluence_delete_webhook',
     {
       description: `Delete a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
       inputSchema: confluenceToolSchemas.deleteWebhook,
@@ -83,7 +83,7 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
   );
 
   server.registerTool(
-    'confluence_getWebhookLatestInvocation',
+    'confluence_get_webhook_latest_invocation',
     {
       description: `Get the latest invocation of a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
       inputSchema: confluenceToolSchemas.getWebhookLatestInvocation,
@@ -96,7 +96,7 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
   );
 
   server.registerTool(
-    'confluence_getWebhookStatistics',
+    'confluence_get_webhook_statistics',
     {
       description: `Get invocation statistics for a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
       inputSchema: confluenceToolSchemas.getWebhookStatistics,
@@ -109,7 +109,7 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
   );
 
   server.registerTool(
-    'confluence_getWebhookStatisticsSummary',
+    'confluence_get_webhook_statistics_summary',
     {
       description: `Get the invocation statistics summary for a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
       inputSchema: confluenceToolSchemas.getWebhookStatisticsSummary,
@@ -122,7 +122,7 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
   );
 
   server.registerTool(
-    'confluence_testWebhook',
+    'confluence_test_webhook',
     {
       description: `Test connectivity to a webhook endpoint URL in ${confluenceInstanceType}. Requires administrator permission.`,
       inputSchema: confluenceToolSchemas.testWebhook,

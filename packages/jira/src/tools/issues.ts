@@ -6,7 +6,7 @@ import type { JiraService } from '../jiraService.js';
 
 export function registerIssueTools(server: McpServer, service: JiraService) {
   server.registerTool(
-    'jira_searchIssues',
+    'jira_search_issues',
     {
       description: `Search for JIRA issues using JQL in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.searchIssues,
@@ -19,7 +19,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssue',
+    'jira_get_issue',
     {
       description: `Get details of a JIRA issue by its key from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssue,
@@ -32,7 +32,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueComments',
+    'jira_get_issue_comments',
     {
       description: `Get comments of a JIRA issue by its key from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueComments,
@@ -44,7 +44,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
     });
 
   server.registerTool(
-    'jira_createIssue',
+    'jira_create_issue',
     {
       description: `Create a new JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createIssue,
@@ -57,7 +57,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updateIssue',
+    'jira_update_issue',
     {
       description: `Update an existing JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.updateIssue,
@@ -70,7 +70,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_postIssueComment',
+    'jira_post_issue_comment',
     {
       description: `Post a comment on a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.postIssueComment,
@@ -83,7 +83,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getTransitions',
+    'jira_get_transitions',
     {
       description: `Get available status transitions for a JIRA issue in the ${jiraInstanceType}. Returns a list of transitions with their IDs, names, and target statuses.`,
       inputSchema: jiraToolSchemas.getTransitions,
@@ -96,7 +96,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueDevelopmentInfo',
+    'jira_get_issue_development_info',
     {
       description: `Get linked development information (pull requests, commits, or branches) shown in the Development panel of a JIRA issue in the ${jiraInstanceType}. Defaults to pull requests from Bitbucket.`,
       inputSchema: jiraToolSchemas.getIssueDevelopmentInfo,
@@ -109,9 +109,9 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_transitionIssue',
+    'jira_transition_issue',
     {
-      description: `Transition a JIRA issue to a new status in the ${jiraInstanceType}. Use jira_getTransitions first to get available transition IDs.`,
+      description: `Transition a JIRA issue to a new status in the ${jiraInstanceType}. Use jira_get_transitions first to get available transition IDs.`,
       inputSchema: jiraToolSchemas.transitionIssue,
     },
     async (params) => {
@@ -122,7 +122,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueTypes',
+    'jira_get_issue_types',
     {
       description: `Get all issue types available in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueTypes,
@@ -135,7 +135,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getPriorities',
+    'jira_get_priorities',
     {
       description: `Get all issue priorities available in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getPriorities,
@@ -148,7 +148,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getResolutions',
+    'jira_get_resolutions',
     {
       description: `Get all issue resolutions available in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getResolutions,
@@ -161,7 +161,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getStatuses',
+    'jira_get_statuses',
     {
       description: `Get all issue statuses available in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getStatuses,
@@ -174,9 +174,9 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getCreateIssueMetaIssueTypes',
+    'jira_get_create_issue_meta_issue_types',
     {
-      description: `Get the issue types available for creating an issue in a project, in the ${jiraInstanceType}. Use before jira_createIssue to find a valid issueTypeId.`,
+      description: `Get the issue types available for creating an issue in a project, in the ${jiraInstanceType}. Use before jira_create_issue to find a valid issueTypeId.`,
       inputSchema: jiraToolSchemas.getCreateIssueMetaIssueTypes,
     },
     async ({ projectIdOrKey, maxResults, startAt }) => {
@@ -187,9 +187,9 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getCreateIssueMetaFields',
+    'jira_get_create_issue_meta_fields',
     {
-      description: `Get the fields (required and optional) available for creating an issue of a given type in a project, in the ${jiraInstanceType}. Use before jira_createIssue to discover required fields.`,
+      description: `Get the fields (required and optional) available for creating an issue of a given type in a project, in the ${jiraInstanceType}. Use before jira_create_issue to discover required fields.`,
       inputSchema: jiraToolSchemas.getCreateIssueMetaFields,
     },
     async ({ projectIdOrKey, issueTypeId, maxResults, startAt }) => {
@@ -200,9 +200,9 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getEditIssueMeta',
+    'jira_get_edit_issue_meta',
     {
-      description: `Get the fields available for editing an existing issue, in the ${jiraInstanceType}. Use before jira_updateIssue to discover which fields can be edited.`,
+      description: `Get the fields available for editing an existing issue, in the ${jiraInstanceType}. Use before jira_update_issue to discover which fields can be edited.`,
       inputSchema: jiraToolSchemas.getEditIssueMeta,
     },
     async ({ issueKey }) => {
@@ -213,7 +213,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteIssue',
+    'jira_delete_issue',
     {
       description: `Delete a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteIssue,
@@ -226,7 +226,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updateIssueComment',
+    'jira_update_issue_comment',
     {
       description: `Update the text of an existing comment on a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.updateIssueComment,
@@ -239,7 +239,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteIssueComment',
+    'jira_delete_issue_comment',
     {
       description: `Delete a comment from a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteIssueComment,
@@ -252,7 +252,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getCommentPropertyKeys',
+    'jira_get_comment_property_keys',
     {
       description: `Get the keys of all entity properties stored on a comment in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getCommentPropertyKeys,
@@ -265,7 +265,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getCommentProperty',
+    'jira_get_comment_property',
     {
       description: `Get a single entity property value from a comment in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getCommentProperty,
@@ -278,7 +278,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_setCommentProperty',
+    'jira_set_comment_property',
     {
       description: `Set an entity property (arbitrary JSON key/value metadata) on a comment in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.setCommentProperty,
@@ -291,7 +291,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteCommentProperty',
+    'jira_delete_comment_property',
     {
       description: `Delete an entity property from a comment in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.deleteCommentProperty,
@@ -304,7 +304,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueWatchers',
+    'jira_get_issue_watchers',
     {
       description: `Get the list of users watching a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueWatchers,
@@ -317,7 +317,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_addIssueWatcher',
+    'jira_add_issue_watcher',
     {
       description: `Add a user as a watcher of a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.addIssueWatcher,
@@ -330,7 +330,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_removeIssueWatcher',
+    'jira_remove_issue_watcher',
     {
       description: `Remove a user as a watcher of a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.removeIssueWatcher,
@@ -343,7 +343,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueVotes',
+    'jira_get_issue_votes',
     {
       description: `Get vote information for a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueVotes,
@@ -356,7 +356,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_addIssueVote',
+    'jira_add_issue_vote',
     {
       description: `Cast a vote for a JIRA issue in the ${jiraInstanceType} (as the current user)`,
       inputSchema: jiraToolSchemas.addIssueVote,
@@ -369,7 +369,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_removeIssueVote',
+    'jira_remove_issue_vote',
     {
       description: `Remove the current user's vote from a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.removeIssueVote,
@@ -382,7 +382,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueWorklogs',
+    'jira_get_issue_worklogs',
     {
       description: `Get all worklog entries of a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueWorklogs,
@@ -395,7 +395,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_addIssueWorklog',
+    'jira_add_issue_worklog',
     {
       description: `Add a worklog entry (time tracking) to a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.addIssueWorklog,
@@ -408,7 +408,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueWorklog',
+    'jira_get_issue_worklog',
     {
       description: `Get a single worklog entry of a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueWorklog,
@@ -421,7 +421,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updateIssueWorklog',
+    'jira_update_issue_worklog',
     {
       description: `Update a worklog entry of a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.updateIssueWorklog,
@@ -434,7 +434,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteIssueWorklog',
+    'jira_delete_issue_worklog',
     {
       description: `Delete a worklog entry from a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteIssueWorklog,
@@ -447,7 +447,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getWorklogsDeletedSince',
+    'jira_get_worklogs_deleted_since',
     {
       description: `Get the ids of worklogs deleted since a given time across the whole ${jiraInstanceType}, for bulk sync`,
       inputSchema: jiraToolSchemas.getWorklogsDeletedSince,
@@ -460,7 +460,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getWorklogsModifiedSince',
+    'jira_get_worklogs_modified_since',
     {
       description: `Get the ids of worklogs modified since a given time across the whole ${jiraInstanceType}, for bulk sync`,
       inputSchema: jiraToolSchemas.getWorklogsModifiedSince,
@@ -473,7 +473,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getWorklogsForIds',
+    'jira_get_worklogs_for_ids',
     {
       description: `Get worklog details for a batch of worklog ids in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getWorklogsForIds,
@@ -486,7 +486,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_addIssueAttachment',
+    'jira_add_issue_attachment',
     {
       description: `Attach a file to a JIRA issue in the ${jiraInstanceType}. Provide file content as base64.`,
       inputSchema: jiraToolSchemas.addIssueAttachment,
@@ -499,7 +499,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getAttachmentMeta',
+    'jira_get_attachment_meta',
     {
       description: `Get attachment capabilities (enabled/disabled, max upload size) of the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getAttachmentMeta,
@@ -512,7 +512,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getAttachment',
+    'jira_get_attachment',
     {
       description: `Get metadata (including download URI) for an attachment in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getAttachment,
@@ -525,7 +525,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getAttachmentContent',
+    'jira_get_attachment_content',
     {
       description: `Download the raw content of an attachment from the ${jiraInstanceType} as base64. Fetches the file behind the attachment's download URI.`,
       inputSchema: jiraToolSchemas.getAttachmentContent,
@@ -538,7 +538,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteAttachment',
+    'jira_delete_attachment',
     {
       description: `Delete an attachment from a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteAttachment,
@@ -551,7 +551,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_linkIssues',
+    'jira_link_issues',
     {
       description: `Create a link between two JIRA issues in the ${jiraInstanceType} (e.g., "blocks", "relates to")`,
       inputSchema: jiraToolSchemas.linkIssues,
@@ -564,7 +564,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueLink',
+    'jira_get_issue_link',
     {
       description: `Get details of a link between two JIRA issues in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueLink,
@@ -577,7 +577,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteIssueLink',
+    'jira_delete_issue_link',
     {
       description: `Delete a link between two JIRA issues in the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteIssueLink,
@@ -590,7 +590,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getRemoteIssueLinks',
+    'jira_get_remote_issue_links',
     {
       description: `Get the remote issue links (e.g., links to Confluence pages or external URLs) for a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getRemoteIssueLinks,
@@ -603,7 +603,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getRemoteIssueLink',
+    'jira_get_remote_issue_link',
     {
       description: `Get a single remote issue link by its id from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getRemoteIssueLink,
@@ -616,7 +616,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createOrUpdateRemoteIssueLink',
+    'jira_create_or_update_remote_issue_link',
     {
       description: `Create a remote issue link on a JIRA issue in the ${jiraInstanceType} (e.g., link to a Confluence page or external URL). If globalId is provided and a link with that globalId already exists, it is updated instead of duplicated.`,
       inputSchema: jiraToolSchemas.createOrUpdateRemoteIssueLink,
@@ -629,7 +629,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updateRemoteIssueLink',
+    'jira_update_remote_issue_link',
     {
       description: `Update a remote issue link by its id on a JIRA issue in the ${jiraInstanceType}. Any fields not provided are set to null.`,
       inputSchema: jiraToolSchemas.updateRemoteIssueLink,
@@ -642,7 +642,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteRemoteIssueLink',
+    'jira_delete_remote_issue_link',
     {
       description: `Delete a remote issue link by its id from a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteRemoteIssueLink,
@@ -655,7 +655,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteRemoteIssueLinkByGlobalId',
+    'jira_delete_remote_issue_link_by_global_id',
     {
       description: `Delete a remote issue link by its global id from a JIRA issue in the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteRemoteIssueLinkByGlobalId,
@@ -668,9 +668,9 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_assignIssue',
+    'jira_assign_issue',
     {
-      description: `Assign or unassign a JIRA issue in the ${jiraInstanceType} via the dedicated assignee endpoint. Equivalent to setting the assignee field via jira_updateIssue, but simpler for this one common case.`,
+      description: `Assign or unassign a JIRA issue in the ${jiraInstanceType} via the dedicated assignee endpoint. Equivalent to setting the assignee field via jira_update_issue, but simpler for this one common case.`,
       inputSchema: jiraToolSchemas.assignIssue,
     },
     async ({ issueKey, username }) => {
@@ -681,7 +681,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueLinkTypes',
+    'jira_get_issue_link_types',
     {
       description: `Get all issue link types available in the ${jiraInstanceType} (e.g., "Blocks", "Relates", "Duplicate")`,
       inputSchema: jiraToolSchemas.getIssueLinkTypes,
@@ -694,7 +694,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createIssueLinkType',
+    'jira_create_issue_link_type',
     {
       description: `Create a new issue link type in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createIssueLinkType,
@@ -707,7 +707,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updateIssueLinkType',
+    'jira_update_issue_link_type',
     {
       description: `Update an issue link type in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.updateIssueLinkType,
@@ -720,7 +720,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteIssueLinkType',
+    'jira_delete_issue_link_type',
     {
       description: `Delete an issue link type from the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteIssueLinkType,
@@ -733,7 +733,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createIssues',
+    'jira_create_issues',
     {
       description: `Create multiple JIRA issues in a single bulk request in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createIssues,
@@ -746,7 +746,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_archiveIssues',
+    'jira_archive_issues',
     {
       description: `Bulk archive JIRA issues (by keys or JQL) in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.archiveIssues,
@@ -759,7 +759,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_archiveIssue',
+    'jira_archive_issue',
     {
       description: `Archive a single JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.archiveIssue,
@@ -772,7 +772,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_restoreIssue',
+    'jira_restore_issue',
     {
       description: `Restore a previously archived JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.restoreIssue,
@@ -785,7 +785,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_rankIssues',
+    'jira_rank_issues',
     {
       description: `Reorder (rank) JIRA issues relative to another issue in the ${jiraInstanceType}, as used on Agile boards/backlogs`,
       inputSchema: jiraToolSchemas.rankIssues,
@@ -798,7 +798,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssuePropertyKeys',
+    'jira_get_issue_property_keys',
     {
       description: `Get the keys of all entity properties stored on an issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssuePropertyKeys,
@@ -811,7 +811,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getIssueProperty',
+    'jira_get_issue_property',
     {
       description: `Get a single entity property value from an issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getIssueProperty,
@@ -824,7 +824,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_setIssueProperty',
+    'jira_set_issue_property',
     {
       description: `Set an entity property (arbitrary JSON key/value metadata) on an issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.setIssueProperty,
@@ -837,7 +837,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteIssueProperty',
+    'jira_delete_issue_property',
     {
       description: `Delete an entity property from an issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.deleteIssueProperty,
@@ -850,7 +850,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_notifyIssue',
+    'jira_notify_issue',
     {
       description: `Send a manual email notification about a JIRA issue in the ${jiraInstanceType} to specific users, groups, or roles (reporter/assignee/watchers/voters)`,
       inputSchema: jiraToolSchemas.notifyIssue,
@@ -863,7 +863,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_setCommentPinned',
+    'jira_set_comment_pinned',
     {
       description: `Pin or unpin a comment on a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.setCommentPinned,
@@ -876,7 +876,7 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getPinnedComments',
+    'jira_get_pinned_comments',
     {
       description: `Get all pinned comments for a JIRA issue in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getPinnedComments,

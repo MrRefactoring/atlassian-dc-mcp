@@ -5,7 +5,7 @@ import { bitbucketToolSchemas } from '../bitbucketService.js';
 
 export function registerSecurityTools(server: McpServer, service: BitbucketService) {
   server.registerTool(
-    'bitbucket_getGpgKeys',
+    'bitbucket_get_gpg_keys',
     {
       description: 'List the GPG keys for a user. Defaults to the currently authenticated user; retrieving another user\'s keys requires ADMIN permission.',
       inputSchema: bitbucketToolSchemas.getGpgKeys,
@@ -18,7 +18,7 @@ export function registerSecurityTools(server: McpServer, service: BitbucketServi
   );
 
   server.registerTool(
-    'bitbucket_addGpgKey',
+    'bitbucket_add_gpg_key',
     {
       description: 'Add an ASCII-armored GPG public key for a user. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.',
       inputSchema: bitbucketToolSchemas.addGpgKey,
@@ -31,7 +31,7 @@ export function registerSecurityTools(server: McpServer, service: BitbucketServi
   );
 
   server.registerTool(
-    'bitbucket_deleteGpgKey',
+    'bitbucket_delete_gpg_key',
     {
       description: 'Delete a GPG key by its ID or fingerprint.',
       inputSchema: bitbucketToolSchemas.deleteGpgKey,

@@ -5,7 +5,7 @@ import { bitbucketToolSchemas } from '../bitbucketService.js';
 
 export function registerProjectTools(server: McpServer, service: BitbucketService) {
   server.registerTool(
-    'bitbucket_getProjects',
+    'bitbucket_get_projects',
     {
       description: 'Get a list of Bitbucket projects',
       inputSchema: bitbucketToolSchemas.getProjects,
@@ -18,7 +18,7 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
   );
 
   server.registerTool(
-    'bitbucket_getProject',
+    'bitbucket_get_project',
     {
       description: 'Get a specific Bitbucket project by key',
       inputSchema: bitbucketToolSchemas.getProject,
@@ -31,7 +31,7 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
   );
 
   server.registerTool(
-    'bitbucket_createProject',
+    'bitbucket_create_project',
     {
       description: 'Create a new Bitbucket project. Requires PROJECT_CREATE permission. The key must be unique.',
       inputSchema: bitbucketToolSchemas.createProject,
@@ -44,7 +44,7 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
   );
 
   server.registerTool(
-    'bitbucket_updateProject',
+    'bitbucket_update_project',
     {
       description: 'Update an existing Bitbucket project\'s name or description. Requires PROJECT_ADMIN permission. The project key is never changed. Only the provided fields are updated.',
       inputSchema: bitbucketToolSchemas.updateProject,
@@ -57,7 +57,7 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
   );
 
   server.registerTool(
-    'bitbucket_deleteProject',
+    'bitbucket_delete_project',
     {
       description: 'Delete a Bitbucket project. Requires PROJECT_ADMIN permission. The project must contain no repositories or the call fails with a conflict.',
       inputSchema: bitbucketToolSchemas.deleteProject,
