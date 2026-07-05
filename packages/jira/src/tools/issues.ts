@@ -174,6 +174,45 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
+    'jira_get_status_categories',
+    {
+      description: `Get all status categories (e.g. To Do / In Progress / Done) in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getStatusCategories,
+    },
+    async () => {
+      const result = await service.getStatusCategories();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_get_status_category',
+    {
+      description: `Get a single status category by id or key in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getStatusCategory,
+    },
+    async ({ idOrKey }) => {
+      const result = await service.getStatusCategory(idOrKey);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_get_issue_picker_suggestions',
+    {
+      description: `Get issue suggestions for a picker (matching a query and/or JQL) in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getIssuePickerSuggestions,
+    },
+    async ({ query, currentJQL, currentIssueKey, currentProjectId, showSubTasks, showSubTaskParent }) => {
+      const result = await service.getIssuePickerSuggestions(query, currentJQL, currentIssueKey, currentProjectId, showSubTasks, showSubTaskParent);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
     'jira_get_create_issue_meta_issue_types',
     {
       description: `Get the issue types available for creating an issue in a project, in the ${jiraInstanceType}. Use before jira_create_issue to find a valid issueTypeId.`,

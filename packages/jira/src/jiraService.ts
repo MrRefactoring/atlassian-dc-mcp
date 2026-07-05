@@ -307,6 +307,25 @@ export class JiraService {
     return handleApiOperation(() => this.jira.workflows.getStatuses({}), 'Error getting statuses');
   }
 
+  async getStatusCategories() {
+    return handleApiOperation(() => this.jira.workflows.getStatusCategories({}), 'Error getting status categories');
+  }
+
+  async getStatusCategory(idOrKey: string) {
+    return handleApiOperation(() => this.jira.workflows.getStatusCategory({ idOrKey }), 'Error getting status category');
+  }
+
+  async getConfiguration() {
+    return handleApiOperation(() => this.jira.admin.getConfiguration({}), 'Error getting global configuration');
+  }
+
+  async getIssuePickerSuggestions(query?: string, currentJQL?: string, currentIssueKey?: string, currentProjectId?: string, showSubTasks?: boolean, showSubTaskParent?: boolean) {
+    return handleApiOperation(
+      () => this.jira.issues.getIssuePickerSuggestions({ query, currentJQL, currentIssueKey, currentProjectId, showSubTasks, showSubTaskParent }),
+      'Error getting issue picker suggestions',
+    );
+  }
+
   async getCreateIssueMetaIssueTypes(projectIdOrKey: string, maxResults?: number, startAt?: number) {
     return handleApiOperation(
       () => this.jira.issues.getCreateIssueMetaProjectIssueTypes({ projectIdOrKey, maxResults: maxResults?.toString(), startAt: startAt?.toString() }),
@@ -2212,6 +2231,19 @@ export const jiraToolSchemas = {
   getPriorities: {},
   getResolutions: {},
   getStatuses: {},
+  getStatusCategories: {},
+  getStatusCategory: {
+    idOrKey: z.string().describe('Status category id or key (e.g., 2 or "new")'),
+  },
+  getConfiguration: {},
+  getIssuePickerSuggestions: {
+    query: z.string().optional().describe('Text to search issue summaries for'),
+    currentJQL: z.string().optional().describe('JQL to constrain the suggested issues'),
+    currentIssueKey: z.string().optional().describe('Issue key to exclude from suggestions'),
+    currentProjectId: z.string().optional().describe('Project id to bias suggestions towards'),
+    showSubTasks: z.boolean().optional().describe('Whether to include sub-tasks in suggestions'),
+    showSubTaskParent: z.boolean().optional().describe('Whether to include the sub-task parent'),
+  },
   getCreateIssueMetaIssueTypes: {
     projectIdOrKey: z.string().describe('Project id or key (e.g., TEST)'),
     maxResults: z.number().optional().describe('Maximum number of issue types to return'),

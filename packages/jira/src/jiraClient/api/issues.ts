@@ -1,5 +1,5 @@
 import { route, type HttpClient } from 'datacenter-mcp-core';
-import { AttachmentBeanSchema, type AttachmentBean, AttachmentJsonBeanSchema, type AttachmentJsonBean, AttachmentMetaBeanSchema, type AttachmentMetaBean, CommentJsonBeanSchema, type CommentJsonBean, CommentsWithPaginationJsonBeanSchema, type CommentsWithPaginationJsonBean, CreateMetaIssueTypeBeanSchema, type CreateMetaIssueTypeBean, EditMetaBeanSchema, type EditMetaBean, EntityPropertiesKeysBeanSchema, type EntityPropertiesKeysBean, EntityPropertyBeanSchema, type EntityPropertyBean, FieldMetaBeanSchema, type FieldMetaBean, IssueBeanSchema, type IssueBean, IssueCreateResponseSchema, type IssueCreateResponse, type IssueLinkTypeJsonBean, IssueLinkTypesBeanSchema, type IssueLinkTypesBean, type IssueRankRequestBean, type IssueUpdateBean, IssuesCreateResponseSchema, type IssuesCreateResponse, type IssuesUpdateBean, type LinkIssueRequestJsonBean, type NotificationJsonBean, PartialSuccessBeanSchema, type PartialSuccessBean, PinnedCommentJsonBeanSchema, type PinnedCommentJsonBean, RemoteIssueLinkBeanSchema, type RemoteIssueLinkBean, type RemoteIssueLinkCreateOrUpdateRequest, type SearchRequestBean, SearchResultsBeanSchema, type SearchResultsBean, type StringList, TransitionsMetaBeanSchema, type TransitionsMetaBean, type UserBean, VoteBeanSchema, type VoteBean, WatchersBeanSchema, type WatchersBean, WorklogChangedSinceBeanSchema, type WorklogChangedSinceBean, type WorklogIdsRequestBean, WorklogWithPaginationBeanSchema, type WorklogWithPaginationBean, issueLinksSchema, type issueLinks, worklogSchema, type worklog } from '../models/index.js';
+import { AttachmentBeanSchema, type AttachmentBean, AttachmentJsonBeanSchema, type AttachmentJsonBean, AttachmentMetaBeanSchema, type AttachmentMetaBean, CommentJsonBeanSchema, type CommentJsonBean, IssuePickerResultsSchema, type IssuePickerResults, CommentsWithPaginationJsonBeanSchema, type CommentsWithPaginationJsonBean, CreateMetaIssueTypeBeanSchema, type CreateMetaIssueTypeBean, EditMetaBeanSchema, type EditMetaBean, EntityPropertiesKeysBeanSchema, type EntityPropertiesKeysBean, EntityPropertyBeanSchema, type EntityPropertyBean, FieldMetaBeanSchema, type FieldMetaBean, IssueBeanSchema, type IssueBean, IssueCreateResponseSchema, type IssueCreateResponse, type IssueLinkTypeJsonBean, IssueLinkTypesBeanSchema, type IssueLinkTypesBean, type IssueRankRequestBean, type IssueUpdateBean, IssuesCreateResponseSchema, type IssuesCreateResponse, type IssuesUpdateBean, type LinkIssueRequestJsonBean, type NotificationJsonBean, PartialSuccessBeanSchema, type PartialSuccessBean, PinnedCommentJsonBeanSchema, type PinnedCommentJsonBean, RemoteIssueLinkBeanSchema, type RemoteIssueLinkBean, type RemoteIssueLinkCreateOrUpdateRequest, type SearchRequestBean, SearchResultsBeanSchema, type SearchResultsBean, type StringList, TransitionsMetaBeanSchema, type TransitionsMetaBean, type UserBean, VoteBeanSchema, type VoteBean, WatchersBeanSchema, type WatchersBean, WorklogChangedSinceBeanSchema, type WorklogChangedSinceBean, type WorklogIdsRequestBean, WorklogWithPaginationBeanSchema, type WorklogWithPaginationBean, issueLinksSchema, type issueLinks, worklogSchema, type worklog } from '../models/index.js';
 import { z } from 'zod';
 
 export function addAttachment(client: HttpClient, params: { issueIdOrKey: string; formData?: Blob }): Promise<AttachmentJsonBean> {
@@ -82,6 +82,15 @@ export function createIssue(client: HttpClient, params: { updateHistory?: boolea
     searchParams: { updateHistory: params.updateHistory },
     body: params.requestBody,
     schema: IssueCreateResponseSchema,
+  });
+}
+
+export function getIssuePickerSuggestions(client: HttpClient, params: { query?: string; currentJQL?: string; currentIssueKey?: string; currentProjectId?: string; showSubTasks?: boolean; showSubTaskParent?: boolean }): Promise<IssuePickerResults> {
+  return client.sendRequest({
+    method: 'GET',
+    url: route`/api/2/issue/picker`,
+    searchParams: { query: params.query, currentJQL: params.currentJQL, currentIssueKey: params.currentIssueKey, currentProjectId: params.currentProjectId, showSubTasks: params.showSubTasks, showSubTaskParent: params.showSubTaskParent },
+    schema: IssuePickerResultsSchema,
   });
 }
 

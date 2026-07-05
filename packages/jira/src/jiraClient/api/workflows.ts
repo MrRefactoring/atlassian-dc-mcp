@@ -1,5 +1,5 @@
 import { route, type HttpClient } from 'datacenter-mcp-core';
-import { type AddFieldBean, type CustomFieldDefinitionJsonBean, FieldBeanSchema, type FieldBean, IssueTypeJsonBeanSchema, type IssueTypeJsonBean, IssueTypeMappingBeanSchema, type IssueTypeMappingBean, type MoveFieldBean, PriorityJsonBeanSchema, type PriorityJsonBean, ResolutionJsonBeanSchema, type ResolutionJsonBean, ScreenableFieldBeanSchema, type ScreenableFieldBean, ScreenableTabBeanSchema, type ScreenableTabBean, StatusJsonBeanSchema, type StatusJsonBean, WorkflowMappingBeanSchema, type WorkflowMappingBean, WorkflowSchemeBeanSchema, type WorkflowSchemeBean } from '../models/index.js';
+import { type AddFieldBean, type CustomFieldDefinitionJsonBean, FieldBeanSchema, type FieldBean, IssueTypeJsonBeanSchema, type IssueTypeJsonBean, IssueTypeMappingBeanSchema, type IssueTypeMappingBean, type MoveFieldBean, PriorityJsonBeanSchema, type PriorityJsonBean, ResolutionJsonBeanSchema, type ResolutionJsonBean, ScreenableFieldBeanSchema, type ScreenableFieldBean, ScreenableTabBeanSchema, type ScreenableTabBean, StatusCategoryJsonBeanSchema, type StatusCategoryJsonBean, StatusJsonBeanSchema, type StatusJsonBean, WorkflowMappingBeanSchema, type WorkflowMappingBean, WorkflowSchemeBeanSchema, type WorkflowSchemeBean } from '../models/index.js';
 import { z } from 'zod';
 
 export function addField(client: HttpClient, params: { tabId: number; screenId: number; requestBody?: AddFieldBean }): Promise<ScreenableFieldBean> {
@@ -174,6 +174,22 @@ export function getStatuses(client: HttpClient, _params: Record<string, never>):
     method: 'GET',
     url: route`/api/2/status`,
     schema: z.array(StatusJsonBeanSchema),
+  });
+}
+
+export function getStatusCategories(client: HttpClient, _params: Record<string, never>): Promise<StatusCategoryJsonBean[]> {
+  return client.sendRequest({
+    method: 'GET',
+    url: route`/api/2/statuscategory`,
+    schema: z.array(StatusCategoryJsonBeanSchema),
+  });
+}
+
+export function getStatusCategory(client: HttpClient, params: { idOrKey: string }): Promise<StatusCategoryJsonBean> {
+  return client.sendRequest({
+    method: 'GET',
+    url: route`/api/2/statuscategory/${params.idOrKey}`,
+    schema: StatusCategoryJsonBeanSchema,
   });
 }
 
