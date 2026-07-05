@@ -388,3 +388,5 @@ export { IssuePickerResultsSchema } from './issuePickerResults.js';
 export type { IssuePickerResults } from './issuePickerResults.js';
 export { ColumnItemSchema } from './columnItem.js';
 export type { ColumnItem } from './columnItem.js';
+export { DefaultShareScopeBeanSchema } from './defaultShareScopeBean.js';
+export type { DefaultShareScopeBean } from './defaultShareScopeBean.js';

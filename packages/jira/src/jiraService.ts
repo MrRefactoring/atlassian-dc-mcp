@@ -887,6 +887,33 @@ export class JiraService {
     return handleApiOperation(() => this.jira.admin.deleteFilter({ id: filterId }), 'Error deleting filter');
   }
 
+  async getFilterSharePermissions(filterId: string) {
+    return handleApiOperation(() => this.jira.admin.getFilterSharePermissions({ id: filterId }), 'Error getting filter share permissions');
+  }
+
+  async getFilterSharePermission(filterId: string, permissionId: string) {
+    return handleApiOperation(() => this.jira.admin.getFilterSharePermission({ id: filterId, permissionId }), 'Error getting filter share permission');
+  }
+
+  async addFilterSharePermission(filterId: string, type: string, projectId?: string, groupname?: string, projectRoleId?: string) {
+    return handleApiOperation(
+      () => this.jira.admin.addFilterSharePermission({ id: filterId, requestBody: { type, projectId, groupname, projectRoleId } }),
+      'Error adding filter share permission',
+    );
+  }
+
+  async deleteFilterSharePermission(filterId: string, permissionId: string) {
+    return handleApiOperation(() => this.jira.admin.deleteFilterSharePermission({ id: filterId, permissionId }), 'Error deleting filter share permission');
+  }
+
+  async getDefaultShareScope() {
+    return handleApiOperation(() => this.jira.admin.getDefaultShareScope({}), 'Error getting default share scope');
+  }
+
+  async setDefaultShareScope(scope: string) {
+    return handleApiOperation(() => this.jira.admin.setDefaultShareScope({ requestBody: { scope } }), 'Error setting default share scope');
+  }
+
   async getFavouriteFilters() {
     return handleApiOperation(
       () => this.jira.admin.getFavouriteFilters({}),
@@ -2269,6 +2296,28 @@ export const jiraToolSchemas = {
   getDefaultColumns: {},
   setDefaultColumns: {
     columns: z.array(z.string()).describe('Ordered list of column ids for the system default issue-navigator columns'),
+  },
+  getFilterSharePermissions: {
+    filterId: z.string().describe('Filter id whose share permissions to list'),
+  },
+  getFilterSharePermission: {
+    filterId: z.string().describe('Filter id'),
+    permissionId: z.string().describe('Share permission id'),
+  },
+  addFilterSharePermission: {
+    filterId: z.string().describe('Filter id to add a share permission to'),
+    type: z.string().describe('Share type: group, project, projectRole, authenticated (logged-in users), or global'),
+    projectId: z.string().optional().describe('Project id (for type project/projectRole)'),
+    groupname: z.string().optional().describe('Group name (for type group)'),
+    projectRoleId: z.string().optional().describe('Project role id (for type projectRole)'),
+  },
+  deleteFilterSharePermission: {
+    filterId: z.string().describe('Filter id'),
+    permissionId: z.string().describe('Share permission id to remove'),
+  },
+  getDefaultShareScope: {},
+  setDefaultShareScope: {
+    scope: z.enum(['GLOBAL', 'AUTHENTICATED', 'PRIVATE']).describe('Default share scope for new filters and dashboards'),
   },
   getIssuePickerSuggestions: {
     query: z.string().optional().describe('Text to search issue summaries for'),

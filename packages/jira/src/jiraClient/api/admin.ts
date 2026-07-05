@@ -1,5 +1,5 @@
 import { route, type HttpClient } from 'datacenter-mcp-core';
-import { type ActorInputBean, ApplicationRoleBeanSchema, type ApplicationRoleBean, type AssociateProjectsBean, type AuthParams, AuthSuccessSchema, type AuthSuccess, AutoCompleteResponseBeanSchema, type AutoCompleteResponseBean, AutoCompleteResultWrapperSchema, type AutoCompleteResultWrapper, AvatarBeanSchema, type AvatarBean, AvatarCroppingBeanSchema, type AvatarCroppingBean, BulkDeleteResponseBeanSchema, type BulkDeleteResponseBean, ClusterStateSchema, type ClusterState, ColumnItemSchema, type ColumnItem, ConfigurationBeanSchema, type ConfigurationBean, type CreateUpdateRoleRequestBean, CurrentUserSchema, type CurrentUser, CustomFieldBeanSchema, type CustomFieldBean, CustomFieldOptionBeanSchema, type CustomFieldOptionBean, CustomFieldOptionsBeanSchema, type CustomFieldOptionsBean, DashboardBeanSchema, type DashboardBean, DashboardsBeanSchema, type DashboardsBean, type FilePart, FilterBeanSchema, type FilterBean, IndexSnapshotBeanSchema, type IndexSnapshotBean, IndexSnapshotPromiseBeanSchema, type IndexSnapshotPromiseBean, IndexSnapshotStatusBeanSchema, type IndexSnapshotStatusBean, IndexSummaryBeanSchema, type IndexSummaryBean, IssueTypeSchemeBeanSchema, type IssueTypeSchemeBean, type IssueTypeSchemeCreateUpdateBean, IssueTypeSchemeListBeanSchema, type IssueTypeSchemeListBean, LicenseValidationResultsSchema, type LicenseValidationResults, NodeBeanSchema, type NodeBean, NotificationSchemeBeanSchema, type NotificationSchemeBean, PageBeanSchema, type PageBean, PermissionGrantBeanSchema, type PermissionGrantBean, PermissionGrantsBeanSchema, type PermissionGrantsBean, PermissionSchemeBeanSchema, type PermissionSchemeBean, PermissionSchemesBeanSchema, type PermissionSchemesBean, PrioritySchemeBeanSchema, type PrioritySchemeBean, PrioritySchemeListBeanSchema, type PrioritySchemeListBean, type PrioritySchemeUpdateBean, ProjectBeanSchema, type ProjectBean, ProjectRoleActorsBeanSchema, type ProjectRoleActorsBean, ProjectRoleBeanSchema, type ProjectRoleBean, PropertySchema, type Property, ReindexBeanSchema, type ReindexBean, ReindexRequestBeanSchema, type ReindexRequestBean, SecurityLevelJsonBeanSchema, type SecurityLevelJsonBean, SecuritySchemeJsonBeanSchema, type SecuritySchemeJsonBean, SecuritySchemesJsonBeanSchema, type SecuritySchemesJsonBean, ServerInfoBeanSchema, type ServerInfoBean, type StringList } from '../models/index.js';
+import { type ActorInputBean, ApplicationRoleBeanSchema, type ApplicationRoleBean, type AssociateProjectsBean, type AuthParams, AuthSuccessSchema, type AuthSuccess, AutoCompleteResponseBeanSchema, type AutoCompleteResponseBean, AutoCompleteResultWrapperSchema, type AutoCompleteResultWrapper, AvatarBeanSchema, type AvatarBean, AvatarCroppingBeanSchema, type AvatarCroppingBean, BulkDeleteResponseBeanSchema, type BulkDeleteResponseBean, ClusterStateSchema, type ClusterState, ColumnItemSchema, type ColumnItem, ConfigurationBeanSchema, type ConfigurationBean, type CreateUpdateRoleRequestBean, DefaultShareScopeBeanSchema, type DefaultShareScopeBean, FilterPermissionBeanSchema, type FilterPermissionBean, CurrentUserSchema, type CurrentUser, CustomFieldBeanSchema, type CustomFieldBean, CustomFieldOptionBeanSchema, type CustomFieldOptionBean, CustomFieldOptionsBeanSchema, type CustomFieldOptionsBean, DashboardBeanSchema, type DashboardBean, DashboardsBeanSchema, type DashboardsBean, type FilePart, FilterBeanSchema, type FilterBean, IndexSnapshotBeanSchema, type IndexSnapshotBean, IndexSnapshotPromiseBeanSchema, type IndexSnapshotPromiseBean, IndexSnapshotStatusBeanSchema, type IndexSnapshotStatusBean, IndexSummaryBeanSchema, type IndexSummaryBean, IssueTypeSchemeBeanSchema, type IssueTypeSchemeBean, type IssueTypeSchemeCreateUpdateBean, IssueTypeSchemeListBeanSchema, type IssueTypeSchemeListBean, LicenseValidationResultsSchema, type LicenseValidationResults, NodeBeanSchema, type NodeBean, NotificationSchemeBeanSchema, type NotificationSchemeBean, PageBeanSchema, type PageBean, PermissionGrantBeanSchema, type PermissionGrantBean, PermissionGrantsBeanSchema, type PermissionGrantsBean, PermissionSchemeBeanSchema, type PermissionSchemeBean, PermissionSchemesBeanSchema, type PermissionSchemesBean, PrioritySchemeBeanSchema, type PrioritySchemeBean, PrioritySchemeListBeanSchema, type PrioritySchemeListBean, type PrioritySchemeUpdateBean, ProjectBeanSchema, type ProjectBean, ProjectRoleActorsBeanSchema, type ProjectRoleActorsBean, ProjectRoleBeanSchema, type ProjectRoleBean, PropertySchema, type Property, ReindexBeanSchema, type ReindexBean, ReindexRequestBeanSchema, type ReindexRequestBean, SecurityLevelJsonBeanSchema, type SecurityLevelJsonBean, SecuritySchemeJsonBeanSchema, type SecuritySchemeJsonBean, SecuritySchemesJsonBeanSchema, type SecuritySchemesJsonBean, ServerInfoBeanSchema, type ServerInfoBean, type StringList } from '../models/index.js';
 import { z } from 'zod';
 
 export function acknowledgeErrors(client: HttpClient, _params: Record<string, never>): Promise<any> {
@@ -156,6 +156,55 @@ export function deleteFilter(client: HttpClient, params: { id: string }): Promis
   return client.sendRequest({
     method: 'DELETE',
     url: route`/api/2/filter/${params.id}`,
+  });
+}
+
+export function getFilterSharePermissions(client: HttpClient, params: { id: string }): Promise<FilterPermissionBean[]> {
+  return client.sendRequest({
+    method: 'GET',
+    url: route`/api/2/filter/${params.id}/permission`,
+    schema: z.array(FilterPermissionBeanSchema),
+  });
+}
+
+export function getFilterSharePermission(client: HttpClient, params: { id: string; permissionId: string }): Promise<FilterPermissionBean> {
+  return client.sendRequest({
+    method: 'GET',
+    url: route`/api/2/filter/${params.id}/permission/${params.permissionId}`,
+    schema: FilterPermissionBeanSchema,
+  });
+}
+
+export function addFilterSharePermission(client: HttpClient, params: { id: string; requestBody: { type: string; projectId?: string; groupname?: string; projectRoleId?: string; rights?: number } }): Promise<FilterPermissionBean[]> {
+  return client.sendRequest({
+    method: 'POST',
+    url: route`/api/2/filter/${params.id}/permission`,
+    body: params.requestBody,
+    schema: z.array(FilterPermissionBeanSchema),
+  });
+}
+
+export function deleteFilterSharePermission(client: HttpClient, params: { id: string; permissionId: string }): Promise<void> {
+  return client.sendRequest({
+    method: 'DELETE',
+    url: route`/api/2/filter/${params.id}/permission/${params.permissionId}`,
+  });
+}
+
+export function getDefaultShareScope(client: HttpClient, _params: Record<string, never>): Promise<DefaultShareScopeBean> {
+  return client.sendRequest({
+    method: 'GET',
+    url: route`/api/2/filter/defaultShareScope`,
+    schema: DefaultShareScopeBeanSchema,
+  });
+}
+
+export function setDefaultShareScope(client: HttpClient, params: { requestBody: { scope: string } }): Promise<DefaultShareScopeBean> {
+  return client.sendRequest({
+    method: 'PUT',
+    url: route`/api/2/filter/defaultShareScope`,
+    body: params.requestBody,
+    schema: DefaultShareScopeBeanSchema,
   });
 }
 

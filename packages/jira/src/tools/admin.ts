@@ -71,6 +71,84 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
+    'jira_get_filter_share_permissions',
+    {
+      description: `Get the share permissions of a saved filter in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getFilterSharePermissions,
+    },
+    async ({ filterId }) => {
+      const result = await service.getFilterSharePermissions(filterId);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_get_filter_share_permission',
+    {
+      description: `Get a single share permission of a saved filter by id in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getFilterSharePermission,
+    },
+    async ({ filterId, permissionId }) => {
+      const result = await service.getFilterSharePermission(filterId, permissionId);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_add_filter_share_permission',
+    {
+      description: `Add a share permission to a saved filter (share it with a group, project, project role, all logged-in users, or globally) in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.addFilterSharePermission,
+    },
+    async ({ filterId, type, projectId, groupname, projectRoleId }) => {
+      const result = await service.addFilterSharePermission(filterId, type, projectId, groupname, projectRoleId);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_delete_filter_share_permission',
+    {
+      description: `Remove a share permission from a saved filter in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.deleteFilterSharePermission,
+    },
+    async ({ filterId, permissionId }) => {
+      const result = await service.deleteFilterSharePermission(filterId, permissionId);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_get_default_share_scope',
+    {
+      description: `Get the current user's default share scope for new filters and dashboards in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getDefaultShareScope,
+    },
+    async () => {
+      const result = await service.getDefaultShareScope();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_set_default_share_scope',
+    {
+      description: `Set the current user's default share scope (GLOBAL, AUTHENTICATED, or PRIVATE) for new filters and dashboards in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.setDefaultShareScope,
+    },
+    async ({ scope }) => {
+      const result = await service.setDefaultShareScope(scope);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
     'jira_get_dashboards',
     {
       description: `Get a list of dashboards visible to the current user in the ${jiraInstanceType}`,
