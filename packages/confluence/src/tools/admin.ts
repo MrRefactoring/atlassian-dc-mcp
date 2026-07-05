@@ -5,10 +5,12 @@ import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService } from '../confluenceService.js';
 
 export function registerAdminTools(server: McpServer, service: ConfluenceService) {
-  server.tool(
+  server.registerTool(
     'confluence_getServerInfo',
-    `Get build/version information about the ${confluenceInstanceType}`,
-    confluenceToolSchemas.getServerInfo,
+    {
+      description: `Get build/version information about the ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getServerInfo,
+    },
     async () => {
       const result = await service.getServerInfo();
 
@@ -16,10 +18,12 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getClusterNodes',
-    `Get the status of each node in a ${confluenceInstanceType}'s cluster. Requires permission to view cluster information.`,
-    confluenceToolSchemas.getClusterNodes,
+    {
+      description: `Get the status of each node in a ${confluenceInstanceType}'s cluster. Requires permission to view cluster information.`,
+      inputSchema: confluenceToolSchemas.getClusterNodes,
+    },
     async ({ limit, start }) => {
       const result = await service.getClusterNodes(limit, start);
 
@@ -27,10 +31,12 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getLongRunningTask',
-    `Get information about a single long-running background task (e.g. space export, reindex) in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getLongRunningTask,
+    {
+      description: `Get information about a single long-running background task (e.g. space export, reindex) in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getLongRunningTask,
+    },
     async ({ id, expand }) => {
       const result = await service.getLongRunningTask(id, expand);
 
@@ -38,10 +44,12 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getLongRunningTasks',
-    `Get all tracked long-running background tasks (e.g. space export, reindex) in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getLongRunningTasks,
+    {
+      description: `Get all tracked long-running background tasks (e.g. space export, reindex) in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getLongRunningTasks,
+    },
     async ({ expand, limit, start }) => {
       const result = await service.getLongRunningTasks(expand, limit, start);
 
@@ -49,10 +57,12 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_triggerSiteBackup',
-    `Start a new site backup job in ${confluenceInstanceType}. Requires permission to create site backups.`,
-    confluenceToolSchemas.triggerSiteBackup,
+    {
+      description: `Start a new site backup job in ${confluenceInstanceType}. Requires permission to create site backups.`,
+      inputSchema: confluenceToolSchemas.triggerSiteBackup,
+    },
     async ({ settings }) => {
       const result = await service.triggerSiteBackup(settings);
 
@@ -60,10 +70,12 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getBackupRestoreJob',
-    `Get a backup/restore job by ID in ${confluenceInstanceType}. Caller must be a system administrator or the job's owner.`,
-    confluenceToolSchemas.getBackupRestoreJob,
+    {
+      description: `Get a backup/restore job by ID in ${confluenceInstanceType}. Caller must be a system administrator or the job's owner.`,
+      inputSchema: confluenceToolSchemas.getBackupRestoreJob,
+    },
     async ({ jobId }) => {
       const result = await service.getBackupRestoreJob(jobId);
 
@@ -71,10 +83,12 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_findBackupRestoreJobs',
-    `Find backup/restore jobs visible to the calling user in ${confluenceInstanceType}, optionally filtered`,
-    confluenceToolSchemas.findBackupRestoreJobs,
+    {
+      description: `Find backup/restore jobs visible to the calling user in ${confluenceInstanceType}, optionally filtered`,
+      inputSchema: confluenceToolSchemas.findBackupRestoreJobs,
+    },
     async ({ owner, spaceKey, fromDate, jobStates, toDate, jobOperation, limit, jobScope }) => {
       const result = await service.findBackupRestoreJobs(owner, spaceKey, fromDate, jobStates, toDate, jobOperation, limit, jobScope);
 
@@ -82,10 +96,12 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getInstanceMetrics',
-    `Get simple metrics about the ${confluenceInstanceType} (e.g. content and user counts)`,
-    confluenceToolSchemas.getInstanceMetrics,
+    {
+      description: `Get simple metrics about the ${confluenceInstanceType} (e.g. content and user counts)`,
+      inputSchema: confluenceToolSchemas.getInstanceMetrics,
+    },
     async () => {
       const result = await service.getInstanceMetrics();
 

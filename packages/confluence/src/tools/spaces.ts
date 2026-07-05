@@ -5,9 +5,11 @@ import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService, ConfluenceSpace } from '../confluenceService.js';
 
 export function registerSpaceTools(server: McpServer, service: ConfluenceService) {
-  server.tool('confluence_searchSpace',
-    `Search for spaces in ${confluenceInstanceType}`,
-    confluenceToolSchemas.searchSpaces,
+  server.registerTool('confluence_searchSpace',
+    {
+      description: `Search for spaces in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.searchSpaces,
+    },
     async ({
       searchText,
       limit,
@@ -20,10 +22,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
       return formatToolResponse(result);
     });
 
-  server.tool(
+  server.registerTool(
     'confluence_getSpace',
-    `Get information about a single space in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getSpace,
+    {
+      description: `Get information about a single space in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getSpace,
+    },
     async ({ spaceKey, expand }) => {
       const result = await service.getSpace(spaceKey, expand);
 
@@ -31,10 +35,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getSpaces',
-    `List spaces with optional filters in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getSpaces,
+    {
+      description: `List spaces with optional filters in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getSpaces,
+    },
     async ({ spaceKey, type, status, label, favourite, expand, limit, start }) => {
       const result = await service.getSpaces(spaceKey, type, status, label, favourite, expand, limit, start);
 
@@ -42,10 +48,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_createSpace',
-    `Create a new space in ${confluenceInstanceType}`,
-    confluenceToolSchemas.createSpace,
+    {
+      description: `Create a new space in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.createSpace,
+    },
     async ({ key, name, description, isPrivate }) => {
       const spaceBody: ConfluenceSpace = { key, name };
       if (description) {
@@ -57,10 +65,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_updateSpace',
-    `Update a space's name and description in ${confluenceInstanceType}`,
-    confluenceToolSchemas.updateSpace,
+    {
+      description: `Update a space's name and description in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.updateSpace,
+    },
     async ({ spaceKey, name, description }) => {
       const spaceBody: ConfluenceSpace = { key: spaceKey, name };
       if (description) {
@@ -72,10 +82,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_deleteSpace',
-    `Delete a space in ${confluenceInstanceType}`,
-    confluenceToolSchemas.deleteSpace,
+    {
+      description: `Delete a space in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.deleteSpace,
+    },
     async ({ spaceKey }) => {
       const result = await service.deleteSpace(spaceKey);
 
@@ -83,10 +95,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getSpaceContent',
-    `Get the content in a space in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getSpaceContent,
+    {
+      description: `Get the content in a space in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getSpaceContent,
+    },
     async ({ spaceKey, type, expand, depth, limit, start }) => {
       const result = await service.getSpaceContent(spaceKey, type, expand, depth, limit, start);
 
@@ -94,10 +108,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_archiveSpace',
-    `Archive a space in ${confluenceInstanceType}`,
-    confluenceToolSchemas.archiveSpace,
+    {
+      description: `Archive a space in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.archiveSpace,
+    },
     async ({ spaceKey }) => {
       const result = await service.archiveSpace(spaceKey);
 
@@ -105,10 +121,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_restoreSpace',
-    `Restore an archived space in ${confluenceInstanceType}`,
-    confluenceToolSchemas.restoreSpace,
+    {
+      description: `Restore an archived space in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.restoreSpace,
+    },
     async ({ spaceKey }) => {
       const result = await service.restoreSpace(spaceKey);
 
@@ -116,10 +134,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getSpaceProperties',
-    `Get the properties stored on a space in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getSpaceProperties,
+    {
+      description: `Get the properties stored on a space in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getSpaceProperties,
+    },
     async ({ spaceKey, expand, limit, start }) => {
       const result = await service.getSpaceProperties(spaceKey, expand, limit, start);
 
@@ -127,10 +147,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getSpaceProperty',
-    `Get a single space property by key in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getSpaceProperty,
+    {
+      description: `Get a single space property by key in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getSpaceProperty,
+    },
     async ({ spaceKey, key, expand }) => {
       const result = await service.getSpaceProperty(spaceKey, key, expand);
 
@@ -138,10 +160,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_createSpaceProperty',
-    `Create a space property in ${confluenceInstanceType}`,
-    confluenceToolSchemas.createSpaceProperty,
+    {
+      description: `Create a space property in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.createSpaceProperty,
+    },
     async ({ spaceKey, key, value }) => {
       const result = await service.createSpaceProperty(spaceKey, key, value);
 
@@ -149,10 +173,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_updateSpaceProperty',
-    `Update a space property in ${confluenceInstanceType}`,
-    confluenceToolSchemas.updateSpaceProperty,
+    {
+      description: `Update a space property in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.updateSpaceProperty,
+    },
     async ({ spaceKey, key, value, version }) => {
       const result = await service.updateSpaceProperty(spaceKey, key, value, version);
 
@@ -160,10 +186,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_deleteSpaceProperty',
-    `Delete a space property in ${confluenceInstanceType}`,
-    confluenceToolSchemas.deleteSpaceProperty,
+    {
+      description: `Delete a space property in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.deleteSpaceProperty,
+    },
     async ({ spaceKey, key }) => {
       const result = await service.deleteSpaceProperty(spaceKey, key);
 
@@ -171,10 +199,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getAllSpacePermissions',
-    `Get all permissions granted to users, groups and the anonymous user in a space in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getAllSpacePermissions,
+    {
+      description: `Get all permissions granted to users, groups and the anonymous user in a space in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getAllSpacePermissions,
+    },
     async ({ spaceKey }) => {
       const result = await service.getAllSpacePermissions(spaceKey);
 
@@ -182,10 +212,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_setSpacePermissions',
-    `Set the full permission set for up to 40 users/groups/anonymous user in a space in ${confluenceInstanceType}. Replaces each listed subject's existing permissions.`,
-    confluenceToolSchemas.setSpacePermissions,
+    {
+      description: `Set the full permission set for up to 40 users/groups/anonymous user in a space in ${confluenceInstanceType}. Replaces each listed subject's existing permissions.`,
+      inputSchema: confluenceToolSchemas.setSpacePermissions,
+    },
     async ({ spaceKey, permissions }) => {
       const result = await service.setSpacePermissions(spaceKey, permissions);
 
@@ -193,10 +225,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getAnonymousSpacePermissions',
-    `Get the permissions granted to the anonymous user in a space in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getAnonymousSpacePermissions,
+    {
+      description: `Get the permissions granted to the anonymous user in a space in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getAnonymousSpacePermissions,
+    },
     async ({ spaceKey }) => {
       const result = await service.getAnonymousSpacePermissions(spaceKey);
 
@@ -204,10 +238,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getGroupSpacePermissions',
-    `Get the permissions granted to a group in a space in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getGroupSpacePermissions,
+    {
+      description: `Get the permissions granted to a group in a space in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getGroupSpacePermissions,
+    },
     async ({ spaceKey, groupName }) => {
       const result = await service.getGroupSpacePermissions(spaceKey, groupName);
 
@@ -215,10 +251,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getUserSpacePermissions',
-    `Get the permissions granted to a user in a space in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getUserSpacePermissions,
+    {
+      description: `Get the permissions granted to a user in a space in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getUserSpacePermissions,
+    },
     async ({ spaceKey, userKey }) => {
       const result = await service.getUserSpacePermissions(spaceKey, userKey);
 
@@ -226,10 +264,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_grantAnonymousSpacePermissions',
-    `Grant space permissions to the anonymous user in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
-    confluenceToolSchemas.grantAnonymousSpacePermissions,
+    {
+      description: `Grant space permissions to the anonymous user in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
+      inputSchema: confluenceToolSchemas.grantAnonymousSpacePermissions,
+    },
     async ({ spaceKey, operations }) => {
       const result = await service.grantAnonymousSpacePermissions(spaceKey, operations);
 
@@ -237,10 +277,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_grantGroupSpacePermissions',
-    `Grant space permissions to a group in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
-    confluenceToolSchemas.grantGroupSpacePermissions,
+    {
+      description: `Grant space permissions to a group in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
+      inputSchema: confluenceToolSchemas.grantGroupSpacePermissions,
+    },
     async ({ spaceKey, groupName, operations }) => {
       const result = await service.grantGroupSpacePermissions(spaceKey, groupName, operations);
 
@@ -248,10 +290,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_grantUserSpacePermissions',
-    `Grant space permissions to a user in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
-    confluenceToolSchemas.grantUserSpacePermissions,
+    {
+      description: `Grant space permissions to a user in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
+      inputSchema: confluenceToolSchemas.grantUserSpacePermissions,
+    },
     async ({ spaceKey, userKey, operations }) => {
       const result = await service.grantUserSpacePermissions(spaceKey, userKey, operations);
 
@@ -259,10 +303,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_revokeAnonymousSpacePermissions',
-    `Revoke space permissions from the anonymous user in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
-    confluenceToolSchemas.revokeAnonymousSpacePermissions,
+    {
+      description: `Revoke space permissions from the anonymous user in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
+      inputSchema: confluenceToolSchemas.revokeAnonymousSpacePermissions,
+    },
     async ({ spaceKey, operations }) => {
       const result = await service.revokeAnonymousSpacePermissions(spaceKey, operations);
 
@@ -270,10 +316,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_revokeGroupSpacePermissions',
-    `Revoke space permissions from a group in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
-    confluenceToolSchemas.revokeGroupSpacePermissions,
+    {
+      description: `Revoke space permissions from a group in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
+      inputSchema: confluenceToolSchemas.revokeGroupSpacePermissions,
+    },
     async ({ spaceKey, groupName, operations }) => {
       const result = await service.revokeGroupSpacePermissions(spaceKey, groupName, operations);
 
@@ -281,10 +329,12 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_revokeUserSpacePermissions',
-    `Revoke space permissions from a user in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
-    confluenceToolSchemas.revokeUserSpacePermissions,
+    {
+      description: `Revoke space permissions from a user in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
+      inputSchema: confluenceToolSchemas.revokeUserSpacePermissions,
+    },
     async ({ spaceKey, userKey, operations }) => {
       const result = await service.revokeUserSpacePermissions(spaceKey, userKey, operations);
 

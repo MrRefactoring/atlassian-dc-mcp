@@ -5,10 +5,12 @@ import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService } from '../confluenceService.js';
 
 export function registerAttachmentTools(server: McpServer, service: ConfluenceService) {
-  server.tool(
+  server.registerTool(
     'confluence_getAttachments',
-    `Get the attachments on a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getAttachments,
+    {
+      description: `Get the attachments on a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getAttachments,
+    },
     async ({ contentId, expand, filename, limit, start, mediaType }) => {
       const result = await service.getAttachments(contentId, expand, filename, limit, start, mediaType);
 
@@ -16,10 +18,12 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_removeAttachment',
-    `Remove an attachment from a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.removeAttachment,
+    {
+      description: `Remove an attachment from a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.removeAttachment,
+    },
     async ({ attachmentId, contentId }) => {
       const result = await service.removeAttachment(attachmentId, contentId);
 
@@ -27,10 +31,12 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_createAttachment',
-    `Upload a new attachment to a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.createAttachment,
+    {
+      description: `Upload a new attachment to a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.createAttachment,
+    },
     async ({ contentId, fileName, contentBase64, comment, minorEdit, hidden, allowDuplicated, status, expand }) => {
       const result = await service.createAttachment(
         contentId,
@@ -48,10 +54,12 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_updateAttachmentMeta',
-    `Update an attachment's metadata (filename, media type, comment) in ${confluenceInstanceType}`,
-    confluenceToolSchemas.updateAttachmentMeta,
+    {
+      description: `Update an attachment's metadata (filename, media type, comment) in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.updateAttachmentMeta,
+    },
     async ({ contentId, attachmentId, version, title, versionComment, mediaType, comment, minorEdit }) => {
       const result = await service.updateAttachmentMeta(
         contentId,
@@ -68,10 +76,12 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_updateAttachmentData',
-    `Replace the binary data of an attachment in ${confluenceInstanceType}, adding a new version`,
-    confluenceToolSchemas.updateAttachmentData,
+    {
+      description: `Replace the binary data of an attachment in ${confluenceInstanceType}, adding a new version`,
+      inputSchema: confluenceToolSchemas.updateAttachmentData,
+    },
     async ({ contentId, attachmentId, fileName, contentBase64, comment, minorEdit }) => {
       const result = await service.updateAttachmentData(contentId, attachmentId, fileName, contentBase64, comment, minorEdit);
 
@@ -79,10 +89,12 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_moveAttachment',
-    `Move an attachment to a different content entity in ${confluenceInstanceType}, optionally renaming it`,
-    confluenceToolSchemas.moveAttachment,
+    {
+      description: `Move an attachment to a different content entity in ${confluenceInstanceType}, optionally renaming it`,
+      inputSchema: confluenceToolSchemas.moveAttachment,
+    },
     async ({ contentId, attachmentId, newContentId, newName }) => {
       const result = await service.moveAttachment(contentId, attachmentId, newContentId, newName);
 
@@ -90,10 +102,12 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_deleteAttachment',
-    `Delete an attachment from ${confluenceInstanceType}`,
-    confluenceToolSchemas.deleteAttachment,
+    {
+      description: `Delete an attachment from ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.deleteAttachment,
+    },
     async ({ contentId, attachmentId }) => {
       const result = await service.deleteAttachment(contentId, attachmentId);
 
@@ -101,10 +115,12 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_deleteAttachmentVersion',
-    `Delete a specific version of an attachment in ${confluenceInstanceType}`,
-    confluenceToolSchemas.deleteAttachmentVersion,
+    {
+      description: `Delete a specific version of an attachment in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.deleteAttachmentVersion,
+    },
     async ({ contentId, attachmentId, version }) => {
       const result = await service.deleteAttachmentVersion(contentId, attachmentId, version);
 

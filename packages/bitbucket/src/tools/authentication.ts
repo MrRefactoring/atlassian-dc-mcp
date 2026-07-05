@@ -4,10 +4,12 @@ import type { BitbucketService } from '../bitbucketService.js';
 import { bitbucketToolSchemas } from '../bitbucketService.js';
 
 export function registerAuthenticationTools(server: McpServer, service: BitbucketService) {
-  server.tool(
+  server.registerTool(
     'bitbucket_getAccessTokens',
-    'Get HTTP access tokens (PATs) for a user, project, or repository. Set scope to \'user\' (with userSlug), \'project\' (with projectKey), or \'repo\' (with projectKey and repositorySlug).',
-    bitbucketToolSchemas.getAccessTokens,
+    {
+      description: 'Get HTTP access tokens (PATs) for a user, project, or repository. Set scope to \'user\' (with userSlug), \'project\' (with projectKey), or \'repo\' (with projectKey and repositorySlug).',
+      inputSchema: bitbucketToolSchemas.getAccessTokens,
+    },
     async ({ scope, userSlug, projectKey, repositorySlug, start, limit }) => {
       const result = await service.getAccessTokens(scope, userSlug, projectKey, repositorySlug, start, limit);
 
@@ -15,10 +17,12 @@ export function registerAuthenticationTools(server: McpServer, service: Bitbucke
     },
   );
 
-  server.tool(
+  server.registerTool(
     'bitbucket_createAccessToken',
-    'Create an HTTP access token (PAT) for a user, project, or repository. Set scope to \'user\' (with userSlug), \'project\' (with projectKey), or \'repo\' (with projectKey and repositorySlug). The raw token value is only returned once, in the response of this call.',
-    bitbucketToolSchemas.createAccessToken,
+    {
+      description: 'Create an HTTP access token (PAT) for a user, project, or repository. Set scope to \'user\' (with userSlug), \'project\' (with projectKey), or \'repo\' (with projectKey and repositorySlug). The raw token value is only returned once, in the response of this call.',
+      inputSchema: bitbucketToolSchemas.createAccessToken,
+    },
     async ({ scope, name, permissions, expiryDays, userSlug, projectKey, repositorySlug }) => {
       const result = await service.createAccessToken(scope, name, permissions, expiryDays, userSlug, projectKey, repositorySlug);
 
@@ -26,10 +30,12 @@ export function registerAuthenticationTools(server: McpServer, service: Bitbucke
     },
   );
 
-  server.tool(
+  server.registerTool(
     'bitbucket_deleteAccessToken',
-    'Delete an HTTP access token (PAT) from a user, project, or repository by its ID. Set scope to \'user\' (with userSlug), \'project\' (with projectKey), or \'repo\' (with projectKey and repositorySlug).',
-    bitbucketToolSchemas.deleteAccessToken,
+    {
+      description: 'Delete an HTTP access token (PAT) from a user, project, or repository by its ID. Set scope to \'user\' (with userSlug), \'project\' (with projectKey), or \'repo\' (with projectKey and repositorySlug).',
+      inputSchema: bitbucketToolSchemas.deleteAccessToken,
+    },
     async ({ scope, tokenId, userSlug, projectKey, repositorySlug }) => {
       const result = await service.deleteAccessToken(scope, tokenId, userSlug, projectKey, repositorySlug);
 
@@ -37,10 +43,12 @@ export function registerAuthenticationTools(server: McpServer, service: Bitbucke
     },
   );
 
-  server.tool(
+  server.registerTool(
     'bitbucket_getSshKeys',
-    'List the SSH keys for a user. Defaults to the currently authenticated user; retrieving another user\'s keys requires ADMIN permission.',
-    bitbucketToolSchemas.getSshKeys,
+    {
+      description: 'List the SSH keys for a user. Defaults to the currently authenticated user; retrieving another user\'s keys requires ADMIN permission.',
+      inputSchema: bitbucketToolSchemas.getSshKeys,
+    },
     async ({ userName, start, limit }) => {
       const result = await service.getSshKeys(userName, start, limit);
 
@@ -48,10 +56,12 @@ export function registerAuthenticationTools(server: McpServer, service: Bitbucke
     },
   );
 
-  server.tool(
+  server.registerTool(
     'bitbucket_addSshKey',
-    'Add an SSH public key for a user. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.',
-    bitbucketToolSchemas.addSshKey,
+    {
+      description: 'Add an SSH public key for a user. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.',
+      inputSchema: bitbucketToolSchemas.addSshKey,
+    },
     async ({ text, userName }) => {
       const result = await service.addSshKey(text, userName);
 
@@ -59,10 +69,12 @@ export function registerAuthenticationTools(server: McpServer, service: Bitbucke
     },
   );
 
-  server.tool(
+  server.registerTool(
     'bitbucket_deleteSshKey',
-    'Delete an SSH key by its ID. Requires ADMIN permission.',
-    bitbucketToolSchemas.deleteSshKey,
+    {
+      description: 'Delete an SSH key by its ID. Requires ADMIN permission.',
+      inputSchema: bitbucketToolSchemas.deleteSshKey,
+    },
     async ({ keyId }) => {
       const result = await service.deleteSshKey(keyId);
 

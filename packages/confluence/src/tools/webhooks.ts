@@ -5,10 +5,12 @@ import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService } from '../confluenceService.js';
 
 export function registerWebhookTools(server: McpServer, service: ConfluenceService) {
-  server.tool(
+  server.registerTool(
     'confluence_findWebhooks',
-    `Find webhooks in ${confluenceInstanceType}. Requires administrator permission.`,
-    confluenceToolSchemas.findWebhooks,
+    {
+      description: `Find webhooks in ${confluenceInstanceType}. Requires administrator permission.`,
+      inputSchema: confluenceToolSchemas.findWebhooks,
+    },
     async ({ limit, start, event, statistics }) => {
       const result = await service.findWebhooks(limit, start, event, statistics);
 
@@ -16,10 +18,12 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_createWebhook',
-    `Create a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
-    confluenceToolSchemas.createWebhook,
+    {
+      description: `Create a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+      inputSchema: confluenceToolSchemas.createWebhook,
+    },
     async ({ name, url, events, active, secret }) => {
       const result = await service.createWebhook({
         name,
@@ -33,10 +37,12 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getWebhook',
-    `Get a webhook by ID in ${confluenceInstanceType}. Requires administrator permission.`,
-    confluenceToolSchemas.getWebhook,
+    {
+      description: `Get a webhook by ID in ${confluenceInstanceType}. Requires administrator permission.`,
+      inputSchema: confluenceToolSchemas.getWebhook,
+    },
     async ({ webhookId, statistics }) => {
       const result = await service.getWebhook(webhookId, statistics);
 
@@ -44,10 +50,12 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_updateWebhook',
-    `Update an existing webhook in ${confluenceInstanceType}. Requires administrator permission.`,
-    confluenceToolSchemas.updateWebhook,
+    {
+      description: `Update an existing webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+      inputSchema: confluenceToolSchemas.updateWebhook,
+    },
     async ({ webhookId, name, url, events, active, secret }) => {
       const result = await service.updateWebhook(webhookId, {
         name,
@@ -61,10 +69,12 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_deleteWebhook',
-    `Delete a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
-    confluenceToolSchemas.deleteWebhook,
+    {
+      description: `Delete a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+      inputSchema: confluenceToolSchemas.deleteWebhook,
+    },
     async ({ webhookId }) => {
       const result = await service.deleteWebhook(webhookId);
 
@@ -72,10 +82,12 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getWebhookLatestInvocation',
-    `Get the latest invocation of a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
-    confluenceToolSchemas.getWebhookLatestInvocation,
+    {
+      description: `Get the latest invocation of a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+      inputSchema: confluenceToolSchemas.getWebhookLatestInvocation,
+    },
     async ({ webhookId, outcomes, event }) => {
       const result = await service.getWebhookLatestInvocation(webhookId, outcomes, event);
 
@@ -83,10 +95,12 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getWebhookStatistics',
-    `Get invocation statistics for a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
-    confluenceToolSchemas.getWebhookStatistics,
+    {
+      description: `Get invocation statistics for a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+      inputSchema: confluenceToolSchemas.getWebhookStatistics,
+    },
     async ({ webhookId, event }) => {
       const result = await service.getWebhookStatistics(webhookId, event);
 
@@ -94,10 +108,12 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getWebhookStatisticsSummary',
-    `Get the invocation statistics summary for a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
-    confluenceToolSchemas.getWebhookStatisticsSummary,
+    {
+      description: `Get the invocation statistics summary for a webhook in ${confluenceInstanceType}. Requires administrator permission.`,
+      inputSchema: confluenceToolSchemas.getWebhookStatisticsSummary,
+    },
     async ({ webhookId }) => {
       const result = await service.getWebhookStatisticsSummary(webhookId);
 
@@ -105,10 +121,12 @@ export function registerWebhookTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_testWebhook',
-    `Test connectivity to a webhook endpoint URL in ${confluenceInstanceType}. Requires administrator permission.`,
-    confluenceToolSchemas.testWebhook,
+    {
+      description: `Test connectivity to a webhook endpoint URL in ${confluenceInstanceType}. Requires administrator permission.`,
+      inputSchema: confluenceToolSchemas.testWebhook,
+    },
     async ({ url }) => {
       const result = await service.testWebhook(url);
 

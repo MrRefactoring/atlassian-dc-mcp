@@ -5,10 +5,12 @@ import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService } from '../confluenceService.js';
 
 export function registerUserTools(server: McpServer, service: ConfluenceService) {
-  server.tool(
+  server.registerTool(
     'confluence_getCurrentUser',
-    `Get information about the current logged in user in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getCurrentUser,
+    {
+      description: `Get information about the current logged in user in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getCurrentUser,
+    },
     async ({ expand }) => {
       const result = await service.getCurrentUser(expand);
 
@@ -16,10 +18,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getAnonymousUser',
-    `Get information about how the anonymous user is represented in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getAnonymousUser,
+    {
+      description: `Get information about how the anonymous user is represented in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getAnonymousUser,
+    },
     async ({ expand }) => {
       const result = await service.getAnonymousUser(expand);
 
@@ -27,10 +31,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getUser',
-    `Get a user by user key or username in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getUser,
+    {
+      description: `Get a user by user key or username in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getUser,
+    },
     async ({ key, username, expand }) => {
       const result = await service.getUser(key, username, expand);
 
@@ -38,10 +44,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getUsers',
-    `Get a paginated collection of all registered users in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getUsers,
+    {
+      description: `Get a paginated collection of all registered users in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getUsers,
+    },
     async ({ limit, start, expand }) => {
       const result = await service.getUsers(limit, start, expand);
 
@@ -49,10 +57,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getUserGroups',
-    `Get the groups a user is a member of in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getUserGroups,
+    {
+      description: `Get the groups a user is a member of in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getUserGroups,
+    },
     async ({ key, username, limit, start, expand }) => {
       const result = await service.getUserGroups(key, username, limit, start, expand);
 
@@ -60,10 +70,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_updateCurrentUser',
-    `Update the current user's full name and/or email in ${confluenceInstanceType}`,
-    confluenceToolSchemas.updateCurrentUser,
+    {
+      description: `Update the current user's full name and/or email in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.updateCurrentUser,
+    },
     async ({ fullName, email, currentPassword }) => {
       const result = await service.updateCurrentUser(fullName, email, currentPassword);
 
@@ -71,10 +83,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_changeCurrentUserPassword',
-    `Change the password for the current user in ${confluenceInstanceType}`,
-    confluenceToolSchemas.changeCurrentUserPassword,
+    {
+      description: `Change the password for the current user in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.changeCurrentUserPassword,
+    },
     async ({ newPassword, oldPassword }) => {
       const result = await service.changeCurrentUserPassword(newPassword, oldPassword);
 
@@ -82,10 +96,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getGroup',
-    `Get a user group by name in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getGroup,
+    {
+      description: `Get a user group by name in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getGroup,
+    },
     async ({ groupName, expand }) => {
       const result = await service.getGroup(groupName, expand);
 
@@ -93,10 +109,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getGroups',
-    `Get a paginated collection of all user groups in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getGroups,
+    {
+      description: `Get a paginated collection of all user groups in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getGroups,
+    },
     async ({ limit, start, expand }) => {
       const result = await service.getGroups(limit, start, expand);
 
@@ -104,10 +122,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getGroupMembers',
-    `Get the users that are members of a group in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getGroupMembers,
+    {
+      description: `Get the users that are members of a group in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getGroupMembers,
+    },
     async ({ groupName, limit, start, expand }) => {
       const result = await service.getGroupMembers(groupName, limit, start, expand);
 
@@ -115,10 +135,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getNestedGroupMembers',
-    `Get the groups nested directly within a group in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getNestedGroupMembers,
+    {
+      description: `Get the groups nested directly within a group in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getNestedGroupMembers,
+    },
     async ({ groupName, limit, start, expand }) => {
       const result = await service.getNestedGroupMembers(groupName, limit, start, expand);
 
@@ -126,10 +148,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_addUserToGroup',
-    `Add a user to a group in ${confluenceInstanceType}. Idempotent.`,
-    confluenceToolSchemas.addUserToGroup,
+    {
+      description: `Add a user to a group in ${confluenceInstanceType}. Idempotent.`,
+      inputSchema: confluenceToolSchemas.addUserToGroup,
+    },
     async ({ username, groupName }) => {
       const result = await service.addUserToGroup(username, groupName);
 
@@ -137,10 +161,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_removeUserFromGroup',
-    `Remove a user from a group in ${confluenceInstanceType}. Idempotent.`,
-    confluenceToolSchemas.removeUserFromGroup,
+    {
+      description: `Remove a user from a group in ${confluenceInstanceType}. Idempotent.`,
+      inputSchema: confluenceToolSchemas.removeUserFromGroup,
+    },
     async ({ username, groupName }) => {
       const result = await service.removeUserFromGroup(username, groupName);
 
@@ -148,10 +174,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_adminCreateUser',
-    `Create a new user in ${confluenceInstanceType}. Requires system administrator permission.`,
-    confluenceToolSchemas.adminCreateUser,
+    {
+      description: `Create a new user in ${confluenceInstanceType}. Requires system administrator permission.`,
+      inputSchema: confluenceToolSchemas.adminCreateUser,
+    },
     async ({ userName, fullName, email, password, notifyViaEmail }) => {
       const result = await service.adminCreateUser(userName, fullName, email, password, notifyViaEmail);
 
@@ -159,10 +187,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_adminUpdateUser',
-    `Update a user's full name and/or email in ${confluenceInstanceType}. Requires system administrator permission.`,
-    confluenceToolSchemas.adminUpdateUser,
+    {
+      description: `Update a user's full name and/or email in ${confluenceInstanceType}. Requires system administrator permission.`,
+      inputSchema: confluenceToolSchemas.adminUpdateUser,
+    },
     async ({ username, fullName, email }) => {
       const result = await service.adminUpdateUser(username, fullName, email);
 
@@ -170,10 +200,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_adminDeleteUser',
-    `Delete a user in ${confluenceInstanceType}. Requires system administrator permission. Runs asynchronously.`,
-    confluenceToolSchemas.adminDeleteUser,
+    {
+      description: `Delete a user in ${confluenceInstanceType}. Requires system administrator permission. Runs asynchronously.`,
+      inputSchema: confluenceToolSchemas.adminDeleteUser,
+    },
     async ({ username }) => {
       const result = await service.adminDeleteUser(username);
 
@@ -181,10 +213,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_adminDisableUser',
-    `Disable a user in ${confluenceInstanceType}. Requires system administrator permission. Idempotent.`,
-    confluenceToolSchemas.adminDisableUser,
+    {
+      description: `Disable a user in ${confluenceInstanceType}. Requires system administrator permission. Idempotent.`,
+      inputSchema: confluenceToolSchemas.adminDisableUser,
+    },
     async ({ username }) => {
       const result = await service.adminDisableUser(username);
 
@@ -192,10 +226,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_adminEnableUser',
-    `Enable a user in ${confluenceInstanceType}. Requires system administrator permission. Idempotent.`,
-    confluenceToolSchemas.adminEnableUser,
+    {
+      description: `Enable a user in ${confluenceInstanceType}. Requires system administrator permission. Idempotent.`,
+      inputSchema: confluenceToolSchemas.adminEnableUser,
+    },
     async ({ username }) => {
       const result = await service.adminEnableUser(username);
 
@@ -203,10 +239,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_adminChangeUserPassword',
-    `Change another user's password in ${confluenceInstanceType}. Requires system administrator permission.`,
-    confluenceToolSchemas.adminChangeUserPassword,
+    {
+      description: `Change another user's password in ${confluenceInstanceType}. Requires system administrator permission.`,
+      inputSchema: confluenceToolSchemas.adminChangeUserPassword,
+    },
     async ({ username, password }) => {
       const result = await service.adminChangeUserPassword(username, password);
 
@@ -214,10 +252,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_adminCreateGroup',
-    `Create a new user group in ${confluenceInstanceType}. Requires system administrator permission.`,
-    confluenceToolSchemas.adminCreateGroup,
+    {
+      description: `Create a new user group in ${confluenceInstanceType}. Requires system administrator permission.`,
+      inputSchema: confluenceToolSchemas.adminCreateGroup,
+    },
     async ({ name }) => {
       const result = await service.adminCreateGroup(name);
 
@@ -225,10 +265,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_adminDeleteGroup',
-    `Delete a user group in ${confluenceInstanceType}. Requires system administrator permission.`,
-    confluenceToolSchemas.adminDeleteGroup,
+    {
+      description: `Delete a user group in ${confluenceInstanceType}. Requires system administrator permission.`,
+      inputSchema: confluenceToolSchemas.adminDeleteGroup,
+    },
     async ({ groupName }) => {
       const result = await service.adminDeleteGroup(groupName);
 
@@ -236,10 +278,12 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_adminGetActiveUsers',
-    `Get a paginated collection of active (license-counting) users in ${confluenceInstanceType}`,
-    confluenceToolSchemas.adminGetActiveUsers,
+    {
+      description: `Get a paginated collection of active (license-counting) users in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.adminGetActiveUsers,
+    },
     async ({ limit, start, expand }) => {
       const result = await service.adminGetActiveUsers(limit, start, expand);
 
