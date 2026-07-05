@@ -13,14 +13,11 @@ import * as workflows from '../api/workflows.js';
  * `jira.issues.getIssue({ issueIdOrKey })`.
  */
 export function createJiraClient(config: HttpClientConfig) {
-  // Jira responses pass through unchanged (no response mappers), and the model
-  // schemas are derived from the generated OpenAPI spec, whose response shapes are
-  // unreliable — e.g. list endpoints like `/api/2/priority` are typed as a single
-  // object but actually return an array. The previous generated client never
-  // validated at runtime, so enforcing these schemas would reject valid live
-  // responses. Keep the Zod schemas as the typed/documented contract but skip
-  // runtime parsing until the shapes are verified against a live instance end to end.
-  const http = createHttpClient({ ...config, skipParsing: true });
+  // Jira responses pass through unchanged (no response mappers). Runtime schema
+  // validation is being switched on: shapes are still being verified against a live
+  // instance, so it defaults off and the live-verification sweep opts in with
+  // `skipParsing: false`. Flip the default once every endpoint's shape is confirmed.
+  const http = createHttpClient({ ...config, skipParsing: config.skipParsing ?? true });
 
   return {
     admin: bindGroup(admin, http),

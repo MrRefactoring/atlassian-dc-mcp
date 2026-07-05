@@ -1,5 +1,6 @@
 import { route, type HttpClient } from 'datacenter-mcp-core';
 import { type ActorsMap, ComponentBeanSchema, type ComponentBean, ComponentIssueCountsBeanSchema, type ComponentIssueCountsBean, type DeleteAndReplaceVersionBean, EntityPropertiesKeysBeanSchema, type EntityPropertiesKeysBean, EntityPropertyBeanSchema, type EntityPropertyBean, ErrorCollectionSchema, type ErrorCollection, PageBeanSchema, type PageBean, ProjectBeanSchema, type ProjectBean, type ProjectCategoryBean, ProjectCategoryJsonBeanSchema, type ProjectCategoryJsonBean, ProjectIdentitySchema, type ProjectIdentity, type ProjectInputBean, ProjectPickerResultWrapperSchema, type ProjectPickerResultWrapper, type ProjectRoleActorsUpdateBean, ProjectRoleBeanSchema, type ProjectRoleBean, type ProjectUpdateBean, type PropertyBean, VersionBeanSchema, type VersionBean, VersionIssueCountsBeanSchema, type VersionIssueCountsBean, type VersionMoveBean, VersionUnresolvedIssueCountsBeanSchema, type VersionUnresolvedIssueCountsBean } from '../models/index.js';
+import { z } from 'zod';
 
 export function addActorUsers(client: HttpClient, params: { projectIdOrKey: string; id: number; requestBody: ActorsMap }): Promise<ProjectRoleBean> {
   return client.sendRequest({
@@ -91,12 +92,12 @@ export function getAllProjectCategories(client: HttpClient, _params: Record<stri
   });
 }
 
-export function getAllProjects(client: HttpClient, params: { includeArchived?: boolean; expand?: string; recent?: number; browseArchive?: boolean }): Promise<ProjectBean> {
+export function getAllProjects(client: HttpClient, params: { includeArchived?: boolean; expand?: string; recent?: number; browseArchive?: boolean }): Promise<ProjectBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/project`,
     searchParams: { includeArchived: params.includeArchived, expand: params.expand, recent: params.recent, browseArchive: params.browseArchive },
-    schema: ProjectBeanSchema,
+    schema: z.array(ProjectBeanSchema),
   });
 }
 
@@ -142,11 +143,11 @@ export function getProjectCategoryById(client: HttpClient, params: { id: number 
   });
 }
 
-export function getProjectComponents(client: HttpClient, params: { projectIdOrKey: string }): Promise<ComponentBean> {
+export function getProjectComponents(client: HttpClient, params: { projectIdOrKey: string }): Promise<ComponentBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/project/${params.projectIdOrKey}/components`,
-    schema: ComponentBeanSchema,
+    schema: z.array(ComponentBeanSchema),
   });
 }
 
@@ -183,12 +184,12 @@ export function getProjectvalidateProject(client: HttpClient, params: { key?: st
   });
 }
 
-export function getProjectVersions(client: HttpClient, params: { projectIdOrKey: string; expand?: string }): Promise<VersionBean> {
+export function getProjectVersions(client: HttpClient, params: { projectIdOrKey: string; expand?: string }): Promise<VersionBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/project/${params.projectIdOrKey}/versions`,
     searchParams: { expand: params.expand },
-    schema: VersionBeanSchema,
+    schema: z.array(VersionBeanSchema),
   });
 }
 

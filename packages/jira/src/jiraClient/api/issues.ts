@@ -1,5 +1,6 @@
 import { route, type HttpClient } from 'datacenter-mcp-core';
 import { AttachmentBeanSchema, type AttachmentBean, AttachmentJsonBeanSchema, type AttachmentJsonBean, AttachmentMetaBeanSchema, type AttachmentMetaBean, CommentJsonBeanSchema, type CommentJsonBean, CommentsWithPaginationJsonBeanSchema, type CommentsWithPaginationJsonBean, CreateMetaIssueTypeBeanSchema, type CreateMetaIssueTypeBean, EditMetaBeanSchema, type EditMetaBean, EntityPropertiesKeysBeanSchema, type EntityPropertiesKeysBean, EntityPropertyBeanSchema, type EntityPropertyBean, FieldMetaBeanSchema, type FieldMetaBean, IssueBeanSchema, type IssueBean, IssueCreateResponseSchema, type IssueCreateResponse, type IssueLinkTypeJsonBean, IssueLinkTypesBeanSchema, type IssueLinkTypesBean, type IssueRankRequestBean, type IssueUpdateBean, IssuesCreateResponseSchema, type IssuesCreateResponse, type IssuesUpdateBean, type LinkIssueRequestJsonBean, type NotificationJsonBean, PartialSuccessBeanSchema, type PartialSuccessBean, PinnedCommentJsonBeanSchema, type PinnedCommentJsonBean, RemoteIssueLinkBeanSchema, type RemoteIssueLinkBean, type RemoteIssueLinkCreateOrUpdateRequest, type SearchRequestBean, SearchResultsBeanSchema, type SearchResultsBean, type StringList, TransitionsMetaBeanSchema, type TransitionsMetaBean, type UserBean, VoteBeanSchema, type VoteBean, WatchersBeanSchema, type WatchersBean, WorklogChangedSinceBeanSchema, type WorklogChangedSinceBean, type WorklogIdsRequestBean, WorklogWithPaginationBeanSchema, type WorklogWithPaginationBean, issueLinksSchema, type issueLinks, worklogSchema, type worklog } from '../models/index.js';
+import { z } from 'zod';
 
 export function addAttachment(client: HttpClient, params: { issueIdOrKey: string; formData?: Blob }): Promise<AttachmentJsonBean> {
   return client.sendRequest({
@@ -334,11 +335,11 @@ export function getIssueWorklog(client: HttpClient, params: { issueIdOrKey: stri
   });
 }
 
-export function getPinnedComments(client: HttpClient, params: { issueIdOrKey: string }): Promise<PinnedCommentJsonBean> {
+export function getPinnedComments(client: HttpClient, params: { issueIdOrKey: string }): Promise<PinnedCommentJsonBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/issue/${params.issueIdOrKey}/pinned-comments`,
-    schema: PinnedCommentJsonBeanSchema,
+    schema: z.array(PinnedCommentJsonBeanSchema),
   });
 }
 
@@ -350,12 +351,12 @@ export function getRemoteIssueLinkById(client: HttpClient, params: { linkId: str
   });
 }
 
-export function getRemoteIssueLinks(client: HttpClient, params: { issueIdOrKey: string; globalId?: string }): Promise<RemoteIssueLinkBean> {
+export function getRemoteIssueLinks(client: HttpClient, params: { issueIdOrKey: string; globalId?: string }): Promise<RemoteIssueLinkBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/issue/${params.issueIdOrKey}/remotelink`,
     searchParams: { globalId: params.globalId },
-    schema: RemoteIssueLinkBeanSchema,
+    schema: z.array(RemoteIssueLinkBeanSchema),
   });
 }
 

@@ -1,5 +1,6 @@
 import { route, type HttpClient } from 'datacenter-mcp-core';
 import { type AddFieldBean, type CustomFieldDefinitionJsonBean, FieldBeanSchema, type FieldBean, IssueTypeJsonBeanSchema, type IssueTypeJsonBean, IssueTypeMappingBeanSchema, type IssueTypeMappingBean, type MoveFieldBean, PriorityJsonBeanSchema, type PriorityJsonBean, ResolutionJsonBeanSchema, type ResolutionJsonBean, ScreenableFieldBeanSchema, type ScreenableFieldBean, ScreenableTabBeanSchema, type ScreenableTabBean, StatusJsonBeanSchema, type StatusJsonBean, type WorkflowMappingBean, WorkflowSchemeBeanSchema, type WorkflowSchemeBean } from '../models/index.js';
+import { z } from 'zod';
 
 export function addField(client: HttpClient, params: { tabId: number; screenId: number; requestBody?: AddFieldBean }): Promise<ScreenableFieldBean> {
   return client.sendRequest({
@@ -135,11 +136,11 @@ export function getFieldsToAdd(client: HttpClient, params: { screenId: number })
   });
 }
 
-export function getIssueAllTypes(client: HttpClient, _params: Record<string, never>): Promise<IssueTypeJsonBean> {
+export function getIssueAllTypes(client: HttpClient, _params: Record<string, never>): Promise<IssueTypeJsonBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/issuetype`,
-    schema: IssueTypeJsonBeanSchema,
+    schema: z.array(IssueTypeJsonBeanSchema),
   });
 }
 
@@ -152,27 +153,27 @@ export function getIssueType(client: HttpClient, params: { issueType: string; id
   });
 }
 
-export function getPriorities(client: HttpClient, _params: Record<string, never>): Promise<PriorityJsonBean> {
+export function getPriorities(client: HttpClient, _params: Record<string, never>): Promise<PriorityJsonBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/priority`,
-    schema: PriorityJsonBeanSchema,
+    schema: z.array(PriorityJsonBeanSchema),
   });
 }
 
-export function getResolutions(client: HttpClient, _params: Record<string, never>): Promise<ResolutionJsonBean> {
+export function getResolutions(client: HttpClient, _params: Record<string, never>): Promise<ResolutionJsonBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/resolution`,
-    schema: ResolutionJsonBeanSchema,
+    schema: z.array(ResolutionJsonBeanSchema),
   });
 }
 
-export function getStatuses(client: HttpClient, _params: Record<string, never>): Promise<StatusJsonBean> {
+export function getStatuses(client: HttpClient, _params: Record<string, never>): Promise<StatusJsonBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/status`,
-    schema: StatusJsonBeanSchema,
+    schema: z.array(StatusJsonBeanSchema),
   });
 }
 
