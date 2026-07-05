@@ -12,4 +12,11 @@ export interface HttpClientConfig {
   headers?: Record<string, string>;
   /** Skip Zod parsing of responses — escape hatch against schema drift. */
   skipParsing?: boolean;
+  /**
+   * Validate responses non-fatally: parse with the schema, but on a mismatch pass the
+   * raw body through (logging a warning) instead of throwing. Use when the schemas are
+   * not yet fully verified against a live instance, so a wrong schema never rejects a
+   * valid response. Ignored when `skipParsing` is set.
+   */
+  softValidation?: boolean;
 }

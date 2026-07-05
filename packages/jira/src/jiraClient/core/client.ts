@@ -13,11 +13,13 @@ import * as workflows from '../api/workflows.js';
  * `jira.issues.getIssue({ issueIdOrKey })`.
  */
 export function createJiraClient(config: HttpClientConfig) {
-  // Jira responses pass through unchanged (no response mappers). Runtime schema
-  // validation is being switched on: shapes are still being verified against a live
-  // instance, so it defaults off and the live-verification sweep opts in with
-  // `skipParsing: false`. Flip the default once every endpoint's shape is confirmed.
-  const http = createHttpClient({ ...config, skipParsing: config.skipParsing ?? true });
+  // Jira responses pass through unchanged (no response mappers) and the model schemas
+  // are derived from the generated OpenAPI spec, whose response shapes are only
+  // partially verified against a live instance. Validate softly by default: verified
+  // responses parse strictly, but a schema that doesn't match a real response passes
+  // through raw (with a logged warning) instead of rejecting it. Callers can override —
+  // the live-verification sweep opts into strict parsing with `softValidation: false`.
+  const http = createHttpClient({ ...config, softValidation: config.softValidation ?? true });
 
   return {
     admin: bindGroup(admin, http),

@@ -1,4 +1,5 @@
 import { ApiError } from './apiError.js';
+import { logger } from '../logger.js';
 import type { HttpClientConfig, CredentialSource, HttpClient, SendRequestOptions } from './interface/index.js';
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
@@ -200,6 +201,7 @@ const getResponseBody = async (
 export function createHttpClient(config: HttpClientConfig): HttpClient {
   const baseUrl = config.baseUrl.replace(/\/$/, '');
   const skipParsing = config.skipParsing ?? false;
+  const softValidation = config.softValidation ?? false;
 
   return {
     async sendRequest<T>(options: SendRequestOptions<T>): Promise<T> {
@@ -230,6 +232,26 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
       // (e.g. unconfigured settings), which is a legitimate `undefined` result; raw
       // `arraybuffer` responses are returned as-is.
       if (options.schema && !skipParsing && options.responseType !== 'arraybuffer' && responseBody !== undefined) {
+        if (softValidation) {
+          const result = options.schema.safeParse(responseBody);
+
+          if (result.success) {
+            return result.data;
+          }
+
+          // Schema drift: never reject a real response — pass the raw body through and
+          // surface the mismatch so the schema can be corrected.
+          logger.warn('Response failed schema validation; passing through unvalidated', {
+            url,
+            issues: result.error.issues.slice(0, 3).map((issue) => ({
+              path: issue.path.join('.') || '<root>',
+              code: issue.code,
+            })),
+          });
+
+          return responseBody as T;
+        }
+
         return options.schema.parse(responseBody);
       }
 
