@@ -5,7 +5,6 @@ import { GpgKeySchema } from '../models/index.js';
 import type { GpgKey } from '../models/index.js';
 import type { AddKey, DeleteKey, GetKeysForUser } from '../parameters/index.js';
 
-/** POST /gpg/latest/keys */
 export function addKey(client: HttpClient, params: AddKey): Promise<GpgKey> {
   return client.sendRequest({
     method: 'POST',
@@ -17,7 +16,6 @@ export function addKey(client: HttpClient, params: AddKey): Promise<GpgKey> {
   });
 }
 
-/** DELETE /gpg/latest/keys/{fingerprintOrId} */
 export function deleteKey(client: HttpClient, params: DeleteKey): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -25,7 +23,6 @@ export function deleteKey(client: HttpClient, params: DeleteKey): Promise<void> 
   });
 }
 
-/** GET /gpg/latest/keys */
 export function getKeysForUser(client: HttpClient, params: GetKeysForUser): Promise<RestPage<GpgKey>> {
   return client.sendRequest({
     method: 'GET',

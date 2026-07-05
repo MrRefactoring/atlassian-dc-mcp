@@ -1,4 +1,3 @@
-/* Bitbucket client model schemas (Zod) + inferred types. */
 export * from './multipartFormData.js';
 export * from './settings.js';
 export * from './accessToken.js';

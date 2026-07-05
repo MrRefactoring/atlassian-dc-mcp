@@ -5,7 +5,6 @@ import { PermittedGroupSchema, PermittedUserSchema } from '../models/index.js';
 import type { PermittedGroup, PermittedUser } from '../models/index.js';
 import type { GetRepositoryGroupsWithAnyPermission, GetRepositoryUsersWithAnyPermission, RevokeRepositoryPermissions, SetPermissionForGroup, SetPermissionForUser } from '../parameters/index.js';
 
-/** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/permissions/groups */
 export function getGroupsWithAnyPermission(client: HttpClient, params: GetRepositoryGroupsWithAnyPermission): Promise<RestPage<PermittedGroup>> {
   return client.sendRequest({
     method: 'GET',
@@ -15,7 +14,6 @@ export function getGroupsWithAnyPermission(client: HttpClient, params: GetReposi
   });
 }
 
-/** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/permissions/users */
 export function getUsersWithAnyPermission(client: HttpClient, params: GetRepositoryUsersWithAnyPermission): Promise<RestPage<PermittedUser>> {
   return client.sendRequest({
     method: 'GET',
@@ -25,7 +23,6 @@ export function getUsersWithAnyPermission(client: HttpClient, params: GetReposit
   });
 }
 
-/** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug}/permissions */
 export function revokePermissions(client: HttpClient, params: RevokeRepositoryPermissions): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -34,7 +31,6 @@ export function revokePermissions(client: HttpClient, params: RevokeRepositoryPe
   });
 }
 
-/** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/permissions/groups */
 export function setPermissionForGroup(client: HttpClient, params: SetPermissionForGroup): Promise<void> {
   return client.sendRequest({
     method: 'PUT',
@@ -43,7 +39,6 @@ export function setPermissionForGroup(client: HttpClient, params: SetPermissionF
   });
 }
 
-/** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/permissions/users */
 export function setPermissionForUser(client: HttpClient, params: SetPermissionForUser): Promise<void> {
   return client.sendRequest({
     method: 'PUT',
