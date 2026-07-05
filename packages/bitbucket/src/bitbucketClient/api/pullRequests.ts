@@ -6,7 +6,6 @@ import { ChangeSchema, CommentSchema, PullRequestActivitySchema, PullRequestCond
 import type { Change, Comment, PullRequest, PullRequestActivity, PullRequestCondition, PullRequestMergeability, PullRequestParticipant } from '../models/index.js';
 import type { ApplySuggestion, AssignParticipantRole, CanMerge, Create, CreatePullRequestComment, CreatePullRequestCondition, Decline, DeleteComment, DeletePullRequestCondition, GetPullRequest, GetActivities, GetPage, GetPullRequestConditions, GetReviewers, ListParticipants, Merge, Reopen, StreamPullRequestChanges, UnassignParticipantRole, Unwatch, Update, UpdateComment, UpdatePullRequestCondition, UpdateStatus, Watch } from '../parameters/index.js';
 
-/** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/comments/{commentId}/apply-suggestion */
 export function applySuggestion(client: HttpClient, params: ApplySuggestion): Promise<void> {
   return client.sendRequest({
     method: 'POST',
@@ -16,7 +15,6 @@ export function applySuggestion(client: HttpClient, params: ApplySuggestion): Pr
   });
 }
 
-/** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/participants */
 export function assignParticipantRole(client: HttpClient, params: AssignParticipantRole): Promise<PullRequestParticipant> {
   return client.sendRequest({
     method: 'POST',
@@ -27,7 +25,6 @@ export function assignParticipantRole(client: HttpClient, params: AssignParticip
   });
 }
 
-/** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/merge */
 export function canMerge(client: HttpClient, params: CanMerge): Promise<PullRequestMergeability> {
   return client.sendRequest({
     method: 'GET',
@@ -36,7 +33,6 @@ export function canMerge(client: HttpClient, params: CanMerge): Promise<PullRequ
   });
 }
 
-/** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests */
 export function create(client: HttpClient, params: Create): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
@@ -47,7 +43,6 @@ export function create(client: HttpClient, params: Create): Promise<PullRequest>
   });
 }
 
-/** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/comments */
 export function createComment(client: HttpClient, params: CreatePullRequestComment): Promise<Comment> {
   return client.sendRequest({
     method: 'POST',
@@ -58,7 +53,6 @@ export function createComment(client: HttpClient, params: CreatePullRequestComme
   });
 }
 
-/** POST /default-reviewers/latest/projects/{projectKey}/repos/{repositorySlug}/condition */
 export function createPullRequestCondition(client: HttpClient, params: CreatePullRequestCondition): Promise<PullRequestCondition> {
   return client.sendRequest({
     method: 'POST',
@@ -69,7 +63,6 @@ export function createPullRequestCondition(client: HttpClient, params: CreatePul
   });
 }
 
-/** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/decline */
 export function decline(client: HttpClient, params: Decline): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
@@ -81,7 +74,6 @@ export function decline(client: HttpClient, params: Decline): Promise<PullReques
   });
 }
 
-/** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/comments/{commentId} */
 export function deleteComment(client: HttpClient, params: DeleteComment): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -90,7 +82,6 @@ export function deleteComment(client: HttpClient, params: DeleteComment): Promis
   });
 }
 
-/** DELETE /default-reviewers/latest/projects/{projectKey}/repos/{repositorySlug}/condition/{id} */
 export function deletePullRequestCondition(client: HttpClient, params: DeletePullRequestCondition): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -98,7 +89,6 @@ export function deletePullRequestCondition(client: HttpClient, params: DeletePul
   });
 }
 
-/** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId} */
 export function get(client: HttpClient, params: GetPullRequest): Promise<PullRequest> {
   return client.sendRequest({
     method: 'GET',
@@ -107,7 +97,6 @@ export function get(client: HttpClient, params: GetPullRequest): Promise<PullReq
   });
 }
 
-/** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/activities */
 export function getActivities(client: HttpClient, params: GetActivities): Promise<RestPage<PullRequestActivity>> {
   return client.sendRequest({
     method: 'GET',
@@ -117,7 +106,6 @@ export function getActivities(client: HttpClient, params: GetActivities): Promis
   });
 }
 
-/** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests */
 export function getPage(client: HttpClient, params: GetPage): Promise<RestPage<PullRequest>> {
   return client.sendRequest({
     method: 'GET',
@@ -127,7 +115,6 @@ export function getPage(client: HttpClient, params: GetPage): Promise<RestPage<P
   });
 }
 
-/** GET /default-reviewers/latest/projects/{projectKey}/repos/{repositorySlug}/conditions */
 export function getPullRequestConditions(client: HttpClient, params: GetPullRequestConditions): Promise<PullRequestCondition[]> {
   return client.sendRequest({
     method: 'GET',
@@ -136,7 +123,6 @@ export function getPullRequestConditions(client: HttpClient, params: GetPullRequ
   });
 }
 
-/** GET /default-reviewers/latest/projects/{projectKey}/repos/{repositorySlug}/reviewers */
 export function getReviewers(client: HttpClient, params: GetReviewers): Promise<PullRequestCondition[]> {
   return client.sendRequest({
     method: 'GET',
@@ -146,7 +132,6 @@ export function getReviewers(client: HttpClient, params: GetReviewers): Promise<
   });
 }
 
-/** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/participants */
 export function listParticipants(client: HttpClient, params: ListParticipants): Promise<RestPage<PullRequestParticipant>> {
   return client.sendRequest({
     method: 'GET',
@@ -156,7 +141,6 @@ export function listParticipants(client: HttpClient, params: ListParticipants): 
   });
 }
 
-/** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/merge */
 export function merge(client: HttpClient, params: Merge): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
@@ -168,7 +152,6 @@ export function merge(client: HttpClient, params: Merge): Promise<PullRequest> {
   });
 }
 
-/** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/reopen */
 export function reopen(client: HttpClient, params: Reopen): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
@@ -180,7 +163,6 @@ export function reopen(client: HttpClient, params: Reopen): Promise<PullRequest>
   });
 }
 
-/** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/changes */
 export function streamChanges(client: HttpClient, params: StreamPullRequestChanges): Promise<Change> {
   return client.sendRequest({
     method: 'GET',
@@ -190,7 +172,6 @@ export function streamChanges(client: HttpClient, params: StreamPullRequestChang
   });
 }
 
-/** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/participants/{userSlug} */
 export function unassignParticipantRole(client: HttpClient, params: UnassignParticipantRole): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -198,7 +179,6 @@ export function unassignParticipantRole(client: HttpClient, params: UnassignPart
   });
 }
 
-/** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/watch */
 export function unwatch(client: HttpClient, params: Unwatch): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -206,7 +186,6 @@ export function unwatch(client: HttpClient, params: Unwatch): Promise<void> {
   });
 }
 
-/** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId} */
 export function update(client: HttpClient, params: Update): Promise<PullRequest> {
   return client.sendRequest({
     method: 'PUT',
@@ -217,7 +196,6 @@ export function update(client: HttpClient, params: Update): Promise<PullRequest>
   });
 }
 
-/** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/comments/{commentId} */
 export function updateComment(client: HttpClient, params: UpdateComment): Promise<Comment> {
   return client.sendRequest({
     method: 'PUT',
@@ -228,7 +206,6 @@ export function updateComment(client: HttpClient, params: UpdateComment): Promis
   });
 }
 
-/** PUT /default-reviewers/latest/projects/{projectKey}/repos/{repositorySlug}/condition/{id} */
 export function updatePullRequestCondition(client: HttpClient, params: UpdatePullRequestCondition): Promise<PullRequestCondition> {
   return client.sendRequest({
     method: 'PUT',
@@ -239,7 +216,6 @@ export function updatePullRequestCondition(client: HttpClient, params: UpdatePul
   });
 }
 
-/** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/participants/{userSlug} */
 export function updateStatus(client: HttpClient, params: UpdateStatus): Promise<PullRequestParticipant> {
   return client.sendRequest({
     method: 'PUT',
@@ -251,7 +227,6 @@ export function updateStatus(client: HttpClient, params: UpdateStatus): Promise<
   });
 }
 
-/** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/watch */
 export function watch(client: HttpClient, params: Watch): Promise<void> {
   return client.sendRequest({
     method: 'POST',

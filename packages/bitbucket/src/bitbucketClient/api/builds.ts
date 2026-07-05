@@ -5,7 +5,6 @@ import { BuildStatusSchema, InsightAnnotationsResponseSchema, InsightReportSchem
 import type { BuildStatus, InsightAnnotationsResponse, InsightReport, RequiredBuildCondition } from '../models/index.js';
 import type { Add, AddAnnotations, CreateRequiredBuildsMergeCheck, DeleteACodeInsightsReport, DeleteAnnotations, DeleteRequiredBuildsMergeCheck, GetBuildStatus, GetACodeInsightsReport, GetAnnotations, GetBuildStatusStats, GetPageOfRequiredBuildsMergeChecks, SetACodeInsightsReport, UpdateRequiredBuildsMergeCheck } from '../parameters/index.js';
 
-/** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/builds */
 export function add(client: HttpClient, params: Add): Promise<void> {
   return client.sendRequest({
     method: 'POST',
@@ -15,7 +14,6 @@ export function add(client: HttpClient, params: Add): Promise<void> {
   });
 }
 
-/** POST /insights/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/reports/{key}/annotations */
 export function addAnnotations(client: HttpClient, params: AddAnnotations): Promise<void> {
   return client.sendRequest({
     method: 'POST',
@@ -25,7 +23,6 @@ export function addAnnotations(client: HttpClient, params: AddAnnotations): Prom
   });
 }
 
-/** POST /required-builds/latest/projects/{projectKey}/repos/{repositorySlug}/condition */
 export function createRequiredBuildsMergeCheck(client: HttpClient, params: CreateRequiredBuildsMergeCheck): Promise<RequiredBuildCondition> {
   return client.sendRequest({
     method: 'POST',
@@ -36,7 +33,6 @@ export function createRequiredBuildsMergeCheck(client: HttpClient, params: Creat
   });
 }
 
-/** DELETE /insights/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/reports/{key} */
 export function deleteACodeInsightsReport(client: HttpClient, params: DeleteACodeInsightsReport): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -44,7 +40,6 @@ export function deleteACodeInsightsReport(client: HttpClient, params: DeleteACod
   });
 }
 
-/** DELETE /insights/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/reports/{key}/annotations */
 export function deleteAnnotations(client: HttpClient, params: DeleteAnnotations): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -53,7 +48,6 @@ export function deleteAnnotations(client: HttpClient, params: DeleteAnnotations)
   });
 }
 
-/** DELETE /required-builds/latest/projects/{projectKey}/repos/{repositorySlug}/condition/{id} */
 export function deleteRequiredBuildsMergeCheck(client: HttpClient, params: DeleteRequiredBuildsMergeCheck): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -61,7 +55,6 @@ export function deleteRequiredBuildsMergeCheck(client: HttpClient, params: Delet
   });
 }
 
-/** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/builds */
 export function get(client: HttpClient, params: GetBuildStatus): Promise<BuildStatus> {
   return client.sendRequest({
     method: 'GET',
@@ -71,7 +64,6 @@ export function get(client: HttpClient, params: GetBuildStatus): Promise<BuildSt
   });
 }
 
-/** GET /insights/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/reports/{key} */
 export function getACodeInsightsReport(client: HttpClient, params: GetACodeInsightsReport): Promise<InsightReport> {
   return client.sendRequest({
     method: 'GET',
@@ -80,7 +72,6 @@ export function getACodeInsightsReport(client: HttpClient, params: GetACodeInsig
   });
 }
 
-/** GET /insights/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/reports/{key}/annotations */
 export function getAnnotations(client: HttpClient, params: GetAnnotations): Promise<InsightAnnotationsResponse> {
   return client.sendRequest({
     method: 'GET',
@@ -89,7 +80,6 @@ export function getAnnotations(client: HttpClient, params: GetAnnotations): Prom
   });
 }
 
-/** GET /build-status/latest/commits/{commitId} */
 export function getBuildStatusStats(client: HttpClient, params: GetBuildStatusStats): Promise<RestPage<BuildStatus>> {
   return client.sendRequest({
     method: 'GET',
@@ -99,7 +89,6 @@ export function getBuildStatusStats(client: HttpClient, params: GetBuildStatusSt
   });
 }
 
-/** GET /required-builds/latest/projects/{projectKey}/repos/{repositorySlug}/conditions */
 export function getPageOfRequiredBuildsMergeChecks(client: HttpClient, params: GetPageOfRequiredBuildsMergeChecks): Promise<RestPage<RequiredBuildCondition>> {
   return client.sendRequest({
     method: 'GET',
@@ -109,7 +98,6 @@ export function getPageOfRequiredBuildsMergeChecks(client: HttpClient, params: G
   });
 }
 
-/** PUT /insights/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/reports/{key} */
 export function setACodeInsightsReport(client: HttpClient, params: SetACodeInsightsReport): Promise<InsightReport> {
   return client.sendRequest({
     method: 'PUT',
@@ -120,7 +108,6 @@ export function setACodeInsightsReport(client: HttpClient, params: SetACodeInsig
   });
 }
 
-/** PUT /required-builds/latest/projects/{projectKey}/repos/{repositorySlug}/condition/{id} */
 export function updateRequiredBuildsMergeCheck(client: HttpClient, params: UpdateRequiredBuildsMergeCheck): Promise<RequiredBuildCondition> {
   return client.sendRequest({
     method: 'PUT',
