@@ -3,11 +3,10 @@
   "version": "0.2.0",
   "main": "dist/index.js",
   "type": "module",
-  "bin": "./bin/run.js",
+  "bin": "./dist/run.js",
   "private": false,
   "files": [
-    "dist",
-    "bin"
+    "dist"
   ],
   "description": "Community-maintained MCP server connecting Claude and other AI assistants to Atlassian Bitbucket Data Center. Not affiliated with Atlassian.",
   "keywords": [
