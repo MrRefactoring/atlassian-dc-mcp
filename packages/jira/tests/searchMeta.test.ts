@@ -166,4 +166,70 @@ describe('JiraService', () => {
       expect(result.error).toBe('Bad request');
     });
   });
+
+  describe('filter sharing', () => {
+    it('lists filter share permissions', async () => {
+      const mockPerms = [{ id: 10101, type: 'group' }];
+      (jira.admin.getFilterSharePermissions as Mock).mockResolvedValue(mockPerms);
+
+      const result = await jiraService.getFilterSharePermissions('10000');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPerms);
+      expect(jira.admin.getFilterSharePermissions).toHaveBeenCalledWith({ id: '10000' });
+    });
+
+    it('gets a single filter share permission', async () => {
+      const mockPerm = { id: 10101, type: 'group' };
+      (jira.admin.getFilterSharePermission as Mock).mockResolvedValue(mockPerm);
+
+      const result = await jiraService.getFilterSharePermission('10000', '10101');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPerm);
+      expect(jira.admin.getFilterSharePermission).toHaveBeenCalledWith({ id: '10000', permissionId: '10101' });
+    });
+
+    it('adds a group filter share permission', async () => {
+      const mockPerms = [{ id: 10102, type: 'group' }];
+      (jira.admin.addFilterSharePermission as Mock).mockResolvedValue(mockPerms);
+
+      const result = await jiraService.addFilterSharePermission('10000', 'group', undefined, 'jira-administrators');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockPerms);
+      expect(jira.admin.addFilterSharePermission).toHaveBeenCalledWith({
+        id: '10000',
+        requestBody: { type: 'group', projectId: undefined, groupname: 'jira-administrators', projectRoleId: undefined },
+      });
+    });
+
+    it('deletes a filter share permission', async () => {
+      (jira.admin.deleteFilterSharePermission as Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteFilterSharePermission('10000', '10101');
+
+      expect(result.success).toBe(true);
+      expect(jira.admin.deleteFilterSharePermission).toHaveBeenCalledWith({ id: '10000', permissionId: '10101' });
+    });
+
+    it('gets the default share scope', async () => {
+      (jira.admin.getDefaultShareScope as Mock).mockResolvedValue({ scope: 'PRIVATE' });
+
+      const result = await jiraService.getDefaultShareScope();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({ scope: 'PRIVATE' });
+      expect(jira.admin.getDefaultShareScope).toHaveBeenCalledWith({});
+    });
+
+    it('sets the default share scope', async () => {
+      (jira.admin.setDefaultShareScope as Mock).mockResolvedValue({ scope: 'GLOBAL' });
+
+      const result = await jiraService.setDefaultShareScope('GLOBAL');
+
+      expect(result.success).toBe(true);
+      expect(jira.admin.setDefaultShareScope).toHaveBeenCalledWith({ requestBody: { scope: 'GLOBAL' } });
+    });
+  });
 });
