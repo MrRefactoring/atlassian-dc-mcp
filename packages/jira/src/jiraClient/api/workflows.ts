@@ -1,5 +1,5 @@
 import { route, type HttpClient } from 'datacenter-mcp-core';
-import { type AddFieldBean, type CustomFieldDefinitionJsonBean, FieldBeanSchema, type FieldBean, IssueTypeJsonBeanSchema, type IssueTypeJsonBean, IssueTypeMappingBeanSchema, type IssueTypeMappingBean, type MoveFieldBean, PriorityJsonBeanSchema, type PriorityJsonBean, ResolutionJsonBeanSchema, type ResolutionJsonBean, ScreenableFieldBeanSchema, type ScreenableFieldBean, ScreenableTabBeanSchema, type ScreenableTabBean, StatusJsonBeanSchema, type StatusJsonBean, type WorkflowMappingBean, WorkflowSchemeBeanSchema, type WorkflowSchemeBean } from '../models/index.js';
+import { type AddFieldBean, type CustomFieldDefinitionJsonBean, FieldBeanSchema, type FieldBean, IssueTypeJsonBeanSchema, type IssueTypeJsonBean, IssueTypeMappingBeanSchema, type IssueTypeMappingBean, type MoveFieldBean, PriorityJsonBeanSchema, type PriorityJsonBean, ResolutionJsonBeanSchema, type ResolutionJsonBean, ScreenableFieldBeanSchema, type ScreenableFieldBean, ScreenableTabBeanSchema, type ScreenableTabBean, StatusJsonBeanSchema, type StatusJsonBean, WorkflowMappingBeanSchema, type WorkflowMappingBean, WorkflowSchemeBeanSchema, type WorkflowSchemeBean } from '../models/index.js';
 import { z } from 'zod';
 
 export function addField(client: HttpClient, params: { tabId: number; screenId: number; requestBody?: AddFieldBean }): Promise<ScreenableFieldBean> {
@@ -76,12 +76,12 @@ export function deleteWorkflowMapping(client: HttpClient, params: { id: number; 
   });
 }
 
-export function getAllFields(client: HttpClient, params: { tabId: number; screenId: number; projectKey?: string }): Promise<ScreenableFieldBean> {
+export function getAllFields(client: HttpClient, params: { tabId: number; screenId: number; projectKey?: string }): Promise<ScreenableFieldBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/screens/${params.screenId}/tabs/${params.tabId}/fields`,
     searchParams: { projectKey: params.projectKey },
-    schema: ScreenableFieldBeanSchema,
+    schema: z.array(ScreenableFieldBeanSchema),
   });
 }
 
@@ -93,12 +93,12 @@ export function getAllScreens(client: HttpClient, params: { search?: string; exp
   });
 }
 
-export function getAllTabs(client: HttpClient, params: { screenId: number; projectKey?: string }): Promise<ScreenableTabBean> {
+export function getAllTabs(client: HttpClient, params: { screenId: number; projectKey?: string }): Promise<ScreenableTabBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/screens/${params.screenId}/tabs`,
     searchParams: { projectKey: params.projectKey },
-    schema: ScreenableTabBeanSchema,
+    schema: z.array(ScreenableTabBeanSchema),
   });
 }
 
@@ -128,11 +128,11 @@ export function getDefault(client: HttpClient, params: { id: number; returnDraft
   });
 }
 
-export function getFieldsToAdd(client: HttpClient, params: { screenId: number }): Promise<ScreenableFieldBean> {
+export function getFieldsToAdd(client: HttpClient, params: { screenId: number }): Promise<ScreenableFieldBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/screens/${params.screenId}/availableFields`,
-    schema: ScreenableFieldBeanSchema,
+    schema: z.array(ScreenableFieldBeanSchema),
   });
 }
 
@@ -177,12 +177,12 @@ export function getStatuses(client: HttpClient, _params: Record<string, never>):
   });
 }
 
-export function getWorkflow(client: HttpClient, params: { id: number; workflowName?: string; returnDraftIfExists?: boolean }): Promise<WorkflowSchemeBean> {
+export function getWorkflow(client: HttpClient, params: { id: number; workflowName?: string; returnDraftIfExists?: boolean }): Promise<WorkflowMappingBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/workflowscheme/${params.id}/workflow`,
     searchParams: { workflowName: params.workflowName, returnDraftIfExists: params.returnDraftIfExists },
-    schema: WorkflowSchemeBeanSchema,
+    schema: z.array(WorkflowMappingBeanSchema),
   });
 }
 

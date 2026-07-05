@@ -35,6 +35,7 @@ export function addWatcher(client: HttpClient, params: { issueIdOrKey: string; u
     url: route`/api/2/issue/${params.issueIdOrKey}/watchers`,
     searchParams: { userName: params.userName },
     body: params.requestBody,
+    contentType: 'application/json',
   });
 }
 
@@ -62,7 +63,7 @@ export function archiveIssues(client: HttpClient, params: { notifyUsers?: string
     url: route`/api/2/issue/archive`,
     searchParams: { notifyUsers: params.notifyUsers },
     body: params.requestBody,
-    contentType: 'text/plain',
+    contentType: 'application/json',
   });
 }
 
@@ -385,12 +386,12 @@ export function getWorklog(client: HttpClient, params: { issueIdOrKey: string; i
   });
 }
 
-export function getWorklogsForIds(client: HttpClient, params: { requestBody: WorklogIdsRequestBean }): Promise<worklog> {
+export function getWorklogsForIds(client: HttpClient, params: { requestBody: WorklogIdsRequestBean }): Promise<worklog[]> {
   return client.sendRequest({
     method: 'POST',
     url: route`/api/2/worklog/list`,
     body: params.requestBody,
-    schema: worklogSchema,
+    schema: z.array(worklogSchema),
   });
 }
 
@@ -463,6 +464,7 @@ export function setCommentProperty(client: HttpClient, params: { propertyKey: st
     method: 'PUT',
     url: route`/api/2/comment/${params.commentId}/properties/${params.propertyKey}`,
     body: params.requestBody,
+    contentType: 'application/json',
   });
 }
 
@@ -471,6 +473,7 @@ export function setIssueProperty(client: HttpClient, params: { propertyKey: stri
     method: 'PUT',
     url: route`/api/2/issue/${params.issueIdOrKey}/properties/${params.propertyKey}`,
     body: params.requestBody,
+    contentType: 'application/json',
   });
 }
 

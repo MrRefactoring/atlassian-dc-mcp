@@ -38,12 +38,12 @@ export function createUser(client: HttpClient, params: { requestBody: UserWriteB
   });
 }
 
-export function findAssignableUsers(client: HttpClient, params: { issueKey?: string; maxResults?: number; project?: string; actionDescriptorId?: number; username?: string }): Promise<UserBean> {
+export function findAssignableUsers(client: HttpClient, params: { issueKey?: string; maxResults?: number; project?: string; actionDescriptorId?: number; username?: string }): Promise<UserBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/user/assignable/search`,
     searchParams: { issueKey: params.issueKey, maxResults: params.maxResults, project: params.project, actionDescriptorId: params.actionDescriptorId, username: params.username },
-    schema: UserBeanSchema,
+    schema: UserBeanSchema.array(),
   });
 }
 
@@ -56,12 +56,12 @@ export function findGroups(client: HttpClient, params: { maxResults?: string; qu
   });
 }
 
-export function findUsers(client: HttpClient, params: { includeInactive?: boolean; maxResults?: number; includeActive?: boolean; startAt?: number; username?: string }): Promise<UserBean> {
+export function findUsers(client: HttpClient, params: { includeInactive?: boolean; maxResults?: number; includeActive?: boolean; startAt?: number; username?: string }): Promise<UserBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/user/search`,
     searchParams: { includeInactive: params.includeInactive, maxResults: params.maxResults, includeActive: params.includeActive, startAt: params.startAt, username: params.username },
-    schema: UserBeanSchema,
+    schema: UserBeanSchema.array(),
   });
 }
 
@@ -179,6 +179,7 @@ export function setPreference(client: HttpClient, params: { key?: string; reques
     url: route`/api/2/mypreferences`,
     searchParams: { key: params.key },
     body: params.requestBody,
+    contentType: 'application/json',
   });
 }
 
