@@ -1,36 +1,37 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { Project } from './project.js';
-export type Repository = {
-    archived?: boolean;
-    description?: string;
-    fork?: boolean;
-    forkable?: boolean;
-    hierarchyId?: string;
-    id?: number;
-    local?: boolean;
-    name?: string;
-    offline?: boolean;
-    origin?: Repository;
-    partition?: number;
-    project?: Project;
-    public?: boolean;
-    readOnly?: boolean;
-    remote?: boolean;
-    scmId?: string;
-    slug?: string;
-    state?: Repository.state;
-    statusMessage?: string;
-};
-export namespace Repository {
-    export enum state {
-        AVAILABLE = 'AVAILABLE',
-        INITIALISATION_FAILED = 'INITIALISATION_FAILED',
-        INITIALISING = 'INITIALISING',
-        OFFLINE = 'OFFLINE',
-    }
-}
+import { z } from 'zod';
 
+export const RepositorySchema = z.looseObject({
+  slug: z.string().optional(),
+  id: z.number().optional(),
+  name: z.string().optional(),
+  hierarchyId: z.string().optional(),
+  scmId: z.string().optional(),
+  state: z.string().optional(),
+  statusMessage: z.string().optional(),
+  forkable: z.boolean().optional(),
+  project: z.looseObject({
+    key: z.string().optional(),
+    id: z.number().optional(),
+    name: z.string().optional(),
+    public: z.boolean().optional(),
+    type: z.string().optional(),
+    links: z.looseObject({
+      self: z.array(z.looseObject({
+        href: z.string().optional(),
+      })).optional(),
+    }).optional(),
+  }).optional(),
+  public: z.boolean().optional(),
+  archived: z.boolean().optional(),
+  links: z.looseObject({
+    clone: z.array(z.looseObject({
+      href: z.string().optional(),
+      name: z.string().optional(),
+    })).optional(),
+    self: z.array(z.looseObject({
+      href: z.string().optional(),
+    })).optional(),
+  }).optional(),
+});
 
+export type Repository = z.infer<typeof RepositorySchema>;

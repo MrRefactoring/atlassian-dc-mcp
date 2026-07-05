@@ -5,21 +5,18 @@ import os from 'node:os';
 import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { BitbucketService } from '../src/bitbucketService.js';
-import { OpenAPI } from '../src/bitbucketClient/index.js';
-import { request } from '../src/bitbucketClient/core/request.js';
 
-vi.mock('../src/bitbucketClient/core/request.js', () => ({
+const bb = vi.hoisted(() => ({
   request: vi.fn(),
 }));
 
-const mockRequest = vi.mocked(request);
+const createBitbucketClientMock = vi.hoisted(() =>
+  vi.fn((_config: { username?: unknown; password?: unknown }) => bb),
+);
 
-vi.mock('../src/bitbucketClient/index.js', () => ({
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-  },
+vi.mock('../src/bitbucketClient/index.js', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createBitbucketClient: createBitbucketClientMock,
 }));
 
 describe('BitbucketService', () => {
@@ -107,64 +104,64 @@ describe('BitbucketService', () => {
   });
 
   describe('constructor Basic auth wiring', () => {
-    it('resolves username and password onto OpenAPI for Basic auth', async () => {
+    it('resolves username and password onto OpenAPI for Basic auth', () => {
       new BitbucketService('test-host', '', undefined, () => 25, 'jdoe', 'hunter2');
-      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
-      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+      const config = createBitbucketClientMock.mock.calls.at(-1)?.[0];
+      expect(config?.username).toBe('jdoe');
+      expect(config?.password).toBe('hunter2');
     });
 
-    it('resolves username/password from getter functions, same as token', async () => {
+    it('resolves username/password from getter functions, same as token', () => {
       new BitbucketService('test-host', '', undefined, () => 25, () => 'jdoe', () => 'hunter2');
-      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
-      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+      const config = createBitbucketClientMock.mock.calls.at(-1)?.[0];
+      expect((config?.username as () => string)()).toBe('jdoe');
+      expect((config?.password as () => string)()).toBe('hunter2');
     });
 
-    it('resolves username/password to an empty string when omitted', async () => {
+    it('resolves username/password to an empty string when omitted', () => {
       new BitbucketService('test-host', 'test-token');
-      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('');
-      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('');
+      const config = createBitbucketClientMock.mock.calls.at(-1)?.[0];
+      expect(config?.username).toBeUndefined();
+      expect(config?.password).toBeUndefined();
     });
   });
 
   describe('getUser', () => {
     it('should fetch a user by exact slug', async () => {
       const mockUser = { slug: 'jsmith', displayName: 'John Smith', emailAddress: 'jsmith@example.com' };
-      (mockRequest as Mock).mockResolvedValue(mockUser);
+      (bb.request as Mock).mockResolvedValue(mockUser);
 
       const result = await bitbucketService.getUser('jsmith', undefined);
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockUser);
-      expect(mockRequest).toHaveBeenCalledWith(
-        expect.anything(),
+      expect(bb.request).toHaveBeenCalledWith(
         expect.objectContaining({
+          url: '/api/latest/users/jsmith',
           method: 'GET',
-          url: '/api/latest/users/{userSlug}',
-          path: { userSlug: 'jsmith' },
         }),
       );
     });
 
     it('should search for users by filter string', async () => {
       const mockUsers = { values: [{ slug: 'jsmith', displayName: 'John Smith' }], size: 1, isLastPage: true };
-      (mockRequest as Mock).mockResolvedValue(mockUsers);
+      (bb.request as Mock).mockResolvedValue(mockUsers);
 
       const result = await bitbucketService.getUser(undefined, 'John');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockUsers);
-      expect(mockRequest).toHaveBeenCalledWith(
-        expect.anything(),
+      expect(bb.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          method: 'GET',
           url: '/api/latest/users',
-          query: { filter: 'John' },
+          method: 'GET',
+          searchParams: { filter: 'John' },
         }),
       );
     });
 
     it('should handle API errors gracefully', async () => {
-      (mockRequest as Mock).mockRejectedValue(new Error('Not Found'));
+      (bb.request as Mock).mockRejectedValue(new Error('Not Found'));
 
       const result = await bitbucketService.getUser('nonexistent', undefined);
 

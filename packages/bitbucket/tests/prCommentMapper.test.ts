@@ -3,9 +3,8 @@ import {
   filterPullRequestComments,
   simplifyBitbucketPRComments,
   getCommentSummary,
-  type BitbucketPRApiResponse,
-  type SimplifiedPRResponse,
 } from '../src/prCommentMapper.js';
+import type { BitbucketPRApiResponse, SimplifiedPRResponse } from '../src/interface/index.js';
 import { formatToolResponse } from 'datacenter-mcp-core';
 
 interface TestComment {

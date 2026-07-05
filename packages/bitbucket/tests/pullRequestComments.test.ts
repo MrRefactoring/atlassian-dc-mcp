@@ -1,18 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { BitbucketService } from '../src/bitbucketService.js';
-import { PullRequestsService } from '../src/bitbucketClient/index.js';
 
-vi.mock('../src/bitbucketClient/index.js', () => ({
-  PullRequestsService: {
-    createComment2: vi.fn(),
-    updateComment2: vi.fn(),
+const bb = vi.hoisted(() => ({
+  pullRequests: {
+    createComment: vi.fn(),
+    updateComment: vi.fn(),
   },
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-  },
+}));
+
+vi.mock('../src/bitbucketClient/index.js', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createBitbucketClient: () => bb,
 }));
 
 describe('BitbucketService', () => {
@@ -33,7 +32,7 @@ describe('BitbucketService', () => {
         text: 'Test comment',
         author: { displayName: 'Test User' },
       };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       const result = await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -47,12 +46,12 @@ describe('BitbucketService', () => {
         id: 12345,
         pending: false,
       });
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        { text: 'Test comment' },
-      );
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Test comment',
+      });
     });
 
     it('should successfully post a reply comment', async () => {
@@ -61,7 +60,7 @@ describe('BitbucketService', () => {
         text: 'Reply comment',
         author: { displayName: 'Test User' },
       };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       const result = await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -76,15 +75,12 @@ describe('BitbucketService', () => {
         id: 12346,
         pending: false,
       });
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        {
-          text: 'Reply comment',
-          parent: { id: 123 },
-        },
-      );
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Reply comment', parent: { id: 123 },
+      });
     });
 
     it('should successfully post a file comment', async () => {
@@ -93,7 +89,7 @@ describe('BitbucketService', () => {
         text: 'File comment',
         author: { displayName: 'Test User' },
       };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       const result = await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -109,18 +105,15 @@ describe('BitbucketService', () => {
         id: 12347,
         pending: false,
       });
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        {
-          text: 'File comment',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-          },
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'File comment', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
         },
-      );
+      });
     });
 
     it('should successfully post a line comment', async () => {
@@ -129,7 +122,7 @@ describe('BitbucketService', () => {
         text: 'Line comment',
         author: { displayName: 'Test User' },
       };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       const result = await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -149,21 +142,18 @@ describe('BitbucketService', () => {
         id: 12348,
         pending: false,
       });
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        {
-          text: 'Line comment',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-            line: 42,
-            lineType: 'ADDED',
-            fileType: 'TO',
-          },
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Line comment', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
+          line: 42,
+          lineType: 'ADDED',
+          fileType: 'TO',
         },
-      );
+      });
     });
 
     it('should successfully post a multiline comment', async () => {
@@ -181,7 +171,7 @@ describe('BitbucketService', () => {
           multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
         },
       };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       const result = await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -208,23 +198,20 @@ describe('BitbucketService', () => {
           startLineType: 'ADDED',
         },
       });
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        {
-          text: 'Multiline comment',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-            line: 15,
-            lineType: 'ADDED',
-            fileType: 'TO',
-            multilineMarker: { startLine: 10, startLineType: 'ADDED' },
-            multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
-          },
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Multiline comment', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
+          line: 15,
+          lineType: 'ADDED',
+          fileType: 'TO',
+          multilineMarker: { startLine: 10, startLineType: 'ADDED' },
+          multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
         },
-      );
+      });
     });
 
     it('should post a multiline comment with explicit startLineType', async () => {
@@ -242,7 +229,7 @@ describe('BitbucketService', () => {
           multilineSpan: { dstSpanStart: 5, dstSpanEnd: 8 },
         },
       };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -257,27 +244,24 @@ describe('BitbucketService', () => {
         'ADDED',         // lineType
       );
 
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        {
-          text: 'Mixed multiline comment',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-            line: 8,
-            lineType: 'ADDED',
-            fileType: 'TO',
-            multilineMarker: { startLine: 5, startLineType: 'CONTEXT' },
-            multilineSpan: { dstSpanStart: 5, dstSpanEnd: 8 },
-          },
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Mixed multiline comment', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
+          line: 8,
+          lineType: 'ADDED',
+          fileType: 'TO',
+          multilineMarker: { startLine: 5, startLineType: 'CONTEXT' },
+          multilineSpan: { dstSpanStart: 5, dstSpanEnd: 8 },
         },
-      );
+      });
     });
 
     it('should normalize a reversed multiline range (startLine > line)', async () => {
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue({ id: 1, anchor: { path: 'src/test.js' } });
+      (bb.pullRequests.createComment as Mock).mockResolvedValue({ id: 1, anchor: { path: 'src/test.js' } });
 
       await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -292,27 +276,24 @@ describe('BitbucketService', () => {
         'ADDED',         // lineType
       );
 
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        {
-          text: 'Reversed range',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-            line: 15,
-            lineType: 'ADDED',
-            fileType: 'TO',
-            multilineMarker: { startLine: 10, startLineType: 'ADDED' },
-            multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
-          },
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Reversed range', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
+          line: 15,
+          lineType: 'ADDED',
+          fileType: 'TO',
+          multilineMarker: { startLine: 10, startLineType: 'ADDED' },
+          multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
         },
-      );
+      });
     });
 
     it('should anchor a REMOVED multiline range to the source file', async () => {
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue({ id: 1, anchor: { path: 'src/test.js' } });
+      (bb.pullRequests.createComment as Mock).mockResolvedValue({ id: 1, anchor: { path: 'src/test.js' } });
 
       await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -327,27 +308,24 @@ describe('BitbucketService', () => {
         'REMOVED',       // lineType
       );
 
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        {
-          text: 'Removed range',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-            line: 5,
-            lineType: 'REMOVED',
-            fileType: 'FROM',
-            multilineMarker: { startLine: 2, startLineType: 'REMOVED' },
-            multilineSpan: { srcSpanStart: 2, srcSpanEnd: 5 },
-          },
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Removed range', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
+          line: 5,
+          lineType: 'REMOVED',
+          fileType: 'FROM',
+          multilineMarker: { startLine: 2, startLineType: 'REMOVED' },
+          multilineSpan: { srcSpanStart: 2, srcSpanEnd: 5 },
         },
-      );
+      });
     });
 
     it('should warn when a multi-line suggestion is anchored to a single line', async () => {
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue({
+      (bb.pullRequests.createComment as Mock).mockResolvedValue({
         id: 99,
         anchor: { path: 'src/test.js', line: 5, lineType: 'ADDED' },
       });
@@ -368,13 +346,13 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect((result.data as any).warning).toMatch(/multi-line ```suggestion/);
       // single-line anchor: no multiline fields sent
-      const sentAnchor = (PullRequestsService.createComment2 as Mock).mock.calls[0][3].anchor;
+      const sentAnchor = (bb.pullRequests.createComment as Mock).mock.calls[0][0].anchor;
       expect(sentAnchor.multilineMarker).toBeUndefined();
       expect(sentAnchor.multilineSpan).toBeUndefined();
     });
 
     it('should not warn when a multi-line suggestion has a proper multiline range', async () => {
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue({
+      (bb.pullRequests.createComment as Mock).mockResolvedValue({
         id: 100,
         anchor: { path: 'src/test.js', line: 5, lineType: 'ADDED', multilineMarker: { startLine: 4, startLineType: 'ADDED' } },
       });
@@ -398,7 +376,7 @@ describe('BitbucketService', () => {
 
     it('should handle API errors gracefully', async () => {
       const mockError = new Error('API Error');
-      (PullRequestsService.createComment2 as Mock).mockRejectedValue(mockError);
+      (bb.pullRequests.createComment as Mock).mockRejectedValue(mockError);
 
       const result = await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -415,7 +393,7 @@ describe('BitbucketService', () => {
   describe('postPullRequestComment - severity flag', () => {
     it('should include severity: BLOCKER in the request body when severity is BLOCKER', async () => {
       const mockComment = { id: 200, text: 'Task comment', author: { displayName: 'Test User' } };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       const result = await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -433,17 +411,17 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        { text: 'Task comment', severity: 'BLOCKER' },
-      );
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Task comment', severity: 'BLOCKER',
+      });
     });
 
     it('should NOT include severity in the request body when severity is omitted', async () => {
       const mockComment = { id: 201, text: 'Normal comment', author: { displayName: 'Test User' } };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -452,17 +430,17 @@ describe('BitbucketService', () => {
         'Normal comment',
       );
 
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        { text: 'Normal comment' }, // no severity field
-      );
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Normal comment', // no severity field
+      });
     });
 
     it('should support severity BLOCKER combined with a file/line anchor', async () => {
       const mockComment = { id: 202, text: 'Inline task', author: { displayName: 'Test User' } };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -479,29 +457,25 @@ describe('BitbucketService', () => {
         'BLOCKER',       // severity
       );
 
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        {
-          text: 'Inline task',
-          severity: 'BLOCKER',
-          anchor: {
-            path: 'src/index.ts',
-            diffType: 'EFFECTIVE',
-            line: 10,
-            lineType: 'ADDED',
-            fileType: 'TO',
-          },
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Inline task', severity: 'BLOCKER', anchor: {
+          path: 'src/index.ts',
+          diffType: 'EFFECTIVE',
+          line: 10,
+          lineType: 'ADDED',
+          fileType: 'TO',
         },
-      );
+      });
     });
   });
 
   describe('postPullRequestComment - pending flag', () => {
     it('should include state: PENDING in the request body when pending is true', async () => {
       const mockComment = { id: 99, text: 'Draft comment', author: { displayName: 'Test User' } };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       const result = await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -518,17 +492,17 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        { text: 'Draft comment', state: 'PENDING' },
-      );
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Draft comment', state: 'PENDING',
+      });
     });
 
     it('should NOT include pending in the request body when pending is false or omitted', async () => {
       const mockComment = { id: 100, text: 'Normal comment', author: { displayName: 'Test User' } };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -537,17 +511,17 @@ describe('BitbucketService', () => {
         'Normal comment',
       );
 
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        { text: 'Normal comment' }, // no pending field
-      );
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Normal comment', // no pending field
+      });
     });
 
     it('should support state: PENDING combined with a file anchor', async () => {
       const mockComment = { id: 101, text: 'Pending file comment', author: { displayName: 'Test User' } };
-      (PullRequestsService.createComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.createComment as Mock).mockResolvedValue(mockComment);
 
       await bitbucketService.postPullRequestComment(
         mockProjectKey,
@@ -563,29 +537,25 @@ describe('BitbucketService', () => {
         true,            // pending
       );
 
-      expect(PullRequestsService.createComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        mockPullRequestId,
-        mockRepositorySlug,
-        {
-          text: 'Pending file comment',
-          state: 'PENDING',
-          anchor: {
-            path: 'src/index.ts',
-            diffType: 'EFFECTIVE',
-            line: 10,
-            lineType: 'ADDED',
-            fileType: 'TO',
-          },
+      expect(bb.pullRequests.createComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        text: 'Pending file comment', state: 'PENDING', anchor: {
+          path: 'src/index.ts',
+          diffType: 'EFFECTIVE',
+          line: 10,
+          lineType: 'ADDED',
+          fileType: 'TO',
         },
-      );
+      });
     });
   });
 
   describe('updatePullRequestComment', () => {
     it('should resolve a task by sending state RESOLVED with the version', async () => {
       const mockComment = { id: 500, version: 2, state: 'RESOLVED', text: 'Task body' };
-      (PullRequestsService.updateComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.updateComment as Mock).mockResolvedValue(mockComment);
 
       const result = await bitbucketService.updatePullRequestComment(
         mockProjectKey,
@@ -598,18 +568,18 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(PullRequestsService.updateComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        '500',
-        mockPullRequestId,
-        mockRepositorySlug,
-        { version: 1, state: 'RESOLVED' },
-      );
+      expect(bb.pullRequests.updateComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        commentId: '500',
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        version: 1, state: 'RESOLVED',
+      });
     });
 
     it('should edit the comment text without changing state or severity', async () => {
       const mockComment = { id: 501, version: 3, text: 'Edited text' };
-      (PullRequestsService.updateComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.updateComment as Mock).mockResolvedValue(mockComment);
 
       await bitbucketService.updatePullRequestComment(
         mockProjectKey,
@@ -620,18 +590,18 @@ describe('BitbucketService', () => {
         'Edited text',
       );
 
-      expect(PullRequestsService.updateComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        '501',
-        mockPullRequestId,
-        mockRepositorySlug,
-        { version: 2, text: 'Edited text' },
-      );
+      expect(bb.pullRequests.updateComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        commentId: '501',
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        version: 2, text: 'Edited text',
+      });
     });
 
     it('should support combining text, state, and severity in a single update', async () => {
       const mockComment = { id: 502, version: 4, text: 'New body', state: 'RESOLVED', severity: 'BLOCKER' };
-      (PullRequestsService.updateComment2 as Mock).mockResolvedValue(mockComment);
+      (bb.pullRequests.updateComment as Mock).mockResolvedValue(mockComment);
 
       await bitbucketService.updatePullRequestComment(
         mockProjectKey,
@@ -644,17 +614,17 @@ describe('BitbucketService', () => {
         'BLOCKER',
       );
 
-      expect(PullRequestsService.updateComment2).toHaveBeenCalledWith(
-        mockProjectKey,
-        '502',
-        mockPullRequestId,
-        mockRepositorySlug,
-        { version: 3, text: 'New body', state: 'RESOLVED', severity: 'BLOCKER' },
-      );
+      expect(bb.pullRequests.updateComment).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        commentId: '502',
+        pullRequestId: mockPullRequestId,
+        repositorySlug: mockRepositorySlug,
+        version: 3, text: 'New body', state: 'RESOLVED', severity: 'BLOCKER',
+      });
     });
 
     it('should propagate API errors', async () => {
-      (PullRequestsService.updateComment2 as Mock).mockRejectedValue(new Error('Conflict'));
+      (bb.pullRequests.updateComment as Mock).mockRejectedValue(new Error('Conflict'));
 
       const result = await bitbucketService.updatePullRequestComment(
         mockProjectKey,
