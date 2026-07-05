@@ -1,15 +1,15 @@
 import type { HttpClient } from '../core/types.js';
 import { enc } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
-import { RestBuildStatusSchema, RestInsightAnnotationsResponseSchema, RestInsightReportSchema, RestRequiredBuildConditionSchema } from '../models/index.js';
-import type { RestBuildStatus, RestBuildStatusSetRequest, RestBulkAddInsightAnnotationRequest, RestInsightAnnotationsResponse, RestInsightReport, RestRequiredBuildCondition, RestRequiredBuildConditionSetRequest, RestSetInsightReportRequest } from '../models/index.js';
+import { BuildStatusSchema, InsightAnnotationsResponseSchema, InsightReportSchema, RequiredBuildConditionSchema } from '../models/index.js';
+import type { BuildStatus, BuildStatusSetRequest, BulkAddInsightAnnotationRequest, InsightAnnotationsResponse, InsightReport, RequiredBuildCondition, RequiredBuildConditionSetRequest, SetInsightReportRequest } from '../models/index.js';
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}/builds */
 export interface Add {
   projectKey: string;
   commitId: string;
   repositorySlug: string;
-  requestBody?: RestBuildStatusSetRequest;
+  requestBody?: BuildStatusSetRequest;
 }
 export function add(client: HttpClient, params: Add): Promise<void> {
   return client.sendRequest({
@@ -26,7 +26,7 @@ export interface AddAnnotations {
   commitId: string;
   repositorySlug: string;
   key: string;
-  requestBody?: RestBulkAddInsightAnnotationRequest;
+  requestBody?: BulkAddInsightAnnotationRequest;
 }
 export function addAnnotations(client: HttpClient, params: AddAnnotations): Promise<void> {
   return client.sendRequest({
@@ -41,15 +41,15 @@ export function addAnnotations(client: HttpClient, params: AddAnnotations): Prom
 export interface CreateRequiredBuildsMergeCheck {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestRequiredBuildConditionSetRequest;
+  requestBody?: RequiredBuildConditionSetRequest;
 }
-export function createRequiredBuildsMergeCheck(client: HttpClient, params: CreateRequiredBuildsMergeCheck): Promise<RestRequiredBuildCondition> {
+export function createRequiredBuildsMergeCheck(client: HttpClient, params: CreateRequiredBuildsMergeCheck): Promise<RequiredBuildCondition> {
   return client.sendRequest({
     method: 'POST',
     url: `/required-builds/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/condition`,
     body: params.requestBody,
     mediaType: '*/*',
-    schema: RestRequiredBuildConditionSchema,
+    schema: RequiredBuildConditionSchema,
   });
 }
 
@@ -103,12 +103,12 @@ export interface Get {
   repositorySlug: string;
   key: string;
 }
-export function get(client: HttpClient, params: Get): Promise<RestBuildStatus> {
+export function get(client: HttpClient, params: Get): Promise<BuildStatus> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/builds`,
     searchParams: { key: params.key },
-    schema: RestBuildStatusSchema,
+    schema: BuildStatusSchema,
   });
 }
 
@@ -119,11 +119,11 @@ export interface GetACodeInsightsReport {
   repositorySlug: string;
   key: string;
 }
-export function getACodeInsightsReport(client: HttpClient, params: GetACodeInsightsReport): Promise<RestInsightReport> {
+export function getACodeInsightsReport(client: HttpClient, params: GetACodeInsightsReport): Promise<InsightReport> {
   return client.sendRequest({
     method: 'GET',
     url: `/insights/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/reports/${enc(params.key)}`,
-    schema: RestInsightReportSchema,
+    schema: InsightReportSchema,
   });
 }
 
@@ -134,11 +134,11 @@ export interface GetAnnotations {
   repositorySlug: string;
   key: string;
 }
-export function getAnnotations(client: HttpClient, params: GetAnnotations): Promise<RestInsightAnnotationsResponse> {
+export function getAnnotations(client: HttpClient, params: GetAnnotations): Promise<InsightAnnotationsResponse> {
   return client.sendRequest({
     method: 'GET',
     url: `/insights/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/reports/${enc(params.key)}/annotations`,
-    schema: RestInsightAnnotationsResponseSchema,
+    schema: InsightAnnotationsResponseSchema,
   });
 }
 
@@ -149,12 +149,12 @@ export interface GetBuildStatusStats {
   start?: number;
   limit?: number;
 }
-export function getBuildStatusStats(client: HttpClient, params: GetBuildStatusStats): Promise<RestPage<RestBuildStatus>> {
+export function getBuildStatusStats(client: HttpClient, params: GetBuildStatusStats): Promise<RestPage<BuildStatus>> {
   return client.sendRequest({
     method: 'GET',
     url: `/build-status/latest/commits/${enc(params.commitId)}`,
     searchParams: { orderBy: params.orderBy, start: params.start, limit: params.limit },
-    schema: restPage(RestBuildStatusSchema),
+    schema: restPage(BuildStatusSchema),
   });
 }
 
@@ -165,12 +165,12 @@ export interface GetPageOfRequiredBuildsMergeChecks {
   start?: number;
   limit?: number;
 }
-export function getPageOfRequiredBuildsMergeChecks(client: HttpClient, params: GetPageOfRequiredBuildsMergeChecks): Promise<RestPage<RestRequiredBuildCondition>> {
+export function getPageOfRequiredBuildsMergeChecks(client: HttpClient, params: GetPageOfRequiredBuildsMergeChecks): Promise<RestPage<RequiredBuildCondition>> {
   return client.sendRequest({
     method: 'GET',
     url: `/required-builds/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/conditions`,
     searchParams: { start: params.start, limit: params.limit },
-    schema: restPage(RestRequiredBuildConditionSchema),
+    schema: restPage(RequiredBuildConditionSchema),
   });
 }
 
@@ -180,15 +180,15 @@ export interface SetACodeInsightsReport {
   commitId: string;
   repositorySlug: string;
   key: string;
-  requestBody?: RestSetInsightReportRequest;
+  requestBody?: SetInsightReportRequest;
 }
-export function setACodeInsightsReport(client: HttpClient, params: SetACodeInsightsReport): Promise<RestInsightReport> {
+export function setACodeInsightsReport(client: HttpClient, params: SetACodeInsightsReport): Promise<InsightReport> {
   return client.sendRequest({
     method: 'PUT',
     url: `/insights/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/reports/${enc(params.key)}`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestInsightReportSchema,
+    schema: InsightReportSchema,
   });
 }
 
@@ -197,14 +197,14 @@ export interface UpdateRequiredBuildsMergeCheck {
   projectKey: string;
   id: number;
   repositorySlug: string;
-  requestBody?: RestRequiredBuildConditionSetRequest;
+  requestBody?: RequiredBuildConditionSetRequest;
 }
-export function updateRequiredBuildsMergeCheck(client: HttpClient, params: UpdateRequiredBuildsMergeCheck): Promise<RestRequiredBuildCondition> {
+export function updateRequiredBuildsMergeCheck(client: HttpClient, params: UpdateRequiredBuildsMergeCheck): Promise<RequiredBuildCondition> {
   return client.sendRequest({
     method: 'PUT',
     url: `/required-builds/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/condition/${enc(params.id)}`,
     body: params.requestBody,
     mediaType: '*/*',
-    schema: RestRequiredBuildConditionSchema,
+    schema: RequiredBuildConditionSchema,
   });
 }

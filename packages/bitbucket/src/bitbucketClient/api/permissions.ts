@@ -1,8 +1,8 @@
 import type { HttpClient } from '../core/types.js';
 import { enc } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
-import { RestPermittedGroupSchema, RestPermittedUserSchema } from '../models/index.js';
-import type { RestPermittedGroup, RestPermittedUser } from '../models/index.js';
+import { PermittedGroupSchema, PermittedUserSchema } from '../models/index.js';
+import type { PermittedGroup, PermittedUser } from '../models/index.js';
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/permissions/groups */
 export interface GetGroupsWithAnyPermission {
@@ -12,12 +12,12 @@ export interface GetGroupsWithAnyPermission {
   start?: number;
   limit?: number;
 }
-export function getGroupsWithAnyPermission(client: HttpClient, params: GetGroupsWithAnyPermission): Promise<RestPage<RestPermittedGroup>> {
+export function getGroupsWithAnyPermission(client: HttpClient, params: GetGroupsWithAnyPermission): Promise<RestPage<PermittedGroup>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/permissions/groups`,
     searchParams: { filter: params.filter, start: params.start, limit: params.limit },
-    schema: restPage(RestPermittedGroupSchema),
+    schema: restPage(PermittedGroupSchema),
   });
 }
 
@@ -29,12 +29,12 @@ export interface GetUsersWithAnyPermission {
   start?: number;
   limit?: number;
 }
-export function getUsersWithAnyPermission(client: HttpClient, params: GetUsersWithAnyPermission): Promise<RestPage<RestPermittedUser>> {
+export function getUsersWithAnyPermission(client: HttpClient, params: GetUsersWithAnyPermission): Promise<RestPage<PermittedUser>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/permissions/users`,
     searchParams: { filter: params.filter, start: params.start, limit: params.limit },
-    schema: restPage(RestPermittedUserSchema),
+    schema: restPage(PermittedUserSchema),
   });
 }
 

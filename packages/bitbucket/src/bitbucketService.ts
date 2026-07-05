@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createBitbucketClient, enc } from './bitbucketClient/index.js';
-import type { BitbucketClient, RestAccessTokenRequest } from './bitbucketClient/index.js';
+import type { BitbucketClient, AccessTokenRequest } from './bitbucketClient/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { simplifyInboxPullRequests } from './inboxPrMapper.js';
 import { BITBUCKET_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -2759,7 +2759,7 @@ export class BitbucketService {
   ) {
     projectKey = projectKey?.toUpperCase();
     repositorySlug = repositorySlug?.toLowerCase();
-    const requestBody: RestAccessTokenRequest = {
+    const requestBody: AccessTokenRequest = {
       name,
       permissions,
       ...(expiryDays !== undefined ? { expiryDays } : {}),

@@ -1,8 +1,8 @@
 import type { HttpClient } from '../core/types.js';
 import { enc } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
-import { RestAccessTokenSchema, RestRawAccessTokenSchema, RestSshKeySchema } from '../models/index.js';
-import type { RestAccessToken, RestAccessTokenRequest, RestRawAccessToken, RestSshKey } from '../models/index.js';
+import { AccessTokenSchema, RawAccessTokenSchema, SshKeySchema } from '../models/index.js';
+import type { AccessToken, AccessTokenRequest, RawAccessToken, SshKey } from '../models/index.js';
 
 /** POST /ssh/latest/keys */
 export interface AddSshKey {
@@ -23,29 +23,29 @@ export interface AddSshKey {
     readonly warning?: string;
   };
 }
-export function addSshKey(client: HttpClient, params: AddSshKey): Promise<RestSshKey> {
+export function addSshKey(client: HttpClient, params: AddSshKey): Promise<SshKey> {
   return client.sendRequest({
     method: 'POST',
     url: '/ssh/latest/keys',
     searchParams: { user: params.user },
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestSshKeySchema,
+    schema: SshKeySchema,
   });
 }
 
 /** PUT /access-tokens/latest/projects/{projectKey} */
 export interface CreateProjectAccessToken {
   projectKey: string;
-  requestBody?: RestAccessTokenRequest;
+  requestBody?: AccessTokenRequest;
 }
-export function createProjectAccessToken(client: HttpClient, params: CreateProjectAccessToken): Promise<RestRawAccessToken> {
+export function createProjectAccessToken(client: HttpClient, params: CreateProjectAccessToken): Promise<RawAccessToken> {
   return client.sendRequest({
     method: 'PUT',
     url: `/access-tokens/latest/projects/${enc(params.projectKey)}`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestRawAccessTokenSchema,
+    schema: RawAccessTokenSchema,
   });
 }
 
@@ -53,30 +53,30 @@ export function createProjectAccessToken(client: HttpClient, params: CreateProje
 export interface CreateRepositoryAccessToken {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestAccessTokenRequest;
+  requestBody?: AccessTokenRequest;
 }
-export function createRepositoryAccessToken(client: HttpClient, params: CreateRepositoryAccessToken): Promise<RestRawAccessToken> {
+export function createRepositoryAccessToken(client: HttpClient, params: CreateRepositoryAccessToken): Promise<RawAccessToken> {
   return client.sendRequest({
     method: 'PUT',
     url: `/access-tokens/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestRawAccessTokenSchema,
+    schema: RawAccessTokenSchema,
   });
 }
 
 /** PUT /access-tokens/latest/users/{userSlug} */
 export interface CreateUserAccessToken {
   userSlug: string;
-  requestBody?: RestAccessTokenRequest;
+  requestBody?: AccessTokenRequest;
 }
-export function createUserAccessToken(client: HttpClient, params: CreateUserAccessToken): Promise<RestRawAccessToken> {
+export function createUserAccessToken(client: HttpClient, params: CreateUserAccessToken): Promise<RawAccessToken> {
   return client.sendRequest({
     method: 'PUT',
     url: `/access-tokens/latest/users/${enc(params.userSlug)}`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestRawAccessTokenSchema,
+    schema: RawAccessTokenSchema,
   });
 }
 
@@ -134,12 +134,12 @@ export interface GetProjectAccessTokens {
   start?: number;
   limit?: number;
 }
-export function getProjectAccessTokens(client: HttpClient, params: GetProjectAccessTokens): Promise<RestPage<RestAccessToken>> {
+export function getProjectAccessTokens(client: HttpClient, params: GetProjectAccessTokens): Promise<RestPage<AccessToken>> {
   return client.sendRequest({
     method: 'GET',
     url: `/access-tokens/latest/projects/${enc(params.projectKey)}`,
     searchParams: { start: params.start, limit: params.limit },
-    schema: restPage(RestAccessTokenSchema),
+    schema: restPage(AccessTokenSchema),
   });
 }
 
@@ -150,12 +150,12 @@ export interface GetRepositoryAccessTokens {
   start?: number;
   limit?: number;
 }
-export function getRepositoryAccessTokens(client: HttpClient, params: GetRepositoryAccessTokens): Promise<RestPage<RestAccessToken>> {
+export function getRepositoryAccessTokens(client: HttpClient, params: GetRepositoryAccessTokens): Promise<RestPage<AccessToken>> {
   return client.sendRequest({
     method: 'GET',
     url: `/access-tokens/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
     searchParams: { start: params.start, limit: params.limit },
-    schema: restPage(RestAccessTokenSchema),
+    schema: restPage(AccessTokenSchema),
   });
 }
 
@@ -166,12 +166,12 @@ export interface GetSshKeys {
   start?: number;
   limit?: number;
 }
-export function getSshKeys(client: HttpClient, params: GetSshKeys): Promise<RestPage<RestSshKey>> {
+export function getSshKeys(client: HttpClient, params: GetSshKeys): Promise<RestPage<SshKey>> {
   return client.sendRequest({
     method: 'GET',
     url: '/ssh/latest/keys',
     searchParams: { userName: params.userName, user: params.user, start: params.start, limit: params.limit },
-    schema: restPage(RestSshKeySchema),
+    schema: restPage(SshKeySchema),
   });
 }
 
@@ -181,11 +181,11 @@ export interface GetUserAccessTokens {
   start?: number;
   limit?: number;
 }
-export function getUserAccessTokens(client: HttpClient, params: GetUserAccessTokens): Promise<RestPage<RestAccessToken>> {
+export function getUserAccessTokens(client: HttpClient, params: GetUserAccessTokens): Promise<RestPage<AccessToken>> {
   return client.sendRequest({
     method: 'GET',
     url: `/access-tokens/latest/users/${enc(params.userSlug)}`,
     searchParams: { start: params.start, limit: params.limit },
-    schema: restPage(RestAccessTokenSchema),
+    schema: restPage(AccessTokenSchema),
   });
 }

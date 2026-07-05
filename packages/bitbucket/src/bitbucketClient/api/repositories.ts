@@ -1,22 +1,22 @@
 import type { HttpClient } from '../core/types.js';
 import { enc } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
-import { ExampleSettingsSchema, RestAutoDeclineSettingsSchema, RestAutoMergeRestrictedSettingsSchema, RestBranchSchema, RestChangeSchema, RestCommentSchema, RestCommitSchema, RestDiffSchema, RestRefRestrictionSchema, RestRepositoryHookSchema, RestRepositoryPullRequestSettingsSchema, RestTagSchema, RestWebhookSchema } from '../models/index.js';
-import type { ExampleMultipartFormData, ExampleSettings, RestAutoDeclineSettings, RestAutoDeclineSettingsRequest, RestAutoMergeRestrictedSettings, RestAutoMergeSettingsRequest, RestBranch, RestBranchCreateRequest, RestBranchDeleteRequest, RestChange, RestComment, RestCommit, RestCreateTagRequest, RestDiff, RestRefRestriction, RestRepositoryHook, RestRepositoryPullRequestSettings, RestRestrictionRequest, RestTag, RestWebhook } from '../models/index.js';
+import { SettingsSchema, AutoDeclineSettingsSchema, AutoMergeRestrictedSettingsSchema, BranchSchema, ChangeSchema, CommentSchema, CommitSchema, DiffSchema, RefRestrictionSchema, RepositoryHookSchema, RepositoryPullRequestSettingsSchema, TagSchema, WebhookSchema } from '../models/index.js';
+import type { MultipartFormData, Settings, AutoDeclineSettings, AutoDeclineSettingsRequest, AutoMergeRestrictedSettings, AutoMergeSettingsRequest, Branch, BranchCreateRequest, BranchDeleteRequest, Change, Comment, Commit, CreateTagRequest, Diff, RefRestriction, RepositoryHook, RepositoryPullRequestSettings, RestrictionRequest, Tag, Webhook } from '../models/index.js';
 
 /** POST /branch-utils/latest/projects/{projectKey}/repos/{repositorySlug}/branches */
 export interface CreateBranch {
   projectKey: string;
   repositorySlug: string;
-  requestBody: RestBranchCreateRequest;
+  requestBody: BranchCreateRequest;
 }
-export function createBranch(client: HttpClient, params: CreateBranch): Promise<RestBranch> {
+export function createBranch(client: HttpClient, params: CreateBranch): Promise<Branch> {
   return client.sendRequest({
     method: 'POST',
     url: `/branch-utils/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/branches`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestBranchSchema,
+    schema: BranchSchema,
   });
 }
 
@@ -26,16 +26,16 @@ export interface CreateComment {
   commitId: string;
   repositorySlug: string;
   since?: string;
-  requestBody?: RestComment;
+  requestBody?: Comment;
 }
-export function createComment(client: HttpClient, params: CreateComment): Promise<RestComment> {
+export function createComment(client: HttpClient, params: CreateComment): Promise<Comment> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/comments`,
     searchParams: { since: params.since },
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestCommentSchema,
+    schema: CommentSchema,
   });
 }
 
@@ -43,15 +43,15 @@ export function createComment(client: HttpClient, params: CreateComment): Promis
 export interface CreateRestrictions {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: Array<RestRestrictionRequest>;
+  requestBody?: Array<RestrictionRequest>;
 }
-export function createRestrictions(client: HttpClient, params: CreateRestrictions): Promise<RestRefRestriction> {
+export function createRestrictions(client: HttpClient, params: CreateRestrictions): Promise<RefRestriction> {
   return client.sendRequest({
     method: 'POST',
     url: `/branch-permissions/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/restrictions`,
     body: params.requestBody,
     mediaType: 'application/vnd.atl.bitbucket.bulk+json',
-    schema: RestRefRestrictionSchema,
+    schema: RefRestrictionSchema,
   });
 }
 
@@ -59,15 +59,15 @@ export function createRestrictions(client: HttpClient, params: CreateRestriction
 export interface CreateTagForRepository {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestCreateTagRequest;
+  requestBody?: CreateTagRequest;
 }
-export function createTagForRepository(client: HttpClient, params: CreateTagForRepository): Promise<RestTag> {
+export function createTagForRepository(client: HttpClient, params: CreateTagForRepository): Promise<Tag> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/tags`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestTagSchema,
+    schema: TagSchema,
   });
 }
 
@@ -75,15 +75,15 @@ export function createTagForRepository(client: HttpClient, params: CreateTagForR
 export interface CreateWebhook {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestWebhook;
+  requestBody?: Webhook;
 }
-export function createWebhook(client: HttpClient, params: CreateWebhook): Promise<RestWebhook> {
+export function createWebhook(client: HttpClient, params: CreateWebhook): Promise<Webhook> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/webhooks`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestWebhookSchema,
+    schema: WebhookSchema,
   });
 }
 
@@ -115,7 +115,7 @@ export function deleteAutoMergeSettings(client: HttpClient, params: DeleteAutoMe
 export interface DeleteBranch {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestBranchDeleteRequest;
+  requestBody?: BranchDeleteRequest;
 }
 export function deleteBranch(client: HttpClient, params: DeleteBranch): Promise<void> {
   return client.sendRequest({
@@ -158,11 +158,11 @@ export interface DisableHook {
   hookKey: string;
   repositorySlug: string;
 }
-export function disableHook(client: HttpClient, params: DisableHook): Promise<RestRepositoryHook> {
+export function disableHook(client: HttpClient, params: DisableHook): Promise<RepositoryHook> {
   return client.sendRequest({
     method: 'DELETE',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/hooks/${enc(params.hookKey)}/enabled`,
-    schema: RestRepositoryHookSchema,
+    schema: RepositoryHookSchema,
   });
 }
 
@@ -171,14 +171,14 @@ export interface EditFile {
   path: string;
   projectKey: string;
   repositorySlug: string;
-  formData?: ExampleMultipartFormData;
+  formData?: MultipartFormData;
 }
-export function editFile(client: HttpClient, params: EditFile): Promise<RestCommit> {
+export function editFile(client: HttpClient, params: EditFile): Promise<Commit> {
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/browse/${enc(params.path)}`,
     formData: params.formData,
-    schema: RestCommitSchema,
+    schema: CommitSchema,
   });
 }
 
@@ -189,11 +189,11 @@ export interface EnableHook {
   repositorySlug: string;
   contentLength?: string;
 }
-export function enableHook(client: HttpClient, params: EnableHook): Promise<RestRepositoryHook> {
+export function enableHook(client: HttpClient, params: EnableHook): Promise<RepositoryHook> {
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/hooks/${enc(params.hookKey)}/enabled`,
-    schema: RestRepositoryHookSchema,
+    schema: RepositoryHookSchema,
   });
 }
 
@@ -204,12 +204,12 @@ export interface FindWebhooks {
   event?: string;
   statistics?: boolean;
 }
-export function findWebhooks(client: HttpClient, params: FindWebhooks): Promise<RestPage<RestWebhook>> {
+export function findWebhooks(client: HttpClient, params: FindWebhooks): Promise<RestPage<Webhook>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/webhooks`,
     searchParams: { event: params.event, statistics: params.statistics },
-    schema: restPage(RestWebhookSchema),
+    schema: restPage(WebhookSchema),
   });
 }
 
@@ -218,11 +218,11 @@ export interface GetAutoDeclineSettings {
   projectKey: string;
   repositorySlug: string;
 }
-export function getAutoDeclineSettings(client: HttpClient, params: GetAutoDeclineSettings): Promise<RestAutoDeclineSettings> {
+export function getAutoDeclineSettings(client: HttpClient, params: GetAutoDeclineSettings): Promise<AutoDeclineSettings> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/auto-decline`,
-    schema: RestAutoDeclineSettingsSchema,
+    schema: AutoDeclineSettingsSchema,
   });
 }
 
@@ -231,11 +231,11 @@ export interface GetAutoMergeSettings {
   projectKey: string;
   repositorySlug: string;
 }
-export function getAutoMergeSettings(client: HttpClient, params: GetAutoMergeSettings): Promise<RestAutoMergeRestrictedSettings> {
+export function getAutoMergeSettings(client: HttpClient, params: GetAutoMergeSettings): Promise<AutoMergeRestrictedSettings> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/auto-merge`,
-    schema: RestAutoMergeRestrictedSettingsSchema,
+    schema: AutoMergeRestrictedSettingsSchema,
   });
 }
 
@@ -252,12 +252,12 @@ export interface GetBranches {
   start?: number;
   limit?: number;
 }
-export function getBranches(client: HttpClient, params: GetBranches): Promise<RestPage<RestBranch>> {
+export function getBranches(client: HttpClient, params: GetBranches): Promise<RestPage<Branch>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/branches`,
     searchParams: { boostMatches: params.boostMatches, context: params.context, orderBy: params.orderBy, details: params.details, filterText: params.filterText, base: params.base, start: params.start, limit: params.limit },
-    schema: restPage(RestBranchSchema),
+    schema: restPage(BranchSchema),
   });
 }
 
@@ -271,12 +271,12 @@ export interface GetComments {
   start?: number;
   limit?: number;
 }
-export function getComments(client: HttpClient, params: GetComments): Promise<RestPage<RestComment>> {
+export function getComments(client: HttpClient, params: GetComments): Promise<RestPage<Comment>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/comments`,
     searchParams: { path: params.path, since: params.since, start: params.start, limit: params.limit },
-    schema: restPage(RestCommentSchema),
+    schema: restPage(CommentSchema),
   });
 }
 
@@ -287,12 +287,12 @@ export interface GetCommit {
   repositorySlug: string;
   path?: string;
 }
-export function getCommit(client: HttpClient, params: GetCommit): Promise<RestCommit> {
+export function getCommit(client: HttpClient, params: GetCommit): Promise<Commit> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}`,
     searchParams: { path: params.path },
-    schema: RestCommitSchema,
+    schema: CommitSchema,
   });
 }
 
@@ -312,12 +312,12 @@ export interface GetCommits {
   start?: number;
   limit?: number;
 }
-export function getCommits(client: HttpClient, params: GetCommits): Promise<RestPage<RestCommit>> {
+export function getCommits(client: HttpClient, params: GetCommits): Promise<RestPage<Commit>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits`,
     searchParams: { avatarScheme: params.avatarScheme, path: params.path, withCounts: params.withCounts, followRenames: params.followRenames, until: params.until, avatarSize: params.avatarSize, since: params.since, merges: params.merges, ignoreMissing: params.ignoreMissing, start: params.start, limit: params.limit },
-    schema: restPage(RestCommitSchema),
+    schema: restPage(CommitSchema),
   });
 }
 
@@ -345,11 +345,11 @@ export interface GetDefaultBranch {
   projectKey: string;
   repositorySlug: string;
 }
-export function getDefaultBranch(client: HttpClient, params: GetDefaultBranch): Promise<RestBranch> {
+export function getDefaultBranch(client: HttpClient, params: GetDefaultBranch): Promise<Branch> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/branches/default`,
-    schema: RestBranchSchema,
+    schema: BranchSchema,
   });
 }
 
@@ -358,11 +358,11 @@ export interface GetPullRequestSettings {
   projectKey: string;
   repositorySlug: string;
 }
-export function getPullRequestSettings(client: HttpClient, params: GetPullRequestSettings): Promise<RestRepositoryPullRequestSettings> {
+export function getPullRequestSettings(client: HttpClient, params: GetPullRequestSettings): Promise<RepositoryPullRequestSettings> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/pull-requests`,
-    schema: RestRepositoryPullRequestSettingsSchema,
+    schema: RepositoryPullRequestSettingsSchema,
   });
 }
 
@@ -374,12 +374,12 @@ export interface GetRepositoryHooks {
   start?: number;
   limit?: number;
 }
-export function getRepositoryHooks(client: HttpClient, params: GetRepositoryHooks): Promise<RestPage<RestRepositoryHook>> {
+export function getRepositoryHooks(client: HttpClient, params: GetRepositoryHooks): Promise<RestPage<RepositoryHook>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/hooks`,
     searchParams: { type: params.type, start: params.start, limit: params.limit },
-    schema: restPage(RestRepositoryHookSchema),
+    schema: restPage(RepositoryHookSchema),
   });
 }
 
@@ -389,11 +389,11 @@ export interface GetRestriction {
   id: string;
   repositorySlug: string;
 }
-export function getRestriction(client: HttpClient, params: GetRestriction): Promise<RestRefRestriction> {
+export function getRestriction(client: HttpClient, params: GetRestriction): Promise<RefRestriction> {
   return client.sendRequest({
     method: 'GET',
     url: `/branch-permissions/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/restrictions/${enc(params.id)}`,
-    schema: RestRefRestrictionSchema,
+    schema: RefRestrictionSchema,
   });
 }
 
@@ -407,12 +407,12 @@ export interface GetRestrictions {
   start?: number;
   limit?: number;
 }
-export function getRestrictions(client: HttpClient, params: GetRestrictions): Promise<RestPage<RestRefRestriction>> {
+export function getRestrictions(client: HttpClient, params: GetRestrictions): Promise<RestPage<RefRestriction>> {
   return client.sendRequest({
     method: 'GET',
     url: `/branch-permissions/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/restrictions`,
     searchParams: { matcherType: params.matcherType, matcherId: params.matcherId, type: params.type, start: params.start, limit: params.limit },
-    schema: restPage(RestRefRestrictionSchema),
+    schema: restPage(RefRestrictionSchema),
   });
 }
 
@@ -422,11 +422,11 @@ export interface GetSettings {
   hookKey: string;
   repositorySlug: string;
 }
-export function getSettings(client: HttpClient, params: GetSettings): Promise<ExampleSettings> {
+export function getSettings(client: HttpClient, params: GetSettings): Promise<Settings> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/hooks/${enc(params.hookKey)}/settings`,
-    schema: ExampleSettingsSchema,
+    schema: SettingsSchema,
   });
 }
 
@@ -436,11 +436,11 @@ export interface GetTag {
   name: string;
   repositorySlug: string;
 }
-export function getTag(client: HttpClient, params: GetTag): Promise<RestTag> {
+export function getTag(client: HttpClient, params: GetTag): Promise<Tag> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/tags/${enc(params.name)}`,
-    schema: RestTagSchema,
+    schema: TagSchema,
   });
 }
 
@@ -453,12 +453,12 @@ export interface GetTags {
   start?: number;
   limit?: number;
 }
-export function getTags(client: HttpClient, params: GetTags): Promise<RestPage<RestTag>> {
+export function getTags(client: HttpClient, params: GetTags): Promise<RestPage<Tag>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/tags`,
     searchParams: { orderBy: params.orderBy, filterText: params.filterText, start: params.start, limit: params.limit },
-    schema: restPage(RestTagSchema),
+    schema: restPage(TagSchema),
   });
 }
 
@@ -469,12 +469,12 @@ export interface GetWebhook {
   repositorySlug: string;
   statistics?: string;
 }
-export function getWebhook(client: HttpClient, params: GetWebhook): Promise<RestWebhook> {
+export function getWebhook(client: HttpClient, params: GetWebhook): Promise<Webhook> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/webhooks/${enc(params.webhookId)}`,
     searchParams: { statistics: params.statistics },
-    schema: RestWebhookSchema,
+    schema: WebhookSchema,
   });
 }
 
@@ -482,15 +482,15 @@ export function getWebhook(client: HttpClient, params: GetWebhook): Promise<Rest
 export interface SetAutoDeclineSettings {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestAutoDeclineSettingsRequest;
+  requestBody?: AutoDeclineSettingsRequest;
 }
-export function setAutoDeclineSettings(client: HttpClient, params: SetAutoDeclineSettings): Promise<RestAutoDeclineSettings> {
+export function setAutoDeclineSettings(client: HttpClient, params: SetAutoDeclineSettings): Promise<AutoDeclineSettings> {
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/auto-decline`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestAutoDeclineSettingsSchema,
+    schema: AutoDeclineSettingsSchema,
   });
 }
 
@@ -498,15 +498,15 @@ export function setAutoDeclineSettings(client: HttpClient, params: SetAutoDeclin
 export interface SetAutoMergeSettings {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestAutoMergeSettingsRequest;
+  requestBody?: AutoMergeSettingsRequest;
 }
-export function setAutoMergeSettings(client: HttpClient, params: SetAutoMergeSettings): Promise<RestAutoMergeRestrictedSettings> {
+export function setAutoMergeSettings(client: HttpClient, params: SetAutoMergeSettings): Promise<AutoMergeRestrictedSettings> {
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/auto-merge`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestAutoMergeRestrictedSettingsSchema,
+    schema: AutoMergeRestrictedSettingsSchema,
   });
 }
 
@@ -515,15 +515,15 @@ export interface SetSettings {
   projectKey: string;
   hookKey: string;
   repositorySlug: string;
-  requestBody?: ExampleSettings;
+  requestBody?: Settings;
 }
-export function setSettings(client: HttpClient, params: SetSettings): Promise<ExampleSettings> {
+export function setSettings(client: HttpClient, params: SetSettings): Promise<Settings> {
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/hooks/${enc(params.hookKey)}/settings`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: ExampleSettingsSchema,
+    schema: SettingsSchema,
   });
 }
 
@@ -537,12 +537,12 @@ export interface StreamChanges {
   start?: number;
   limit?: number;
 }
-export function streamChanges(client: HttpClient, params: StreamChanges): Promise<RestPage<RestChange>> {
+export function streamChanges(client: HttpClient, params: StreamChanges): Promise<RestPage<Change>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/compare/changes`,
     searchParams: { fromRepo: params.fromRepo, from: params.from, to: params.to, start: params.start, limit: params.limit },
-    schema: restPage(RestChangeSchema),
+    schema: restPage(ChangeSchema),
   });
 }
 
@@ -556,12 +556,12 @@ export interface StreamCommits {
   start?: number;
   limit?: number;
 }
-export function streamCommits(client: HttpClient, params: StreamCommits): Promise<RestPage<RestCommit>> {
+export function streamCommits(client: HttpClient, params: StreamCommits): Promise<RestPage<Commit>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/compare/commits`,
     searchParams: { fromRepo: params.fromRepo, from: params.from, to: params.to, start: params.start, limit: params.limit },
-    schema: restPage(RestCommitSchema),
+    schema: restPage(CommitSchema),
   });
 }
 
@@ -581,12 +581,12 @@ export interface StreamDiff {
   withComments?: string;
   since?: string;
 }
-export function streamDiff(client: HttpClient, params: StreamDiff): Promise<RestDiff> {
+export function streamDiff(client: HttpClient, params: StreamDiff): Promise<Diff> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/diff/${enc(params.path)}`,
     searchParams: { srcPath: params.srcPath, avatarSize: params.avatarSize, filter: params.filter, avatarScheme: params.avatarScheme, contextLines: params.contextLines, autoSrcPath: params.autoSrcPath, whitespace: params.whitespace, withComments: params.withComments, since: params.since },
-    schema: RestDiffSchema,
+    schema: DiffSchema,
   });
 }
 
@@ -613,15 +613,15 @@ export function streamRaw(client: HttpClient, params: StreamRaw): Promise<string
 export interface UpdatePullRequestSettings {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestRepositoryPullRequestSettings;
+  requestBody?: RepositoryPullRequestSettings;
 }
-export function updatePullRequestSettings(client: HttpClient, params: UpdatePullRequestSettings): Promise<RestRepositoryPullRequestSettings> {
+export function updatePullRequestSettings(client: HttpClient, params: UpdatePullRequestSettings): Promise<RepositoryPullRequestSettings> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/pull-requests`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestRepositoryPullRequestSettingsSchema,
+    schema: RepositoryPullRequestSettingsSchema,
   });
 }
 
@@ -630,14 +630,14 @@ export interface UpdateWebhook {
   projectKey: string;
   webhookId: string;
   repositorySlug: string;
-  requestBody?: RestWebhook;
+  requestBody?: Webhook;
 }
-export function updateWebhook(client: HttpClient, params: UpdateWebhook): Promise<RestWebhook> {
+export function updateWebhook(client: HttpClient, params: UpdateWebhook): Promise<Webhook> {
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/webhooks/${enc(params.webhookId)}`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestWebhookSchema,
+    schema: WebhookSchema,
   });
 }
