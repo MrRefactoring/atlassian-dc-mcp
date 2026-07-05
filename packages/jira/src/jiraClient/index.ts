@@ -6,6 +6,7 @@ export { ApiError } from './core/apiError.js';
 export { CancelablePromise, CancelError } from './core/cancelablePromise.js';
 export { OpenAPI } from './core/openAPI.js';
 export type { OpenAPIConfig } from './core/openAPI.js';
+export { createJiraClient, type JiraClient } from './core/client.js';
 
 export type { A11yPersonalSettingBean } from './models/a11yPersonalSettingBean.js';
 export type { ActiveCategory } from './models/activeCategory.js';
