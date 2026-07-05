@@ -13,7 +13,14 @@ import * as workflows from '../api/workflows.js';
  * `jira.issues.getIssue({ issueIdOrKey })`.
  */
 export function createJiraClient(config: HttpClientConfig) {
-  const http = createHttpClient(config);
+  // Jira responses pass through unchanged (no response mappers), and the model
+  // schemas are derived from the generated OpenAPI spec, whose response shapes are
+  // unreliable — e.g. list endpoints like `/api/2/priority` are typed as a single
+  // object but actually return an array. The previous generated client never
+  // validated at runtime, so enforcing these schemas would reject valid live
+  // responses. Keep the Zod schemas as the typed/documented contract but skip
+  // runtime parsing until the shapes are verified against a live instance end to end.
+  const http = createHttpClient({ ...config, skipParsing: true });
 
   return {
     admin: bindGroup(admin, http),
