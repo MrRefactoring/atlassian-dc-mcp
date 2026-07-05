@@ -6,18 +6,18 @@ export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'DELETE' | 'OPTIONS' | 'HEAD' 
  * A single HTTP request an api/ function asks the client to perform.
  *
  * `url` is a path relative to the client's `baseUrl` (e.g. `/api/latest/projects`),
- * with any path parameters already interpolated via {@link enc}. Query parameters go
- * in `searchParams` (undefined/null entries are dropped). A JSON body goes in `body`;
- * multipart uploads go in `formData`. When `schema` is present and parsing is enabled,
- * the response is validated/typed through it.
+ * with any path parameters already interpolated via the {@link route} builder. Query
+ * parameters go in `searchParams` (undefined/null entries are dropped). A JSON body goes
+ * in `body`; multipart uploads go in `formData`. When `schema` is present and parsing is
+ * enabled, the response is validated/typed through it.
  */
 export interface SendRequestOptions<T = unknown> {
-  method: HttpMethod;
   url: string;
+  method: HttpMethod;
   searchParams?: Record<string, unknown>;
   body?: unknown;
   formData?: Record<string, unknown>;
-  mediaType?: string;
+  contentType?: string;
   headers?: Record<string, string>;
   schema?: ZodType<T>;
 }
@@ -44,13 +44,15 @@ export interface HttpClient {
 }
 
 /**
- * Encode a value interpolated into a request URL path.
+ * Tagged-template URL path builder.
  *
- * Uses `encodeURI` (not `encodeURIComponent`) so `/` is preserved — file-path
- * parameters like `browse/{path}` must keep their separators, matching the
- * previous generated client's single-encoder behaviour.
+ * Interpolated values are encoded with `encodeURI` (not `encodeURIComponent`) so `/` is
+ * preserved — file-path parameters like `browse/{path}` must keep their separators. Call
+ * sites write ``route`/api/latest/projects/${projectKey}/repos/${slug}` `` instead of
+ * wrapping every segment by hand.
  */
-export const enc = (value: string | number): string => encodeURI(String(value));
+export const route = (strings: TemplateStringsArray, ...values: (string | number)[]): string =>
+  strings.reduce((out, str, i) => out + str + (i < values.length ? encodeURI(String(values[i])) : ''), '');
 
 /**
  * Build a request body from a flat parameters object.

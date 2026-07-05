@@ -1,5 +1,5 @@
 import type { HttpClient } from '../core/types.js';
-import { enc, pickBody } from '../core/types.js';
+import { route, pickBody } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
 import { PermittedGroupSchema, PermittedUserSchema, ProjectSchema, RepositorySchema, BranchSchema } from '../models/index.js';
 import type { PermittedGroup, PermittedUser, Project, Repository } from '../models/index.js';
@@ -7,52 +7,52 @@ import type { CreateProject, CreateRepository, DeleteProject, DeleteRepository, 
 
 export function createProject(client: HttpClient, params: CreateProject): Promise<Project> {
   return client.sendRequest({
-    method: 'POST',
     url: '/api/latest/projects',
+    method: 'POST',
     body: pickBody(params, ProjectSchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: ProjectSchema,
   });
 }
 
 export function createRepository(client: HttpClient, params: CreateRepository): Promise<Repository> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos`,
     method: 'POST',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos`,
     body: pickBody(params, RepositorySchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: RepositorySchema,
   });
 }
 
 export function deleteProject(client: HttpClient, params: DeleteProject): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}`,
     method: 'DELETE',
-    url: `/api/latest/projects/${enc(params.projectKey)}`,
   });
 }
 
 export function deleteRepository(client: HttpClient, params: DeleteRepository): Promise<unknown> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}`,
     method: 'DELETE',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
   });
 }
 
 export function forkRepository(client: HttpClient, params: ForkRepository): Promise<Repository> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}`,
     method: 'POST',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
     body: pickBody(params, RepositorySchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: RepositorySchema,
   });
 }
 
 export function getForkedRepositories(client: HttpClient, params: GetForkedRepositories): Promise<RestPage<Repository>> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/forks`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/forks`,
     searchParams: { start: params.start, limit: params.limit },
     schema: restPage(RepositorySchema),
   });
@@ -60,8 +60,8 @@ export function getForkedRepositories(client: HttpClient, params: GetForkedRepos
 
 export function getGroupsWithAnyPermission(client: HttpClient, params: GetProjectGroupsWithAnyPermission): Promise<RestPage<PermittedGroup>> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/permissions/groups`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/permissions/groups`,
     searchParams: { filter: params.filter, start: params.start, limit: params.limit },
     schema: restPage(PermittedGroupSchema),
   });
@@ -69,16 +69,16 @@ export function getGroupsWithAnyPermission(client: HttpClient, params: GetProjec
 
 export function getProject(client: HttpClient, params: GetProject): Promise<Project> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}`,
     schema: ProjectSchema,
   });
 }
 
 export function getProjects(client: HttpClient, params: GetProjects): Promise<RestPage<Project>> {
   return client.sendRequest({
-    method: 'GET',
     url: '/api/latest/projects',
+    method: 'GET',
     searchParams: { name: params.name, permission: params.permission, start: params.start, limit: params.limit },
     schema: restPage(ProjectSchema),
   });
@@ -86,8 +86,8 @@ export function getProjects(client: HttpClient, params: GetProjects): Promise<Re
 
 export function getRepositories(client: HttpClient, params: GetRepositories): Promise<RestPage<Repository>> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos`,
     searchParams: { start: params.start, limit: params.limit },
     schema: restPage(RepositorySchema),
   });
@@ -95,16 +95,16 @@ export function getRepositories(client: HttpClient, params: GetRepositories): Pr
 
 export function getRepository(client: HttpClient, params: GetRepository): Promise<Repository> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
     schema: RepositorySchema,
   });
 }
 
 export function getUsersWithAnyPermission(client: HttpClient, params: GetProjectUsersWithAnyPermission): Promise<RestPage<PermittedUser>> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/permissions/users`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/permissions/users`,
     searchParams: { filter: params.filter, start: params.start, limit: params.limit },
     schema: restPage(PermittedUserSchema),
   });
@@ -112,53 +112,53 @@ export function getUsersWithAnyPermission(client: HttpClient, params: GetProject
 
 export function revokePermissions(client: HttpClient, params: RevokeProjectPermissions): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/permissions`,
     method: 'DELETE',
-    url: `/api/latest/projects/${enc(params.projectKey)}/permissions`,
     searchParams: { user: params.user, group: params.group },
   });
 }
 
 export function setDefaultBranch(client: HttpClient, params: SetDefaultBranch): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/default-branch`,
     method: 'PUT',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/default-branch`,
     body: pickBody(params, BranchSchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
   });
 }
 
 export function setPermissionForGroups(client: HttpClient, params: SetPermissionForGroups): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/permissions/groups`,
     method: 'PUT',
-    url: `/api/latest/projects/${enc(params.projectKey)}/permissions/groups`,
     searchParams: { name: params.name, permission: params.permission },
   });
 }
 
 export function setPermissionForUsers(client: HttpClient, params: SetPermissionForUsers): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/permissions/users`,
     method: 'PUT',
-    url: `/api/latest/projects/${enc(params.projectKey)}/permissions/users`,
     searchParams: { name: params.name, permission: params.permission },
   });
 }
 
 export function updateProject(client: HttpClient, params: UpdateProject): Promise<Project> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}`,
     method: 'PUT',
-    url: `/api/latest/projects/${enc(params.projectKey)}`,
     body: pickBody(params, ProjectSchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: ProjectSchema,
   });
 }
 
 export function updateRepository(client: HttpClient, params: UpdateRepository): Promise<Repository> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}`,
     method: 'PUT',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
     body: pickBody(params, RepositorySchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: RepositorySchema,
   });
 }

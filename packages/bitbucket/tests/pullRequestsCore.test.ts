@@ -1204,8 +1204,8 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockRawDiff);
       expect(bb.request).toHaveBeenCalledWith({
-        method: 'GET',
         url: '/api/latest/projects/TEST/repos/test-repo/pull-requests/123/diff/src/file.txt',
+        method: 'GET',
         searchParams: {
           'contextLines': undefined,
           'sinceId': undefined,
@@ -1240,8 +1240,8 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockRawDiff);
       expect(bb.request).toHaveBeenCalledWith({
-        method: 'GET',
         url: '/api/latest/projects/TEST/repos/test-repo/pull-requests/123/diff/src/file.txt',
+        method: 'GET',
         searchParams: {
           'contextLines': '5',
           'sinceId': 'abc123',

@@ -128,14 +128,14 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.request).toHaveBeenCalledWith({
-        method: 'POST',
         url: '/search/latest/search',
+        method: 'POST',
         body: {
           query: 'app',
           entities: { code: {} },
           limits: { primary: 25 },
         },
-        mediaType: 'application/json',
+        contentType: 'application/json',
       });
     });
 
@@ -146,8 +146,8 @@ describe('BitbucketService', () => {
 
       expect(bb.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          method: 'POST',
           url: '/search/latest/search',
+          method: 'POST',
           body: {
             query: 'repo:demo TODO',
             entities: { code: {} },

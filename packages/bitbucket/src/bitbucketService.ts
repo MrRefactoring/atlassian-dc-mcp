@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createBitbucketClient, enc } from './bitbucketClient/index.js';
+import { createBitbucketClient, route } from './bitbucketClient/index.js';
 import type { BitbucketClient, AccessTokenRequest } from './bitbucketClient/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { simplifyInboxPullRequests } from './inboxPrMapper.js';
@@ -1058,8 +1058,8 @@ export class BitbucketService {
     if (userSlug) {
       return handleApiOperation(
         () => this.bb.request({
+          url: route`/api/latest/users/${userSlug}`,
           method: 'GET',
-          url: `/api/latest/users/${enc(userSlug)}`,
         }),
         'Error fetching user',
       );
@@ -1067,8 +1067,8 @@ export class BitbucketService {
 
     return handleApiOperation(
       () => this.bb.request({
-        method: 'GET',
         url: '/api/latest/users',
+        method: 'GET',
         searchParams: { filter },
       }),
       'Error fetching users',
@@ -1139,8 +1139,8 @@ export class BitbucketService {
 
     return handleApiOperation(
       () => this.bb.request({
+        url: route`/api/latest/projects/${projectKey}/repos/${repositorySlug}/pull-requests/${pullRequestId}/diff/${path}`,
         method: 'GET',
-        url: `/api/latest/projects/${enc(projectKey)}/repos/${enc(repositorySlug)}/pull-requests/${enc(pullRequestId)}/diff/${enc(path)}`,
         searchParams: {
           'contextLines': contextLines,
           'sinceId': sinceId,
@@ -1474,8 +1474,8 @@ export class BitbucketService {
   ) {
     return handleApiOperation(
       () => this.bb.request({
-        method: 'GET',
         url: '/api/1.0/dashboard/pull-requests',
+        method: 'GET',
         searchParams: {
           'role': role,
           'state': state,
@@ -1498,8 +1498,8 @@ export class BitbucketService {
   async getInboxPullRequests(start?: number, limit?: number) {
     const result = await handleApiOperation(
       () => this.bb.request({
-        method: 'GET',
         url: '/api/latest/inbox/pull-requests',
+        method: 'GET',
         searchParams: {
           'start': start,
           'limit': limit ?? this.getPageSize(),
@@ -1934,8 +1934,8 @@ export class BitbucketService {
 
     return handleApiOperation(
       () => this.bb.request({
+        url: route`/branch-utils/1.0/projects/${projectKey}/repos/${repositorySlug}/branchmodel/configuration`,
         method: 'GET',
-        url: `/branch-utils/1.0/projects/${enc(projectKey)}/repos/${enc(repositorySlug)}/branchmodel/configuration`,
       }),
       'Error fetching branch model configuration',
     );
@@ -1967,10 +1967,10 @@ export class BitbucketService {
 
     return handleApiOperation(
       () => this.bb.request({
+        url: route`/branch-utils/1.0/projects/${projectKey}/repos/${repositorySlug}/branchmodel/configuration`,
         method: 'PUT',
-        url: `/branch-utils/1.0/projects/${enc(projectKey)}/repos/${enc(repositorySlug)}/branchmodel/configuration`,
         body: body,
-        mediaType: 'application/json',
+        contentType: 'application/json',
       }),
       'Error setting branch model configuration',
     );
@@ -1987,8 +1987,8 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
       () => this.bb.request({
+        url: route`/branch-utils/1.0/projects/${projectKey}/repos/${repositorySlug}/branchmodel/configuration`,
         method: 'DELETE',
-        url: `/branch-utils/1.0/projects/${enc(projectKey)}/repos/${enc(repositorySlug)}/branchmodel/configuration`,
       }),
       'Error deleting branch model configuration',
     );
@@ -2055,8 +2055,8 @@ export class BitbucketService {
   async searchCode(query: string, limit?: number, secondaryLimit?: number) {
     return handleApiOperation(
       () => this.bb.request({
-        method: 'POST',
         url: '/search/latest/search',
+        method: 'POST',
         body: {
           query,
           entities: { code: {} },
@@ -2065,7 +2065,7 @@ export class BitbucketService {
             ...(secondaryLimit !== undefined ? { secondary: secondaryLimit } : {}),
           },
         },
-        mediaType: 'application/json',
+        contentType: 'application/json',
       }),
       'Error searching code',
     );
@@ -3197,8 +3197,8 @@ export class BitbucketService {
 
   async validateSetup(): Promise<void> {
     await this.bb.request({
-      method: 'GET',
       url: '/api/latest/dashboard/pull-requests',
+      method: 'GET',
       searchParams: { limit: 1 },
     });
   }

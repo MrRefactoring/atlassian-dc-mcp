@@ -35,8 +35,8 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.request).toHaveBeenCalledWith({
-        method: 'GET',
         url: '/api/1.0/dashboard/pull-requests',
+        method: 'GET',
         searchParams: {
           'role': 'AUTHOR',
           'state': 'OPEN',
@@ -68,8 +68,8 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.request).toHaveBeenCalledWith({
-        method: 'GET',
         url: '/api/1.0/dashboard/pull-requests',
+        method: 'GET',
         searchParams: {
           'role': 'REVIEWER',
           'state': 'OPEN',
@@ -99,8 +99,8 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.request).toHaveBeenCalledWith({
-        method: 'GET',
         url: '/api/1.0/dashboard/pull-requests',
+        method: 'GET',
         searchParams: {
           'role': 'PARTICIPANT',
           'state': 'MERGED',
@@ -152,8 +152,8 @@ describe('BitbucketService', () => {
       expect(result.data).toBeDefined();
       expect(bb.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          method: 'GET',
           url: '/api/latest/inbox/pull-requests',
+          method: 'GET',
           searchParams: { start: undefined, limit: 25 },
         }),
       );
