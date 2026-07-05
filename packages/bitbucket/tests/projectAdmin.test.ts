@@ -1,24 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { BitbucketService } from '../src/bitbucketService.js';
-import { ProjectService } from '../src/bitbucketClient/index.js';
 
-vi.mock('../src/bitbucketClient/index.js', () => ({
-  ProjectService: {
+const bb = vi.hoisted(() => ({
+  projects: {
     createProject: vi.fn(),
     deleteProject: vi.fn(),
     updateProject: vi.fn(),
-    getGroupsWithAnyPermission1: vi.fn(),
-    getUsersWithAnyPermission1: vi.fn(),
+    getGroupsWithAnyPermission: vi.fn(),
+    getUsersWithAnyPermission: vi.fn(),
     revokePermissions: vi.fn(),
-    setPermissionForGroups1: vi.fn(),
-    setPermissionForUsers1: vi.fn(),
+    setPermissionForGroups: vi.fn(),
+    setPermissionForUsers: vi.fn(),
   },
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-  },
+}));
+
+vi.mock('../src/bitbucketClient/index.js', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createBitbucketClient: () => bb,
 }));
 
 describe('BitbucketService', () => {
@@ -33,32 +32,29 @@ describe('BitbucketService', () => {
   describe('project CRUD', () => {
     it('should create a project', async () => {
       const mockData = { key: 'PROJ' };
-      (ProjectService.createProject as Mock).mockResolvedValue(mockData);
+      (bb.projects.createProject as Mock).mockResolvedValue(mockData);
 
       const result = await bitbucketService.createProject('proj', 'My Project', 'desc');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
-      expect(ProjectService.createProject).toHaveBeenCalledWith({
-        key: 'PROJ',
-        name: 'My Project',
-        description: 'desc',
+      expect(bb.projects.createProject).toHaveBeenCalledWith({
+        key: 'PROJ', name: 'My Project', description: 'desc',
       });
     });
 
     it('should omit description when not provided on create', async () => {
-      (ProjectService.createProject as Mock).mockResolvedValue({});
+      (bb.projects.createProject as Mock).mockResolvedValue({});
 
       await bitbucketService.createProject('PROJ', 'My Project');
 
-      expect(ProjectService.createProject).toHaveBeenCalledWith({
-        key: 'PROJ',
-        name: 'My Project',
+      expect(bb.projects.createProject).toHaveBeenCalledWith({
+        key: 'PROJ', name: 'My Project',
       });
     });
 
     it('should handle errors when creating a project', async () => {
-      (ProjectService.createProject as Mock).mockRejectedValue(new Error('API Error'));
+      (bb.projects.createProject as Mock).mockRejectedValue(new Error('API Error'));
 
       const result = await bitbucketService.createProject('PROJ', 'My Project');
 
@@ -68,39 +64,38 @@ describe('BitbucketService', () => {
 
     it('should update a project with only the provided fields', async () => {
       const mockData = { key: 'PROJ' };
-      (ProjectService.updateProject as Mock).mockResolvedValue(mockData);
+      (bb.projects.updateProject as Mock).mockResolvedValue(mockData);
 
       const result = await bitbucketService.updateProject('proj', 'Renamed', 'new desc');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
-      expect(ProjectService.updateProject).toHaveBeenCalledWith('PROJ', {
-        key: 'PROJ',
-        name: 'Renamed',
-        description: 'new desc',
+      expect(bb.projects.updateProject).toHaveBeenCalledWith({
+        projectKey: 'PROJ',
+        key: 'PROJ', name: 'Renamed', description: 'new desc',
       });
     });
 
     it('should update a project sending only the key when nothing else provided', async () => {
-      (ProjectService.updateProject as Mock).mockResolvedValue({});
+      (bb.projects.updateProject as Mock).mockResolvedValue({});
 
       await bitbucketService.updateProject('PROJ');
 
-      expect(ProjectService.updateProject).toHaveBeenCalledWith('PROJ', { key: 'PROJ' });
+      expect(bb.projects.updateProject).toHaveBeenCalledWith({ projectKey: 'PROJ', key: 'PROJ' });
     });
 
     it('should delete a project and return an ack', async () => {
-      (ProjectService.deleteProject as Mock).mockResolvedValue(undefined);
+      (bb.projects.deleteProject as Mock).mockResolvedValue(undefined);
 
       const result = await bitbucketService.deleteProject('proj');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ deleted: true, key: 'PROJ' });
-      expect(ProjectService.deleteProject).toHaveBeenCalledWith('PROJ');
+      expect(bb.projects.deleteProject).toHaveBeenCalledWith({ projectKey: 'PROJ' });
     });
 
     it('should preserve the error field when delete fails', async () => {
-      (ProjectService.deleteProject as Mock).mockRejectedValue(new Error('API Error'));
+      (bb.projects.deleteProject as Mock).mockRejectedValue(new Error('API Error'));
 
       const result = await bitbucketService.deleteProject('PROJ');
 
@@ -113,20 +108,24 @@ describe('BitbucketService', () => {
     it('should get combined users and groups with project permissions', async () => {
       const mockUsers = { values: [{ user: { name: 'alice' }, permission: 'PROJECT_WRITE' }], size: 1, isLastPage: true };
       const mockGroups = { values: [{ group: { name: 'devs' }, permission: 'PROJECT_READ' }], size: 1, isLastPage: true };
-      (ProjectService.getUsersWithAnyPermission1 as Mock).mockResolvedValue(mockUsers);
-      (ProjectService.getGroupsWithAnyPermission1 as Mock).mockResolvedValue(mockGroups);
+      (bb.projects.getUsersWithAnyPermission as Mock).mockResolvedValue(mockUsers);
+      (bb.projects.getGroupsWithAnyPermission as Mock).mockResolvedValue(mockGroups);
 
       const result = await bitbucketService.getProjectPermissions(mockProjectKey);
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ users: mockUsers, groups: mockGroups });
-      expect(ProjectService.getUsersWithAnyPermission1).toHaveBeenCalledWith(mockProjectKey, undefined, undefined, 25);
-      expect(ProjectService.getGroupsWithAnyPermission1).toHaveBeenCalledWith(mockProjectKey, undefined, undefined, 25);
+      expect(bb.projects.getUsersWithAnyPermission).toHaveBeenCalledWith({
+        projectKey: mockProjectKey, filter: undefined, start: undefined, limit: 25,
+      });
+      expect(bb.projects.getGroupsWithAnyPermission).toHaveBeenCalledWith({
+        projectKey: mockProjectKey, filter: undefined, start: undefined, limit: 25,
+      });
     });
 
     it('should handle errors when fetching project permissions', async () => {
-      (ProjectService.getUsersWithAnyPermission1 as Mock).mockRejectedValue(new Error('API Error'));
-      (ProjectService.getGroupsWithAnyPermission1 as Mock).mockResolvedValue({ values: [] });
+      (bb.projects.getUsersWithAnyPermission as Mock).mockRejectedValue(new Error('API Error'));
+      (bb.projects.getGroupsWithAnyPermission as Mock).mockResolvedValue({ values: [] });
 
       const result = await bitbucketService.getProjectPermissions(mockProjectKey);
 
@@ -135,17 +134,19 @@ describe('BitbucketService', () => {
     });
 
     it('should set a project user permission', async () => {
-      (ProjectService.setPermissionForUsers1 as Mock).mockResolvedValue(undefined);
+      (bb.projects.setPermissionForUsers as Mock).mockResolvedValue(undefined);
 
       const result = await bitbucketService.setProjectUserPermission(mockProjectKey, 'alice', 'PROJECT_WRITE');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ projectKey: mockProjectKey, name: 'alice', permission: 'PROJECT_WRITE' });
-      expect(ProjectService.setPermissionForUsers1).toHaveBeenCalledWith(mockProjectKey, 'alice', 'PROJECT_WRITE');
+      expect(bb.projects.setPermissionForUsers).toHaveBeenCalledWith({
+        projectKey: mockProjectKey, name: 'alice', permission: 'PROJECT_WRITE',
+      });
     });
 
     it('should handle errors when setting a project user permission', async () => {
-      (ProjectService.setPermissionForUsers1 as Mock).mockRejectedValue(new Error('API Error'));
+      (bb.projects.setPermissionForUsers as Mock).mockRejectedValue(new Error('API Error'));
 
       const result = await bitbucketService.setProjectUserPermission(mockProjectKey, 'alice', 'PROJECT_WRITE');
 
@@ -154,17 +155,19 @@ describe('BitbucketService', () => {
     });
 
     it('should set a project group permission', async () => {
-      (ProjectService.setPermissionForGroups1 as Mock).mockResolvedValue(undefined);
+      (bb.projects.setPermissionForGroups as Mock).mockResolvedValue(undefined);
 
       const result = await bitbucketService.setProjectGroupPermission(mockProjectKey, 'devs', 'PROJECT_READ');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ projectKey: mockProjectKey, name: 'devs', permission: 'PROJECT_READ' });
-      expect(ProjectService.setPermissionForGroups1).toHaveBeenCalledWith(mockProjectKey, 'devs', 'PROJECT_READ');
+      expect(bb.projects.setPermissionForGroups).toHaveBeenCalledWith({
+        projectKey: mockProjectKey, name: 'devs', permission: 'PROJECT_READ',
+      });
     });
 
     it('should handle errors when setting a project group permission', async () => {
-      (ProjectService.setPermissionForGroups1 as Mock).mockRejectedValue(new Error('API Error'));
+      (bb.projects.setPermissionForGroups as Mock).mockRejectedValue(new Error('API Error'));
 
       const result = await bitbucketService.setProjectGroupPermission(mockProjectKey, 'devs', 'PROJECT_READ');
 
@@ -173,17 +176,19 @@ describe('BitbucketService', () => {
     });
 
     it('should revoke a project permission for a user and a group', async () => {
-      (ProjectService.revokePermissions as Mock).mockResolvedValue(undefined);
+      (bb.projects.revokePermissions as Mock).mockResolvedValue(undefined);
 
       const result = await bitbucketService.revokeProjectPermission(mockProjectKey, 'alice', 'devs');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ revoked: true, projectKey: mockProjectKey, user: 'alice', group: 'devs' });
-      expect(ProjectService.revokePermissions).toHaveBeenCalledWith(mockProjectKey, 'alice', 'devs');
+      expect(bb.projects.revokePermissions).toHaveBeenCalledWith({
+        projectKey: mockProjectKey, user: 'alice', group: 'devs',
+      });
     });
 
     it('should handle errors when revoking a project permission', async () => {
-      (ProjectService.revokePermissions as Mock).mockRejectedValue(new Error('API Error'));
+      (bb.projects.revokePermissions as Mock).mockRejectedValue(new Error('API Error'));
 
       const result = await bitbucketService.revokeProjectPermission(mockProjectKey, 'alice');
 

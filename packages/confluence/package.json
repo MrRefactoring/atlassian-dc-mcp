@@ -3,11 +3,10 @@
   "version": "0.2.0",
   "main": "dist/index.js",
   "type": "module",
-  "bin": "./bin/run.js",
+  "bin": "./dist/run.js",
   "private": false,
   "files": [
-    "dist",
-    "bin"
+    "dist"
   ],
   "description": "Community-maintained MCP server connecting Claude and other AI assistants to Atlassian Confluence Data Center. Not affiliated with Atlassian.",
   "keywords": [
@@ -35,10 +34,10 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
-    "inspect": "mcp-inspector node dist/index.js",
-    "inspect:dev": "mcp-inspector ts-node src/index.ts",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "inspect": "mcp-inspector node dist/server.js",
+    "inspect:dev": "mcp-inspector ts-node src/server.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.test.json"
   },

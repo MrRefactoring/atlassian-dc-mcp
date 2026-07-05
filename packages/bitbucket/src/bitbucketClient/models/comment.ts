@@ -1,38 +1,37 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { ApplicationUser } from './applicationUser.js';
-import type { CommentOperations } from './commentOperations.js';
-import type { CommentThread } from './commentThread.js';
-import type { CommentThreadDiffAnchor } from './commentThreadDiffAnchor.js';
-export type Comment = {
-    anchor?: CommentThreadDiffAnchor;
-    author?: ApplicationUser;
-    comments?: Array<Comment>;
-    createdDate?: string;
-    id?: number;
-    permittedOperations?: CommentOperations;
-    properties?: any;
-    resolvedDate?: string;
-    resolver?: ApplicationUser;
-    severity?: Comment.severity;
-    state?: Comment.state;
-    text?: string;
-    thread?: CommentThread;
-    updatedDate?: string;
-    version?: number;
-};
-export namespace Comment {
-    export enum severity {
-        NORMAL = 'NORMAL',
-        BLOCKER = 'BLOCKER',
-    }
-    export enum state {
-        OPEN = 'OPEN',
-        PENDING = 'PENDING',
-        RESOLVED = 'RESOLVED',
-    }
-}
+import { z } from 'zod';
 
+export const CommentSchema = z.looseObject({
+  properties: z.looseObject({
+    repositoryId: z.number().optional(),
+  }).optional(),
+  id: z.number().optional(),
+  version: z.number().optional(),
+  text: z.string().optional(),
+  author: z.looseObject({
+    name: z.string().optional(),
+    emailAddress: z.string().optional(),
+    active: z.boolean().optional(),
+    displayName: z.string().optional(),
+    id: z.number().optional(),
+    slug: z.string().optional(),
+    type: z.string().optional(),
+    links: z.looseObject({
+      self: z.array(z.looseObject({
+        href: z.string().optional(),
+      })).optional(),
+    }).optional(),
+  }).optional(),
+  createdDate: z.number().optional(),
+  updatedDate: z.number().optional(),
+  comments: z.array(z.unknown()).optional(),
+  threadResolved: z.boolean().optional(),
+  severity: z.string().optional(),
+  state: z.string().optional(),
+  permittedOperations: z.looseObject({
+    editable: z.boolean().optional(),
+    transitionable: z.boolean().optional(),
+    deletable: z.boolean().optional(),
+  }).optional(),
+});
 
+export type Comment = z.infer<typeof CommentSchema>;

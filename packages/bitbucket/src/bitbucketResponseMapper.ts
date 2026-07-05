@@ -1,9 +1,7 @@
-import type {
-  BitbucketPRApiResponse } from './prCommentMapper.js';
+import type { BitbucketPRApiResponse, PullRequestCommentOptions } from './interface/index.js';
 import {
   filterPullRequestComments,
   getCommentSummary,
-  type PullRequestCommentOptions,
   simplifyBitbucketPRComments,
 } from './prCommentMapper.js';
 import { getChangesSummary, simplifyBitbucketPRChanges } from './prChangesMapper.js';

@@ -29,7 +29,7 @@ pnpm --filter jira-datacenter-mcp exec vitest run -t 'test name'
 # Typecheck (tsc --noEmit over src + tests; vitest itself doesn't type-check)
 pnpm typecheck
 
-# Lint (ESLint flat config, root-level — covers all packages; generated *Client/ dirs are excluded)
+# Lint (ESLint flat config, root-level — covers all packages; the generated jiraClient/ and confluenceClient/ dirs are excluded, but the hand-written bitbucketClient/ is linted)
 pnpm lint
 pnpm lint:fix
 
@@ -54,24 +54,29 @@ This is a pnpm workspace monorepo publishing four npm packages from `packages/`:
 
 ### Per-product package structure
 
-Each product package follows the same three-layer shape:
+Each product package follows the same shape:
 
-- **`src/index.ts`** — entry point. Initializes runtime config, validates required env vars, constructs the service, creates an MCP server via `createMcpServer`, registers one `server.tool(...)` call per capability (name, description, Zod schema, handler), then calls `connectServer` to start listening on stdio. This file is a flat, repetitive list of tool registrations — when adding a new tool, follow the existing pattern rather than introducing abstraction.
-- **`src/<product>Service.ts`** — a `<Product>Service` class wrapping the generated API client. Exposes one method per tool, each delegating to `handleApiOperation` (from `core`) for consistent success/error response shaping. Also exports the `zod` schemas (`jiraToolSchemas`, etc.) consumed by `index.ts`.
-- **`src/<product>Client/`** — a generated OpenAPI client (services + models + `core/` request plumbing) committed to the repo, not regenerated at build time. Treat files here as generated output: prefer changing how `<product>Service.ts` calls into them over hand-editing generated code.
+- **`src/server.ts`** — entry point / orchestrator. Initializes runtime config, validates required env vars, constructs the service and the MCP server (`createMcpServer`), calls the `register*(server, service)` functions from `src/tools/`, `src/resources.ts`, and `src/prompts.ts`, then `connectServer` to start listening on stdio. It contains no `server.registerTool` calls itself — just wiring.
+- **`src/tools/<group>.ts`** — the actual tool registrations, grouped by resource/domain. bitbucket mirrors the client's `api/` namespaces (`projects`, `repositories`, `pullRequests`, `builds`, `permissions`, `authentication`, `security`); jira uses `issues`, `projects`, `users`, `workflows`, `agile`, `admin`; confluence uses `content`, `spaces`, `attachments`, `users`, `webhooks`, `admin`. Each file exports `register<Group>Tools(server, service)` — a flat, repetitive list of `server.registerTool(name, { description, inputSchema }, handler)` calls. When adding a tool, follow the neighbouring pattern rather than introducing abstraction.
+- **`src/resources.ts` / `src/prompts.ts`** — `registerResources(server, service)` and `registerPrompts(server[, service])`, one per file, for the product's MCP resources and prompts.
+- **`src/constants.ts`** (jira/confluence) — the shared `<product>InstanceType` description string imported by the tool modules.
+- **`src/run.ts`** — the compiled bin entry (`package.json` `bin` → `dist/run.js`). A tiny dispatcher: `run setup` dynamically imports `./setup.js`, otherwise it imports `./server.js` to boot the MCP server.
+- **`src/index.ts`** — barrel only (re-exports the service, config, and mappers as the package's library surface). It is not the executable and has no side effects; the runnable entry is `server.ts`.
+- **`src/<product>Service.ts`** — a `<Product>Service` class wrapping the product's API client. Exposes one method per tool, each delegating to `handleApiOperation` (from `core`) for consistent success/error response shaping. Also exports the `zod` schemas (`jiraToolSchemas`, etc.) consumed by the `src/tools/*.ts` modules.
+- **`src/<product>Client/`** — the API client. **jira/confluence**: a generated OpenAPI client (services + models + `core/` request plumbing) committed to the repo, not regenerated at build time — treat those files as generated output and prefer changing how `<product>Service.ts` calls into them over hand-editing. **bitbucket**: a hand-written [trello.js](https://github.com/MrRefactoring/trello.js)-style client — `core/` (a `createBitbucketClient` factory over a small `httpClient`, plus `helpers.ts` with the `route` tagged-template URL builder and `pickBody`), `api/` (one free function per endpoint, grouped by resource into namespaces), `parameters/` (one flat Zod schema per endpoint's named parameters, request body fields flattened in), `models/` (one Zod schema + inferred type per model), and `interface/` (client types: `HttpClient`, `SendRequestOptions`, `RestPage`, …). It is normal hand-written code: linted, and edited directly. The service constructs it once (`this.bb = createBitbucketClient({...})`) and calls `this.bb.<group>.<fn>({named})`.
 - **`src/config.ts`** — declares a `ProductDefinition` (env var names, default API base path, strippable suffixes) and exposes `get<Product>RuntimeConfig()` / `getMissingConfig()` built on `core`'s config layer.
-- **`src/setup.ts`** — wires the product's `ProductDefinition` into `core`'s shared `runSetupCli`, producing the product's `setup` subcommand (see `bin/`).
+- **`src/setup.ts`** — wires the product's `ProductDefinition` into `core`'s shared `runSetupCli`, producing the product's `setup` subcommand (dispatched by `src/run.ts`).
 
 ### Core package internals (`packages/core/src`)
 
 - **Config resolution** (`config/`) — `DefaultConfigRegistry` walks a priority-ordered list of `ReadableSource`s (highest first) and returns the first non-empty value per key: `process.env` (100) → env file pointed to by `ATLASSIAN_DC_MCP_CONFIG_FILE` or `./.env` (80) → home file `~/.atlassian-dc-mcp/<product>.env` (60) → macOS Keychain, token only (40). `resolveBase.ts` derives the final API base URL from host/apiBasePath/defaults. This layering is what lets a server boot with zero env vars once `setup` has run once.
 - **`setupCli.ts` / `setup/`** — the interactive (and `--non-interactive`) `setup` subcommand shared by all three products: prompts, arg parsing (`setup/args.ts`), input validation (`setup/valueValidator.ts`), and error formatting (`setup/describeError.ts`). It performs a live authenticated request against the target instance before saving credentials, and writes tokens to Keychain (macOS) or a `0600` home file (Linux/Windows), never both.
 - **`apiErrorHandler.ts`** — `handleApiOperation<T>(operation, errorPrefix)` is the single error-handling convention used by every service method; it normalizes both thrown `Error`s and the generated client's `{status, body, statusText}` API error shape into `{success, data?, error?, details?}`.
-- **`index.ts`** — `createMcpServer`, `connectServer` (stdio transport), and `formatToolResponse` (wraps a result as MCP tool JSON text content) are the glue every product's `index.ts` uses identically.
+- **`server.ts`** — `createMcpServer`, `connectServer` (stdio transport), and `formatToolResponse` (wraps a result as MCP tool JSON text content) are the glue every product's `server.ts` uses identically. `index.ts` is a barrel that re-exports these (via `export * from './server.js'`) alongside the config, pagination, and setup helpers, so consumers still import them from the `datacenter-mcp-core` bare specifier.
 
 ### Adding a new tool to a product
 
-The consistent path is: add a client-backed method to `<product>Service.ts` (using `handleApiOperation`), add its Zod schema to the exported schema object, then register a `server.tool(...)` call in `index.ts` following the neighboring tools' naming (`<product>_verbNoun`) and description conventions.
+The consistent path is: add a client-backed method to `<product>Service.ts` (using `handleApiOperation`), add its Zod schema to the exported schema object, then register a `server.registerTool(name, { description, inputSchema }, handler)` call in the matching `src/tools/<group>.ts`, following the neighboring tools' `snake_case` naming (`<product>_verb_noun`, e.g. `bitbucket_get_projects`) and description conventions.
 
 ## Engineering Principles
 

@@ -1,28 +1,23 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { ApplicationUser } from './applicationUser.js';
-import type { PullRequest } from './pullRequest.js';
-export type PullRequestParticipant = {
-    approved?: boolean;
-    lastReviewedCommit?: string;
-    pullRequest?: PullRequest;
-    role?: PullRequestParticipant.role;
-    status?: PullRequestParticipant.status;
-    user?: ApplicationUser;
-};
-export namespace PullRequestParticipant {
-    export enum role {
-        AUTHOR = 'AUTHOR',
-        REVIEWER = 'REVIEWER',
-        PARTICIPANT = 'PARTICIPANT',
-    }
-    export enum status {
-        UNAPPROVED = 'UNAPPROVED',
-        NEEDS_WORK = 'NEEDS_WORK',
-        APPROVED = 'APPROVED',
-    }
-}
+import { z } from 'zod';
 
+export const PullRequestParticipantSchema = z.looseObject({
+  user: z.looseObject({
+    name: z.string().optional(),
+    emailAddress: z.string().optional(),
+    active: z.boolean().optional(),
+    displayName: z.string().optional(),
+    id: z.number().optional(),
+    slug: z.string().optional(),
+    type: z.string().optional(),
+    links: z.looseObject({
+      self: z.array(z.looseObject({
+        href: z.string().optional(),
+      })).optional(),
+    }).optional(),
+  }).optional(),
+  role: z.string().optional(),
+  approved: z.boolean().optional(),
+  status: z.string().optional(),
+});
 
+export type PullRequestParticipant = z.infer<typeof PullRequestParticipantSchema>;

@@ -1,19 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BitbucketService } from '../src/bitbucketService.js';
-import { request } from '../src/bitbucketClient/core/request.js';
 
-vi.mock('../src/bitbucketClient/core/request.js', () => ({
+const bb = vi.hoisted(() => ({
   request: vi.fn(),
 }));
 
-const mockRequest = vi.mocked(request);
-
-vi.mock('../src/bitbucketClient/index.js', () => ({
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-  },
+vi.mock('../src/bitbucketClient/index.js', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createBitbucketClient: () => bb,
 }));
 
 describe('BitbucketService', () => {
@@ -34,30 +28,24 @@ describe('BitbucketService', () => {
         size: 2,
         isLastPage: true,
       };
-      mockRequest.mockResolvedValue(mockData);
+      bb.request.mockResolvedValue(mockData);
 
       const result = await bitbucketService.getDashboardPullRequests();
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
-      expect(mockRequest).toHaveBeenCalledWith(
-        expect.any(Object),
-        {
-          method: 'GET',
-          url: '/api/1.0/dashboard/pull-requests',
-          query: {
-            'role': 'AUTHOR',
-            'state': 'OPEN',
-            'closedSince': undefined,
-            'order': 'NEWEST',
-            'start': undefined,
-            'limit': 25,
-          },
-          errors: {
-            401: 'The currently authenticated user is not permitted to access the dashboard.',
-          },
+      expect(bb.request).toHaveBeenCalledWith({
+        url: '/api/1.0/dashboard/pull-requests',
+        method: 'GET',
+        searchParams: {
+          'role': 'AUTHOR',
+          'state': 'OPEN',
+          'closedSince': undefined,
+          'order': 'NEWEST',
+          'start': undefined,
+          'limit': 25,
         },
-      );
+      });
     });
 
     it('should get dashboard PRs filtered by role and state', async () => {
@@ -66,7 +54,7 @@ describe('BitbucketService', () => {
         size: 1,
         isLastPage: true,
       };
-      mockRequest.mockResolvedValue(mockData);
+      bb.request.mockResolvedValue(mockData);
 
       const result = await bitbucketService.getDashboardPullRequests(
         'REVIEWER',
@@ -79,24 +67,18 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
-      expect(mockRequest).toHaveBeenCalledWith(
-        expect.any(Object),
-        {
-          method: 'GET',
-          url: '/api/1.0/dashboard/pull-requests',
-          query: {
-            'role': 'REVIEWER',
-            'state': 'OPEN',
-            'closedSince': undefined,
-            'order': 'NEWEST',
-            'start': 0,
-            'limit': 5,
-          },
-          errors: {
-            401: 'The currently authenticated user is not permitted to access the dashboard.',
-          },
+      expect(bb.request).toHaveBeenCalledWith({
+        url: '/api/1.0/dashboard/pull-requests',
+        method: 'GET',
+        searchParams: {
+          'role': 'REVIEWER',
+          'state': 'OPEN',
+          'closedSince': undefined,
+          'order': 'NEWEST',
+          'start': 0,
+          'limit': 5,
         },
-      );
+      });
     });
 
     it('should get dashboard PRs with closedSince filter', async () => {
@@ -105,7 +87,7 @@ describe('BitbucketService', () => {
         size: 1,
         isLastPage: true,
       };
-      mockRequest.mockResolvedValue(mockData);
+      bb.request.mockResolvedValue(mockData);
 
       const closedSince = 1700000000000;
       const result = await bitbucketService.getDashboardPullRequests(
@@ -116,29 +98,23 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
-      expect(mockRequest).toHaveBeenCalledWith(
-        expect.any(Object),
-        {
-          method: 'GET',
-          url: '/api/1.0/dashboard/pull-requests',
-          query: {
-            'role': 'PARTICIPANT',
-            'state': 'MERGED',
-            'closedSince': closedSince,
-            'order': 'NEWEST',
-            'start': undefined,
-            'limit': 25,
-          },
-          errors: {
-            401: 'The currently authenticated user is not permitted to access the dashboard.',
-          },
+      expect(bb.request).toHaveBeenCalledWith({
+        url: '/api/1.0/dashboard/pull-requests',
+        method: 'GET',
+        searchParams: {
+          'role': 'PARTICIPANT',
+          'state': 'MERGED',
+          'closedSince': closedSince,
+          'order': 'NEWEST',
+          'start': undefined,
+          'limit': 25,
         },
-      );
+      });
     });
 
     it('should handle API errors', async () => {
       const mockError = new Error('Unauthorized');
-      mockRequest.mockRejectedValue(mockError);
+      bb.request.mockRejectedValue(mockError);
 
       const result = await bitbucketService.getDashboardPullRequests();
 
@@ -168,18 +144,17 @@ describe('BitbucketService', () => {
         start: 0,
         limit: 25,
       };
-      mockRequest.mockResolvedValue(mockInboxData);
+      bb.request.mockResolvedValue(mockInboxData);
 
       const result = await bitbucketService.getInboxPullRequests();
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
-      expect(mockRequest).toHaveBeenCalledWith(
-        expect.any(Object),
+      expect(bb.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          method: 'GET',
           url: '/api/latest/inbox/pull-requests',
-          query: { start: undefined, limit: 25 },
+          method: 'GET',
+          searchParams: { start: undefined, limit: 25 },
         }),
       );
     });
@@ -203,15 +178,14 @@ describe('BitbucketService', () => {
         limit: 10,
         nextPageStart: 35,
       };
-      mockRequest.mockResolvedValue(mockInboxData);
+      bb.request.mockResolvedValue(mockInboxData);
 
       const result = await bitbucketService.getInboxPullRequests(25, 10);
 
       expect(result.success).toBe(true);
-      expect(mockRequest).toHaveBeenCalledWith(
-        expect.any(Object),
+      expect(bb.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          query: { start: 25, limit: 10 },
+          searchParams: { start: 25, limit: 10 },
         }),
       );
     });
@@ -224,7 +198,7 @@ describe('BitbucketService', () => {
         start: 0,
         limit: 25,
       };
-      mockRequest.mockResolvedValue(mockInboxData);
+      bb.request.mockResolvedValue(mockInboxData);
 
       const result = await bitbucketService.getInboxPullRequests();
 
@@ -234,7 +208,7 @@ describe('BitbucketService', () => {
 
     it('should handle API errors gracefully', async () => {
       const mockError = new Error('Unauthorized');
-      mockRequest.mockRejectedValue(mockError);
+      bb.request.mockRejectedValue(mockError);
 
       const result = await bitbucketService.getInboxPullRequests();
 

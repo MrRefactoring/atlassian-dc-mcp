@@ -1,19 +1,16 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type Project = {
-    description?: string;
-    id?: number;
-    key?: string;
-    name?: string;
-    public?: boolean;
-    type?: Project.type;
-};
-export namespace Project {
-    export enum type {
-        NORMAL = 'NORMAL',
-        PERSONAL = 'PERSONAL',
-    }
-}
+import { z } from 'zod';
 
+export const ProjectSchema = z.looseObject({
+  key: z.string().optional(),
+  id: z.number().optional(),
+  name: z.string().optional(),
+  public: z.boolean().optional(),
+  type: z.string().optional(),
+  links: z.looseObject({
+    self: z.array(z.looseObject({
+      href: z.string().optional(),
+    })).optional(),
+  }).optional(),
+});
+
+export type Project = z.infer<typeof ProjectSchema>;

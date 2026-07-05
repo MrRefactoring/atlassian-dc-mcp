@@ -9,14 +9,16 @@ import tseslint from 'typescript-eslint';
 // generated-client carve-outs) is repo-specific.
 export default tseslint.config(
   {
-    // Generated OpenAPI clients are committed output, not hand-written code —
-    // see CLAUDE.md: "Treat files here as generated output". Worktrees created
-    // by parallel background agents live under the repo root too; never lint
-    // another branch's checkout.
+    // The jira/confluence clients are still committed OpenAPI-generator output —
+    // see CLAUDE.md: "Treat files here as generated output". The bitbucket client
+    // is now hand-written (trello.js-style) and IS linted. Worktrees created by
+    // parallel background agents live under the repo root too; never lint another
+    // branch's checkout.
     ignores: [
       '**/dist/**',
       '**/coverage/**',
-      '**/*Client/**',
+      '**/jiraClient/**',
+      '**/confluenceClient/**',
       '.worktrees/**',
       '.claude/worktrees/**',
     ],
