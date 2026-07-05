@@ -1,5 +1,6 @@
 import { route, type HttpClient } from 'datacenter-mcp-core';
 import { type ActorInputBean, ApplicationRoleBeanSchema, type ApplicationRoleBean, type AssociateProjectsBean, type AuthParams, AuthSuccessSchema, type AuthSuccess, AutoCompleteResponseBeanSchema, type AutoCompleteResponseBean, AutoCompleteResultWrapperSchema, type AutoCompleteResultWrapper, AvatarBeanSchema, type AvatarBean, AvatarCroppingBeanSchema, type AvatarCroppingBean, BulkDeleteResponseBeanSchema, type BulkDeleteResponseBean, ClusterStateSchema, type ClusterState, type CreateUpdateRoleRequestBean, CurrentUserSchema, type CurrentUser, CustomFieldBeanSchema, type CustomFieldBean, CustomFieldOptionBeanSchema, type CustomFieldOptionBean, CustomFieldOptionsBeanSchema, type CustomFieldOptionsBean, DashboardBeanSchema, type DashboardBean, DashboardsBeanSchema, type DashboardsBean, type FilePart, FilterBeanSchema, type FilterBean, IndexSnapshotBeanSchema, type IndexSnapshotBean, IndexSnapshotPromiseBeanSchema, type IndexSnapshotPromiseBean, IndexSnapshotStatusBeanSchema, type IndexSnapshotStatusBean, IndexSummaryBeanSchema, type IndexSummaryBean, IssueTypeSchemeBeanSchema, type IssueTypeSchemeBean, type IssueTypeSchemeCreateUpdateBean, IssueTypeSchemeListBeanSchema, type IssueTypeSchemeListBean, LicenseValidationResultsSchema, type LicenseValidationResults, NodeBeanSchema, type NodeBean, NotificationSchemeBeanSchema, type NotificationSchemeBean, PageBeanSchema, type PageBean, PermissionGrantBeanSchema, type PermissionGrantBean, PermissionGrantsBeanSchema, type PermissionGrantsBean, PermissionSchemeBeanSchema, type PermissionSchemeBean, PermissionSchemesBeanSchema, type PermissionSchemesBean, PrioritySchemeBeanSchema, type PrioritySchemeBean, PrioritySchemeListBeanSchema, type PrioritySchemeListBean, type PrioritySchemeUpdateBean, ProjectBeanSchema, type ProjectBean, ProjectRoleActorsBeanSchema, type ProjectRoleActorsBean, ProjectRoleBeanSchema, type ProjectRoleBean, PropertySchema, type Property, ReindexBeanSchema, type ReindexBean, ReindexRequestBeanSchema, type ReindexRequestBean, SecurityLevelJsonBeanSchema, type SecurityLevelJsonBean, SecuritySchemeJsonBeanSchema, type SecuritySchemeJsonBean, SecuritySchemesJsonBeanSchema, type SecuritySchemesJsonBean, ServerInfoBeanSchema, type ServerInfoBean, type StringList } from '../models/index.js';
+import { z } from 'zod';
 
 export function acknowledgeErrors(client: HttpClient, _params: Record<string, never>): Promise<any> {
   return client.sendRequest({
@@ -343,12 +344,12 @@ export function getEmailTypes(client: HttpClient, _params: Record<string, never>
   });
 }
 
-export function getFavouriteFilters(client: HttpClient, params: { expand?: StringList }): Promise<FilterBean> {
+export function getFavouriteFilters(client: HttpClient, params: { expand?: StringList }): Promise<FilterBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/filter/favourite`,
     searchParams: { expand: params.expand },
-    schema: FilterBeanSchema,
+    schema: z.array(FilterBeanSchema),
   });
 }
 
