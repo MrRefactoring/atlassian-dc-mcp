@@ -2,8 +2,8 @@ import type { HttpClient } from '../core/types.js';
 import { enc } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
 import { z } from 'zod';
-import { RestChangeSchema, RestCommentSchema, RestPullRequestActivitySchema, RestPullRequestConditionSchema, RestPullRequestMergeabilitySchema, RestPullRequestParticipantSchema, RestPullRequestSchema } from '../models/index.js';
-import type { RestApplicationUser, RestApplySuggestionRequest, RestChange, RestComment, RestDefaultReviewersRequest, RestPullRequest, RestPullRequestActivity, RestPullRequestAssignParticipantRoleRequest, RestPullRequestAssignStatusRequest, RestPullRequestCondition, RestPullRequestDeclineRequest, RestPullRequestMergeRequest, RestPullRequestMergeability, RestPullRequestParticipant, RestPullRequestReopenRequest, RestReviewerGroup } from '../models/index.js';
+import { ChangeSchema, CommentSchema, PullRequestActivitySchema, PullRequestConditionSchema, PullRequestMergeabilitySchema, PullRequestParticipantSchema, PullRequestSchema } from '../models/index.js';
+import type { ApplicationUser, ApplySuggestionRequest, Change, Comment, DefaultReviewersRequest, PullRequest, PullRequestActivity, PullRequestAssignParticipantRoleRequest, PullRequestAssignStatusRequest, PullRequestCondition, PullRequestDeclineRequest, PullRequestMergeRequest, PullRequestMergeability, PullRequestParticipant, PullRequestReopenRequest, ReviewerGroup } from '../models/index.js';
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug}/pull-requests/{pullRequestId}/comments/{commentId}/apply-suggestion */
 export interface ApplySuggestion {
@@ -11,7 +11,7 @@ export interface ApplySuggestion {
   commentId: string;
   pullRequestId: string;
   repositorySlug: string;
-  requestBody?: RestApplySuggestionRequest;
+  requestBody?: ApplySuggestionRequest;
 }
 export function applySuggestion(client: HttpClient, params: ApplySuggestion): Promise<void> {
   return client.sendRequest({
@@ -27,15 +27,15 @@ export interface AssignParticipantRole {
   projectKey: string;
   pullRequestId: string;
   repositorySlug: string;
-  requestBody: RestPullRequestAssignParticipantRoleRequest;
+  requestBody: PullRequestAssignParticipantRoleRequest;
 }
-export function assignParticipantRole(client: HttpClient, params: AssignParticipantRole): Promise<RestPullRequestParticipant> {
+export function assignParticipantRole(client: HttpClient, params: AssignParticipantRole): Promise<PullRequestParticipant> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/participants`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestPullRequestParticipantSchema,
+    schema: PullRequestParticipantSchema,
   });
 }
 
@@ -45,11 +45,11 @@ export interface CanMerge {
   pullRequestId: string;
   repositorySlug: string;
 }
-export function canMerge(client: HttpClient, params: CanMerge): Promise<RestPullRequestMergeability> {
+export function canMerge(client: HttpClient, params: CanMerge): Promise<PullRequestMergeability> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/merge`,
-    schema: RestPullRequestMergeabilitySchema,
+    schema: PullRequestMergeabilitySchema,
   });
 }
 
@@ -57,15 +57,15 @@ export function canMerge(client: HttpClient, params: CanMerge): Promise<RestPull
 export interface Create {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestPullRequest;
+  requestBody?: PullRequest;
 }
-export function create(client: HttpClient, params: Create): Promise<RestPullRequest> {
+export function create(client: HttpClient, params: Create): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestPullRequestSchema,
+    schema: PullRequestSchema,
   });
 }
 
@@ -74,15 +74,15 @@ export interface CreateComment {
   projectKey: string;
   pullRequestId: string;
   repositorySlug: string;
-  requestBody?: RestComment;
+  requestBody?: Comment;
 }
-export function createComment(client: HttpClient, params: CreateComment): Promise<RestComment> {
+export function createComment(client: HttpClient, params: CreateComment): Promise<Comment> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/comments`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestCommentSchema,
+    schema: CommentSchema,
   });
 }
 
@@ -90,15 +90,15 @@ export function createComment(client: HttpClient, params: CreateComment): Promis
 export interface CreatePullRequestCondition {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestDefaultReviewersRequest;
+  requestBody?: DefaultReviewersRequest;
 }
-export function createPullRequestCondition(client: HttpClient, params: CreatePullRequestCondition): Promise<RestPullRequestCondition> {
+export function createPullRequestCondition(client: HttpClient, params: CreatePullRequestCondition): Promise<PullRequestCondition> {
   return client.sendRequest({
     method: 'POST',
     url: `/default-reviewers/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/condition`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestPullRequestConditionSchema,
+    schema: PullRequestConditionSchema,
   });
 }
 
@@ -108,16 +108,16 @@ export interface Decline {
   pullRequestId: string;
   repositorySlug: string;
   version?: string;
-  requestBody?: RestPullRequestDeclineRequest;
+  requestBody?: PullRequestDeclineRequest;
 }
-export function decline(client: HttpClient, params: Decline): Promise<RestPullRequest> {
+export function decline(client: HttpClient, params: Decline): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/decline`,
     searchParams: { version: params.version },
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestPullRequestSchema,
+    schema: PullRequestSchema,
   });
 }
 
@@ -156,11 +156,11 @@ export interface Get {
   pullRequestId: string;
   repositorySlug: string;
 }
-export function get(client: HttpClient, params: Get): Promise<RestPullRequest> {
+export function get(client: HttpClient, params: Get): Promise<PullRequest> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}`,
-    schema: RestPullRequestSchema,
+    schema: PullRequestSchema,
   });
 }
 
@@ -174,12 +174,12 @@ export interface GetActivities {
   start?: number;
   limit?: number;
 }
-export function getActivities(client: HttpClient, params: GetActivities): Promise<RestPage<RestPullRequestActivity>> {
+export function getActivities(client: HttpClient, params: GetActivities): Promise<RestPage<PullRequestActivity>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/activities`,
     searchParams: { fromType: params.fromType, fromId: params.fromId, start: params.start, limit: params.limit },
-    schema: restPage(RestPullRequestActivitySchema),
+    schema: restPage(PullRequestActivitySchema),
   });
 }
 
@@ -198,12 +198,12 @@ export interface GetPage {
   start?: number;
   limit?: number;
 }
-export function getPage(client: HttpClient, params: GetPage): Promise<RestPage<RestPullRequest>> {
+export function getPage(client: HttpClient, params: GetPage): Promise<RestPage<PullRequest>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests`,
     searchParams: { withAttributes: params.withAttributes, at: params.at, withProperties: params.withProperties, draft: params.draft, filterText: params.filterText, state: params.state, order: params.order, direction: params.direction, start: params.start, limit: params.limit },
-    schema: restPage(RestPullRequestSchema),
+    schema: restPage(PullRequestSchema),
   });
 }
 
@@ -212,11 +212,11 @@ export interface GetPullRequestConditions {
   projectKey: string;
   repositorySlug: string;
 }
-export function getPullRequestConditions(client: HttpClient, params: GetPullRequestConditions): Promise<RestPullRequestCondition[]> {
+export function getPullRequestConditions(client: HttpClient, params: GetPullRequestConditions): Promise<PullRequestCondition[]> {
   return client.sendRequest({
     method: 'GET',
     url: `/default-reviewers/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/conditions`,
-    schema: z.array(RestPullRequestConditionSchema),
+    schema: z.array(PullRequestConditionSchema),
   });
 }
 
@@ -229,12 +229,12 @@ export interface GetReviewers {
   sourceRefId?: string;
   targetRefId?: string;
 }
-export function getReviewers(client: HttpClient, params: GetReviewers): Promise<RestPullRequestCondition[]> {
+export function getReviewers(client: HttpClient, params: GetReviewers): Promise<PullRequestCondition[]> {
   return client.sendRequest({
     method: 'GET',
     url: `/default-reviewers/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/reviewers`,
     searchParams: { targetRepoId: params.targetRepoId, sourceRepoId: params.sourceRepoId, sourceRefId: params.sourceRefId, targetRefId: params.targetRefId },
-    schema: z.array(RestPullRequestConditionSchema),
+    schema: z.array(PullRequestConditionSchema),
   });
 }
 
@@ -246,12 +246,12 @@ export interface ListParticipants {
   start?: number;
   limit?: number;
 }
-export function listParticipants(client: HttpClient, params: ListParticipants): Promise<RestPage<RestPullRequestParticipant>> {
+export function listParticipants(client: HttpClient, params: ListParticipants): Promise<RestPage<PullRequestParticipant>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/participants`,
     searchParams: { start: params.start, limit: params.limit },
-    schema: restPage(RestPullRequestParticipantSchema),
+    schema: restPage(PullRequestParticipantSchema),
   });
 }
 
@@ -261,16 +261,16 @@ export interface Merge {
   pullRequestId: string;
   repositorySlug: string;
   version?: string;
-  requestBody?: RestPullRequestMergeRequest;
+  requestBody?: PullRequestMergeRequest;
 }
-export function merge(client: HttpClient, params: Merge): Promise<RestPullRequest> {
+export function merge(client: HttpClient, params: Merge): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/merge`,
     searchParams: { version: params.version },
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestPullRequestSchema,
+    schema: PullRequestSchema,
   });
 }
 
@@ -280,16 +280,16 @@ export interface Reopen {
   pullRequestId: string;
   repositorySlug: string;
   version?: string;
-  requestBody?: RestPullRequestReopenRequest;
+  requestBody?: PullRequestReopenRequest;
 }
-export function reopen(client: HttpClient, params: Reopen): Promise<RestPullRequest> {
+export function reopen(client: HttpClient, params: Reopen): Promise<PullRequest> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/reopen`,
     searchParams: { version: params.version },
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestPullRequestSchema,
+    schema: PullRequestSchema,
   });
 }
 
@@ -305,12 +305,12 @@ export interface StreamChanges {
   start?: number;
   limit?: number;
 }
-export function streamChanges(client: HttpClient, params: StreamChanges): Promise<RestChange> {
+export function streamChanges(client: HttpClient, params: StreamChanges): Promise<Change> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/changes`,
     searchParams: { sinceId: params.sinceId, changeScope: params.changeScope, untilId: params.untilId, withComments: params.withComments, start: params.start, limit: params.limit },
-    schema: RestChangeSchema,
+    schema: ChangeSchema,
   });
 }
 
@@ -346,15 +346,15 @@ export interface Update {
   projectKey: string;
   pullRequestId: string;
   repositorySlug: string;
-  requestBody?: RestPullRequest;
+  requestBody?: PullRequest;
 }
-export function update(client: HttpClient, params: Update): Promise<RestPullRequest> {
+export function update(client: HttpClient, params: Update): Promise<PullRequest> {
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestPullRequestSchema,
+    schema: PullRequestSchema,
   });
 }
 
@@ -364,15 +364,15 @@ export interface UpdateComment {
   commentId: string;
   pullRequestId: string;
   repositorySlug: string;
-  requestBody?: RestComment;
+  requestBody?: Comment;
 }
-export function updateComment(client: HttpClient, params: UpdateComment): Promise<RestComment> {
+export function updateComment(client: HttpClient, params: UpdateComment): Promise<Comment> {
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/comments/${enc(params.commentId)}`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestCommentSchema,
+    schema: CommentSchema,
   });
 }
 
@@ -383,8 +383,8 @@ export interface UpdatePullRequestCondition {
   repositorySlug: string;
   requestBody?: {
     requiredApprovals?: number;
-    reviewerGroups?: Array<RestReviewerGroup>;
-    reviewers?: Array<RestApplicationUser>;
+    reviewerGroups?: Array<ReviewerGroup>;
+    reviewers?: Array<ApplicationUser>;
     sourceMatcher?: {
       displayId?: string;
       id?: string;
@@ -403,13 +403,13 @@ export interface UpdatePullRequestCondition {
     };
   };
 }
-export function updatePullRequestCondition(client: HttpClient, params: UpdatePullRequestCondition): Promise<RestPullRequestCondition> {
+export function updatePullRequestCondition(client: HttpClient, params: UpdatePullRequestCondition): Promise<PullRequestCondition> {
   return client.sendRequest({
     method: 'PUT',
     url: `/default-reviewers/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/condition/${enc(params.id)}`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestPullRequestConditionSchema,
+    schema: PullRequestConditionSchema,
   });
 }
 
@@ -419,17 +419,17 @@ export interface UpdateStatus {
   userSlug: string;
   pullRequestId: string;
   repositorySlug: string;
-  requestBody: RestPullRequestAssignStatusRequest;
+  requestBody: PullRequestAssignStatusRequest;
   version?: string;
 }
-export function updateStatus(client: HttpClient, params: UpdateStatus): Promise<RestPullRequestParticipant> {
+export function updateStatus(client: HttpClient, params: UpdateStatus): Promise<PullRequestParticipant> {
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/participants/${enc(params.userSlug)}`,
     searchParams: { version: params.version },
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestPullRequestParticipantSchema,
+    schema: PullRequestParticipantSchema,
   });
 }
 

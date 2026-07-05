@@ -1,35 +1,35 @@
 import type { HttpClient } from '../core/types.js';
 import { enc } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
-import { RestPermittedGroupSchema, RestPermittedUserSchema, RestProjectSchema, RestRepositorySchema } from '../models/index.js';
-import type { RestBranch, RestPermittedGroup, RestPermittedUser, RestProject, RestRepository } from '../models/index.js';
+import { PermittedGroupSchema, PermittedUserSchema, ProjectSchema, RepositorySchema } from '../models/index.js';
+import type { Branch, PermittedGroup, PermittedUser, Project, Repository } from '../models/index.js';
 
 /** POST /api/latest/projects */
 export interface CreateProject {
-  requestBody?: RestProject;
+  requestBody?: Project;
 }
-export function createProject(client: HttpClient, params: CreateProject): Promise<RestProject> {
+export function createProject(client: HttpClient, params: CreateProject): Promise<Project> {
   return client.sendRequest({
     method: 'POST',
     url: '/api/latest/projects',
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestProjectSchema,
+    schema: ProjectSchema,
   });
 }
 
 /** POST /api/latest/projects/{projectKey}/repos */
 export interface CreateRepository {
   projectKey: string;
-  requestBody?: RestRepository;
+  requestBody?: Repository;
 }
-export function createRepository(client: HttpClient, params: CreateRepository): Promise<RestRepository> {
+export function createRepository(client: HttpClient, params: CreateRepository): Promise<Repository> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestRepositorySchema,
+    schema: RepositorySchema,
   });
 }
 
@@ -60,15 +60,15 @@ export function deleteRepository(client: HttpClient, params: DeleteRepository): 
 export interface ForkRepository {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestRepository;
+  requestBody?: Repository;
 }
-export function forkRepository(client: HttpClient, params: ForkRepository): Promise<RestRepository> {
+export function forkRepository(client: HttpClient, params: ForkRepository): Promise<Repository> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestRepositorySchema,
+    schema: RepositorySchema,
   });
 }
 
@@ -79,12 +79,12 @@ export interface GetForkedRepositories {
   start?: number;
   limit?: number;
 }
-export function getForkedRepositories(client: HttpClient, params: GetForkedRepositories): Promise<RestPage<RestRepository>> {
+export function getForkedRepositories(client: HttpClient, params: GetForkedRepositories): Promise<RestPage<Repository>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/forks`,
     searchParams: { start: params.start, limit: params.limit },
-    schema: restPage(RestRepositorySchema),
+    schema: restPage(RepositorySchema),
   });
 }
 
@@ -95,12 +95,12 @@ export interface GetGroupsWithAnyPermission {
   start?: number;
   limit?: number;
 }
-export function getGroupsWithAnyPermission(client: HttpClient, params: GetGroupsWithAnyPermission): Promise<RestPage<RestPermittedGroup>> {
+export function getGroupsWithAnyPermission(client: HttpClient, params: GetGroupsWithAnyPermission): Promise<RestPage<PermittedGroup>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/permissions/groups`,
     searchParams: { filter: params.filter, start: params.start, limit: params.limit },
-    schema: restPage(RestPermittedGroupSchema),
+    schema: restPage(PermittedGroupSchema),
   });
 }
 
@@ -108,11 +108,11 @@ export function getGroupsWithAnyPermission(client: HttpClient, params: GetGroups
 export interface GetProject {
   projectKey: string;
 }
-export function getProject(client: HttpClient, params: GetProject): Promise<RestProject> {
+export function getProject(client: HttpClient, params: GetProject): Promise<Project> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}`,
-    schema: RestProjectSchema,
+    schema: ProjectSchema,
   });
 }
 
@@ -123,12 +123,12 @@ export interface GetProjects {
   start?: number;
   limit?: number;
 }
-export function getProjects(client: HttpClient, params: GetProjects): Promise<RestPage<RestProject>> {
+export function getProjects(client: HttpClient, params: GetProjects): Promise<RestPage<Project>> {
   return client.sendRequest({
     method: 'GET',
     url: '/api/latest/projects',
     searchParams: { name: params.name, permission: params.permission, start: params.start, limit: params.limit },
-    schema: restPage(RestProjectSchema),
+    schema: restPage(ProjectSchema),
   });
 }
 
@@ -138,12 +138,12 @@ export interface GetRepositories {
   start?: number;
   limit?: number;
 }
-export function getRepositories(client: HttpClient, params: GetRepositories): Promise<RestPage<RestRepository>> {
+export function getRepositories(client: HttpClient, params: GetRepositories): Promise<RestPage<Repository>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos`,
     searchParams: { start: params.start, limit: params.limit },
-    schema: restPage(RestRepositorySchema),
+    schema: restPage(RepositorySchema),
   });
 }
 
@@ -152,11 +152,11 @@ export interface GetRepository {
   projectKey: string;
   repositorySlug: string;
 }
-export function getRepository(client: HttpClient, params: GetRepository): Promise<RestRepository> {
+export function getRepository(client: HttpClient, params: GetRepository): Promise<Repository> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
-    schema: RestRepositorySchema,
+    schema: RepositorySchema,
   });
 }
 
@@ -167,12 +167,12 @@ export interface GetUsersWithAnyPermission {
   start?: number;
   limit?: number;
 }
-export function getUsersWithAnyPermission(client: HttpClient, params: GetUsersWithAnyPermission): Promise<RestPage<RestPermittedUser>> {
+export function getUsersWithAnyPermission(client: HttpClient, params: GetUsersWithAnyPermission): Promise<RestPage<PermittedUser>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/permissions/users`,
     searchParams: { filter: params.filter, start: params.start, limit: params.limit },
-    schema: restPage(RestPermittedUserSchema),
+    schema: restPage(PermittedUserSchema),
   });
 }
 
@@ -194,7 +194,7 @@ export function revokePermissions(client: HttpClient, params: RevokePermissions)
 export interface SetDefaultBranch {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestBranch;
+  requestBody?: Branch;
 }
 export function setDefaultBranch(client: HttpClient, params: SetDefaultBranch): Promise<void> {
   return client.sendRequest({
@@ -236,15 +236,15 @@ export function setPermissionForUsers(client: HttpClient, params: SetPermissionF
 /** PUT /api/latest/projects/{projectKey} */
 export interface UpdateProject {
   projectKey: string;
-  requestBody?: RestProject;
+  requestBody?: Project;
 }
-export function updateProject(client: HttpClient, params: UpdateProject): Promise<RestProject> {
+export function updateProject(client: HttpClient, params: UpdateProject): Promise<Project> {
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestProjectSchema,
+    schema: ProjectSchema,
   });
 }
 
@@ -252,14 +252,14 @@ export function updateProject(client: HttpClient, params: UpdateProject): Promis
 export interface UpdateRepository {
   projectKey: string;
   repositorySlug: string;
-  requestBody?: RestRepository;
+  requestBody?: Repository;
 }
-export function updateRepository(client: HttpClient, params: UpdateRepository): Promise<RestRepository> {
+export function updateRepository(client: HttpClient, params: UpdateRepository): Promise<Repository> {
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestRepositorySchema,
+    schema: RepositorySchema,
   });
 }

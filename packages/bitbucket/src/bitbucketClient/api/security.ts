@@ -1,22 +1,22 @@
 import type { HttpClient } from '../core/types.js';
 import { enc } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
-import { RestGpgKeySchema } from '../models/index.js';
-import type { RestGpgKey } from '../models/index.js';
+import { GpgKeySchema } from '../models/index.js';
+import type { GpgKey } from '../models/index.js';
 
 /** POST /gpg/latest/keys */
 export interface AddKey {
   user?: string;
-  requestBody?: RestGpgKey;
+  requestBody?: GpgKey;
 }
-export function addKey(client: HttpClient, params: AddKey): Promise<RestGpgKey> {
+export function addKey(client: HttpClient, params: AddKey): Promise<GpgKey> {
   return client.sendRequest({
     method: 'POST',
     url: '/gpg/latest/keys',
     searchParams: { user: params.user },
     body: params.requestBody,
     mediaType: 'application/json',
-    schema: RestGpgKeySchema,
+    schema: GpgKeySchema,
   });
 }
 
@@ -37,11 +37,11 @@ export interface GetKeysForUser {
   start?: number;
   limit?: number;
 }
-export function getKeysForUser(client: HttpClient, params: GetKeysForUser): Promise<RestPage<RestGpgKey>> {
+export function getKeysForUser(client: HttpClient, params: GetKeysForUser): Promise<RestPage<GpgKey>> {
   return client.sendRequest({
     method: 'GET',
     url: '/gpg/latest/keys',
     searchParams: { user: params.user, start: params.start, limit: params.limit },
-    schema: restPage(RestGpgKeySchema),
+    schema: restPage(GpgKeySchema),
   });
 }
