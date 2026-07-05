@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export type PropertyBean = {
-    id?: string;
-    key?: string;
-    value?: string;
+  id?: string;
+  key?: string;
+  value?: string;
 };
 
 export const PropertyBeanSchema = z.looseObject({

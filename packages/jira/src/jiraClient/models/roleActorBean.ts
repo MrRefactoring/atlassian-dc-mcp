@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type RoleActorBean = {
-    avatarUrl?: string;
-    name?: string;
+  avatarUrl?: string;
+  name?: string;
 };
 
 export const RoleActorBeanSchema = z.looseObject({

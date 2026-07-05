@@ -2,12 +2,12 @@ import { z } from 'zod';
 import { SimpleLinkBeanSchema, type SimpleLinkBean } from './simpleLinkBean.js';
 
 export type LinkGroupBean = {
-    groups?: Array<LinkGroupBean>;
-    header?: SimpleLinkBean;
-    id?: string;
-    links?: Array<SimpleLinkBean>;
-    styleClass?: string;
-    weight?: number;
+  groups?: Array<LinkGroupBean>;
+  header?: SimpleLinkBean;
+  id?: string;
+  links?: Array<SimpleLinkBean>;
+  styleClass?: string;
+  weight?: number;
 };
 
 export const LinkGroupBeanSchema = z.lazy(() => z.looseObject({

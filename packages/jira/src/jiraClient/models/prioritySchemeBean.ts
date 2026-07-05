@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 export type PrioritySchemeBean = {
-    defaultOptionId?: string;
-    defaultScheme?: boolean;
-    description?: string;
-    id?: number;
-    name?: string;
-    optionIds?: Array<string>;
-    projectKeys?: Array<string>;
-    self?: string;
+  defaultOptionId?: string;
+  defaultScheme?: boolean;
+  description?: string;
+  id?: number;
+  name?: string;
+  optionIds?: Array<string>;
+  projectKeys?: Array<string>;
+  self?: string;
 };
 
 export const PrioritySchemeBeanSchema = z.looseObject({

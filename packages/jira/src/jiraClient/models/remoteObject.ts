@@ -3,11 +3,11 @@ import { IconSchema, type Icon } from './icon.js';
 import { StatusSchema, type Status } from './status.js';
 
 export type RemoteObject = {
-    icon?: Icon;
-    status?: Status;
-    summary?: string;
-    title?: string;
-    url?: string;
+  icon?: Icon;
+  status?: Status;
+  summary?: string;
+  title?: string;
+  url?: string;
 };
 
 export const RemoteObjectSchema = z.lazy(() => z.looseObject({

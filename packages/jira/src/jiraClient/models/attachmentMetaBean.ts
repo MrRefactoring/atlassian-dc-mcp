@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export type AttachmentMetaBean = {
-    enabled?: boolean;
-    /**
+  enabled?: boolean;
+  /**
      * Upload limit in bytes
      */
-    uploadLimit?: number;
+  uploadLimit?: number;
 };
 
 export const AttachmentMetaBeanSchema = z.looseObject({

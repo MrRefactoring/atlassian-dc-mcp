@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type WorklogChangeBean = {
-    updatedTime?: number;
-    worklogId?: number;
+  updatedTime?: number;
+  worklogId?: number;
 };
 
 export const WorklogChangeBeanSchema = z.looseObject({

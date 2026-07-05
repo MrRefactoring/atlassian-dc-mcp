@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export type PrioritySchemeUpdateBean = {
-    defaultOptionId?: string;
-    description?: string;
-    id?: number;
-    name?: string;
-    optionIds?: Array<string>;
+  defaultOptionId?: string;
+  description?: string;
+  id?: number;
+  name?: string;
+  optionIds?: Array<string>;
 };
 
 export const PrioritySchemeUpdateBeanSchema = z.looseObject({

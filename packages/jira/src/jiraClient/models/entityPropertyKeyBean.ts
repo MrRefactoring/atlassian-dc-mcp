@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type EntityPropertyKeyBean = {
-    key?: string;
-    self?: string;
+  key?: string;
+  self?: string;
 };
 
 export const EntityPropertyKeyBeanSchema = z.looseObject({

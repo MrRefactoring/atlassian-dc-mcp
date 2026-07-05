@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type RelationBean = {
-    id?: string;
-    self?: string;
+  id?: string;
+  self?: string;
 };
 
 export const RelationBeanSchema = z.looseObject({

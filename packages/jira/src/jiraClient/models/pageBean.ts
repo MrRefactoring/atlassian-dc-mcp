@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
 export type PageBean = {
-    isLast?: boolean;
-    maxResults?: number;
-    nextPage?: string;
-    self?: string;
-    startAt?: number;
-    total?: number;
-    values?: Array<Record<string, any>>;
+  isLast?: boolean;
+  maxResults?: number;
+  nextPage?: string;
+  self?: string;
+  startAt?: number;
+  total?: number;
+  values?: Array<Record<string, any>>;
 };
 
 export const PageBeanSchema = z.looseObject({

@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { PrioritySchemeBeanSchema, type PrioritySchemeBean } from './prioritySchemeBean.js';
 
 export type PrioritySchemeListBean = {
-    maxResults?: number;
-    schemes?: Array<PrioritySchemeBean>;
-    startAt?: number;
-    total?: number;
+  maxResults?: number;
+  schemes?: Array<PrioritySchemeBean>;
+  startAt?: number;
+  total?: number;
 };
 
 export const PrioritySchemeListBeanSchema = z.lazy(() => z.looseObject({

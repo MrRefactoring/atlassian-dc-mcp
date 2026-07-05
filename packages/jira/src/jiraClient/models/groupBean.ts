@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { PagedListWrapperUserJsonBeanApplicationUserSchema, type PagedListWrapperUserJsonBeanApplicationUser } from './pagedListWrapperUserJsonBeanApplicationUser.js';
 
 export type GroupBean = {
-    name?: string;
-    self?: string;
-    users?: PagedListWrapperUserJsonBeanApplicationUser;
+  name?: string;
+  self?: string;
+  users?: PagedListWrapperUserJsonBeanApplicationUser;
 };
 
 export const GroupBeanSchema = z.lazy(() => z.looseObject({

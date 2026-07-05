@@ -2,15 +2,15 @@ import { z } from 'zod';
 import { UserJsonBeanSchema, type UserJsonBean } from './userJsonBean.js';
 
 export type AttachmentJsonBean = {
-    author?: UserJsonBean;
-    content?: string;
-    created?: string;
-    filename?: string;
-    id?: string;
-    mimeType?: string;
-    self?: string;
-    size?: number;
-    thumbnail?: string;
+  author?: UserJsonBean;
+  content?: string;
+  created?: string;
+  filename?: string;
+  id?: string;
+  mimeType?: string;
+  self?: string;
+  size?: number;
+  thumbnail?: string;
 };
 
 export const AttachmentJsonBeanSchema = z.lazy(() => z.looseObject({

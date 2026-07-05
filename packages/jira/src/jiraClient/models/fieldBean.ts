@@ -2,14 +2,14 @@ import { z } from 'zod';
 import { JsonTypeBeanSchema, type JsonTypeBean } from './jsonTypeBean.js';
 
 export type FieldBean = {
-    clauseNames?: Array<string>;
-    custom?: boolean;
-    id?: string;
-    name?: string;
-    navigable?: boolean;
-    orderable?: boolean;
-    schema?: JsonTypeBean;
-    searchable?: boolean;
+  clauseNames?: Array<string>;
+  custom?: boolean;
+  id?: string;
+  name?: string;
+  navigable?: boolean;
+  orderable?: boolean;
+  schema?: JsonTypeBean;
+  searchable?: boolean;
 };
 
 export const FieldBeanSchema = z.lazy(() => z.looseObject({

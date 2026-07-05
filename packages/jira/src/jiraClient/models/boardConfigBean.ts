@@ -6,15 +6,15 @@ import { RelationBeanSchema, type RelationBean } from './relationBean.js';
 import { SubqueryBeanSchema, type SubqueryBean } from './subqueryBean.js';
 
 export type BoardConfigBean = {
-    columnConfig?: ColumnConfigBean;
-    estimation?: EstimationConfigBean;
-    filter?: RelationBean;
-    id?: number;
-    name?: string;
-    ranking?: RankingConfigBean;
-    self?: string;
-    subQuery?: SubqueryBean;
-    type?: string;
+  columnConfig?: ColumnConfigBean;
+  estimation?: EstimationConfigBean;
+  filter?: RelationBean;
+  id?: number;
+  name?: string;
+  ranking?: RankingConfigBean;
+  self?: string;
+  subQuery?: SubqueryBean;
+  type?: string;
 };
 
 export const BoardConfigBeanSchema = z.lazy(() => z.looseObject({

@@ -2,13 +2,13 @@ import { z } from 'zod';
 import { WorklogChangeBeanSchema, type WorklogChangeBean } from './worklogChangeBean.js';
 
 export type WorklogChangedSinceBean = {
-    isLastPage?: boolean;
-    lastPage?: boolean;
-    nextPage?: string;
-    self?: string;
-    since?: number;
-    until?: number;
-    values?: Array<WorklogChangeBean>;
+  isLastPage?: boolean;
+  lastPage?: boolean;
+  nextPage?: string;
+  self?: string;
+  since?: number;
+  until?: number;
+  values?: Array<WorklogChangeBean>;
 };
 
 export const WorklogChangedSinceBeanSchema = z.lazy(() => z.looseObject({

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { IssueUpdateBeanSchema, type IssueUpdateBean } from './issueUpdateBean.js';
 
 export type IssuesUpdateBean = {
-    issueUpdates?: Array<IssueUpdateBean>;
+  issueUpdates?: Array<IssueUpdateBean>;
 };
 
 export const IssuesUpdateBeanSchema = z.lazy(() => z.looseObject({

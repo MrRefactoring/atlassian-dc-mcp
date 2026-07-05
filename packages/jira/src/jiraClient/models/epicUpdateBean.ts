@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { ColorBeanSchema, type ColorBean } from './colorBean.js';
 
 export type EpicUpdateBean = {
-    color?: ColorBean;
-    done?: boolean;
-    name?: string;
-    summary?: string;
+  color?: ColorBean;
+  done?: boolean;
+  name?: string;
+  summary?: string;
 };
 
 export const EpicUpdateBeanSchema = z.lazy(() => z.looseObject({

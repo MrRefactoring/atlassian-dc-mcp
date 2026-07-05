@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export type IssueCreateResponse = {
-    id?: string;
-    key?: string;
-    self?: string;
+  id?: string;
+  key?: string;
+  self?: string;
 };
 
 export const IssueCreateResponseSchema = z.looseObject({

@@ -83,7 +83,7 @@ export function deleteProperty(client: HttpClient, params: { propertyKey: string
   });
 }
 
-export function getAllProjectCategories(client: HttpClient, params: Record<string, never>): Promise<ProjectCategoryJsonBean> {
+export function getAllProjectCategories(client: HttpClient, _params: Record<string, never>): Promise<ProjectCategoryJsonBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/projectCategory`,

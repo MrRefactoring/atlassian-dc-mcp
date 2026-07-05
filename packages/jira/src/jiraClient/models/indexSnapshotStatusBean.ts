@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type IndexSnapshotStatusBean = {
-    running?: boolean;
+  running?: boolean;
 };
 
 export const IndexSnapshotStatusBeanSchema = z.looseObject({

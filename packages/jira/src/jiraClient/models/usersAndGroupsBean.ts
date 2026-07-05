@@ -3,8 +3,8 @@ import { GroupSuggestionsBeanSchema, type GroupSuggestionsBean } from './groupSu
 import { UserPickerResultsBeanSchema, type UserPickerResultsBean } from './userPickerResultsBean.js';
 
 export type UsersAndGroupsBean = {
-    groups?: GroupSuggestionsBean;
-    users?: UserPickerResultsBean;
+  groups?: GroupSuggestionsBean;
+  users?: UserPickerResultsBean;
 };
 
 export const UsersAndGroupsBeanSchema = z.lazy(() => z.looseObject({

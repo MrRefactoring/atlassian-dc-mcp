@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { CommentJsonBeanSchema, type CommentJsonBean } from './commentJsonBean.js';
 
 export type CommentsWithPaginationJsonBean = {
-    comments?: Array<CommentJsonBean>;
-    maxResults?: number;
-    startAt?: number;
-    total?: number;
+  comments?: Array<CommentJsonBean>;
+  maxResults?: number;
+  startAt?: number;
+  total?: number;
 };
 
 export const CommentsWithPaginationJsonBeanSchema = z.lazy(() => z.looseObject({

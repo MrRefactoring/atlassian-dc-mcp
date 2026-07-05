@@ -1,18 +1,18 @@
 import { z } from 'zod';
 
 export type PermissionJsonBean = {
-    description?: string;
-    id?: string;
-    key?: string;
-    name?: string;
-    type?: PermissionJsonBean.type;
+  description?: string;
+  id?: string;
+  key?: string;
+  name?: string;
+  type?: PermissionJsonBean.type;
 };
 
 export namespace PermissionJsonBean {
-    export enum type {
-        GLOBAL = 'GLOBAL',
-        PROJECT = 'PROJECT',
-    }
+  export enum type {
+    GLOBAL = 'GLOBAL',
+    PROJECT = 'PROJECT',
+  }
 }
 
 const PermissionJsonBean_typeSchema = z.enum(['GLOBAL', 'PROJECT']);

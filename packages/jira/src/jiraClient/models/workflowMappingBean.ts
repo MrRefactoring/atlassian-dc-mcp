@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export type WorkflowMappingBean = {
-    defaultMapping?: boolean;
-    issueTypes?: Array<string>;
-    updateDraftIfNeeded?: boolean;
-    workflow?: string;
+  defaultMapping?: boolean;
+  issueTypes?: Array<string>;
+  updateDraftIfNeeded?: boolean;
+  workflow?: string;
 };
 
 export const WorkflowMappingBeanSchema = z.looseObject({

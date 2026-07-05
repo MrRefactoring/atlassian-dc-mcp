@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export type LoginInfo = {
-    failedLoginCount?: number;
-    lastFailedLoginTime?: string;
-    loginCount?: number;
-    previousLoginTime?: string;
+  failedLoginCount?: number;
+  lastFailedLoginTime?: string;
+  loginCount?: number;
+  previousLoginTime?: string;
 };
 
 export const LoginInfoSchema = z.looseObject({

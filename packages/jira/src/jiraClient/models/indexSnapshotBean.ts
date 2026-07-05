@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type IndexSnapshotBean = {
-    absolutePath?: string;
-    timestamp?: number;
+  absolutePath?: string;
+  timestamp?: number;
 };
 
 export const IndexSnapshotBeanSchema = z.looseObject({

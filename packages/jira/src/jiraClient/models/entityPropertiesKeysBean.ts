@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EntityPropertyKeyBeanSchema, type EntityPropertyKeyBean } from './entityPropertyKeyBean.js';
 
 export type EntityPropertiesKeysBean = {
-    keys?: Array<EntityPropertyKeyBean>;
+  keys?: Array<EntityPropertyKeyBean>;
 };
 
 export const EntityPropertiesKeysBeanSchema = z.lazy(() => z.looseObject({

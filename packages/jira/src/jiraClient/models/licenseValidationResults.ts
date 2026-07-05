@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type LicenseValidationResults = {
-    errors?: Record<string, string>;
-    licenseString?: string;
+  errors?: Record<string, string>;
+  licenseString?: string;
 };
 
 export const LicenseValidationResultsSchema = z.looseObject({

@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { ProjectPickerItemSchema, type ProjectPickerItem } from './projectPickerItem.js';
 
 export type ProjectPickerResultWrapper = {
-    header?: string;
-    projects?: Array<ProjectPickerItem>;
-    total?: number;
+  header?: string;
+  projects?: Array<ProjectPickerItem>;
+  total?: number;
 };
 
 export const ProjectPickerResultWrapperSchema = z.lazy(() => z.looseObject({

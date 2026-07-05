@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type ErrorCollection = {
-    errorMessages?: Array<string>;
-    errors?: Record<string, string>;
+  errorMessages?: Array<string>;
+  errors?: Record<string, string>;
 };
 
 export const ErrorCollectionSchema = z.looseObject({

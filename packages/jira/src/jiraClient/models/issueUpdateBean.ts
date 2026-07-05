@@ -5,11 +5,11 @@ import { HistoryMetadataSchema, type HistoryMetadata } from './historyMetadata.j
 import { TransitionBeanSchema, type TransitionBean } from './transitionBean.js';
 
 export type IssueUpdateBean = {
-    fields?: Record<string, string | Record<string, any>>;
-    historyMetadata?: HistoryMetadata;
-    properties?: Array<EntityPropertyBean>;
-    transition?: TransitionBean;
-    update?: Record<string, Array<FieldOperation>>;
+  fields?: Record<string, string | Record<string, any>>;
+  historyMetadata?: HistoryMetadata;
+  properties?: Array<EntityPropertyBean>;
+  transition?: TransitionBean;
+  update?: Record<string, Array<FieldOperation>>;
 };
 
 export const IssueUpdateBeanSchema = z.lazy(() => z.looseObject({

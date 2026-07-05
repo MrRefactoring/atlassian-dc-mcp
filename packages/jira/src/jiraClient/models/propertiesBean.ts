@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type PropertiesBean = {
-    properties?: Record<string, string>;
+  properties?: Record<string, string>;
 };
 
 export const PropertiesBeanSchema = z.looseObject({

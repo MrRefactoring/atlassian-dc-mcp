@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type FieldOperation = {
-    operation?: string;
-    value?: Record<string, any>;
+  operation?: string;
+  value?: Record<string, any>;
 };
 
 export const FieldOperationSchema = z.looseObject({

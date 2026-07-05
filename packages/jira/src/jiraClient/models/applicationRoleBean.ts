@@ -1,18 +1,18 @@
 import { z } from 'zod';
 
 export type ApplicationRoleBean = {
-    defaultGroups?: Array<string>;
-    defined?: boolean;
-    groups?: Array<string>;
-    hasUnlimitedSeats?: boolean;
-    key?: string;
-    name?: string;
-    numberOfSeats?: number;
-    platform?: boolean;
-    remainingSeats?: number;
-    selectedByDefault?: boolean;
-    userCount?: number;
-    userCountDescription?: string;
+  defaultGroups?: Array<string>;
+  defined?: boolean;
+  groups?: Array<string>;
+  hasUnlimitedSeats?: boolean;
+  key?: string;
+  name?: string;
+  numberOfSeats?: number;
+  platform?: boolean;
+  remainingSeats?: number;
+  selectedByDefault?: boolean;
+  userCount?: number;
+  userCountDescription?: string;
 };
 
 export const ApplicationRoleBeanSchema = z.looseObject({

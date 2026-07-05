@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export type BoardBean = {
-    id?: number;
-    name?: string;
-    self?: string;
-    type?: string;
+  id?: number;
+  name?: string;
+  self?: string;
+  type?: string;
 };
 
 export const BoardBeanSchema = z.looseObject({

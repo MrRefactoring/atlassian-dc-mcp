@@ -4,10 +4,10 @@ import { PriorityJsonBeanSchema, type PriorityJsonBean } from './priorityJsonBea
 import { StatusJsonBeanSchema, type StatusJsonBean } from './statusJsonBean.js';
 
 export type Fields = {
-    issuetype?: IssueTypeJsonBean;
-    priority?: PriorityJsonBean;
-    status?: StatusJsonBean;
-    summary?: string;
+  issuetype?: IssueTypeJsonBean;
+  priority?: PriorityJsonBean;
+  status?: StatusJsonBean;
+  summary?: string;
 };
 
 export const FieldsSchema = z.lazy(() => z.looseObject({

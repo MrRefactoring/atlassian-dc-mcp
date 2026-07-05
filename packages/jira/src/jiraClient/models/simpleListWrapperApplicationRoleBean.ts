@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { ListWrapperCallbackApplicationRoleBeanSchema, type ListWrapperCallbackApplicationRoleBean } from './listWrapperCallbackApplicationRoleBean.js';
 
 export type SimpleListWrapperApplicationRoleBean = {
-    callback?: ListWrapperCallbackApplicationRoleBean;
-    maxResults?: number;
-    pagingCallback?: ListWrapperCallbackApplicationRoleBean;
-    size?: number;
+  callback?: ListWrapperCallbackApplicationRoleBean;
+  maxResults?: number;
+  pagingCallback?: ListWrapperCallbackApplicationRoleBean;
+  size?: number;
 };
 
 export const SimpleListWrapperApplicationRoleBeanSchema = z.lazy(() => z.looseObject({

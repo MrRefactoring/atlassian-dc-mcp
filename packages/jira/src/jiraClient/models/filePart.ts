@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
 export type FilePart = {
-    contentType?: string;
-    formField?: boolean;
-    inputStream?: Record<string, any>;
-    name?: string;
-    size?: number;
-    value?: string;
+  contentType?: string;
+  formField?: boolean;
+  inputStream?: Record<string, any>;
+  name?: string;
+  size?: number;
+  value?: string;
 };
 
 export const FilePartSchema = z.looseObject({

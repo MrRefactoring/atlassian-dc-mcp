@@ -1,24 +1,24 @@
 import { z } from 'zod';
 
 export type NodeBean = {
-    alive?: boolean;
-    cacheListenerPort?: number;
-    ip?: string;
-    lastStateChangeTimestamp?: number;
-    nodeBuildNumber?: number;
-    nodeId?: string;
-    nodeVersion?: string;
-    state?: NodeBean.state;
+  alive?: boolean;
+  cacheListenerPort?: number;
+  ip?: string;
+  lastStateChangeTimestamp?: number;
+  nodeBuildNumber?: number;
+  nodeId?: string;
+  nodeVersion?: string;
+  state?: NodeBean.state;
 };
 
 export namespace NodeBean {
-    export enum state {
-        ACTIVE = 'ACTIVE',
-        PASSIVE = 'PASSIVE',
-        ACTIVATING = 'ACTIVATING',
-        PASSIVATING = 'PASSIVATING',
-        OFFLINE = 'OFFLINE',
-    }
+  export enum state {
+    ACTIVE = 'ACTIVE',
+    PASSIVE = 'PASSIVE',
+    ACTIVATING = 'ACTIVATING',
+    PASSIVATING = 'PASSIVATING',
+    OFFLINE = 'OFFLINE',
+  }
 }
 
 const NodeBean_stateSchema = z.enum(['ACTIVE', 'PASSIVE', 'ACTIVATING', 'PASSIVATING', 'OFFLINE']);

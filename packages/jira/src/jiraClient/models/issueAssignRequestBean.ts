@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type IssueAssignRequestBean = {
-    issues?: Array<string>;
+  issues?: Array<string>;
 };
 
 export const IssueAssignRequestBeanSchema = z.looseObject({

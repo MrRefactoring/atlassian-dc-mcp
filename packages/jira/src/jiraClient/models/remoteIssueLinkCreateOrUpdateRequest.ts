@@ -3,10 +3,10 @@ import { ApplicationSchema, type Application } from './application.js';
 import { RemoteObjectSchema, type RemoteObject } from './remoteObject.js';
 
 export type RemoteIssueLinkCreateOrUpdateRequest = {
-    application?: Application;
-    globalId?: string;
-    object?: RemoteObject;
-    relationship?: string;
+  application?: Application;
+  globalId?: string;
+  object?: RemoteObject;
+  relationship?: string;
 };
 
 export const RemoteIssueLinkCreateOrUpdateRequestSchema = z.lazy(() => z.looseObject({

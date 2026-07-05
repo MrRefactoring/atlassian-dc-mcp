@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export type AvatarBean = {
-    id?: string;
-    owner?: string;
-    selected?: boolean;
+  id?: string;
+  owner?: string;
+  selected?: boolean;
 };
 
 export const AvatarBeanSchema = z.looseObject({

@@ -1,23 +1,23 @@
 import { z } from 'zod';
 
 export type VersionBean = {
-    archived?: boolean;
-    description?: string;
-    expand?: string;
-    id?: string;
-    moveUnfixedIssuesTo?: string;
-    name?: string;
-    overdue?: boolean;
-    project?: string;
-    projectId?: number;
-    releaseDate?: string;
-    releaseDateSet?: boolean;
-    released?: boolean;
-    self?: string;
-    startDate?: string;
-    startDateSet?: boolean;
-    userReleaseDate?: string;
-    userStartDate?: string;
+  archived?: boolean;
+  description?: string;
+  expand?: string;
+  id?: string;
+  moveUnfixedIssuesTo?: string;
+  name?: string;
+  overdue?: boolean;
+  project?: string;
+  projectId?: number;
+  releaseDate?: string;
+  releaseDateSet?: boolean;
+  released?: boolean;
+  self?: string;
+  startDate?: string;
+  startDateSet?: boolean;
+  userReleaseDate?: string;
+  userStartDate?: string;
 };
 
 export const VersionBeanSchema = z.looseObject({

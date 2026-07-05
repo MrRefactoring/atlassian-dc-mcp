@@ -3,12 +3,12 @@ import { GroupJsonBeanSchema, type GroupJsonBean } from './groupJsonBean.js';
 import { UserJsonBeanSchema, type UserJsonBean } from './userJsonBean.js';
 
 export type ToJsonBean = {
-    assignee?: boolean;
-    groups?: Array<GroupJsonBean>;
-    reporter?: boolean;
-    users?: Array<UserJsonBean>;
-    voters?: boolean;
-    watchers?: boolean;
+  assignee?: boolean;
+  groups?: Array<GroupJsonBean>;
+  reporter?: boolean;
+  users?: Array<UserJsonBean>;
+  voters?: boolean;
+  watchers?: boolean;
 };
 
 export const ToJsonBeanSchema = z.lazy(() => z.looseObject({

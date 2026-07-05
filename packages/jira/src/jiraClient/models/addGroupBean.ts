@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type AddGroupBean = {
-    name?: string;
+  name?: string;
 };
 
 export const AddGroupBeanSchema = z.looseObject({

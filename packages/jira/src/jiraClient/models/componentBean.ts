@@ -2,25 +2,25 @@ import { z } from 'zod';
 import { UserBeanSchema, type UserBean } from './userBean.js';
 
 export type ComponentBean = {
-    archived?: boolean;
-    assigneeType?: ComponentBean.assigneeType;
-    deleted?: boolean;
-    description?: string;
-    id?: string;
-    lead?: UserBean;
-    leadUserName?: string;
-    name?: string;
-    project?: string;
-    self?: string;
+  archived?: boolean;
+  assigneeType?: ComponentBean.assigneeType;
+  deleted?: boolean;
+  description?: string;
+  id?: string;
+  lead?: UserBean;
+  leadUserName?: string;
+  name?: string;
+  project?: string;
+  self?: string;
 };
 
 export namespace ComponentBean {
-    export enum assigneeType {
-        PROJECT_DEFAULT = 'PROJECT_DEFAULT',
-        COMPONENT_LEAD = 'COMPONENT_LEAD',
-        PROJECT_LEAD = 'PROJECT_LEAD',
-        UNASSIGNED = 'UNASSIGNED',
-    }
+  export enum assigneeType {
+    PROJECT_DEFAULT = 'PROJECT_DEFAULT',
+    COMPONENT_LEAD = 'COMPONENT_LEAD',
+    PROJECT_LEAD = 'PROJECT_LEAD',
+    UNASSIGNED = 'UNASSIGNED',
+  }
 }
 
 const ComponentBean_assigneeTypeSchema = z.enum(['PROJECT_DEFAULT', 'COMPONENT_LEAD', 'PROJECT_LEAD', 'UNASSIGNED']);

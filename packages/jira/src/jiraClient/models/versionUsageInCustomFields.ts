@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export type VersionUsageInCustomFields = {
-    customFieldId?: number;
-    fieldName?: string;
-    issueCountWithVersionInCustomField?: number;
+  customFieldId?: number;
+  fieldName?: string;
+  issueCountWithVersionInCustomField?: number;
 };
 
 export const VersionUsageInCustomFieldsSchema = z.looseObject({

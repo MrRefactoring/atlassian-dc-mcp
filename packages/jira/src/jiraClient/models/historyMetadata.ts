@@ -2,17 +2,17 @@ import { z } from 'zod';
 import { HistoryMetadataParticipantSchema, type HistoryMetadataParticipant } from './historyMetadataParticipant.js';
 
 export type HistoryMetadata = {
-    activityDescription?: string;
-    activityDescriptionKey?: string;
-    actor?: HistoryMetadataParticipant;
-    cause?: HistoryMetadataParticipant;
-    description?: string;
-    descriptionKey?: string;
-    emailDescription?: string;
-    emailDescriptionKey?: string;
-    extraData?: Record<string, string>;
-    generator?: HistoryMetadataParticipant;
-    type?: string;
+  activityDescription?: string;
+  activityDescriptionKey?: string;
+  actor?: HistoryMetadataParticipant;
+  cause?: HistoryMetadataParticipant;
+  description?: string;
+  descriptionKey?: string;
+  emailDescription?: string;
+  emailDescriptionKey?: string;
+  extraData?: Record<string, string>;
+  generator?: HistoryMetadataParticipant;
+  type?: string;
 };
 
 export const HistoryMetadataSchema = z.lazy(() => z.looseObject({

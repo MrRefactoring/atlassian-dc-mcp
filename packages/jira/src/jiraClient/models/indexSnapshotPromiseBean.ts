@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type IndexSnapshotPromiseBean = {
-    futureAbsolutePath?: string;
+  futureAbsolutePath?: string;
 };
 
 export const IndexSnapshotPromiseBeanSchema = z.looseObject({

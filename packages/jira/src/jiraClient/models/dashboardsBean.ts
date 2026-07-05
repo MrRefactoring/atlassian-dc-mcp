@@ -2,12 +2,12 @@ import { z } from 'zod';
 import { DashboardBeanSchema, type DashboardBean } from './dashboardBean.js';
 
 export type DashboardsBean = {
-    dashboards?: Array<DashboardBean>;
-    maxResults?: number;
-    next?: string;
-    prev?: string;
-    startAt?: number;
-    total?: number;
+  dashboards?: Array<DashboardBean>;
+  maxResults?: number;
+  next?: string;
+  prev?: string;
+  startAt?: number;
+  total?: number;
 };
 
 export const DashboardsBeanSchema = z.lazy(() => z.looseObject({

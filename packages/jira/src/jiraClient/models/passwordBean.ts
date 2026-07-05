@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type PasswordBean = {
-    currentPassword?: string;
-    password?: string;
+  currentPassword?: string;
+  password?: string;
 };
 
 export const PasswordBeanSchema = z.looseObject({

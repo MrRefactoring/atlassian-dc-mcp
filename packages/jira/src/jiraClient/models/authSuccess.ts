@@ -3,8 +3,8 @@ import { LoginInfoSchema, type LoginInfo } from './loginInfo.js';
 import { SessionInfoSchema, type SessionInfo } from './sessionInfo.js';
 
 export type AuthSuccess = {
-    loginInfo?: LoginInfo;
-    session?: SessionInfo;
+  loginInfo?: LoginInfo;
+  session?: SessionInfo;
 };
 
 export const AuthSuccessSchema = z.lazy(() => z.looseObject({

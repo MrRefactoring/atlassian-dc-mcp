@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type ScreenableTabBean = {
-    id?: number;
-    name?: string;
+  id?: number;
+  name?: string;
 };
 
 export const ScreenableTabBeanSchema = z.looseObject({

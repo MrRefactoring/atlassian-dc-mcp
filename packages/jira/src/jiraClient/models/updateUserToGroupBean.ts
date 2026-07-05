@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type UpdateUserToGroupBean = {
-    name?: string;
+  name?: string;
 };
 
 export const UpdateUserToGroupBeanSchema = z.looseObject({

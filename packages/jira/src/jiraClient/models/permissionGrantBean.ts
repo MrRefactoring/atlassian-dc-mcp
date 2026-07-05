@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { PermissionHolderBeanSchema, type PermissionHolderBean } from './permissionHolderBean.js';
 
 export type PermissionGrantBean = {
-    holder?: PermissionHolderBean;
-    id?: number;
-    permission?: string;
-    self?: string;
+  holder?: PermissionHolderBean;
+  id?: number;
+  permission?: string;
+  self?: string;
 };
 
 export const PermissionGrantBeanSchema = z.lazy(() => z.looseObject({

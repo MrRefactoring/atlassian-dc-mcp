@@ -5,14 +5,14 @@ import { ProjectRoleBeanSchema, type ProjectRoleBean } from './projectRoleBean.j
 import { UserBeanSchema, type UserBean } from './userBean.js';
 
 export type FilterPermissionBean = {
-    edit?: boolean;
-    group?: GroupJsonBean;
-    id?: number;
-    project?: ProjectBean;
-    role?: ProjectRoleBean;
-    type?: string;
-    user?: UserBean;
-    view?: boolean;
+  edit?: boolean;
+  group?: GroupJsonBean;
+  id?: number;
+  project?: ProjectBean;
+  role?: ProjectRoleBean;
+  type?: string;
+  user?: UserBean;
+  view?: boolean;
 };
 
 export const FilterPermissionBeanSchema = z.lazy(() => z.looseObject({

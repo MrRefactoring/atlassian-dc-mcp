@@ -74,7 +74,7 @@ export function findUsersAndGroups(client: HttpClient, params: { issueTypeId?: s
   });
 }
 
-export function getAllPermissions(client: HttpClient, params: Record<string, never>): Promise<PermissionsJsonBean> {
+export function getAllPermissions(client: HttpClient, _params: Record<string, never>): Promise<PermissionsJsonBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/permissions`,
@@ -82,7 +82,7 @@ export function getAllPermissions(client: HttpClient, params: Record<string, nev
   });
 }
 
-export function getMyselfUser(client: HttpClient, params: Record<string, never>): Promise<UserBean> {
+export function getMyselfUser(client: HttpClient, _params: Record<string, never>): Promise<UserBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/myself`,

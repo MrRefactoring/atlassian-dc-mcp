@@ -2,12 +2,12 @@ import { z } from 'zod';
 import { SecurityLevelJsonBeanSchema, type SecurityLevelJsonBean } from './securityLevelJsonBean.js';
 
 export type SecuritySchemeJsonBean = {
-    defaultSecurityLevelId?: number;
-    description?: string;
-    id?: number;
-    levels?: Array<SecurityLevelJsonBean>;
-    name?: string;
-    self?: string;
+  defaultSecurityLevelId?: number;
+  description?: string;
+  id?: number;
+  levels?: Array<SecurityLevelJsonBean>;
+  name?: string;
+  self?: string;
 };
 
 export const SecuritySchemeJsonBeanSchema = z.lazy(() => z.looseObject({

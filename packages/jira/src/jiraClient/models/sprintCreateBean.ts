@@ -1,15 +1,15 @@
 import { z } from 'zod';
 
 export type SprintCreateBean = {
-    autoStartStop?: boolean;
-    endDate?: string;
-    goal?: string;
-    incompleteIssuesDestinationId?: number;
-    name?: string;
-    originBoardId?: number;
-    startDate?: string;
-    synced?: boolean;
-    userProfileTimeZone?: string;
+  autoStartStop?: boolean;
+  endDate?: string;
+  goal?: string;
+  incompleteIssuesDestinationId?: number;
+  name?: string;
+  originBoardId?: number;
+  startDate?: string;
+  synced?: boolean;
+  userProfileTimeZone?: string;
 };
 
 export const SprintCreateBeanSchema = z.looseObject({

@@ -3,14 +3,14 @@ import { IssueBeanSchema, type IssueBean } from './issueBean.js';
 import { JsonTypeBeanSchema, type JsonTypeBean } from './jsonTypeBean.js';
 
 export type SearchResultsBean = {
-    expand?: string;
-    issues?: Array<IssueBean>;
-    maxResults?: number;
-    names?: Record<string, string>;
-    schema?: Record<string, JsonTypeBean>;
-    startAt?: number;
-    total?: number;
-    warningMessages?: Array<string>;
+  expand?: string;
+  issues?: Array<IssueBean>;
+  maxResults?: number;
+  names?: Record<string, string>;
+  schema?: Record<string, JsonTypeBean>;
+  startAt?: number;
+  total?: number;
+  warningMessages?: Array<string>;
 };
 
 export const SearchResultsBeanSchema = z.lazy(() => z.looseObject({

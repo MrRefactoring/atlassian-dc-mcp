@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 export type UserJsonBean = {
-    active?: boolean;
-    avatarUrls?: Record<string, string>;
-    displayName?: string;
-    emailAddress?: string;
-    key?: string;
-    name?: string;
-    self?: string;
-    timeZone?: string;
+  active?: boolean;
+  avatarUrls?: Record<string, string>;
+  displayName?: string;
+  emailAddress?: string;
+  key?: string;
+  name?: string;
+  self?: string;
+  timeZone?: string;
 };
 
 export const UserJsonBeanSchema = z.looseObject({

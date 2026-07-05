@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export type EpicRankRequestBean = {
-    rankAfterEpic?: string;
-    rankBeforeEpic?: string;
-    rankCustomFieldId?: number;
+  rankAfterEpic?: string;
+  rankBeforeEpic?: string;
+  rankCustomFieldId?: number;
 };
 
 export const EpicRankRequestBeanSchema = z.looseObject({

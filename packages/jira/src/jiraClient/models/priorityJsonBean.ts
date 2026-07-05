@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
 export type PriorityJsonBean = {
-    description?: string;
-    iconUrl?: string;
-    id?: string;
-    name?: string;
-    self?: string;
-    statusColor?: string;
+  description?: string;
+  iconUrl?: string;
+  id?: string;
+  name?: string;
+  self?: string;
+  statusColor?: string;
 };
 
 export const PriorityJsonBeanSchema = z.looseObject({

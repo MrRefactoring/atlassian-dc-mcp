@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export type WorklogIdsRequestBean = {
-    /**
+  /**
      * List of worklog ids
      */
-    ids?: Array<number>;
+  ids?: Array<number>;
 };
 
 export const WorklogIdsRequestBeanSchema = z.looseObject({

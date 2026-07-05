@@ -3,12 +3,12 @@ import { FieldMetaBeanSchema, type FieldMetaBean } from './fieldMetaBean.js';
 import { StatusJsonBeanSchema, type StatusJsonBean } from './statusJsonBean.js';
 
 export type TransitionBean = {
-    description?: string;
-    fields?: Record<string, FieldMetaBean>;
-    id?: string;
-    name?: string;
-    opsbarSequence?: number;
-    to?: StatusJsonBean;
+  description?: string;
+  fields?: Record<string, FieldMetaBean>;
+  id?: string;
+  name?: string;
+  opsbarSequence?: number;
+  to?: StatusJsonBean;
 };
 
 export const TransitionBeanSchema = z.lazy(() => z.looseObject({

@@ -1,15 +1,15 @@
 import { z } from 'zod';
 
 export type VisibilityJsonBean = {
-    type?: VisibilityJsonBean.type;
-    value?: string;
+  type?: VisibilityJsonBean.type;
+  value?: string;
 };
 
 export namespace VisibilityJsonBean {
-    export enum type {
-        GROUP = 'group',
-        ROLE = 'role',
-    }
+  export enum type {
+    GROUP = 'group',
+    ROLE = 'role',
+  }
 }
 
 const VisibilityJsonBean_typeSchema = z.enum(['group', 'role']);

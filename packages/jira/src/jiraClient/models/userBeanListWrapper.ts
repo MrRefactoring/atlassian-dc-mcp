@@ -3,12 +3,12 @@ import { ListWrapperCallbackUserBeanSchema, type ListWrapperCallbackUserBean } f
 import { UserBeanSchema, type UserBean } from './userBean.js';
 
 export type UserBeanListWrapper = {
-    backingListSize?: number;
-    callback?: ListWrapperCallbackUserBean;
-    items?: Array<UserBean>;
-    maxResults?: number;
-    pagingCallback?: ListWrapperCallbackUserBean;
-    size?: number;
+  backingListSize?: number;
+  callback?: ListWrapperCallbackUserBean;
+  items?: Array<UserBean>;
+  maxResults?: number;
+  pagingCallback?: ListWrapperCallbackUserBean;
+  size?: number;
 };
 
 export const UserBeanListWrapperSchema = z.lazy(() => z.looseObject({

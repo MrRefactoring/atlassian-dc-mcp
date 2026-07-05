@@ -3,10 +3,10 @@ import { IndexReplicationQueueSummaryBeanSchema, type IndexReplicationQueueSumma
 import { IssueIndexSummaryBeanSchema, type IssueIndexSummaryBean } from './issueIndexSummaryBean.js';
 
 export type IndexSummaryBean = {
-    issueIndex?: IssueIndexSummaryBean;
-    nodeId?: string;
-    replicationQueues?: Record<string, IndexReplicationQueueSummaryBean>;
-    reportTime?: string;
+  issueIndex?: IssueIndexSummaryBean;
+  nodeId?: string;
+  replicationQueues?: Record<string, IndexReplicationQueueSummaryBean>;
+  reportTime?: string;
 };
 
 export const IndexSummaryBeanSchema = z.lazy(() => z.looseObject({

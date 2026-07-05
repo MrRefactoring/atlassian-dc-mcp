@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export type DashboardBean = {
-    id?: string;
-    name?: string;
-    self?: string;
-    view?: string;
+  id?: string;
+  name?: string;
+  self?: string;
+  view?: string;
 };
 
 export const DashboardBeanSchema = z.looseObject({

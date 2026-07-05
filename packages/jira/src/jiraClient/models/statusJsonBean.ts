@@ -2,13 +2,13 @@ import { z } from 'zod';
 import { StatusCategoryJsonBeanSchema, type StatusCategoryJsonBean } from './statusCategoryJsonBean.js';
 
 export type StatusJsonBean = {
-    description?: string;
-    iconUrl?: string;
-    id?: string;
-    name?: string;
-    self?: string;
-    statusCategory?: StatusCategoryJsonBean;
-    statusColor?: string;
+  description?: string;
+  iconUrl?: string;
+  id?: string;
+  name?: string;
+  self?: string;
+  statusCategory?: StatusCategoryJsonBean;
+  statusColor?: string;
 };
 
 export const StatusJsonBeanSchema = z.lazy(() => z.looseObject({

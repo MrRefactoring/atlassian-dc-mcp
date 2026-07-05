@@ -8,21 +8,21 @@ import { PropertiesBeanSchema, type PropertiesBean } from './propertiesBean.js';
 import { TransitionBeanSchema, type TransitionBean } from './transitionBean.js';
 
 export type IssueBean = {
-    changelog?: ChangelogBean;
-    editmeta?: EditMetaBean;
-    fields?: Record<string, Record<string, any>>;
-    fieldsToInclude?: IncludedFields;
-    id?: string;
-    key?: string;
-    names?: Record<string, string>;
-    operations?: OpsbarBean;
-    properties?: PropertiesBean;
-    renderedFields?: Record<string, Record<string, any>>;
-    schema?: Record<string, JsonTypeBean>;
-    self?: string;
-    transitionBeans?: Array<TransitionBean>;
-    transitions?: Array<TransitionBean>;
-    versionedRepresentations?: Record<string, Record<string, Record<string, any>>>;
+  changelog?: ChangelogBean;
+  editmeta?: EditMetaBean;
+  fields?: Record<string, Record<string, any>>;
+  fieldsToInclude?: IncludedFields;
+  id?: string;
+  key?: string;
+  names?: Record<string, string>;
+  operations?: OpsbarBean;
+  properties?: PropertiesBean;
+  renderedFields?: Record<string, Record<string, any>>;
+  schema?: Record<string, JsonTypeBean>;
+  self?: string;
+  transitionBeans?: Array<TransitionBean>;
+  transitions?: Array<TransitionBean>;
+  versionedRepresentations?: Record<string, Record<string, Record<string, any>>>;
 };
 
 export const IssueBeanSchema = z.lazy(() => z.looseObject({

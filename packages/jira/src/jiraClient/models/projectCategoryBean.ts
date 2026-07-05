@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export type ProjectCategoryBean = {
-    description?: string;
-    id?: string;
-    name?: string;
-    self?: string;
+  description?: string;
+  id?: string;
+  name?: string;
+  self?: string;
 };
 
 export const ProjectCategoryBeanSchema = z.looseObject({

@@ -5,12 +5,12 @@ import { ProjectRoleBeanSchema, type ProjectRoleBean } from './projectRoleBean.j
 import { UserJsonBeanSchema, type UserJsonBean } from './userJsonBean.js';
 
 export type PermissionHolderBean = {
-    field?: FieldBean;
-    group?: GroupJsonBean;
-    parameter?: string;
-    projectRole?: ProjectRoleBean;
-    type?: string;
-    user?: UserJsonBean;
+  field?: FieldBean;
+  group?: GroupJsonBean;
+  parameter?: string;
+  projectRole?: ProjectRoleBean;
+  type?: string;
+  user?: UserJsonBean;
 };
 
 export const PermissionHolderBeanSchema = z.lazy(() => z.looseObject({

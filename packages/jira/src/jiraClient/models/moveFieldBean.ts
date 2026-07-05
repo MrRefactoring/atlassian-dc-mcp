@@ -1,17 +1,17 @@
 import { z } from 'zod';
 
 export type MoveFieldBean = {
-    after?: string;
-    position?: MoveFieldBean.position;
+  after?: string;
+  position?: MoveFieldBean.position;
 };
 
 export namespace MoveFieldBean {
-    export enum position {
-        EARLIER = 'Earlier',
-        LATER = 'Later',
-        FIRST = 'First',
-        LAST = 'Last',
-    }
+  export enum position {
+    EARLIER = 'Earlier',
+    LATER = 'Later',
+    FIRST = 'First',
+    LAST = 'Last',
+  }
 }
 
 const MoveFieldBean_positionSchema = z.enum(['Earlier', 'Later', 'First', 'Last']);

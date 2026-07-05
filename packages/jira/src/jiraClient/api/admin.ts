@@ -1,7 +1,7 @@
 import { route, type HttpClient } from 'datacenter-mcp-core';
 import { type ActorInputBean, ApplicationRoleBeanSchema, type ApplicationRoleBean, type AssociateProjectsBean, type AuthParams, AuthSuccessSchema, type AuthSuccess, AutoCompleteResponseBeanSchema, type AutoCompleteResponseBean, AutoCompleteResultWrapperSchema, type AutoCompleteResultWrapper, AvatarBeanSchema, type AvatarBean, AvatarCroppingBeanSchema, type AvatarCroppingBean, BulkDeleteResponseBeanSchema, type BulkDeleteResponseBean, ClusterStateSchema, type ClusterState, type CreateUpdateRoleRequestBean, CurrentUserSchema, type CurrentUser, CustomFieldBeanSchema, type CustomFieldBean, CustomFieldOptionBeanSchema, type CustomFieldOptionBean, CustomFieldOptionsBeanSchema, type CustomFieldOptionsBean, DashboardBeanSchema, type DashboardBean, DashboardsBeanSchema, type DashboardsBean, type FilePart, FilterBeanSchema, type FilterBean, IndexSnapshotBeanSchema, type IndexSnapshotBean, IndexSnapshotPromiseBeanSchema, type IndexSnapshotPromiseBean, IndexSnapshotStatusBeanSchema, type IndexSnapshotStatusBean, IndexSummaryBeanSchema, type IndexSummaryBean, IssueTypeSchemeBeanSchema, type IssueTypeSchemeBean, type IssueTypeSchemeCreateUpdateBean, IssueTypeSchemeListBeanSchema, type IssueTypeSchemeListBean, LicenseValidationResultsSchema, type LicenseValidationResults, NodeBeanSchema, type NodeBean, NotificationSchemeBeanSchema, type NotificationSchemeBean, PageBeanSchema, type PageBean, PermissionGrantBeanSchema, type PermissionGrantBean, PermissionGrantsBeanSchema, type PermissionGrantsBean, PermissionSchemeBeanSchema, type PermissionSchemeBean, PermissionSchemesBeanSchema, type PermissionSchemesBean, PrioritySchemeBeanSchema, type PrioritySchemeBean, PrioritySchemeListBeanSchema, type PrioritySchemeListBean, type PrioritySchemeUpdateBean, ProjectBeanSchema, type ProjectBean, ProjectRoleActorsBeanSchema, type ProjectRoleActorsBean, ProjectRoleBeanSchema, type ProjectRoleBean, PropertySchema, type Property, ReindexBeanSchema, type ReindexBean, ReindexRequestBeanSchema, type ReindexRequestBean, SecurityLevelJsonBeanSchema, type SecurityLevelJsonBean, SecuritySchemeJsonBeanSchema, type SecuritySchemeJsonBean, SecuritySchemesJsonBeanSchema, type SecuritySchemesJsonBean, ServerInfoBeanSchema, type ServerInfoBean, type StringList } from '../models/index.js';
 
-export function acknowledgeErrors(client: HttpClient, params: Record<string, never>): Promise<any> {
+export function acknowledgeErrors(client: HttpClient, _params: Record<string, never>): Promise<any> {
   return client.sendRequest({
     method: 'POST',
     url: route`/api/2/cluster/zdu/retryUpgrade`,
@@ -25,14 +25,14 @@ export function addProjectRoleActorsToRole(client: HttpClient, params: { id: num
   });
 }
 
-export function applyEmailTemplates(client: HttpClient, params: Record<string, never>): Promise<any> {
+export function applyEmailTemplates(client: HttpClient, _params: Record<string, never>): Promise<any> {
   return client.sendRequest({
     method: 'POST',
     url: route`/api/2/email-templates/apply`,
   });
 }
 
-export function approveUpgrade(client: HttpClient, params: Record<string, never>): Promise<any> {
+export function approveUpgrade(client: HttpClient, _params: Record<string, never>): Promise<any> {
   return client.sendRequest({
     method: 'POST',
     url: route`/api/2/cluster/zdu/approve`,
@@ -48,7 +48,7 @@ export function bulkDeleteCustomFields(client: HttpClient, params: { ids: string
   });
 }
 
-export function cancelUpgrade(client: HttpClient, params: Record<string, never>): Promise<any> {
+export function cancelUpgrade(client: HttpClient, _params: Record<string, never>): Promise<any> {
   return client.sendRequest({
     method: 'POST',
     url: route`/api/2/cluster/zdu/cancel`,
@@ -81,7 +81,7 @@ export function createFilter(client: HttpClient, params: { expand?: StringList; 
   });
 }
 
-export function createIndexSnapshot(client: HttpClient, params: Record<string, never>): Promise<IndexSnapshotPromiseBean> {
+export function createIndexSnapshot(client: HttpClient, _params: Record<string, never>): Promise<IndexSnapshotPromiseBean> {
   return client.sendRequest({
     method: 'POST',
     url: route`/api/2/index-snapshot`,
@@ -136,7 +136,7 @@ export function createProjectRole(client: HttpClient, params: { requestBody: Cre
   });
 }
 
-export function currentUser(client: HttpClient, params: Record<string, never>): Promise<CurrentUser> {
+export function currentUser(client: HttpClient, _params: Record<string, never>): Promise<CurrentUser> {
   return client.sendRequest({
     method: 'GET',
     url: route`/auth/1/session`,
@@ -237,7 +237,7 @@ export function get(client: HttpClient, params: { key: string }): Promise<Applic
   });
 }
 
-export function getAdvancedSettings(client: HttpClient, params: Record<string, never>): Promise<Property> {
+export function getAdvancedSettings(client: HttpClient, _params: Record<string, never>): Promise<Property> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/application-properties/advanced-settings`,
@@ -245,7 +245,7 @@ export function getAdvancedSettings(client: HttpClient, params: Record<string, n
   });
 }
 
-export function getAll(client: HttpClient, params: Record<string, never>): Promise<ApplicationRoleBean> {
+export function getAll(client: HttpClient, _params: Record<string, never>): Promise<ApplicationRoleBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/applicationrole`,
@@ -253,7 +253,7 @@ export function getAll(client: HttpClient, params: Record<string, never>): Promi
   });
 }
 
-export function getAllIssueTypeSchemes(client: HttpClient, params: Record<string, never>): Promise<IssueTypeSchemeListBean> {
+export function getAllIssueTypeSchemes(client: HttpClient, _params: Record<string, never>): Promise<IssueTypeSchemeListBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/issuetypescheme`,
@@ -261,7 +261,7 @@ export function getAllIssueTypeSchemes(client: HttpClient, params: Record<string
   });
 }
 
-export function getAllNodes(client: HttpClient, params: Record<string, never>): Promise<NodeBean> {
+export function getAllNodes(client: HttpClient, _params: Record<string, never>): Promise<NodeBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/cluster/nodes`,
@@ -286,7 +286,7 @@ export function getAssociatedProjects(client: HttpClient, params: { schemeId: st
   });
 }
 
-export function getAutoComplete(client: HttpClient, params: Record<string, never>): Promise<AutoCompleteResponseBean> {
+export function getAutoComplete(client: HttpClient, _params: Record<string, never>): Promise<AutoCompleteResponseBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/jql/autocompletedata`,
@@ -336,7 +336,7 @@ export function getDashboard(client: HttpClient, params: { id: string }): Promis
   });
 }
 
-export function getEmailTypes(client: HttpClient, params: Record<string, never>): Promise<any> {
+export function getEmailTypes(client: HttpClient, _params: Record<string, never>): Promise<any> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/email-templates/types`,
@@ -370,7 +370,7 @@ export function getFilter(client: HttpClient, params: { id: string; expand?: Str
   });
 }
 
-export function getIndexSummary(client: HttpClient, params: Record<string, never>): Promise<IndexSummaryBean> {
+export function getIndexSummary(client: HttpClient, _params: Record<string, never>): Promise<IndexSummaryBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/index/summary`,
@@ -394,7 +394,7 @@ export function getIssueSecurityScheme(client: HttpClient, params: { id: string 
   });
 }
 
-export function getIssueSecuritySchemes(client: HttpClient, params: Record<string, never>): Promise<SecuritySchemesJsonBean> {
+export function getIssueSecuritySchemes(client: HttpClient, _params: Record<string, never>): Promise<SecuritySchemesJsonBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/issuesecurityschemes`,
@@ -497,7 +497,7 @@ export function getProjectRoleActorsForRole(client: HttpClient, params: { id: nu
   });
 }
 
-export function getProjectRoles(client: HttpClient, params: Record<string, never>): Promise<ProjectRoleBean> {
+export function getProjectRoles(client: HttpClient, _params: Record<string, never>): Promise<ProjectRoleBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/role`,
@@ -540,7 +540,7 @@ export function getReindexProgress(client: HttpClient, params: { taskId?: number
   });
 }
 
-export function getServerInfo(client: HttpClient, params: Record<string, never>): Promise<ServerInfoBean> {
+export function getServerInfo(client: HttpClient, _params: Record<string, never>): Promise<ServerInfoBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/serverInfo`,
@@ -548,7 +548,7 @@ export function getServerInfo(client: HttpClient, params: Record<string, never>)
   });
 }
 
-export function getState(client: HttpClient, params: Record<string, never>): Promise<ClusterState> {
+export function getState(client: HttpClient, _params: Record<string, never>): Promise<ClusterState> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/cluster/zdu/state`,
@@ -556,7 +556,7 @@ export function getState(client: HttpClient, params: Record<string, never>): Pro
   });
 }
 
-export function isIndexSnapshotRunning(client: HttpClient, params: Record<string, never>): Promise<IndexSnapshotStatusBean> {
+export function isIndexSnapshotRunning(client: HttpClient, _params: Record<string, never>): Promise<IndexSnapshotStatusBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/index-snapshot/isRunning`,
@@ -573,7 +573,7 @@ export function list(client: HttpClient, params: { filter?: string; maxResults?:
   });
 }
 
-export function listIndexSnapshot(client: HttpClient, params: Record<string, never>): Promise<IndexSnapshotBean> {
+export function listIndexSnapshot(client: HttpClient, _params: Record<string, never>): Promise<IndexSnapshotBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/index-snapshot`,
@@ -590,7 +590,7 @@ export function login(client: HttpClient, params: { requestBody: AuthParams }): 
   });
 }
 
-export function logout(client: HttpClient, params: Record<string, never>): Promise<void> {
+export function logout(client: HttpClient, _params: Record<string, never>): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
     url: route`/auth/1/session`,
@@ -606,7 +606,7 @@ export function partialUpdateProjectRole(client: HttpClient, params: { id: numbe
   });
 }
 
-export function processRequests(client: HttpClient, params: Record<string, never>): Promise<number> {
+export function processRequests(client: HttpClient, _params: Record<string, never>): Promise<number> {
   return client.sendRequest({
     method: 'POST',
     url: route`/api/2/reindex/request`,
@@ -660,7 +660,7 @@ export function requestCurrentIndexFromNode(client: HttpClient, params: { nodeId
   });
 }
 
-export function revertEmailTemplatesToDefault(client: HttpClient, params: Record<string, never>): Promise<any> {
+export function revertEmailTemplatesToDefault(client: HttpClient, _params: Record<string, never>): Promise<any> {
   return client.sendRequest({
     method: 'POST',
     url: route`/api/2/email-templates/revert`,
@@ -675,7 +675,7 @@ export function setProjectAssociationsForScheme(client: HttpClient, params: { sc
   });
 }
 
-export function setReadyToUpgrade(client: HttpClient, params: Record<string, never>): Promise<any> {
+export function setReadyToUpgrade(client: HttpClient, _params: Record<string, never>): Promise<any> {
   return client.sendRequest({
     method: 'POST',
     url: route`/api/2/cluster/zdu/start`,

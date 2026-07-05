@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export type ScreenableFieldBean = {
-    id?: string;
-    name?: string;
-    showWhenEmpty?: boolean;
-    type?: string;
+  id?: string;
+  name?: string;
+  showWhenEmpty?: boolean;
+  type?: string;
 };
 
 export const ScreenableFieldBeanSchema = z.looseObject({
