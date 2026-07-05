@@ -238,19 +238,19 @@ export function get(client: HttpClient, params: { key: string }): Promise<Applic
   });
 }
 
-export function getAdvancedSettings(client: HttpClient, _params: Record<string, never>): Promise<Property> {
+export function getAdvancedSettings(client: HttpClient, _params: Record<string, never>): Promise<Property[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/application-properties/advanced-settings`,
-    schema: PropertySchema,
+    schema: z.array(PropertySchema),
   });
 }
 
-export function getAll(client: HttpClient, _params: Record<string, never>): Promise<ApplicationRoleBean> {
+export function getAll(client: HttpClient, _params: Record<string, never>): Promise<ApplicationRoleBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/applicationrole`,
-    schema: ApplicationRoleBeanSchema,
+    schema: z.array(ApplicationRoleBeanSchema),
   });
 }
 
@@ -481,12 +481,12 @@ export function getProgress(client: HttpClient, params: { requestId: number }): 
   });
 }
 
-export function getProgressBulk(client: HttpClient, params: { requestId?: Array<number> }): Promise<ReindexRequestBean> {
+export function getProgressBulk(client: HttpClient, params: { requestId?: Array<number> }): Promise<ReindexRequestBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/reindex/request/bulk`,
     searchParams: { requestId: params.requestId },
-    schema: ReindexRequestBeanSchema,
+    schema: z.array(ReindexRequestBeanSchema),
   });
 }
 
@@ -498,11 +498,11 @@ export function getProjectRoleActorsForRole(client: HttpClient, params: { id: nu
   });
 }
 
-export function getProjectRoles(client: HttpClient, _params: Record<string, never>): Promise<ProjectRoleBean> {
+export function getProjectRoles(client: HttpClient, _params: Record<string, never>): Promise<ProjectRoleBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/role`,
-    schema: ProjectRoleBeanSchema,
+    schema: z.array(ProjectRoleBeanSchema),
   });
 }
 
@@ -514,12 +514,12 @@ export function getProjectRolesById(client: HttpClient, params: { id: number }):
   });
 }
 
-export function getProperty(client: HttpClient, params: { permissionLevel: string; key: string; keyFilter?: string }): Promise<Property> {
+export function getProperty(client: HttpClient, params: { permissionLevel: string; key: string; keyFilter?: string }): Promise<Property[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/application-properties`,
     searchParams: { permissionLevel: params.permissionLevel, keyFilter: params.keyFilter, key: params.key },
-    schema: PropertySchema,
+    schema: z.array(PropertySchema),
   });
 }
 
@@ -574,11 +574,11 @@ export function list(client: HttpClient, params: { filter?: string; maxResults?:
   });
 }
 
-export function listIndexSnapshot(client: HttpClient, _params: Record<string, never>): Promise<IndexSnapshotBean> {
+export function listIndexSnapshot(client: HttpClient, _params: Record<string, never>): Promise<IndexSnapshotBean[]> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/index-snapshot`,
-    schema: IndexSnapshotBeanSchema,
+    schema: z.array(IndexSnapshotBeanSchema),
   });
 }
 

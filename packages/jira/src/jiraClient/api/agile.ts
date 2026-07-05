@@ -95,21 +95,21 @@ export function getEpics(client: HttpClient, params: { boardId: number; maxResul
   });
 }
 
-export function getIssuesForBacklog(client: HttpClient, params: { boardId: number; expand?: string; jql?: string; maxResults?: number; validateQuery?: boolean; fields?: Array<StringList>; startAt?: number }): Promise<IssueBean> {
+export function getIssuesForBacklog(client: HttpClient, params: { boardId: number; expand?: string; jql?: string; maxResults?: number; validateQuery?: boolean; fields?: Array<StringList>; startAt?: number }): Promise<SearchResultsBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/agile/1.0/board/${params.boardId}/backlog`,
     searchParams: { expand: params.expand, jql: params.jql, maxResults: params.maxResults, validateQuery: params.validateQuery, fields: params.fields, startAt: params.startAt },
-    schema: IssueBeanSchema,
+    schema: SearchResultsBeanSchema,
   });
 }
 
-export function getIssuesForBoard(client: HttpClient, params: { boardId: number; expand?: string; jql?: string; maxResults?: number; validateQuery?: boolean; fields?: Array<StringList>; startAt?: number }): Promise<IssueBean> {
+export function getIssuesForBoard(client: HttpClient, params: { boardId: number; expand?: string; jql?: string; maxResults?: number; validateQuery?: boolean; fields?: Array<StringList>; startAt?: number }): Promise<SearchResultsBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/agile/1.0/board/${params.boardId}/issue`,
     searchParams: { expand: params.expand, jql: params.jql, maxResults: params.maxResults, validateQuery: params.validateQuery, fields: params.fields, startAt: params.startAt },
-    schema: IssueBeanSchema,
+    schema: SearchResultsBeanSchema,
   });
 }
 
@@ -122,12 +122,12 @@ export function getIssuesForSprint(client: HttpClient, params: { sprintId: numbe
   });
 }
 
-export function getIssuesWithoutEpic(client: HttpClient, params: { boardId: number; expand?: string; jql?: string; maxResults?: number; validateQuery?: boolean; fields?: Array<StringList>; startAt?: number }): Promise<IssueBean> {
+export function getIssuesWithoutEpic(client: HttpClient, params: { boardId: number; expand?: string; jql?: string; maxResults?: number; validateQuery?: boolean; fields?: Array<StringList>; startAt?: number }): Promise<SearchResultsBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/agile/1.0/board/${params.boardId}/epic/none/issue`,
     searchParams: { expand: params.expand, jql: params.jql, maxResults: params.maxResults, validateQuery: params.validateQuery, fields: params.fields, startAt: params.startAt },
-    schema: IssueBeanSchema,
+    schema: SearchResultsBeanSchema,
   });
 }
 

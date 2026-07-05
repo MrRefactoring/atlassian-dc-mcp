@@ -10,35 +10,35 @@ import { TransitionBeanSchema, type TransitionBean } from './transitionBean.js';
 export type IssueBean = {
   changelog?: ChangelogBean;
   editmeta?: EditMetaBean;
-  fields?: Record<string, Record<string, any>>;
+  fields?: Record<string, any>;
   fieldsToInclude?: IncludedFields;
   id?: string;
   key?: string;
   names?: Record<string, string>;
   operations?: OpsbarBean;
   properties?: PropertiesBean;
-  renderedFields?: Record<string, Record<string, any>>;
+  renderedFields?: Record<string, any>;
   schema?: Record<string, JsonTypeBean>;
   self?: string;
   transitionBeans?: Array<TransitionBean>;
   transitions?: Array<TransitionBean>;
-  versionedRepresentations?: Record<string, Record<string, Record<string, any>>>;
+  versionedRepresentations?: Record<string, Record<string, any>>;
 };
 
 export const IssueBeanSchema = z.lazy(() => z.looseObject({
   changelog: ChangelogBeanSchema.optional(),
   editmeta: EditMetaBeanSchema.optional(),
-  fields: z.record(z.string(), z.record(z.string(), z.any())).optional(),
+  fields: z.record(z.string(), z.any()).nullish(),
   fieldsToInclude: IncludedFieldsSchema.optional(),
   id: z.string().optional(),
   key: z.string().optional(),
-  names: z.record(z.string(), z.string()).optional(),
+  names: z.record(z.string(), z.string()).nullish(),
   operations: OpsbarBeanSchema.optional(),
   properties: PropertiesBeanSchema.optional(),
-  renderedFields: z.record(z.string(), z.record(z.string(), z.any())).optional(),
-  schema: z.record(z.string(), JsonTypeBeanSchema).optional(),
+  renderedFields: z.record(z.string(), z.any()).nullish(),
+  schema: z.record(z.string(), JsonTypeBeanSchema).nullish(),
   self: z.string().optional(),
   transitionBeans: z.array(TransitionBeanSchema).optional(),
   transitions: z.array(TransitionBeanSchema).optional(),
-  versionedRepresentations: z.record(z.string(), z.record(z.string(), z.record(z.string(), z.any()))).optional(),
+  versionedRepresentations: z.record(z.string(), z.record(z.string(), z.any())).nullish(),
 })) as unknown as z.ZodType<IssueBean>;
