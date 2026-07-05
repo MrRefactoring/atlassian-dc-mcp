@@ -17,9 +17,9 @@ export const SearchResultsBeanSchema = z.lazy(() => z.looseObject({
   expand: z.string().optional(),
   issues: z.array(IssueBeanSchema).optional(),
   maxResults: z.number().optional(),
-  names: z.record(z.string(), z.string()).optional(),
-  schema: z.record(z.string(), JsonTypeBeanSchema).optional(),
+  names: z.record(z.string(), z.string()).nullish(),
+  schema: z.record(z.string(), JsonTypeBeanSchema).nullish(),
   startAt: z.number().optional(),
   total: z.number().optional(),
-  warningMessages: z.array(z.string()).optional(),
+  warningMessages: z.array(z.string()).nullish(),
 })) as unknown as z.ZodType<SearchResultsBean>;
