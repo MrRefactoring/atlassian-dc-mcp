@@ -183,7 +183,16 @@ const getResponseBody = async (
       contentType.toLowerCase().startsWith(type),
     );
 
-    return isJSON ? await response.json() : await response.text();
+    // Some endpoints answer a mutation with 200/201 and an empty body while still
+    // advertising a JSON Content-Type; `response.json()` would throw on the empty
+    // string, so read the text first and treat "" as an absent (undefined) body.
+    const text = await response.text();
+
+    if (text === '') {
+      return undefined;
+    }
+
+    return isJSON ? JSON.parse(text) : text;
   }
 
   return undefined;
