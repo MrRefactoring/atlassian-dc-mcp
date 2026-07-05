@@ -1,5 +1,5 @@
 import { ApiError } from './apiError.js';
-import type { BitbucketClientConfig, CredentialSource, HttpClient, SendRequestOptions } from '../interface/index.js';
+import type { HttpClientConfig, CredentialSource, HttpClient, SendRequestOptions } from './interface/index.js';
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 const REQUEST_TIMEOUT_MS_ENV_VAR = 'ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS';
@@ -61,7 +61,7 @@ const resolveCredential = (source: CredentialSource): string | undefined => {
   return value ?? undefined;
 };
 
-const buildHeaders = (config: BitbucketClientConfig, options: SendRequestOptions): Headers => {
+const buildHeaders = (config: HttpClientConfig, options: SendRequestOptions): Headers => {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     ...config.headers,
@@ -163,9 +163,16 @@ const doFetch = async (url: string, init: RequestInit): Promise<Response> => {
   }
 };
 
-const getResponseBody = async (response: Response): Promise<unknown> => {
+const getResponseBody = async (
+  response: Response,
+  responseType?: SendRequestOptions['responseType'],
+): Promise<unknown> => {
   if (response.status === 204) {
     return undefined;
+  }
+
+  if (responseType === 'arraybuffer') {
+    return new Uint8Array(await response.arrayBuffer());
   }
 
   const contentType = response.headers.get('Content-Type');
@@ -182,14 +189,15 @@ const getResponseBody = async (response: Response): Promise<unknown> => {
 };
 
 /**
- * Create an {@link HttpClient} bound to a Bitbucket instance.
+ * Create an {@link HttpClient} bound to an Atlassian Data Center instance.
  *
- * The client performs a single fetch per request (no built-in retry — 429/5xx retries
- * are owned by `handleApiOperation`), honours `ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS`,
- * throws {@link ApiError} on non-2xx, and validates successful responses with the
- * request's Zod `schema` unless `skipParsing` is set.
+ * Shared by every product's api client (Bitbucket, Jira, …). Performs a single fetch
+ * per request (no built-in retry — 429/5xx retries are owned by `handleApiOperation`),
+ * honours `ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS`, throws {@link ApiError} on non-2xx, and
+ * validates successful JSON responses with the request's Zod `schema` unless `skipParsing`
+ * is set or the request asks for a raw `arraybuffer` (binary content).
  */
-export function createHttpClient(config: BitbucketClientConfig): HttpClient {
+export function createHttpClient(config: HttpClientConfig): HttpClient {
   const baseUrl = config.baseUrl.replace(/\/$/, '');
   const skipParsing = config.skipParsing ?? false;
 
@@ -206,7 +214,7 @@ export function createHttpClient(config: BitbucketClientConfig): HttpClient {
         body: body ?? formData,
       });
 
-      const responseBody = await getResponseBody(response);
+      const responseBody = await getResponseBody(response, options.responseType);
 
       if (!response.ok) {
         throw new ApiError({
@@ -214,13 +222,14 @@ export function createHttpClient(config: BitbucketClientConfig): HttpClient {
           status: response.status,
           statusText: response.statusText,
           body: responseBody,
-          message: `Bitbucket API request failed: ${response.status} ${response.statusText}`,
+          message: `API request failed: ${response.status} ${response.statusText}`,
         });
       }
 
-      // Only validate a non-empty body — some endpoints return an empty 200
-      // (e.g. unconfigured settings), which is a legitimate `undefined` result.
-      if (options.schema && !skipParsing && responseBody !== undefined) {
+      // Only validate a non-empty JSON body — some endpoints return an empty 200
+      // (e.g. unconfigured settings), which is a legitimate `undefined` result; raw
+      // `arraybuffer` responses are returned as-is.
+      if (options.schema && !skipParsing && options.responseType !== 'arraybuffer' && responseBody !== undefined) {
         return options.schema.parse(responseBody);
       }
 
