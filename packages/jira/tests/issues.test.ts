@@ -1,63 +1,12 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { JiraService } from '../src/jiraService.js';
-import {
-  CommentService,
-  IssueService,
-  IssuetypeService,
-  PriorityService,
-  ResolutionService,
-  StatusService,
-} from '../src/jiraClient/index.js';
 
-vi.mock('../src/jiraClient/index.js', () => ({
-  IssueService: {
-    getTransitions: vi.fn(),
-    doTransition: vi.fn(),
-    deleteIssue: vi.fn(),
-    updateComment: vi.fn(),
-    deleteComment: vi.fn(),
-    assign: vi.fn(),
-    getPropertiesKeys2: vi.fn(),
-    getProperty3: vi.fn(),
-    setProperty2: vi.fn(),
-    deleteProperty3: vi.fn(),
-    notify: vi.fn(),
-    setPinComment: vi.fn(),
-    getPinnedComments: vi.fn(),
-    getIssueWatchers: vi.fn(),
-    addWatcher1: vi.fn(),
-    removeWatcher1: vi.fn(),
-    getVotes: vi.fn(),
-    addVote: vi.fn(),
-    removeVote: vi.fn(),
-    getCreateIssueMetaProjectIssueTypes: vi.fn(),
-    getCreateIssueMetaFields: vi.fn(),
-    getEditIssueMeta: vi.fn(),
-  },
-  CommentService: {
-    getPropertiesKeys1: vi.fn(),
-    getProperty2: vi.fn(),
-    setProperty1: vi.fn(),
-    deleteProperty2: vi.fn(),
-  },
-  IssuetypeService: {
-    getIssueAllTypes: vi.fn(),
-  },
-  PriorityService: {
-    getPriorities: vi.fn(),
-  },
-  ResolutionService: {
-    getResolutions: vi.fn(),
-  },
-  StatusService: {
-    getStatuses: vi.fn(),
-  },
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-  },
-}));
+const jira = vi.hoisted(() => {
+  const group = () => new Proxy({} as Record<string, ReturnType<typeof vi.fn>>, { get: (t, p: string) => (t[p] ??= vi.fn()) });
+
+  return { issues: group(), projects: group(), users: group(), workflows: group(), agile: group(), admin: group(), request: vi.fn() };
+});
+vi.mock('../src/jiraClient/index.js', () => ({ createJiraClient: () => jira }));
 
 describe('JiraService', () => {
   let jiraService: JiraService;
@@ -92,20 +41,20 @@ describe('JiraService', () => {
           },
         ],
       };
-      (IssueService.getTransitions as Mock).mockResolvedValue(mockTransitionsData);
+      (jira.issues.getTransitions as Mock).mockResolvedValue(mockTransitionsData);
 
       const result = await jiraService.getTransitions(mockIssueKey);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockTransitionsData);
-      expect(IssueService.getTransitions).toHaveBeenCalledWith(mockIssueKey);
+      expect(jira.issues.getTransitions).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
     });
 
     it('should return empty transitions array when no transitions available', async () => {
       const mockTransitionsData = {
         transitions: [],
       };
-      (IssueService.getTransitions as Mock).mockResolvedValue(mockTransitionsData);
+      (jira.issues.getTransitions as Mock).mockResolvedValue(mockTransitionsData);
 
       const result = await jiraService.getTransitions(mockIssueKey);
 
@@ -116,7 +65,7 @@ describe('JiraService', () => {
 
     it('should handle API errors gracefully', async () => {
       const mockError = new Error('Issue not found');
-      (IssueService.getTransitions as Mock).mockRejectedValue(mockError);
+      (jira.issues.getTransitions as Mock).mockRejectedValue(mockError);
 
       const result = await jiraService.getTransitions(mockIssueKey);
 
@@ -126,7 +75,7 @@ describe('JiraService', () => {
 
     it('should handle permission errors', async () => {
       const mockError = new Error('Insufficient permissions to view transitions');
-      (IssueService.getTransitions as Mock).mockRejectedValue(mockError);
+      (jira.issues.getTransitions as Mock).mockRejectedValue(mockError);
 
       const result = await jiraService.getTransitions('RESTRICTED-1');
 
@@ -136,7 +85,7 @@ describe('JiraService', () => {
   });
   describe('transitionIssue', () => {
     it('should successfully transition an issue to a new status', async () => {
-      (IssueService.doTransition as Mock).mockResolvedValue(undefined);
+      (jira.issues.doTransition as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.transitionIssue({
         issueKey: mockIssueKey,
@@ -144,13 +93,13 @@ describe('JiraService', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(IssueService.doTransition).toHaveBeenCalledWith(mockIssueKey, {
+      expect(jira.issues.doTransition).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: {
         transition: { id: '21' },
-      });
+      } });
     });
 
     it('should successfully transition with additional fields', async () => {
-      (IssueService.doTransition as Mock).mockResolvedValue(undefined);
+      (jira.issues.doTransition as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.transitionIssue({
         issueKey: mockIssueKey,
@@ -162,18 +111,18 @@ describe('JiraService', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(IssueService.doTransition).toHaveBeenCalledWith(mockIssueKey, {
+      expect(jira.issues.doTransition).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: {
         transition: { id: '31' },
         fields: {
           resolution: { name: 'Done' },
           comment: { body: 'Closing this issue' },
         },
-      });
+      } });
     });
 
     it('should handle invalid transition ID errors', async () => {
       const mockError = new Error('Invalid transition ID');
-      (IssueService.doTransition as Mock).mockRejectedValue(mockError);
+      (jira.issues.doTransition as Mock).mockRejectedValue(mockError);
 
       const result = await jiraService.transitionIssue({
         issueKey: mockIssueKey,
@@ -186,7 +135,7 @@ describe('JiraService', () => {
 
     it('should handle missing required fields errors', async () => {
       const mockError = new Error('Resolution field is required');
-      (IssueService.doTransition as Mock).mockRejectedValue(mockError);
+      (jira.issues.doTransition as Mock).mockRejectedValue(mockError);
 
       const result = await jiraService.transitionIssue({
         issueKey: mockIssueKey,
@@ -199,7 +148,7 @@ describe('JiraService', () => {
 
     it('should handle permission errors', async () => {
       const mockError = new Error('User does not have permission to transition this issue');
-      (IssueService.doTransition as Mock).mockRejectedValue(mockError);
+      (jira.issues.doTransition as Mock).mockRejectedValue(mockError);
 
       const result = await jiraService.transitionIssue({
         issueKey: 'RESTRICTED-1',
@@ -212,7 +161,7 @@ describe('JiraService', () => {
 
     it('should handle issue not found errors', async () => {
       const mockError = new Error('Issue does not exist');
-      (IssueService.doTransition as Mock).mockRejectedValue(mockError);
+      (jira.issues.doTransition as Mock).mockRejectedValue(mockError);
 
       const result = await jiraService.transitionIssue({
         issueKey: 'NONEXISTENT-999',
@@ -225,24 +174,24 @@ describe('JiraService', () => {
   });
   describe('deleteIssue', () => {
     it('deletes an issue', async () => {
-      (IssueService.deleteIssue as Mock).mockResolvedValue(undefined);
+      (jira.issues.deleteIssue as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteIssue(mockIssueKey);
 
       expect(result.success).toBe(true);
-      expect(IssueService.deleteIssue).toHaveBeenCalledWith(mockIssueKey, undefined);
+      expect(jira.issues.deleteIssue).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
     });
 
     it('forwards deleteSubtasks as a string', async () => {
-      (IssueService.deleteIssue as Mock).mockResolvedValue(undefined);
+      (jira.issues.deleteIssue as Mock).mockResolvedValue(undefined);
 
       await jiraService.deleteIssue(mockIssueKey, true);
 
-      expect(IssueService.deleteIssue).toHaveBeenCalledWith(mockIssueKey, 'true');
+      expect(jira.issues.deleteIssue).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, deleteSubtasks: 'true' });
     });
 
     it('handles permission errors', async () => {
-      (IssueService.deleteIssue as Mock).mockRejectedValue(new Error('User does not have permission to delete this issue'));
+      (jira.issues.deleteIssue as Mock).mockRejectedValue(new Error('User does not have permission to delete this issue'));
 
       const result = await jiraService.deleteIssue(mockIssueKey);
 
@@ -253,17 +202,17 @@ describe('JiraService', () => {
   describe('updateIssueComment', () => {
     it('updates a comment', async () => {
       const mockComment = { id: '10000', body: 'Updated text' };
-      (IssueService.updateComment as Mock).mockResolvedValue(mockComment);
+      (jira.issues.updateComment as Mock).mockResolvedValue(mockComment);
 
       const result = await jiraService.updateIssueComment(mockIssueKey, '10000', 'Updated text');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockComment);
-      expect(IssueService.updateComment).toHaveBeenCalledWith(mockIssueKey, '10000', undefined, { body: 'Updated text' });
+      expect(jira.issues.updateComment).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, id: '10000', requestBody: { body: 'Updated text' } });
     });
 
     it('handles comment not found errors', async () => {
-      (IssueService.updateComment as Mock).mockRejectedValue(new Error('Comment does not exist'));
+      (jira.issues.updateComment as Mock).mockRejectedValue(new Error('Comment does not exist'));
 
       const result = await jiraService.updateIssueComment(mockIssueKey, 'missing', 'text');
 
@@ -273,16 +222,16 @@ describe('JiraService', () => {
   });
   describe('deleteIssueComment', () => {
     it('deletes a comment', async () => {
-      (IssueService.deleteComment as Mock).mockResolvedValue(undefined);
+      (jira.issues.deleteComment as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteIssueComment(mockIssueKey, '10000');
 
       expect(result.success).toBe(true);
-      expect(IssueService.deleteComment).toHaveBeenCalledWith(mockIssueKey, '10000');
+      expect(jira.issues.deleteComment).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, id: '10000' });
     });
 
     it('handles permission errors', async () => {
-      (IssueService.deleteComment as Mock).mockRejectedValue(new Error('User does not have permission to delete this comment'));
+      (jira.issues.deleteComment as Mock).mockRejectedValue(new Error('User does not have permission to delete this comment'));
 
       const result = await jiraService.deleteIssueComment(mockIssueKey, '10000');
 
@@ -293,17 +242,17 @@ describe('JiraService', () => {
   describe('comment entity properties', () => {
     it('gets comment property keys', async () => {
       const mockKeys = { keys: [{ key: 'my-property', self: 'https://example.com' }] };
-      (CommentService.getPropertiesKeys1 as Mock).mockResolvedValue(mockKeys);
+      (jira.issues.getCommentPropertiesKeys as Mock).mockResolvedValue(mockKeys);
 
       const result = await jiraService.getCommentPropertyKeys('10000');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockKeys);
-      expect(CommentService.getPropertiesKeys1).toHaveBeenCalledWith('10000');
+      expect(jira.issues.getCommentPropertiesKeys).toHaveBeenCalledWith({ commentId: '10000' });
     });
 
     it('handles errors getting comment property keys', async () => {
-      (CommentService.getPropertiesKeys1 as Mock).mockRejectedValue(new Error('The comment with given key or id does not exist'));
+      (jira.issues.getCommentPropertiesKeys as Mock).mockRejectedValue(new Error('The comment with given key or id does not exist'));
 
       const result = await jiraService.getCommentPropertyKeys('99999');
 
@@ -313,17 +262,17 @@ describe('JiraService', () => {
 
     it('gets a comment property', async () => {
       const mockProperty = { key: 'my-property', value: '{"a":1}' };
-      (CommentService.getProperty2 as Mock).mockResolvedValue(mockProperty);
+      (jira.issues.getCommentProperty as Mock).mockResolvedValue(mockProperty);
 
       const result = await jiraService.getCommentProperty('10000', 'my-property');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockProperty);
-      expect(CommentService.getProperty2).toHaveBeenCalledWith('my-property', '10000');
+      expect(jira.issues.getCommentProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', commentId: '10000' });
     });
 
     it('handles errors getting a comment property', async () => {
-      (CommentService.getProperty2 as Mock).mockRejectedValue(new Error('The property with given key is not found'));
+      (jira.issues.getCommentProperty as Mock).mockRejectedValue(new Error('The property with given key is not found'));
 
       const result = await jiraService.getCommentProperty('10000', 'missing');
 
@@ -332,16 +281,16 @@ describe('JiraService', () => {
     });
 
     it('sets a comment property', async () => {
-      (CommentService.setProperty1 as Mock).mockResolvedValue(undefined);
+      (jira.issues.setCommentProperty as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.setCommentProperty('10000', 'my-property', '{"a":1}');
 
       expect(result.success).toBe(true);
-      expect(CommentService.setProperty1).toHaveBeenCalledWith('my-property', '10000', '{"a":1}');
+      expect(jira.issues.setCommentProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', commentId: '10000', requestBody: '{"a":1}' });
     });
 
     it('handles errors setting a comment property', async () => {
-      (CommentService.setProperty1 as Mock).mockRejectedValue(new Error('The calling user does not have permission to administer the comment'));
+      (jira.issues.setCommentProperty as Mock).mockRejectedValue(new Error('The calling user does not have permission to administer the comment'));
 
       const result = await jiraService.setCommentProperty('10000', 'my-property', '{"a":1}');
 
@@ -350,16 +299,16 @@ describe('JiraService', () => {
     });
 
     it('deletes a comment property', async () => {
-      (CommentService.deleteProperty2 as Mock).mockResolvedValue(undefined);
+      (jira.issues.deleteCommentProperty as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteCommentProperty('10000', 'my-property');
 
       expect(result.success).toBe(true);
-      expect(CommentService.deleteProperty2).toHaveBeenCalledWith('my-property', '10000');
+      expect(jira.issues.deleteCommentProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', commentId: '10000' });
     });
 
     it('handles errors deleting a comment property', async () => {
-      (CommentService.deleteProperty2 as Mock).mockRejectedValue(new Error('The property with given key is not found'));
+      (jira.issues.deleteCommentProperty as Mock).mockRejectedValue(new Error('The property with given key is not found'));
 
       const result = await jiraService.deleteCommentProperty('10000', 'missing');
 
@@ -369,25 +318,25 @@ describe('JiraService', () => {
   });
   describe('assignIssue', () => {
     it('assigns an issue to a user', async () => {
-      (IssueService.assign as Mock).mockResolvedValue(undefined);
+      (jira.issues.assign as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.assignIssue(mockIssueKey, 'john.doe');
 
       expect(result.success).toBe(true);
-      expect(IssueService.assign).toHaveBeenCalledWith(mockIssueKey, { name: 'john.doe' });
+      expect(jira.issues.assign).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: { name: 'john.doe' } });
     });
 
     it('unassigns an issue when username is null', async () => {
-      (IssueService.assign as Mock).mockResolvedValue(undefined);
+      (jira.issues.assign as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.assignIssue(mockIssueKey, null);
 
       expect(result.success).toBe(true);
-      expect(IssueService.assign).toHaveBeenCalledWith(mockIssueKey, { name: null });
+      expect(jira.issues.assign).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: { name: null } });
     });
 
     it('handles permission errors', async () => {
-      (IssueService.assign as Mock).mockRejectedValue(new Error('User does not have permission to assign the issue'));
+      (jira.issues.assign as Mock).mockRejectedValue(new Error('User does not have permission to assign the issue'));
 
       const result = await jiraService.assignIssue(mockIssueKey, 'john.doe');
 
@@ -398,17 +347,17 @@ describe('JiraService', () => {
   describe('issue entity properties', () => {
     it('gets issue property keys', async () => {
       const mockKeys = { keys: [{ key: 'my-property', self: 'https://example.com' }] };
-      (IssueService.getPropertiesKeys2 as Mock).mockResolvedValue(mockKeys);
+      (jira.issues.getIssuePropertiesKeys as Mock).mockResolvedValue(mockKeys);
 
       const result = await jiraService.getIssuePropertyKeys(mockIssueKey);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockKeys);
-      expect(IssueService.getPropertiesKeys2).toHaveBeenCalledWith(mockIssueKey);
+      expect(jira.issues.getIssuePropertiesKeys).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
     });
 
     it('handles errors getting issue property keys', async () => {
-      (IssueService.getPropertiesKeys2 as Mock).mockRejectedValue(new Error('The issue with given key or id does not exist'));
+      (jira.issues.getIssuePropertiesKeys as Mock).mockRejectedValue(new Error('The issue with given key or id does not exist'));
 
       const result = await jiraService.getIssuePropertyKeys('PROJ-999');
 
@@ -418,17 +367,17 @@ describe('JiraService', () => {
 
     it('gets an issue property', async () => {
       const mockProperty = { key: 'my-property', value: '{"a":1}' };
-      (IssueService.getProperty3 as Mock).mockResolvedValue(mockProperty);
+      (jira.issues.getIssueProperty as Mock).mockResolvedValue(mockProperty);
 
       const result = await jiraService.getIssueProperty(mockIssueKey, 'my-property');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockProperty);
-      expect(IssueService.getProperty3).toHaveBeenCalledWith('my-property', mockIssueKey);
+      expect(jira.issues.getIssueProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', issueIdOrKey: mockIssueKey });
     });
 
     it('handles errors getting an issue property', async () => {
-      (IssueService.getProperty3 as Mock).mockRejectedValue(new Error('The property with given key is not found'));
+      (jira.issues.getIssueProperty as Mock).mockRejectedValue(new Error('The property with given key is not found'));
 
       const result = await jiraService.getIssueProperty(mockIssueKey, 'missing');
 
@@ -437,16 +386,16 @@ describe('JiraService', () => {
     });
 
     it('sets an issue property', async () => {
-      (IssueService.setProperty2 as Mock).mockResolvedValue(undefined);
+      (jira.issues.setIssueProperty as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.setIssueProperty(mockIssueKey, 'my-property', '{"a":1}');
 
       expect(result.success).toBe(true);
-      expect(IssueService.setProperty2).toHaveBeenCalledWith('my-property', mockIssueKey, '{"a":1}');
+      expect(jira.issues.setIssueProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', issueIdOrKey: mockIssueKey, requestBody: '{"a":1}' });
     });
 
     it('handles errors setting an issue property', async () => {
-      (IssueService.setProperty2 as Mock).mockRejectedValue(new Error('The calling user does not have permission to edit the issue'));
+      (jira.issues.setIssueProperty as Mock).mockRejectedValue(new Error('The calling user does not have permission to edit the issue'));
 
       const result = await jiraService.setIssueProperty(mockIssueKey, 'my-property', '{"a":1}');
 
@@ -455,16 +404,16 @@ describe('JiraService', () => {
     });
 
     it('deletes an issue property', async () => {
-      (IssueService.deleteProperty3 as Mock).mockResolvedValue(undefined);
+      (jira.issues.deleteIssueProperty as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteIssueProperty(mockIssueKey, 'my-property');
 
       expect(result.success).toBe(true);
-      expect(IssueService.deleteProperty3).toHaveBeenCalledWith('my-property', mockIssueKey);
+      expect(jira.issues.deleteIssueProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', issueIdOrKey: mockIssueKey });
     });
 
     it('handles errors deleting an issue property', async () => {
-      (IssueService.deleteProperty3 as Mock).mockRejectedValue(new Error('The property with given key is not found'));
+      (jira.issues.deleteIssueProperty as Mock).mockRejectedValue(new Error('The property with given key is not found'));
 
       const result = await jiraService.deleteIssueProperty(mockIssueKey, 'missing');
 
@@ -474,12 +423,12 @@ describe('JiraService', () => {
   });
   describe('issue lifecycle extras', () => {
     it('sends a manual notification', async () => {
-      (IssueService.notify as Mock).mockResolvedValue(undefined);
+      (jira.issues.notify as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.notifyIssue(mockIssueKey, 'Heads up', 'Please review', undefined, true, false, true, false, ['john.doe'], ['jira-admins'], ['jira-admins']);
 
       expect(result.success).toBe(true);
-      expect(IssueService.notify).toHaveBeenCalledWith(mockIssueKey, {
+      expect(jira.issues.notify).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: {
         subject: 'Heads up',
         textBody: 'Please review',
         htmlBody: undefined,
@@ -492,11 +441,11 @@ describe('JiraService', () => {
           groups: [{ name: 'jira-admins' }],
         },
         restrict: { groups: [{ name: 'jira-admins' }] },
-      });
+      } });
     });
 
     it('handles errors sending a manual notification', async () => {
-      (IssueService.notify as Mock).mockRejectedValue(new Error('Outgoing emails are disabled'));
+      (jira.issues.notify as Mock).mockRejectedValue(new Error('Outgoing emails are disabled'));
 
       const result = await jiraService.notifyIssue(mockIssueKey);
 
@@ -505,16 +454,16 @@ describe('JiraService', () => {
     });
 
     it('pins a comment', async () => {
-      (IssueService.setPinComment as Mock).mockResolvedValue(undefined);
+      (jira.issues.setPinComment as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.setCommentPinned(mockIssueKey, '10000', true);
 
       expect(result.success).toBe(true);
-      expect(IssueService.setPinComment).toHaveBeenCalledWith(mockIssueKey, '10000', true);
+      expect(jira.issues.setPinComment).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, id: '10000', requestBody: true });
     });
 
     it('handles errors pinning a comment', async () => {
-      (IssueService.setPinComment as Mock).mockRejectedValue(new Error('The comment with the given id does not exist'));
+      (jira.issues.setPinComment as Mock).mockRejectedValue(new Error('The comment with the given id does not exist'));
 
       const result = await jiraService.setCommentPinned(mockIssueKey, '99999', true);
 
@@ -524,17 +473,17 @@ describe('JiraService', () => {
 
     it('gets pinned comments', async () => {
       const mockPinned = { comment: { id: '10000', body: 'Important' }, pinnedBy: 'john.doe' };
-      (IssueService.getPinnedComments as Mock).mockResolvedValue(mockPinned);
+      (jira.issues.getPinnedComments as Mock).mockResolvedValue(mockPinned);
 
       const result = await jiraService.getPinnedComments(mockIssueKey);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockPinned);
-      expect(IssueService.getPinnedComments).toHaveBeenCalledWith(mockIssueKey);
+      expect(jira.issues.getPinnedComments).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
     });
 
     it('handles errors getting pinned comments', async () => {
-      (IssueService.getPinnedComments as Mock).mockRejectedValue(new Error('The issue does not exist'));
+      (jira.issues.getPinnedComments as Mock).mockRejectedValue(new Error('The issue does not exist'));
 
       const result = await jiraService.getPinnedComments(mockIssueKey);
 
@@ -545,37 +494,37 @@ describe('JiraService', () => {
   describe('watchers', () => {
     it('gets issue watchers', async () => {
       const mockWatchers = { watchCount: 1, watchers: [{ name: 'john.doe' }] };
-      (IssueService.getIssueWatchers as Mock).mockResolvedValue(mockWatchers);
+      (jira.issues.getIssueWatchers as Mock).mockResolvedValue(mockWatchers);
 
       const result = await jiraService.getIssueWatchers(mockIssueKey);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockWatchers);
-      expect(IssueService.getIssueWatchers).toHaveBeenCalledWith(mockIssueKey);
+      expect(jira.issues.getIssueWatchers).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
     });
 
     it('adds a watcher', async () => {
-      (IssueService.addWatcher1 as Mock).mockResolvedValue(undefined);
+      (jira.issues.addWatcher as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.addIssueWatcher(mockIssueKey, 'john.doe');
 
       expect(result.success).toBe(true);
-      expect(IssueService.addWatcher1).toHaveBeenCalledWith(mockIssueKey, undefined, 'john.doe');
+      expect(jira.issues.addWatcher).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: 'john.doe' });
     });
 
     it('removes a watcher', async () => {
-      (IssueService.removeWatcher1 as Mock).mockResolvedValue(undefined);
+      (jira.issues.removeWatcher as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.removeIssueWatcher(mockIssueKey, 'john.doe');
 
       expect(result.success).toBe(true);
-      expect(IssueService.removeWatcher1).toHaveBeenCalledWith(mockIssueKey, 'john.doe');
+      expect(jira.issues.removeWatcher).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, userName: 'john.doe' });
     });
   });
   describe('votes', () => {
     it('gets issue votes', async () => {
       const mockVotes = { votes: 3, hasVoted: false };
-      (IssueService.getVotes as Mock).mockResolvedValue(mockVotes);
+      (jira.issues.getVotes as Mock).mockResolvedValue(mockVotes);
 
       const result = await jiraService.getIssueVotes(mockIssueKey);
 
@@ -584,25 +533,25 @@ describe('JiraService', () => {
     });
 
     it('adds a vote', async () => {
-      (IssueService.addVote as Mock).mockResolvedValue(undefined);
+      (jira.issues.addVote as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.addIssueVote(mockIssueKey);
 
       expect(result.success).toBe(true);
-      expect(IssueService.addVote).toHaveBeenCalledWith(mockIssueKey);
+      expect(jira.issues.addVote).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
     });
 
     it('removes a vote', async () => {
-      (IssueService.removeVote as Mock).mockResolvedValue(undefined);
+      (jira.issues.removeVote as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.removeIssueVote(mockIssueKey);
 
       expect(result.success).toBe(true);
-      expect(IssueService.removeVote).toHaveBeenCalledWith(mockIssueKey);
+      expect(jira.issues.removeVote).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
     });
 
     it('handles errors when voting is disabled', async () => {
-      (IssueService.addVote as Mock).mockRejectedValue(new Error('Voting is disabled'));
+      (jira.issues.addVote as Mock).mockRejectedValue(new Error('Voting is disabled'));
 
       const result = await jiraService.addIssueVote(mockIssueKey);
 
@@ -613,7 +562,7 @@ describe('JiraService', () => {
   describe('reference data lookups', () => {
     it('gets issue types', async () => {
       const mockTypes = [{ name: 'Bug' }];
-      (IssuetypeService.getIssueAllTypes as Mock).mockResolvedValue(mockTypes);
+      (jira.workflows.getIssueAllTypes as Mock).mockResolvedValue(mockTypes);
 
       const result = await jiraService.getIssueTypes();
 
@@ -623,7 +572,7 @@ describe('JiraService', () => {
 
     it('gets priorities', async () => {
       const mockPriorities = [{ name: 'High' }];
-      (PriorityService.getPriorities as Mock).mockResolvedValue(mockPriorities);
+      (jira.workflows.getPriorities as Mock).mockResolvedValue(mockPriorities);
 
       const result = await jiraService.getPriorities();
 
@@ -633,7 +582,7 @@ describe('JiraService', () => {
 
     it('gets resolutions', async () => {
       const mockResolutions = [{ name: 'Fixed' }];
-      (ResolutionService.getResolutions as Mock).mockResolvedValue(mockResolutions);
+      (jira.workflows.getResolutions as Mock).mockResolvedValue(mockResolutions);
 
       const result = await jiraService.getResolutions();
 
@@ -643,7 +592,7 @@ describe('JiraService', () => {
 
     it('gets statuses', async () => {
       const mockStatuses = [{ name: 'Open' }];
-      (StatusService.getStatuses as Mock).mockResolvedValue(mockStatuses);
+      (jira.workflows.getStatuses as Mock).mockResolvedValue(mockStatuses);
 
       const result = await jiraService.getStatuses();
 
@@ -654,49 +603,49 @@ describe('JiraService', () => {
   describe('getCreateIssueMetaIssueTypes', () => {
     it('gets issue types available for creating an issue', async () => {
       const mockTypes = { values: [{ id: '10001', name: 'Bug' }] };
-      (IssueService.getCreateIssueMetaProjectIssueTypes as Mock).mockResolvedValue(mockTypes);
+      (jira.issues.getCreateIssueMetaProjectIssueTypes as Mock).mockResolvedValue(mockTypes);
 
       const result = await jiraService.getCreateIssueMetaIssueTypes('TEST');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockTypes);
-      expect(IssueService.getCreateIssueMetaProjectIssueTypes).toHaveBeenCalledWith('TEST', undefined, undefined);
+      expect(jira.issues.getCreateIssueMetaProjectIssueTypes).toHaveBeenCalledWith({ projectIdOrKey: 'TEST' });
     });
 
     it('forwards pagination as strings', async () => {
-      (IssueService.getCreateIssueMetaProjectIssueTypes as Mock).mockResolvedValue({});
+      (jira.issues.getCreateIssueMetaProjectIssueTypes as Mock).mockResolvedValue({});
 
       await jiraService.getCreateIssueMetaIssueTypes('TEST', 10, 5);
 
-      expect(IssueService.getCreateIssueMetaProjectIssueTypes).toHaveBeenCalledWith('TEST', '10', '5');
+      expect(jira.issues.getCreateIssueMetaProjectIssueTypes).toHaveBeenCalledWith({ projectIdOrKey: 'TEST', maxResults: '10', startAt: '5' });
     });
   });
   describe('getCreateIssueMetaFields', () => {
     it('gets fields available for creating an issue of a given type', async () => {
       const mockFields = { values: [{ fieldId: 'summary', required: true }] };
-      (IssueService.getCreateIssueMetaFields as Mock).mockResolvedValue(mockFields);
+      (jira.issues.getCreateIssueMetaFields as Mock).mockResolvedValue(mockFields);
 
       const result = await jiraService.getCreateIssueMetaFields('TEST', '10001');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockFields);
-      expect(IssueService.getCreateIssueMetaFields).toHaveBeenCalledWith('10001', 'TEST', undefined, undefined);
+      expect(jira.issues.getCreateIssueMetaFields).toHaveBeenCalledWith({ issueTypeId: '10001', projectIdOrKey: 'TEST' });
     });
   });
   describe('getEditIssueMeta', () => {
     it('gets fields available for editing an issue', async () => {
       const mockMeta = { fields: { summary: { required: true } } };
-      (IssueService.getEditIssueMeta as Mock).mockResolvedValue(mockMeta);
+      (jira.issues.getEditIssueMeta as Mock).mockResolvedValue(mockMeta);
 
       const result = await jiraService.getEditIssueMeta(mockIssueKey);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockMeta);
-      expect(IssueService.getEditIssueMeta).toHaveBeenCalledWith(mockIssueKey);
+      expect(jira.issues.getEditIssueMeta).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
     });
 
     it('handles permission errors', async () => {
-      (IssueService.getEditIssueMeta as Mock).mockRejectedValue(new Error('Issue does not exist'));
+      (jira.issues.getEditIssueMeta as Mock).mockRejectedValue(new Error('Issue does not exist'));
 
       const result = await jiraService.getEditIssueMeta('MISSING-1');
 

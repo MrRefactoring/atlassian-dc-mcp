@@ -1,33 +1,12 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { JiraService } from '../src/jiraService.js';
-import {
-  DashboardService,
-  FilterService,
-  JqlService,
-} from '../src/jiraClient/index.js';
 
-vi.mock('../src/jiraClient/index.js', () => ({
-  FilterService: {
-    createFilter: vi.fn(),
-    getFilter: vi.fn(),
-    editFilter: vi.fn(),
-    deleteFilter: vi.fn(),
-    getFavouriteFilters: vi.fn(),
-  },
-  DashboardService: {
-    list: vi.fn(),
-    getDashboard: vi.fn(),
-  },
-  JqlService: {
-    getAutoComplete: vi.fn(),
-    getFieldAutoCompleteForQueryString: vi.fn(),
-  },
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-  },
-}));
+const jira = vi.hoisted(() => {
+  const group = () => new Proxy({} as Record<string, ReturnType<typeof vi.fn>>, { get: (t, p: string) => (t[p] ??= vi.fn()) });
+
+  return { issues: group(), projects: group(), users: group(), workflows: group(), agile: group(), admin: group(), request: vi.fn() };
+});
+vi.mock('../src/jiraClient/index.js', () => ({ createJiraClient: () => jira }));
 
 describe('JiraService', () => {
   let jiraService: JiraService;
@@ -40,59 +19,59 @@ describe('JiraService', () => {
   describe('filters', () => {
     it('creates a filter', async () => {
       const mockFilter = { id: '10000', name: 'My open issues' };
-      (FilterService.createFilter as Mock).mockResolvedValue(mockFilter);
+      (jira.admin.createFilter as Mock).mockResolvedValue(mockFilter);
 
       const result = await jiraService.createFilter('My open issues', 'assignee = currentUser() AND resolution = Unresolved');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockFilter);
-      expect(FilterService.createFilter).toHaveBeenCalledWith(undefined, {
+      expect(jira.admin.createFilter).toHaveBeenCalledWith({ requestBody: {
         name: 'My open issues',
         jql: 'assignee = currentUser() AND resolution = Unresolved',
         description: undefined,
         favourite: undefined,
-      });
+      } });
     });
 
     it('gets a filter', async () => {
       const mockFilter = { id: '10000', name: 'My open issues' };
-      (FilterService.getFilter as Mock).mockResolvedValue(mockFilter);
+      (jira.admin.getFilter as Mock).mockResolvedValue(mockFilter);
 
       const result = await jiraService.getFilter('10000');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockFilter);
-      expect(FilterService.getFilter).toHaveBeenCalledWith('10000', undefined);
+      expect(jira.admin.getFilter).toHaveBeenCalledWith({ id: '10000' });
     });
 
     it('updates a filter', async () => {
       const mockFilter = { id: '10000', name: 'Renamed' };
-      (FilterService.editFilter as Mock).mockResolvedValue(mockFilter);
+      (jira.admin.editFilter as Mock).mockResolvedValue(mockFilter);
 
       const result = await jiraService.updateFilter('10000', 'Renamed');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockFilter);
-      expect(FilterService.editFilter).toHaveBeenCalledWith('10000', undefined, {
+      expect(jira.admin.editFilter).toHaveBeenCalledWith({ id: '10000', requestBody: {
         name: 'Renamed',
         jql: undefined,
         description: undefined,
         favourite: undefined,
-      });
+      } });
     });
 
     it('deletes a filter', async () => {
-      (FilterService.deleteFilter as Mock).mockResolvedValue(undefined);
+      (jira.admin.deleteFilter as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteFilter('10000');
 
       expect(result.success).toBe(true);
-      expect(FilterService.deleteFilter).toHaveBeenCalledWith('10000');
+      expect(jira.admin.deleteFilter).toHaveBeenCalledWith({ id: '10000' });
     });
 
     it('gets favourite filters', async () => {
       const mockFilters = [{ id: '10000', name: 'My open issues' }];
-      (FilterService.getFavouriteFilters as Mock).mockResolvedValue(mockFilters);
+      (jira.admin.getFavouriteFilters as Mock).mockResolvedValue(mockFilters);
 
       const result = await jiraService.getFavouriteFilters();
 
@@ -101,7 +80,7 @@ describe('JiraService', () => {
     });
 
     it('handles errors', async () => {
-      (FilterService.createFilter as Mock).mockRejectedValue(new Error('Filter name was not provided'));
+      (jira.admin.createFilter as Mock).mockRejectedValue(new Error('Filter name was not provided'));
 
       const result = await jiraService.createFilter('', '');
 
@@ -112,28 +91,28 @@ describe('JiraService', () => {
   describe('dashboards', () => {
     it('gets a list of dashboards', async () => {
       const mockDashboards = { dashboards: [{ id: '10000', name: 'My Dashboard' }] };
-      (DashboardService.list as Mock).mockResolvedValue(mockDashboards);
+      (jira.admin.list as Mock).mockResolvedValue(mockDashboards);
 
       const result = await jiraService.getDashboards();
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockDashboards);
-      expect(DashboardService.list).toHaveBeenCalledWith(undefined, undefined, undefined);
+      expect(jira.admin.list).toHaveBeenCalledWith({});
     });
 
     it('gets a single dashboard', async () => {
       const mockDashboard = { id: '10000', name: 'My Dashboard' };
-      (DashboardService.getDashboard as Mock).mockResolvedValue(mockDashboard);
+      (jira.admin.getDashboard as Mock).mockResolvedValue(mockDashboard);
 
       const result = await jiraService.getDashboard('10000');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockDashboard);
-      expect(DashboardService.getDashboard).toHaveBeenCalledWith('10000');
+      expect(jira.admin.getDashboard).toHaveBeenCalledWith({ id: '10000' });
     });
 
     it('handles errors', async () => {
-      (DashboardService.getDashboard as Mock).mockRejectedValue(new Error('No dashboard with the specified id'));
+      (jira.admin.getDashboard as Mock).mockRejectedValue(new Error('No dashboard with the specified id'));
 
       const result = await jiraService.getDashboard('missing');
 
@@ -148,17 +127,17 @@ describe('JiraService', () => {
         visibleFieldNames: ['assignee', 'status'],
         visibleFunctionNames: ['currentUser()', 'now()'],
       };
-      (JqlService.getAutoComplete as Mock).mockResolvedValue(mockAutoComplete);
+      (jira.admin.getAutoComplete as Mock).mockResolvedValue(mockAutoComplete);
 
       const result = await jiraService.getJqlAutocompleteData();
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockAutoComplete);
-      expect(JqlService.getAutoComplete).toHaveBeenCalledWith();
+      expect(jira.admin.getAutoComplete).toHaveBeenCalledWith({});
     });
 
     it('handles errors', async () => {
-      (JqlService.getAutoComplete as Mock).mockRejectedValue(new Error('Not authenticated'));
+      (jira.admin.getAutoComplete as Mock).mockRejectedValue(new Error('Not authenticated'));
 
       const result = await jiraService.getJqlAutocompleteData();
 
@@ -169,17 +148,17 @@ describe('JiraService', () => {
   describe('getJqlFieldAutocomplete', () => {
     it('gets value suggestions for a JQL field', async () => {
       const mockSuggestions = { results: [{ value: 'In Progress', displayName: 'In Progress' }] };
-      (JqlService.getFieldAutoCompleteForQueryString as Mock).mockResolvedValue(mockSuggestions);
+      (jira.admin.getFieldAutoCompleteForQueryString as Mock).mockResolvedValue(mockSuggestions);
 
       const result = await jiraService.getJqlFieldAutocomplete('status', 'In', 'in', undefined);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockSuggestions);
-      expect(JqlService.getFieldAutoCompleteForQueryString).toHaveBeenCalledWith(undefined, 'in', 'status', 'In');
+      expect(jira.admin.getFieldAutoCompleteForQueryString).toHaveBeenCalledWith({ predicateName: 'in', fieldName: 'status', fieldValue: 'In' });
     });
 
     it('handles errors', async () => {
-      (JqlService.getFieldAutoCompleteForQueryString as Mock).mockRejectedValue(new Error('Bad request'));
+      (jira.admin.getFieldAutoCompleteForQueryString as Mock).mockRejectedValue(new Error('Bad request'));
 
       const result = await jiraService.getJqlFieldAutocomplete('status');
 
