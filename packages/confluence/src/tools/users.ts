@@ -6,7 +6,7 @@ import type { ConfluenceService } from '../confluenceService.js';
 
 export function registerUserTools(server: McpServer, service: ConfluenceService) {
   server.registerTool(
-    'confluence_getCurrentUser',
+    'confluence_get_current_user',
     {
       description: `Get information about the current logged in user in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getCurrentUser,
@@ -19,7 +19,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_getAnonymousUser',
+    'confluence_get_anonymous_user',
     {
       description: `Get information about how the anonymous user is represented in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getAnonymousUser,
@@ -32,7 +32,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_getUser',
+    'confluence_get_user',
     {
       description: `Get a user by user key or username in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getUser,
@@ -45,7 +45,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_getUsers',
+    'confluence_get_users',
     {
       description: `Get a paginated collection of all registered users in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getUsers,
@@ -58,7 +58,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_getUserGroups',
+    'confluence_get_user_groups',
     {
       description: `Get the groups a user is a member of in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getUserGroups,
@@ -71,7 +71,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_updateCurrentUser',
+    'confluence_update_current_user',
     {
       description: `Update the current user's full name and/or email in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.updateCurrentUser,
@@ -84,7 +84,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_changeCurrentUserPassword',
+    'confluence_change_current_user_password',
     {
       description: `Change the password for the current user in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.changeCurrentUserPassword,
@@ -97,7 +97,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_getGroup',
+    'confluence_get_group',
     {
       description: `Get a user group by name in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getGroup,
@@ -110,7 +110,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_getGroups',
+    'confluence_get_groups',
     {
       description: `Get a paginated collection of all user groups in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getGroups,
@@ -123,7 +123,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_getGroupMembers',
+    'confluence_get_group_members',
     {
       description: `Get the users that are members of a group in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getGroupMembers,
@@ -136,7 +136,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_getNestedGroupMembers',
+    'confluence_get_nested_group_members',
     {
       description: `Get the groups nested directly within a group in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getNestedGroupMembers,
@@ -149,7 +149,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_addUserToGroup',
+    'confluence_add_user_to_group',
     {
       description: `Add a user to a group in ${confluenceInstanceType}. Idempotent.`,
       inputSchema: confluenceToolSchemas.addUserToGroup,
@@ -162,7 +162,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_removeUserFromGroup',
+    'confluence_remove_user_from_group',
     {
       description: `Remove a user from a group in ${confluenceInstanceType}. Idempotent.`,
       inputSchema: confluenceToolSchemas.removeUserFromGroup,
@@ -175,7 +175,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_adminCreateUser',
+    'confluence_admin_create_user',
     {
       description: `Create a new user in ${confluenceInstanceType}. Requires system administrator permission.`,
       inputSchema: confluenceToolSchemas.adminCreateUser,
@@ -188,7 +188,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_adminUpdateUser',
+    'confluence_admin_update_user',
     {
       description: `Update a user's full name and/or email in ${confluenceInstanceType}. Requires system administrator permission.`,
       inputSchema: confluenceToolSchemas.adminUpdateUser,
@@ -201,7 +201,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_adminDeleteUser',
+    'confluence_admin_delete_user',
     {
       description: `Delete a user in ${confluenceInstanceType}. Requires system administrator permission. Runs asynchronously.`,
       inputSchema: confluenceToolSchemas.adminDeleteUser,
@@ -214,7 +214,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_adminDisableUser',
+    'confluence_admin_disable_user',
     {
       description: `Disable a user in ${confluenceInstanceType}. Requires system administrator permission. Idempotent.`,
       inputSchema: confluenceToolSchemas.adminDisableUser,
@@ -227,7 +227,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_adminEnableUser',
+    'confluence_admin_enable_user',
     {
       description: `Enable a user in ${confluenceInstanceType}. Requires system administrator permission. Idempotent.`,
       inputSchema: confluenceToolSchemas.adminEnableUser,
@@ -240,7 +240,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_adminChangeUserPassword',
+    'confluence_admin_change_user_password',
     {
       description: `Change another user's password in ${confluenceInstanceType}. Requires system administrator permission.`,
       inputSchema: confluenceToolSchemas.adminChangeUserPassword,
@@ -253,7 +253,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_adminCreateGroup',
+    'confluence_admin_create_group',
     {
       description: `Create a new user group in ${confluenceInstanceType}. Requires system administrator permission.`,
       inputSchema: confluenceToolSchemas.adminCreateGroup,
@@ -266,7 +266,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_adminDeleteGroup',
+    'confluence_admin_delete_group',
     {
       description: `Delete a user group in ${confluenceInstanceType}. Requires system administrator permission.`,
       inputSchema: confluenceToolSchemas.adminDeleteGroup,
@@ -279,7 +279,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
   );
 
   server.registerTool(
-    'confluence_adminGetActiveUsers',
+    'confluence_admin_get_active_users',
     {
       description: `Get a paginated collection of active (license-counting) users in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.adminGetActiveUsers,

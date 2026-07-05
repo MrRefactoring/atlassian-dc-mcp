@@ -4,10 +4,10 @@ import { confluenceInstanceType } from './constants.js';
 
 export function registerPrompts(server: McpServer) {
   server.registerPrompt(
-    'confluence_buildCqlQuery',
+    'confluence_build_cql_query',
     {
       title: 'Build a CQL query for Confluence search',
-      description: `Turns a natural-language content request into a valid CQL (Confluence Query Language) query for confluence_searchContent in ${confluenceInstanceType}.`,
+      description: `Turns a natural-language content request into a valid CQL (Confluence Query Language) query for confluence_search_content in ${confluenceInstanceType}.`,
       argsSchema: {
         request: z.string().describe(
           'A natural-language description of what to find, e.g. \'pages about onboarding updated in the last month in the ENG space\'',
@@ -26,7 +26,7 @@ export function registerPrompts(server: McpServer) {
   Operators: =, !=, ~, !~, in, not in, and, or, not. Relative dates use forms like now("-1m") or now("-7d").
   Example: type=page and space=ENG and lastmodified >= now("-30d") and title ~ "onboarding"
 
-  Produce the CQL string, then call confluence_searchContent with it and summarize the results.`,
+  Produce the CQL string, then call confluence_search_content with it and summarize the results.`,
           },
         },
       ],

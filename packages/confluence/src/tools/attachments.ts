@@ -6,7 +6,7 @@ import type { ConfluenceService } from '../confluenceService.js';
 
 export function registerAttachmentTools(server: McpServer, service: ConfluenceService) {
   server.registerTool(
-    'confluence_getAttachments',
+    'confluence_get_attachments',
     {
       description: `Get the attachments on a piece of content in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getAttachments,
@@ -19,7 +19,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
   );
 
   server.registerTool(
-    'confluence_removeAttachment',
+    'confluence_remove_attachment',
     {
       description: `Remove an attachment from a piece of content in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.removeAttachment,
@@ -32,7 +32,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
   );
 
   server.registerTool(
-    'confluence_createAttachment',
+    'confluence_create_attachment',
     {
       description: `Upload a new attachment to a piece of content in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.createAttachment,
@@ -55,7 +55,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
   );
 
   server.registerTool(
-    'confluence_updateAttachmentMeta',
+    'confluence_update_attachment_meta',
     {
       description: `Update an attachment's metadata (filename, media type, comment) in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.updateAttachmentMeta,
@@ -77,7 +77,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
   );
 
   server.registerTool(
-    'confluence_updateAttachmentData',
+    'confluence_update_attachment_data',
     {
       description: `Replace the binary data of an attachment in ${confluenceInstanceType}, adding a new version`,
       inputSchema: confluenceToolSchemas.updateAttachmentData,
@@ -90,7 +90,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
   );
 
   server.registerTool(
-    'confluence_moveAttachment',
+    'confluence_move_attachment',
     {
       description: `Move an attachment to a different content entity in ${confluenceInstanceType}, optionally renaming it`,
       inputSchema: confluenceToolSchemas.moveAttachment,
@@ -103,7 +103,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
   );
 
   server.registerTool(
-    'confluence_deleteAttachment',
+    'confluence_delete_attachment',
     {
       description: `Delete an attachment from ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.deleteAttachment,
@@ -116,7 +116,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
   );
 
   server.registerTool(
-    'confluence_deleteAttachmentVersion',
+    'confluence_delete_attachment_version',
     {
       description: `Delete a specific version of an attachment in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.deleteAttachmentVersion,

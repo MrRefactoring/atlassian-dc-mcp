@@ -6,7 +6,7 @@ import type { JiraService } from '../jiraService.js';
 
 export function registerAgileTools(server: McpServer, service: JiraService) {
   server.registerTool(
-    'jira_getBoards',
+    'jira_get_boards',
     {
       description: `Get Agile boards visible to the current user in the ${jiraInstanceType}, optionally filtered by name or project`,
       inputSchema: jiraToolSchemas.getBoards,
@@ -19,7 +19,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getBoard',
+    'jira_get_board',
     {
       description: `Get a single Agile board by id from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getBoard,
@@ -32,7 +32,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getBoardConfiguration',
+    'jira_get_board_configuration',
     {
       description: `Get the configuration (columns, estimation, ranking) of an Agile board in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getBoardConfiguration,
@@ -45,7 +45,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getBoardIssues',
+    'jira_get_board_issues',
     {
       description: `Get the issues on an Agile board in the ${jiraInstanceType}, optionally filtered by JQL`,
       inputSchema: jiraToolSchemas.getBoardIssues,
@@ -58,7 +58,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getBoardSprints',
+    'jira_get_board_sprints',
     {
       description: `Get the sprints of an Agile board in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getBoardSprints,
@@ -71,7 +71,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getBoardVersions',
+    'jira_get_board_versions',
     {
       description: `Get the versions of an Agile board's project in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getBoardVersions,
@@ -84,7 +84,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getBoardBacklogIssues',
+    'jira_get_board_backlog_issues',
     {
       description: `Get the backlog issues of an Agile board in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getBoardBacklogIssues,
@@ -97,7 +97,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getBoardEpics',
+    'jira_get_board_epics',
     {
       description: `Get the epics of an Agile board in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getBoardEpics,
@@ -110,7 +110,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getBoardIssuesWithoutEpic',
+    'jira_get_board_issues_without_epic',
     {
       description: `Get the issues on an Agile board that are not assigned to any epic, in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getBoardIssuesWithoutEpic,
@@ -123,7 +123,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getBoardEpicIssues',
+    'jira_get_board_epic_issues',
     {
       description: `Get the issues assigned to a specific epic on an Agile board in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getBoardEpicIssues,
@@ -136,7 +136,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_moveIssuesToBacklog',
+    'jira_move_issues_to_backlog',
     {
       description: `Move issues to the backlog in the ${jiraInstanceType}, removing them from any sprint`,
       inputSchema: jiraToolSchemas.moveIssuesToBacklog,
@@ -149,7 +149,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_createSprint',
+    'jira_create_sprint',
     {
       description: `Create a sprint on an Agile board in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.createSprint,
@@ -162,7 +162,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getSprint',
+    'jira_get_sprint',
     {
       description: `Get a single sprint by id from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getSprint,
@@ -175,7 +175,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updateSprint',
+    'jira_update_sprint',
     {
       description: `Update a sprint in the ${jiraInstanceType}, including starting or closing it via the state field`,
       inputSchema: jiraToolSchemas.updateSprint,
@@ -188,7 +188,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_deleteSprint',
+    'jira_delete_sprint',
     {
       description: `Delete a sprint from the ${jiraInstanceType}. This is irreversible.`,
       inputSchema: jiraToolSchemas.deleteSprint,
@@ -201,7 +201,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getSprintIssues',
+    'jira_get_sprint_issues',
     {
       description: `Get the issues in a sprint in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getSprintIssues,
@@ -214,7 +214,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_moveIssuesToSprint',
+    'jira_move_issues_to_sprint',
     {
       description: `Move issues into a sprint in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.moveIssuesToSprint,
@@ -227,7 +227,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getEpic',
+    'jira_get_epic',
     {
       description: `Get a single epic by id or issue key from the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getEpic,
@@ -240,7 +240,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_updateEpic',
+    'jira_update_epic',
     {
       description: `Update an epic (name, summary, done status) in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.updateEpic,
@@ -253,7 +253,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_getEpicIssues',
+    'jira_get_epic_issues',
     {
       description: `Get the issues assigned to an epic in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getEpicIssues,
@@ -266,7 +266,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_moveIssuesToEpic',
+    'jira_move_issues_to_epic',
     {
       description: `Move issues into an epic in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.moveIssuesToEpic,
@@ -279,7 +279,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
-    'jira_rankEpic',
+    'jira_rank_epic',
     {
       description: `Reorder (rank) an epic relative to another epic in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.rankEpic,
