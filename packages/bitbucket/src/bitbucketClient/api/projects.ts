@@ -1,7 +1,7 @@
 import type { HttpClient } from '../core/types.js';
-import { enc } from '../core/types.js';
+import { enc, pickBody } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
-import { PermittedGroupSchema, PermittedUserSchema, ProjectSchema, RepositorySchema } from '../models/index.js';
+import { PermittedGroupSchema, PermittedUserSchema, ProjectSchema, RepositorySchema, BranchSchema } from '../models/index.js';
 import type { PermittedGroup, PermittedUser, Project, Repository } from '../models/index.js';
 import type { CreateProject, CreateRepository, DeleteProject, DeleteRepository, ForkRepository, GetForkedRepositories, GetProjectGroupsWithAnyPermission, GetProject, GetProjects, GetRepositories, GetRepository, GetProjectUsersWithAnyPermission, RevokeProjectPermissions, SetDefaultBranch, SetPermissionForGroups, SetPermissionForUsers, UpdateProject, UpdateRepository } from '../parameters/index.js';
 
@@ -9,7 +9,7 @@ export function createProject(client: HttpClient, params: CreateProject): Promis
   return client.sendRequest({
     method: 'POST',
     url: '/api/latest/projects',
-    body: params.requestBody,
+    body: pickBody(params, ProjectSchema),
     mediaType: 'application/json',
     schema: ProjectSchema,
   });
@@ -19,7 +19,7 @@ export function createRepository(client: HttpClient, params: CreateRepository): 
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos`,
-    body: params.requestBody,
+    body: pickBody(params, RepositorySchema),
     mediaType: 'application/json',
     schema: RepositorySchema,
   });
@@ -43,7 +43,7 @@ export function forkRepository(client: HttpClient, params: ForkRepository): Prom
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
-    body: params.requestBody,
+    body: pickBody(params, RepositorySchema),
     mediaType: 'application/json',
     schema: RepositorySchema,
   });
@@ -122,7 +122,7 @@ export function setDefaultBranch(client: HttpClient, params: SetDefaultBranch): 
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/default-branch`,
-    body: params.requestBody,
+    body: pickBody(params, BranchSchema),
     mediaType: 'application/json',
   });
 }
@@ -147,7 +147,7 @@ export function updateProject(client: HttpClient, params: UpdateProject): Promis
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}`,
-    body: params.requestBody,
+    body: pickBody(params, ProjectSchema),
     mediaType: 'application/json',
     schema: ProjectSchema,
   });
@@ -157,7 +157,7 @@ export function updateRepository(client: HttpClient, params: UpdateRepository): 
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
-    body: params.requestBody,
+    body: pickBody(params, RepositorySchema),
     mediaType: 'application/json',
     schema: RepositorySchema,
   });

@@ -1,8 +1,8 @@
 import type { HttpClient } from '../core/types.js';
-import { enc } from '../core/types.js';
+import { enc, pickBody } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
 import { z } from 'zod';
-import { ChangeSchema, CommentSchema, PullRequestActivitySchema, PullRequestConditionSchema, PullRequestMergeabilitySchema, PullRequestParticipantSchema, PullRequestSchema } from '../models/index.js';
+import { ChangeSchema, CommentSchema, PullRequestActivitySchema, PullRequestConditionSchema, PullRequestMergeabilitySchema, PullRequestParticipantSchema, PullRequestSchema, ApplySuggestionRequestSchema, PullRequestAssignParticipantRoleRequestSchema, DefaultReviewersRequestSchema, PullRequestDeclineRequestSchema, PullRequestMergeRequestSchema, PullRequestReopenRequestSchema, PullRequestAssignStatusRequestSchema } from '../models/index.js';
 import type { Change, Comment, PullRequest, PullRequestActivity, PullRequestCondition, PullRequestMergeability, PullRequestParticipant } from '../models/index.js';
 import type { ApplySuggestion, AssignParticipantRole, CanMerge, Create, CreatePullRequestComment, CreatePullRequestCondition, Decline, DeleteComment, DeletePullRequestCondition, GetPullRequest, GetActivities, GetPage, GetPullRequestConditions, GetReviewers, ListParticipants, Merge, Reopen, StreamPullRequestChanges, UnassignParticipantRole, Unwatch, Update, UpdateComment, UpdatePullRequestCondition, UpdateStatus, Watch } from '../parameters/index.js';
 
@@ -10,7 +10,7 @@ export function applySuggestion(client: HttpClient, params: ApplySuggestion): Pr
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/comments/${enc(params.commentId)}/apply-suggestion`,
-    body: params.requestBody,
+    body: pickBody(params, ApplySuggestionRequestSchema),
     mediaType: 'application/json',
   });
 }
@@ -19,7 +19,7 @@ export function assignParticipantRole(client: HttpClient, params: AssignParticip
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/participants`,
-    body: params.requestBody,
+    body: pickBody(params, PullRequestAssignParticipantRoleRequestSchema),
     mediaType: 'application/json',
     schema: PullRequestParticipantSchema,
   });
@@ -37,7 +37,7 @@ export function create(client: HttpClient, params: Create): Promise<PullRequest>
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests`,
-    body: params.requestBody,
+    body: pickBody(params, PullRequestSchema),
     mediaType: 'application/json',
     schema: PullRequestSchema,
   });
@@ -47,7 +47,7 @@ export function createComment(client: HttpClient, params: CreatePullRequestComme
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/comments`,
-    body: params.requestBody,
+    body: pickBody(params, CommentSchema),
     mediaType: 'application/json',
     schema: CommentSchema,
   });
@@ -57,7 +57,7 @@ export function createPullRequestCondition(client: HttpClient, params: CreatePul
   return client.sendRequest({
     method: 'POST',
     url: `/default-reviewers/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/condition`,
-    body: params.requestBody,
+    body: pickBody(params, DefaultReviewersRequestSchema),
     mediaType: 'application/json',
     schema: PullRequestConditionSchema,
   });
@@ -68,7 +68,7 @@ export function decline(client: HttpClient, params: Decline): Promise<PullReques
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/decline`,
     searchParams: { version: params.version },
-    body: params.requestBody,
+    body: pickBody(params, PullRequestDeclineRequestSchema.omit({ version: true })),
     mediaType: 'application/json',
     schema: PullRequestSchema,
   });
@@ -146,7 +146,7 @@ export function merge(client: HttpClient, params: Merge): Promise<PullRequest> {
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/merge`,
     searchParams: { version: params.version },
-    body: params.requestBody,
+    body: pickBody(params, PullRequestMergeRequestSchema.omit({ version: true })),
     mediaType: 'application/json',
     schema: PullRequestSchema,
   });
@@ -157,7 +157,7 @@ export function reopen(client: HttpClient, params: Reopen): Promise<PullRequest>
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/reopen`,
     searchParams: { version: params.version },
-    body: params.requestBody,
+    body: pickBody(params, PullRequestReopenRequestSchema.omit({ version: true })),
     mediaType: 'application/json',
     schema: PullRequestSchema,
   });
@@ -190,7 +190,7 @@ export function update(client: HttpClient, params: Update): Promise<PullRequest>
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}`,
-    body: params.requestBody,
+    body: pickBody(params, PullRequestSchema),
     mediaType: 'application/json',
     schema: PullRequestSchema,
   });
@@ -200,7 +200,7 @@ export function updateComment(client: HttpClient, params: UpdateComment): Promis
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/comments/${enc(params.commentId)}`,
-    body: params.requestBody,
+    body: pickBody(params, CommentSchema),
     mediaType: 'application/json',
     schema: CommentSchema,
   });
@@ -210,7 +210,7 @@ export function updatePullRequestCondition(client: HttpClient, params: UpdatePul
   return client.sendRequest({
     method: 'PUT',
     url: `/default-reviewers/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/condition/${enc(params.id)}`,
-    body: params.requestBody,
+    body: pickBody(params, ['requiredApprovals', 'reviewerGroups', 'reviewers', 'sourceMatcher', 'targetMatcher']),
     mediaType: 'application/json',
     schema: PullRequestConditionSchema,
   });
@@ -221,7 +221,7 @@ export function updateStatus(client: HttpClient, params: UpdateStatus): Promise<
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/participants/${enc(params.userSlug)}`,
     searchParams: { version: params.version },
-    body: params.requestBody,
+    body: pickBody(params, PullRequestAssignStatusRequestSchema),
     mediaType: 'application/json',
     schema: PullRequestParticipantSchema,
   });

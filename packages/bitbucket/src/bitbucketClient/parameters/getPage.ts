@@ -1,14 +1,18 @@
-export interface GetPage {
-  projectKey: string;
-  repositorySlug: string;
-  withAttributes?: string;
-  at?: string;
-  withProperties?: string;
-  draft?: string;
-  filterText?: string;
-  state?: string;
-  order?: string;
-  direction?: string;
-  start?: number;
-  limit?: number;
-}
+import { z } from 'zod';
+
+export const GetPageSchema = z.object({
+  projectKey: z.string(),
+  repositorySlug: z.string(),
+  withAttributes: z.string().optional(),
+  at: z.string().optional(),
+  withProperties: z.string().optional(),
+  draft: z.string().optional(),
+  filterText: z.string().optional(),
+  state: z.string().optional(),
+  order: z.string().optional(),
+  direction: z.string().optional(),
+  start: z.number().optional(),
+  limit: z.number().optional(),
+});
+
+export type GetPage = z.infer<typeof GetPageSchema>;

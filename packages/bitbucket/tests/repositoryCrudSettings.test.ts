@@ -57,10 +57,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.projects.createRepository).toHaveBeenCalledWith({
-        projectKey: 'TEST', requestBody: {
-          name: 'New Repo',
-          scmId: 'git',
-        },
+        projectKey: 'TEST', name: 'New Repo', scmId: 'git',
       });
     });
 
@@ -70,11 +67,7 @@ describe('BitbucketService', () => {
       await bitbucketService.createRepository('TEST', 'Repo', 'hg', 'main');
 
       expect(bb.projects.createRepository).toHaveBeenCalledWith({
-        projectKey: 'TEST', requestBody: {
-          name: 'Repo',
-          scmId: 'hg',
-          defaultBranch: 'main',
-        },
+        projectKey: 'TEST', name: 'Repo', scmId: 'hg', defaultBranch: 'main',
       });
     });
 
@@ -98,12 +91,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.projects.updateRepository).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: {
-          name: 'Renamed',
-          description: 'desc',
-          defaultBranch: 'main',
-          project: { key: 'DEST' },
-        },
+        projectKey: 'TEST', repositorySlug: 'test-repo', name: 'Renamed', description: 'desc', defaultBranch: 'main', project: { key: 'DEST' },
       });
     });
 
@@ -113,7 +101,7 @@ describe('BitbucketService', () => {
       await bitbucketService.updateRepository('TEST', 'test-repo');
 
       expect(bb.projects.updateRepository).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: {},
+        projectKey: 'TEST', repositorySlug: 'test-repo',
       });
     });
 
@@ -126,10 +114,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.projects.forkRepository).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: {
-          name: 'my-fork',
-          project: { key: 'DEST' },
-        },
+        projectKey: 'TEST', repositorySlug: 'test-repo', name: 'my-fork', project: { key: 'DEST' },
       });
     });
 
@@ -139,7 +124,7 @@ describe('BitbucketService', () => {
       await bitbucketService.forkRepository('TEST', 'test-repo');
 
       expect(bb.projects.forkRepository).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: {},
+        projectKey: 'TEST', repositorySlug: 'test-repo',
       });
     });
 
@@ -205,7 +190,7 @@ describe('BitbucketService', () => {
         branchId: 'refs/heads/main',
       });
       expect(bb.projects.setDefaultBranch).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: { id: 'refs/heads/main' },
+        projectKey: 'TEST', repositorySlug: 'test-repo', id: 'refs/heads/main',
       });
     });
 
@@ -249,7 +234,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.repositories.updatePullRequestSettings).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: { requiredAllApprovers: true },
+        projectKey: 'TEST', repositorySlug: 'test-repo', requiredAllApprovers: true,
       });
     });
 
@@ -293,10 +278,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.repositories.setAutoDeclineSettings).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: {
-          enabled: true,
-          inactivityWeeks: 8,
-        },
+        projectKey: 'TEST', repositorySlug: 'test-repo', enabled: true, inactivityWeeks: 8,
       });
     });
 
@@ -306,7 +288,7 @@ describe('BitbucketService', () => {
       await bitbucketService.setAutoDeclineSettings('TEST', 'test-repo', false);
 
       expect(bb.repositories.setAutoDeclineSettings).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: { enabled: false },
+        projectKey: 'TEST', repositorySlug: 'test-repo', enabled: false,
       });
     });
 
@@ -371,7 +353,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.repositories.setAutoMergeSettings).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: { enabled: true },
+        projectKey: 'TEST', repositorySlug: 'test-repo', enabled: true,
       });
     });
 
@@ -502,7 +484,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.repositories.setSettings).toHaveBeenCalledWith({
-        projectKey: 'TEST', hookKey: 'hook-key', repositorySlug: 'test-repo', requestBody: { branchesToExclude: ['refs/heads/main'] },
+        projectKey: 'TEST', hookKey: 'hook-key', repositorySlug: 'test-repo', branchesToExclude: ['refs/heads/main'],
       });
     });
 
@@ -541,12 +523,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.pullRequests.createPullRequestCondition).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: {
-          reviewers: [{ id: 52 }],
-          sourceMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
-          targetMatcher: { id: 'refs/heads/main', displayId: 'main', type: { id: 'BRANCH' } },
-          requiredApprovals: 1,
-        },
+        projectKey: 'TEST', repositorySlug: 'test-repo', reviewers: [{ id: 52 }], sourceMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } }, targetMatcher: { id: 'refs/heads/main', displayId: 'main', type: { id: 'BRANCH' } }, requiredApprovals: 1,
       });
     });
 
@@ -558,11 +535,7 @@ describe('BitbucketService', () => {
       );
 
       expect(bb.pullRequests.createPullRequestCondition).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: {
-          reviewers: [{ id: 52 }],
-          sourceMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
-          targetMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
-        },
+        projectKey: 'TEST', repositorySlug: 'test-repo', reviewers: [{ id: 52 }], sourceMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } }, targetMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
       });
     });
 
@@ -588,12 +561,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.pullRequests.updatePullRequestCondition).toHaveBeenCalledWith({
-        projectKey: 'TEST', id: '1', repositorySlug: 'test-repo', requestBody: {
-          reviewers: [{ id: 52 }],
-          sourceMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
-          targetMatcher: { id: 'refs/heads/main', displayId: 'main', type: { id: 'BRANCH' } },
-          requiredApprovals: 2,
-        },
+        projectKey: 'TEST', id: '1', repositorySlug: 'test-repo', reviewers: [{ id: 52 }], sourceMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } }, targetMatcher: { id: 'refs/heads/main', displayId: 'main', type: { id: 'BRANCH' } }, requiredApprovals: 2,
       });
     });
 

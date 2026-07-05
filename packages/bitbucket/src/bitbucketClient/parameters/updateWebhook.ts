@@ -1,8 +1,11 @@
-import type { Webhook } from '../models/index.js';
+import { z } from 'zod';
+import { WebhookSchema } from '../models/index.js';
 
-export interface UpdateWebhook {
-  projectKey: string;
-  webhookId: string;
-  repositorySlug: string;
-  requestBody?: Webhook;
-}
+export const UpdateWebhookSchema = z.object({
+  projectKey: z.string(),
+  webhookId: z.string(),
+  repositorySlug: z.string(),
+  ...WebhookSchema.shape,
+});
+
+export type UpdateWebhook = z.infer<typeof UpdateWebhookSchema>;

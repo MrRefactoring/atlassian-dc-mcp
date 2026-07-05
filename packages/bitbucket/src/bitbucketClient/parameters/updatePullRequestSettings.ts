@@ -1,7 +1,10 @@
-import type { RepositoryPullRequestSettings } from '../models/index.js';
+import { z } from 'zod';
+import { RepositoryPullRequestSettingsSchema } from '../models/index.js';
 
-export interface UpdatePullRequestSettings {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: RepositoryPullRequestSettings;
-}
+export const UpdatePullRequestSettingsSchema = z.object({
+  projectKey: z.string(),
+  repositorySlug: z.string(),
+  ...RepositoryPullRequestSettingsSchema.shape,
+});
+
+export type UpdatePullRequestSettings = z.infer<typeof UpdatePullRequestSettingsSchema>;

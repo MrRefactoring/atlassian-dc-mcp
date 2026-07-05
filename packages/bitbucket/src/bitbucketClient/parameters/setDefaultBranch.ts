@@ -1,7 +1,10 @@
-import type { Branch } from '../models/index.js';
+import { z } from 'zod';
+import { BranchSchema } from '../models/index.js';
 
-export interface SetDefaultBranch {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: Branch;
-}
+export const SetDefaultBranchSchema = z.object({
+  projectKey: z.string(),
+  repositorySlug: z.string(),
+  ...BranchSchema.shape,
+});
+
+export type SetDefaultBranch = z.infer<typeof SetDefaultBranchSchema>;

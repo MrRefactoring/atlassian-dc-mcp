@@ -1,10 +1,13 @@
-import type { PullRequestAssignStatusRequest } from '../models/index.js';
+import { z } from 'zod';
+import { PullRequestAssignStatusRequestSchema } from '../models/index.js';
 
-export interface UpdateStatus {
-  projectKey: string;
-  userSlug: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  requestBody: PullRequestAssignStatusRequest;
-  version?: string;
-}
+export const UpdateStatusSchema = z.object({
+  projectKey: z.string(),
+  userSlug: z.string(),
+  pullRequestId: z.string(),
+  repositorySlug: z.string(),
+  version: z.string().optional(),
+  ...PullRequestAssignStatusRequestSchema.shape,
+});
+
+export type UpdateStatus = z.infer<typeof UpdateStatusSchema>;

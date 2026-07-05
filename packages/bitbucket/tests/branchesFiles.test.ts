@@ -51,7 +51,7 @@ describe('BitbucketService', () => {
       expect(bb.repositories.createBranch).toHaveBeenCalledWith({
         projectKey: mockProjectKey,
         repositorySlug: mockRepositorySlug,
-        requestBody: { name: 'feature/login', startPoint: 'refs/heads/master' },
+        name: 'feature/login', startPoint: 'refs/heads/master',
       });
     });
 
@@ -83,7 +83,7 @@ describe('BitbucketService', () => {
       expect(bb.repositories.deleteBranch).toHaveBeenCalledWith({
         projectKey: mockProjectKey,
         repositorySlug: mockRepositorySlug,
-        requestBody: { name: 'refs/heads/feature/login' },
+        name: 'refs/heads/feature/login',
       });
     });
 
@@ -102,7 +102,7 @@ describe('BitbucketService', () => {
       expect(bb.repositories.deleteBranch).toHaveBeenCalledWith({
         projectKey: mockProjectKey,
         repositorySlug: mockRepositorySlug,
-        requestBody: { name: 'refs/heads/feature/login', dryRun: true },
+        name: 'refs/heads/feature/login', dryRun: true,
       });
     });
 
@@ -267,7 +267,7 @@ describe('BitbucketService', () => {
         path: 'docs/new.md',
         projectKey: mockProjectKey,
         repositorySlug: mockRepositorySlug,
-        formData: { content: '# Hello', message: 'add file', branch: 'master' },
+        content: '# Hello', message: 'add file', branch: 'master',
       });
     });
 
@@ -287,7 +287,7 @@ describe('BitbucketService', () => {
         path: 'README.md',
         projectKey: mockProjectKey,
         repositorySlug: mockRepositorySlug,
-        formData: { content: 'updated', message: 'edit readme', branch: 'feature/x', sourceCommitId: 'oldsha', sourceBranch: 'master' },
+        content: 'updated', message: 'edit readme', branch: 'feature/x', sourceCommitId: 'oldsha', sourceBranch: 'master',
       });
     });
 
@@ -536,7 +536,7 @@ describe('BitbucketService', () => {
       expect(bb.repositories.createRestrictions).toHaveBeenCalledWith({
         projectKey: 'TEST',
         repositorySlug: 'test-repo',
-        requestBody: [{
+        restrictions: [{
           type: 'no-deletes',
           matcher: { id: 'refs/heads/master', displayId: 'master', type: { id: 'BRANCH' } },
           userSlugs: ['admin'],
@@ -554,7 +554,7 @@ describe('BitbucketService', () => {
       expect(bb.repositories.createRestrictions).toHaveBeenCalledWith({
         projectKey: 'TEST',
         repositorySlug: 'test-repo',
-        requestBody: [{
+        restrictions: [{
           type: 'read-only',
           matcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
         }],

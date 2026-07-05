@@ -53,7 +53,7 @@ describe('BitbucketService', () => {
         commitId,
         repositorySlug: mockRepositorySlug,
         key,
-        requestBody: report,
+        ...(report),
       });
     });
 
@@ -83,7 +83,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ added: 2, key });
       expect(bb.builds.addAnnotations).toHaveBeenCalledWith({
-        projectKey: mockProjectKey, commitId, repositorySlug: mockRepositorySlug, key, requestBody: { annotations },
+        projectKey: mockProjectKey, commitId, repositorySlug: mockRepositorySlug, key, annotations,
       });
     });
 
@@ -163,7 +163,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         commitId: 'abc123',
         repositorySlug: mockRepositorySlug,
-        requestBody: { state: 'SUCCESSFUL', key: 'build-1', url: 'http://ci/build/1' },
+        state: 'SUCCESSFUL', key: 'build-1', url: 'http://ci/build/1',
       });
     });
 
@@ -183,7 +183,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         commitId: 'abc123',
         repositorySlug: mockRepositorySlug,
-        requestBody: { state: 'FAILED', key: 'build-2', url: 'http://ci/build/2', name: 'Unit tests', description: 'Failed on step 3' },
+        state: 'FAILED', key: 'build-2', url: 'http://ci/build/2', name: 'Unit tests', description: 'Failed on step 3',
       });
     });
 
@@ -262,11 +262,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.builds.createRequiredBuildsMergeCheck).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: {
-          buildParentKeys: ['build-foo'],
-          refMatcher: { id: 'refs/heads/master', displayId: 'master', type: { id: 'BRANCH' } },
-          exemptRefMatcher: { id: 'refs/heads/dev', displayId: 'dev', type: { id: 'BRANCH' } },
-        },
+        projectKey: 'TEST', repositorySlug: 'test-repo', buildParentKeys: ['build-foo'], refMatcher: { id: 'refs/heads/master', displayId: 'master', type: { id: 'BRANCH' } }, exemptRefMatcher: { id: 'refs/heads/dev', displayId: 'dev', type: { id: 'BRANCH' } },
       });
     });
 
@@ -276,10 +272,7 @@ describe('BitbucketService', () => {
       await bitbucketService.createRequiredBuildsMergeCheck('TEST', 'test-repo', ['build-foo'], 'ANY_REF', 'ANY_REF');
 
       expect(bb.builds.createRequiredBuildsMergeCheck).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: {
-          buildParentKeys: ['build-foo'],
-          refMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
-        },
+        projectKey: 'TEST', repositorySlug: 'test-repo', buildParentKeys: ['build-foo'], refMatcher: { id: 'ANY_REF', displayId: 'ANY_REF', type: { id: 'ANY_REF' } },
       });
     });
 
@@ -303,10 +296,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.builds.updateRequiredBuildsMergeCheck).toHaveBeenCalledWith({
-        projectKey: 'TEST', id: 1, repositorySlug: 'test-repo', requestBody: {
-          buildParentKeys: ['build-foo', 'build-bar'],
-          refMatcher: { id: 'refs/heads/master', displayId: 'master', type: { id: 'BRANCH' } },
-        },
+        projectKey: 'TEST', id: 1, repositorySlug: 'test-repo', buildParentKeys: ['build-foo', 'build-bar'], refMatcher: { id: 'refs/heads/master', displayId: 'master', type: { id: 'BRANCH' } },
       });
     });
 

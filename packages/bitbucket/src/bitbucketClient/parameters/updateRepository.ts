@@ -1,7 +1,10 @@
-import type { Repository } from '../models/index.js';
+import { z } from 'zod';
+import { RepositorySchema } from '../models/index.js';
 
-export interface UpdateRepository {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: Repository;
-}
+export const UpdateRepositorySchema = z.object({
+  projectKey: z.string(),
+  repositorySlug: z.string(),
+  ...RepositorySchema.shape,
+});
+
+export type UpdateRepository = z.infer<typeof UpdateRepositorySchema>;

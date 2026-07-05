@@ -39,11 +39,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.projects.createProject).toHaveBeenCalledWith({
-        requestBody: {
-          key: 'PROJ',
-          name: 'My Project',
-          description: 'desc',
-        },
+        key: 'PROJ', name: 'My Project', description: 'desc',
       });
     });
 
@@ -53,10 +49,7 @@ describe('BitbucketService', () => {
       await bitbucketService.createProject('PROJ', 'My Project');
 
       expect(bb.projects.createProject).toHaveBeenCalledWith({
-        requestBody: {
-          key: 'PROJ',
-          name: 'My Project',
-        },
+        key: 'PROJ', name: 'My Project',
       });
     });
 
@@ -79,11 +72,7 @@ describe('BitbucketService', () => {
       expect(result.data).toBe(mockData);
       expect(bb.projects.updateProject).toHaveBeenCalledWith({
         projectKey: 'PROJ',
-        requestBody: {
-          key: 'PROJ',
-          name: 'Renamed',
-          description: 'new desc',
-        },
+        key: 'PROJ', name: 'Renamed', description: 'new desc',
       });
     });
 
@@ -92,7 +81,7 @@ describe('BitbucketService', () => {
 
       await bitbucketService.updateProject('PROJ');
 
-      expect(bb.projects.updateProject).toHaveBeenCalledWith({ projectKey: 'PROJ', requestBody: { key: 'PROJ' } });
+      expect(bb.projects.updateProject).toHaveBeenCalledWith({ projectKey: 'PROJ', key: 'PROJ' });
     });
 
     it('should delete a project and return an ack', async () => {

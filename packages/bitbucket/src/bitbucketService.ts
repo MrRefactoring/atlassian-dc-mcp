@@ -204,7 +204,7 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody: any = { state, key, url, ...(name ? { name } : {}), ...(description ? { description } : {}) };
     const result = await handleApiOperation(
-      () => this.bb.builds.add({ projectKey: projectKey, commitId: commitId, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.builds.add({ projectKey: projectKey, commitId: commitId, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error adding build status',
     );
     if (result.success) {
@@ -394,7 +394,7 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
 
     return handleApiOperation(
-      () => this.bb.builds.setACodeInsightsReport({ projectKey: projectKey, commitId: commitId, repositorySlug: repositorySlug, key: key, requestBody: report as any }),
+      () => this.bb.builds.setACodeInsightsReport({ projectKey: projectKey, commitId: commitId, repositorySlug: repositorySlug, key: key, ...(report as any) }),
       'Error setting code insights report',
     );
   }
@@ -443,7 +443,7 @@ export class BitbucketService {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
-      () => this.bb.builds.addAnnotations({ projectKey: projectKey, commitId: commitId, repositorySlug: repositorySlug, key: key, requestBody: { annotations } as any }),
+      () => this.bb.builds.addAnnotations({ projectKey: projectKey, commitId: commitId, repositorySlug: repositorySlug, key: key, ...({ annotations } as any) }),
       'Error adding code insights annotations',
     );
     if (result.success) {
@@ -497,7 +497,7 @@ export class BitbucketService {
     }
 
     return handleApiOperation(
-      () => this.bb.repositories.createComment({ projectKey: projectKey, commitId: commitId, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.repositories.createComment({ projectKey: projectKey, commitId: commitId, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error adding commit comment',
     );
   }
@@ -600,7 +600,7 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
 
     return handleApiOperation(
-      () => this.bb.repositories.createBranch({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: { name, startPoint } }),
+      () => this.bb.repositories.createBranch({ projectKey: projectKey, repositorySlug: repositorySlug, name, startPoint }),
       'Error creating branch',
     );
   }
@@ -618,7 +618,7 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
     const requestBody: any = { name, ...(dryRun !== undefined ? { dryRun } : {}) };
     const result = await handleApiOperation(
-      () => this.bb.repositories.deleteBranch({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.repositories.deleteBranch({ projectKey: projectKey, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error deleting branch',
     );
     if (result.success) {
@@ -748,7 +748,7 @@ export class BitbucketService {
     };
 
     return handleApiOperation(
-      () => this.bb.repositories.editFile({ path: path, projectKey: projectKey, repositorySlug: repositorySlug, formData: formData }),
+      () => this.bb.repositories.editFile({ path: path, projectKey: projectKey, repositorySlug: repositorySlug, ...(formData) }),
       'Error editing file',
     );
   }
@@ -774,7 +774,7 @@ export class BitbucketService {
     const requestBody: any = { name, startPoint, ...(message ? { message } : {}) };
 
     return handleApiOperation(
-      () => this.bb.repositories.createTagForRepository({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.repositories.createTagForRepository({ projectKey: projectKey, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error creating tag',
     );
   }
@@ -969,7 +969,7 @@ export class BitbucketService {
     const suggestionWarning = filePath ? multilineSuggestionWarning(text, startLine) : undefined;
 
     const result = await handleApiOperation(
-      () => this.bb.pullRequests.createComment({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, requestBody: comment }),
+      () => this.bb.pullRequests.createComment({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, ...(comment) }),
       'Error posting pull request comment',
     );
 
@@ -1034,7 +1034,7 @@ export class BitbucketService {
     }
 
     const result = await handleApiOperation(
-      () => this.bb.pullRequests.updateComment({ projectKey: projectKey, commentId: commentId, pullRequestId: pullRequestId, repositorySlug: repositorySlug, requestBody: comment }),
+      () => this.bb.pullRequests.updateComment({ projectKey: projectKey, commentId: commentId, pullRequestId: pullRequestId, repositorySlug: repositorySlug, ...(comment) }),
       'Error updating pull request comment',
     );
 
@@ -1102,7 +1102,7 @@ export class BitbucketService {
     };
 
     return handleApiOperation(
-      () => this.bb.pullRequests.updateStatus({ projectKey: projectKey, userSlug: userSlug, pullRequestId: pullRequestId, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.pullRequests.updateStatus({ projectKey: projectKey, userSlug: userSlug, pullRequestId: pullRequestId, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error submitting pull request review',
     );
   }
@@ -1219,7 +1219,7 @@ export class BitbucketService {
     }
 
     const result = await handleApiOperation(
-      () => this.bb.pullRequests.create({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: pullRequestData }),
+      () => this.bb.pullRequests.create({ projectKey: projectKey, repositorySlug: repositorySlug, ...(pullRequestData) }),
       'Error creating pull request',
     );
 
@@ -1284,7 +1284,7 @@ export class BitbucketService {
     }
 
     const result = await handleApiOperation(
-      () => this.bb.pullRequests.update({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, requestBody: pullRequestData }),
+      () => this.bb.pullRequests.update({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, ...(pullRequestData) }),
       'Error updating pull request',
     );
 
@@ -1347,7 +1347,7 @@ export class BitbucketService {
     };
 
     const result = await handleApiOperation(
-      () => this.bb.pullRequests.merge({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, version: String(version), requestBody: requestBody }),
+      () => this.bb.pullRequests.merge({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, version: String(version), ...(requestBody) }),
       'Error merging pull request',
     );
 
@@ -1383,7 +1383,7 @@ export class BitbucketService {
     };
 
     const result = await handleApiOperation(
-      () => this.bb.pullRequests.decline({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, version: String(version), requestBody: requestBody }),
+      () => this.bb.pullRequests.decline({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, version: String(version), ...(requestBody) }),
       'Error declining pull request',
     );
 
@@ -1414,7 +1414,7 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
 
     const result = await handleApiOperation(
-      () => this.bb.pullRequests.reopen({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, version: String(version), requestBody: {} }),
+      () => this.bb.pullRequests.reopen({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, version: String(version) }),
       'Error reopening pull request',
     );
 
@@ -1651,7 +1651,7 @@ export class BitbucketService {
     );
 
     return handleApiOperation(
-      () => this.bb.pullRequests.createPullRequestCondition({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.pullRequests.createPullRequestCondition({ projectKey: projectKey, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error creating default reviewer condition',
     );
   }
@@ -1683,7 +1683,7 @@ export class BitbucketService {
     const requestBody = this.buildWebhookBody(name, url, events, active, secret, sslVerificationRequired);
 
     return handleApiOperation(
-      () => this.bb.repositories.createWebhook({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.repositories.createWebhook({ projectKey: projectKey, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error creating webhook',
     );
   }
@@ -1720,7 +1720,7 @@ export class BitbucketService {
     );
 
     return handleApiOperation(
-      () => this.bb.builds.createRequiredBuildsMergeCheck({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.builds.createRequiredBuildsMergeCheck({ projectKey: projectKey, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error creating required builds merge check',
     );
   }
@@ -1754,7 +1754,7 @@ export class BitbucketService {
     const requestBody = this.buildWebhookBody(name, url, events, active, secret, sslVerificationRequired);
 
     return handleApiOperation(
-      () => this.bb.repositories.updateWebhook({ projectKey: projectKey, webhookId: webhookId, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.repositories.updateWebhook({ projectKey: projectKey, webhookId: webhookId, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error updating webhook',
     );
   }
@@ -1798,7 +1798,7 @@ export class BitbucketService {
     };
 
     return handleApiOperation(
-      () => this.bb.repositories.createRestrictions({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: [restriction] }),
+      () => this.bb.repositories.createRestrictions({ projectKey: projectKey, repositorySlug: repositorySlug, restrictions: [restriction] }),
       'Error creating branch restriction',
     );
   }
@@ -1839,7 +1839,7 @@ export class BitbucketService {
     );
 
     return handleApiOperation(
-      () => this.bb.pullRequests.updatePullRequestCondition({ projectKey: projectKey, id: id, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.pullRequests.updatePullRequestCondition({ projectKey: projectKey, id: id, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error updating default reviewer condition',
     );
   }
@@ -1878,7 +1878,7 @@ export class BitbucketService {
     );
 
     return handleApiOperation(
-      () => this.bb.builds.updateRequiredBuildsMergeCheck({ projectKey: projectKey, id: Number(id), repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.builds.updateRequiredBuildsMergeCheck({ projectKey: projectKey, id: Number(id), repositorySlug: repositorySlug, ...(requestBody) }),
       'Error updating required builds merge check',
     );
   }
@@ -2184,7 +2184,7 @@ export class BitbucketService {
       ...(suggestionIndex !== undefined ? { suggestionIndex } : {}),
     };
     const result = await handleApiOperation(
-      () => this.bb.pullRequests.applySuggestion({ projectKey: projectKey, commentId: commentId, pullRequestId: pullRequestId, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.pullRequests.applySuggestion({ projectKey: projectKey, commentId: commentId, pullRequestId: pullRequestId, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error applying pull request suggestion',
     );
 
@@ -2246,7 +2246,7 @@ export class BitbucketService {
     const requestBody: any = { user: { name: userSlug }, role: 'REVIEWER' };
 
     return handleApiOperation(
-      () => this.bb.pullRequests.assignParticipantRole({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.pullRequests.assignParticipantRole({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error adding pull request reviewer',
     );
   }
@@ -2267,7 +2267,7 @@ export class BitbucketService {
     };
 
     return handleApiOperation(
-      () => this.bb.projects.createProject({ requestBody: requestBody }),
+      () => this.bb.projects.createProject({ ...(requestBody) }),
       'Error creating project',
     );
   }
@@ -2289,7 +2289,7 @@ export class BitbucketService {
     };
 
     return handleApiOperation(
-      () => this.bb.projects.createRepository({ projectKey: projectKey, requestBody: requestBody }),
+      () => this.bb.projects.createRepository({ projectKey: projectKey, ...(requestBody) }),
       'Error creating repository',
     );
   }
@@ -2363,7 +2363,7 @@ export class BitbucketService {
     };
 
     return handleApiOperation(
-      () => this.bb.projects.updateProject({ projectKey: key, requestBody: requestBody }),
+      () => this.bb.projects.updateProject({ projectKey: key, ...(requestBody) }),
       'Error updating project',
     );
   }
@@ -2396,7 +2396,7 @@ export class BitbucketService {
     };
 
     return handleApiOperation(
-      () => this.bb.projects.updateRepository({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.projects.updateRepository({ projectKey: projectKey, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error updating repository',
     );
   }
@@ -2441,7 +2441,7 @@ export class BitbucketService {
     };
 
     return handleApiOperation(
-      () => this.bb.projects.forkRepository({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.projects.forkRepository({ projectKey: projectKey, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error forking repository',
     );
   }
@@ -2556,7 +2556,7 @@ export class BitbucketService {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
     const result = await handleApiOperation(
-      () => this.bb.projects.setDefaultBranch({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: { id: branchId } }),
+      () => this.bb.projects.setDefaultBranch({ projectKey: projectKey, repositorySlug: repositorySlug, id: branchId }),
       'Error setting default branch',
     );
 
@@ -2591,7 +2591,7 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
 
     return handleApiOperation(
-      () => this.bb.repositories.updatePullRequestSettings({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: settings }),
+      () => this.bb.repositories.updatePullRequestSettings({ projectKey: projectKey, repositorySlug: repositorySlug, ...(settings) }),
       'Error updating pull request settings',
     );
   }
@@ -2634,7 +2634,7 @@ export class BitbucketService {
     };
 
     return handleApiOperation(
-      () => this.bb.repositories.setAutoDeclineSettings({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: requestBody }),
+      () => this.bb.repositories.setAutoDeclineSettings({ projectKey: projectKey, repositorySlug: repositorySlug, ...(requestBody) }),
       'Error updating auto-decline settings',
     );
   }
@@ -2687,7 +2687,7 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
 
     return handleApiOperation(
-      () => this.bb.repositories.setAutoMergeSettings({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: { enabled } }),
+      () => this.bb.repositories.setAutoMergeSettings({ projectKey: projectKey, repositorySlug: repositorySlug, enabled }),
       'Error updating auto-merge settings',
     );
   }
@@ -2770,16 +2770,16 @@ export class BitbucketService {
         if (scope === 'user') {
           if (!userSlug) throw new Error('userSlug is required when scope is \'user\'');
 
-          return this.bb.authentication.createUserAccessToken({ userSlug: userSlug, requestBody: requestBody });
+          return this.bb.authentication.createUserAccessToken({ userSlug: userSlug, ...(requestBody) });
         }
         if (scope === 'project') {
           if (!projectKey) throw new Error('projectKey is required when scope is \'project\'');
 
-          return this.bb.authentication.createProjectAccessToken({ projectKey: projectKey, requestBody: requestBody });
+          return this.bb.authentication.createProjectAccessToken({ projectKey: projectKey, ...(requestBody) });
         }
         if (!projectKey || !repositorySlug) throw new Error('projectKey and repositorySlug are required when scope is \'repo\'');
 
-        return this.bb.authentication.createRepositoryAccessToken({ projectKey: projectKey, repositorySlug: repositorySlug, requestBody: requestBody });
+        return this.bb.authentication.createRepositoryAccessToken({ projectKey: projectKey, repositorySlug: repositorySlug, ...(requestBody) });
       },
       'Error creating access token',
     );
@@ -2892,7 +2892,7 @@ export class BitbucketService {
     repositorySlug = repositorySlug.toLowerCase();
 
     return handleApiOperation(
-      () => this.bb.repositories.setSettings({ projectKey: projectKey, hookKey: hookKey, repositorySlug: repositorySlug, requestBody: settings }),
+      () => this.bb.repositories.setSettings({ projectKey: projectKey, hookKey: hookKey, repositorySlug: repositorySlug, ...(settings) }),
       'Error updating repository hook settings',
     );
   }
@@ -3133,7 +3133,7 @@ export class BitbucketService {
    */
   async addSshKey(text: string, userName?: string) {
     return handleApiOperation(
-      () => this.bb.authentication.addSshKey({ user: userName, requestBody: { text } }),
+      () => this.bb.authentication.addSshKey({ user: userName, text }),
       'Error adding SSH key',
     );
   }
@@ -3176,7 +3176,7 @@ export class BitbucketService {
     const requestBody: any = { text };
 
     return handleApiOperation(
-      () => this.bb.security.addKey({ user: user, requestBody: requestBody }),
+      () => this.bb.security.addKey({ user: user, ...(requestBody) }),
       'Error adding GPG key',
     );
   }

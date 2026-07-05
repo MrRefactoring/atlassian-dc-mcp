@@ -1,9 +1,12 @@
-import type { BulkAddInsightAnnotationRequest } from '../models/index.js';
+import { z } from 'zod';
+import { BulkAddInsightAnnotationRequestSchema } from '../models/index.js';
 
-export interface AddAnnotations {
-  projectKey: string;
-  commitId: string;
-  repositorySlug: string;
-  key: string;
-  requestBody?: BulkAddInsightAnnotationRequest;
-}
+export const AddAnnotationsSchema = z.object({
+  projectKey: z.string(),
+  commitId: z.string(),
+  repositorySlug: z.string(),
+  key: z.string(),
+  ...BulkAddInsightAnnotationRequestSchema.shape,
+});
+
+export type AddAnnotations = z.infer<typeof AddAnnotationsSchema>;
