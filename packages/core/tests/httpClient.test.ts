@@ -76,6 +76,22 @@ describe('createHttpClient', () => {
     expect(result).toEqual({ id: 'not-a-number' });
   });
 
+  it('softValidation parses a valid response strictly', async () => {
+    mockFetch(jsonResponse({ id: 7 }));
+    const client = createHttpClient({ ...base, softValidation: true });
+
+    const result = await client.sendRequest({ url: '/x', method: 'GET', schema: z.object({ id: z.number() }) });
+    expect(result).toEqual({ id: 7 });
+  });
+
+  it('softValidation passes a schema-mismatching response through raw instead of throwing', async () => {
+    mockFetch(jsonResponse({ id: 'not-a-number' }));
+    const client = createHttpClient({ ...base, softValidation: true });
+
+    const result = await client.sendRequest({ url: '/x', method: 'GET', schema: z.object({ id: z.number() }) });
+    expect(result).toEqual({ id: 'not-a-number' });
+  });
+
   it('returns raw bytes for responseType "arraybuffer" and skips schema parsing', async () => {
     mockFetch(new Response(new Uint8Array([1, 2, 3]), { status: 200, headers: { 'Content-Type': 'application/octet-stream' } }));
     const client = createHttpClient(base);
