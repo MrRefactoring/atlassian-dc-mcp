@@ -137,8 +137,8 @@ describe('BitbucketService', () => {
       expect(result.data).toEqual(mockUser);
       expect(bb.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          method: 'GET',
           url: '/api/latest/users/jsmith',
+          method: 'GET',
         }),
       );
     });
@@ -153,8 +153,8 @@ describe('BitbucketService', () => {
       expect(result.data).toEqual(mockUsers);
       expect(bb.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          method: 'GET',
           url: '/api/latest/users',
+          method: 'GET',
           searchParams: { filter: 'John' },
         }),
       );

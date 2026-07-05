@@ -84,8 +84,8 @@ const buildHeaders = (config: BitbucketClientConfig, options: SendRequestOptions
   // `options.formData` (body stays undefined), so no Content-Type is set here and fetch
   // supplies the correct `multipart/form-data; boundary=...` itself.
   if (options.body !== undefined) {
-    if (options.mediaType) {
-      headers['Content-Type'] = options.mediaType;
+    if (options.contentType) {
+      headers['Content-Type'] = options.contentType;
     } else if (isBlob(options.body)) {
       headers['Content-Type'] = 'application/octet-stream';
     } else if (isString(options.body)) {
@@ -103,7 +103,7 @@ const getRequestBody = (options: SendRequestOptions): BodyInit | undefined => {
     return undefined;
   }
 
-  if (options.mediaType?.includes('/json')) {
+  if (options.contentType?.includes('/json')) {
     return JSON.stringify(options.body);
   }
 

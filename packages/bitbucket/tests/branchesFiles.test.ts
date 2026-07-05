@@ -416,8 +416,8 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.request).toHaveBeenCalledWith({
-        method: 'GET',
         url: '/branch-utils/1.0/projects/TEST/repos/test-repo/branchmodel/configuration',
+        method: 'GET',
       });
     });
 
@@ -441,10 +441,10 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.request).toHaveBeenCalledWith({
-        method: 'PUT',
         url: '/branch-utils/1.0/projects/TEST/repos/test-repo/branchmodel/configuration',
+        method: 'PUT',
         body: { development: { refId: 'refs/heads/develop' } },
-        mediaType: 'application/json',
+        contentType: 'application/json',
       });
     });
 
@@ -488,8 +488,8 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ reset: true, projectKey: 'TEST', repositorySlug: 'test-repo' });
       expect(bb.request).toHaveBeenCalledWith({
-        method: 'DELETE',
         url: '/branch-utils/1.0/projects/TEST/repos/test-repo/branchmodel/configuration',
+        method: 'DELETE',
       });
     });
 

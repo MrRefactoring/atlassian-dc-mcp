@@ -1,5 +1,5 @@
 import type { HttpClient } from '../core/types.js';
-import { enc } from '../core/types.js';
+import { route } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
 import { PermittedGroupSchema, PermittedUserSchema } from '../models/index.js';
 import type { PermittedGroup, PermittedUser } from '../models/index.js';
@@ -7,8 +7,8 @@ import type { GetRepositoryGroupsWithAnyPermission, GetRepositoryUsersWithAnyPer
 
 export function getGroupsWithAnyPermission(client: HttpClient, params: GetRepositoryGroupsWithAnyPermission): Promise<RestPage<PermittedGroup>> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/permissions/groups`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/permissions/groups`,
     searchParams: { filter: params.filter, start: params.start, limit: params.limit },
     schema: restPage(PermittedGroupSchema),
   });
@@ -16,8 +16,8 @@ export function getGroupsWithAnyPermission(client: HttpClient, params: GetReposi
 
 export function getUsersWithAnyPermission(client: HttpClient, params: GetRepositoryUsersWithAnyPermission): Promise<RestPage<PermittedUser>> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/permissions/users`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/permissions/users`,
     searchParams: { filter: params.filter, start: params.start, limit: params.limit },
     schema: restPage(PermittedUserSchema),
   });
@@ -25,24 +25,24 @@ export function getUsersWithAnyPermission(client: HttpClient, params: GetReposit
 
 export function revokePermissions(client: HttpClient, params: RevokeRepositoryPermissions): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/permissions`,
     method: 'DELETE',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/permissions`,
     searchParams: { user: params.user, group: params.group },
   });
 }
 
 export function setPermissionForGroup(client: HttpClient, params: SetPermissionForGroup): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/permissions/groups`,
     method: 'PUT',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/permissions/groups`,
     searchParams: { name: params.name, permission: params.permission },
   });
 }
 
 export function setPermissionForUser(client: HttpClient, params: SetPermissionForUser): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/permissions/users`,
     method: 'PUT',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/permissions/users`,
     searchParams: { name: params.name, permission: params.permission },
   });
 }

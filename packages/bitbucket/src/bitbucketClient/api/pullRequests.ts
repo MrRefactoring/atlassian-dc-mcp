@@ -1,5 +1,5 @@
 import type { HttpClient } from '../core/types.js';
-import { enc, pickBody } from '../core/types.js';
+import { route, pickBody } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
 import { z } from 'zod';
 import { ChangeSchema, CommentSchema, PullRequestActivitySchema, PullRequestConditionSchema, PullRequestMergeabilitySchema, PullRequestParticipantSchema, PullRequestSchema, ApplySuggestionRequestSchema, PullRequestAssignParticipantRoleRequestSchema, DefaultReviewersRequestSchema, PullRequestDeclineRequestSchema, PullRequestMergeRequestSchema, PullRequestReopenRequestSchema, PullRequestAssignStatusRequestSchema } from '../models/index.js';
@@ -8,99 +8,99 @@ import type { ApplySuggestion, AssignParticipantRole, CanMerge, Create, CreatePu
 
 export function applySuggestion(client: HttpClient, params: ApplySuggestion): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/comments/${params.commentId}/apply-suggestion`,
     method: 'POST',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/comments/${enc(params.commentId)}/apply-suggestion`,
     body: pickBody(params, ApplySuggestionRequestSchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
   });
 }
 
 export function assignParticipantRole(client: HttpClient, params: AssignParticipantRole): Promise<PullRequestParticipant> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/participants`,
     method: 'POST',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/participants`,
     body: pickBody(params, PullRequestAssignParticipantRoleRequestSchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: PullRequestParticipantSchema,
   });
 }
 
 export function canMerge(client: HttpClient, params: CanMerge): Promise<PullRequestMergeability> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/merge`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/merge`,
     schema: PullRequestMergeabilitySchema,
   });
 }
 
 export function create(client: HttpClient, params: Create): Promise<PullRequest> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests`,
     method: 'POST',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests`,
     body: pickBody(params, PullRequestSchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: PullRequestSchema,
   });
 }
 
 export function createComment(client: HttpClient, params: CreatePullRequestComment): Promise<Comment> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/comments`,
     method: 'POST',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/comments`,
     body: pickBody(params, CommentSchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: CommentSchema,
   });
 }
 
 export function createPullRequestCondition(client: HttpClient, params: CreatePullRequestCondition): Promise<PullRequestCondition> {
   return client.sendRequest({
+    url: route`/default-reviewers/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/condition`,
     method: 'POST',
-    url: `/default-reviewers/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/condition`,
     body: pickBody(params, DefaultReviewersRequestSchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: PullRequestConditionSchema,
   });
 }
 
 export function decline(client: HttpClient, params: Decline): Promise<PullRequest> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/decline`,
     method: 'POST',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/decline`,
     searchParams: { version: params.version },
     body: pickBody(params, PullRequestDeclineRequestSchema.omit({ version: true })),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: PullRequestSchema,
   });
 }
 
 export function deleteComment(client: HttpClient, params: DeleteComment): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/comments/${params.commentId}`,
     method: 'DELETE',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/comments/${enc(params.commentId)}`,
     searchParams: { version: params.version },
   });
 }
 
 export function deletePullRequestCondition(client: HttpClient, params: DeletePullRequestCondition): Promise<void> {
   return client.sendRequest({
+    url: route`/default-reviewers/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/condition/${params.id}`,
     method: 'DELETE',
-    url: `/default-reviewers/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/condition/${enc(params.id)}`,
   });
 }
 
 export function get(client: HttpClient, params: GetPullRequest): Promise<PullRequest> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}`,
     schema: PullRequestSchema,
   });
 }
 
 export function getActivities(client: HttpClient, params: GetActivities): Promise<RestPage<PullRequestActivity>> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/activities`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/activities`,
     searchParams: { fromType: params.fromType, fromId: params.fromId, start: params.start, limit: params.limit },
     schema: restPage(PullRequestActivitySchema),
   });
@@ -108,8 +108,8 @@ export function getActivities(client: HttpClient, params: GetActivities): Promis
 
 export function getPage(client: HttpClient, params: GetPage): Promise<RestPage<PullRequest>> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests`,
     searchParams: { withAttributes: params.withAttributes, at: params.at, withProperties: params.withProperties, draft: params.draft, filterText: params.filterText, state: params.state, order: params.order, direction: params.direction, start: params.start, limit: params.limit },
     schema: restPage(PullRequestSchema),
   });
@@ -117,16 +117,16 @@ export function getPage(client: HttpClient, params: GetPage): Promise<RestPage<P
 
 export function getPullRequestConditions(client: HttpClient, params: GetPullRequestConditions): Promise<PullRequestCondition[]> {
   return client.sendRequest({
+    url: route`/default-reviewers/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/conditions`,
     method: 'GET',
-    url: `/default-reviewers/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/conditions`,
     schema: z.array(PullRequestConditionSchema),
   });
 }
 
 export function getReviewers(client: HttpClient, params: GetReviewers): Promise<PullRequestCondition[]> {
   return client.sendRequest({
+    url: route`/default-reviewers/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/reviewers`,
     method: 'GET',
-    url: `/default-reviewers/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/reviewers`,
     searchParams: { targetRepoId: params.targetRepoId, sourceRepoId: params.sourceRepoId, sourceRefId: params.sourceRefId, targetRefId: params.targetRefId },
     schema: z.array(PullRequestConditionSchema),
   });
@@ -134,8 +134,8 @@ export function getReviewers(client: HttpClient, params: GetReviewers): Promise<
 
 export function listParticipants(client: HttpClient, params: ListParticipants): Promise<RestPage<PullRequestParticipant>> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/participants`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/participants`,
     searchParams: { start: params.start, limit: params.limit },
     schema: restPage(PullRequestParticipantSchema),
   });
@@ -143,30 +143,30 @@ export function listParticipants(client: HttpClient, params: ListParticipants): 
 
 export function merge(client: HttpClient, params: Merge): Promise<PullRequest> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/merge`,
     method: 'POST',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/merge`,
     searchParams: { version: params.version },
     body: pickBody(params, PullRequestMergeRequestSchema.omit({ version: true })),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: PullRequestSchema,
   });
 }
 
 export function reopen(client: HttpClient, params: Reopen): Promise<PullRequest> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/reopen`,
     method: 'POST',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/reopen`,
     searchParams: { version: params.version },
     body: pickBody(params, PullRequestReopenRequestSchema.omit({ version: true })),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: PullRequestSchema,
   });
 }
 
 export function streamChanges(client: HttpClient, params: StreamPullRequestChanges): Promise<Change> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/changes`,
     method: 'GET',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/changes`,
     searchParams: { sinceId: params.sinceId, changeScope: params.changeScope, untilId: params.untilId, withComments: params.withComments, start: params.start, limit: params.limit },
     schema: ChangeSchema,
   });
@@ -174,62 +174,62 @@ export function streamChanges(client: HttpClient, params: StreamPullRequestChang
 
 export function unassignParticipantRole(client: HttpClient, params: UnassignParticipantRole): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/participants/${params.userSlug}`,
     method: 'DELETE',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/participants/${enc(params.userSlug)}`,
   });
 }
 
 export function unwatch(client: HttpClient, params: Unwatch): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/watch`,
     method: 'DELETE',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/watch`,
   });
 }
 
 export function update(client: HttpClient, params: Update): Promise<PullRequest> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}`,
     method: 'PUT',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}`,
     body: pickBody(params, PullRequestSchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: PullRequestSchema,
   });
 }
 
 export function updateComment(client: HttpClient, params: UpdateComment): Promise<Comment> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/comments/${params.commentId}`,
     method: 'PUT',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/comments/${enc(params.commentId)}`,
     body: pickBody(params, CommentSchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: CommentSchema,
   });
 }
 
 export function updatePullRequestCondition(client: HttpClient, params: UpdatePullRequestCondition): Promise<PullRequestCondition> {
   return client.sendRequest({
+    url: route`/default-reviewers/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/condition/${params.id}`,
     method: 'PUT',
-    url: `/default-reviewers/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/condition/${enc(params.id)}`,
     body: pickBody(params, ['requiredApprovals', 'reviewerGroups', 'reviewers', 'sourceMatcher', 'targetMatcher']),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: PullRequestConditionSchema,
   });
 }
 
 export function updateStatus(client: HttpClient, params: UpdateStatus): Promise<PullRequestParticipant> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/participants/${params.userSlug}`,
     method: 'PUT',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/participants/${enc(params.userSlug)}`,
     searchParams: { version: params.version },
     body: pickBody(params, PullRequestAssignStatusRequestSchema),
-    mediaType: 'application/json',
+    contentType: 'application/json',
     schema: PullRequestParticipantSchema,
   });
 }
 
 export function watch(client: HttpClient, params: Watch): Promise<void> {
   return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/watch`,
     method: 'POST',
-    url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/pull-requests/${enc(params.pullRequestId)}/watch`,
   });
 }
