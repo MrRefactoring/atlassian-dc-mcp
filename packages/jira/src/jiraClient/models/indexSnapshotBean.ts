@@ -1,9 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type IndexSnapshotBean = {
     absolutePath?: string;
     timestamp?: number;
 };
 
+export const IndexSnapshotBeanSchema = z.looseObject({
+  absolutePath: z.string().optional(),
+  timestamp: z.number().optional(),
+}) as unknown as z.ZodType<IndexSnapshotBean>;

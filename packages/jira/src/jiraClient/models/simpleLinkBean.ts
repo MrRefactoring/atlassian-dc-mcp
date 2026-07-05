@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type SimpleLinkBean = {
     href?: string;
     iconClass?: string;
@@ -13,3 +11,13 @@ export type SimpleLinkBean = {
     weight?: number;
 };
 
+export const SimpleLinkBeanSchema = z.looseObject({
+  href: z.string().optional(),
+  iconClass: z.string().optional(),
+  id: z.string().optional(),
+  label: z.string().optional(),
+  params: z.record(z.string(), z.string()).optional(),
+  styleClass: z.string().optional(),
+  title: z.string().optional(),
+  weight: z.number().optional(),
+}) as unknown as z.ZodType<SimpleLinkBean>;

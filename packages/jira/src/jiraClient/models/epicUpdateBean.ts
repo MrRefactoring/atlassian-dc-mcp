@@ -1,8 +1,6 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { ColorBean } from './colorBean.js';
+import { z } from 'zod';
+import { ColorBeanSchema, type ColorBean } from './colorBean.js';
+
 export type EpicUpdateBean = {
     color?: ColorBean;
     done?: boolean;
@@ -10,3 +8,9 @@ export type EpicUpdateBean = {
     summary?: string;
 };
 
+export const EpicUpdateBeanSchema = z.lazy(() => z.looseObject({
+  color: ColorBeanSchema.optional(),
+  done: z.boolean().optional(),
+  name: z.string().optional(),
+  summary: z.string().optional(),
+})) as unknown as z.ZodType<EpicUpdateBean>;

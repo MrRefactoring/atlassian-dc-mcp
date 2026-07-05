@@ -1,9 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type EntityPropertyKeyBean = {
     key?: string;
     self?: string;
 };
 
+export const EntityPropertyKeyBeanSchema = z.looseObject({
+  key: z.string().optional(),
+  self: z.string().optional(),
+}) as unknown as z.ZodType<EntityPropertyKeyBean>;

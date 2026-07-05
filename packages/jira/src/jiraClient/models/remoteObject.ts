@@ -1,9 +1,7 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { Icon } from './icon.js';
-import type { Status } from './status.js';
+import { z } from 'zod';
+import { IconSchema, type Icon } from './icon.js';
+import { StatusSchema, type Status } from './status.js';
+
 export type RemoteObject = {
     icon?: Icon;
     status?: Status;
@@ -12,3 +10,10 @@ export type RemoteObject = {
     url?: string;
 };
 
+export const RemoteObjectSchema = z.lazy(() => z.looseObject({
+  icon: IconSchema.optional(),
+  status: StatusSchema.optional(),
+  summary: z.string().optional(),
+  title: z.string().optional(),
+  url: z.string().optional(),
+})) as unknown as z.ZodType<RemoteObject>;

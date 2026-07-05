@@ -1,11 +1,14 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { IndexReplicationQueueEntryBean } from './indexReplicationQueueEntryBean.js';
+import { z } from 'zod';
+import { IndexReplicationQueueEntryBeanSchema, type IndexReplicationQueueEntryBean } from './indexReplicationQueueEntryBean.js';
+
 export type IndexReplicationQueueSummaryBean = {
     lastConsumedOperation?: IndexReplicationQueueEntryBean;
     lastOperationInQueue?: IndexReplicationQueueEntryBean;
     queueSize?: number;
 };
 
+export const IndexReplicationQueueSummaryBeanSchema = z.lazy(() => z.looseObject({
+  lastConsumedOperation: IndexReplicationQueueEntryBeanSchema.optional(),
+  lastOperationInQueue: IndexReplicationQueueEntryBeanSchema.optional(),
+  queueSize: z.number().optional(),
+})) as unknown as z.ZodType<IndexReplicationQueueSummaryBean>;

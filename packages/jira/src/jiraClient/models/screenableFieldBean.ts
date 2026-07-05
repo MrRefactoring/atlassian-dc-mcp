@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type ScreenableFieldBean = {
     id?: string;
     name?: string;
@@ -9,3 +7,9 @@ export type ScreenableFieldBean = {
     type?: string;
 };
 
+export const ScreenableFieldBeanSchema = z.looseObject({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  showWhenEmpty: z.boolean().optional(),
+  type: z.string().optional(),
+}) as unknown as z.ZodType<ScreenableFieldBean>;

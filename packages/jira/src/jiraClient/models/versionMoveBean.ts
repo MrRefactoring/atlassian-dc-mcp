@@ -1,11 +1,10 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type VersionMoveBean = {
     after?: string;
     position?: VersionMoveBean.position;
 };
+
 export namespace VersionMoveBean {
     export enum position {
         EARLIER = 'Earlier',
@@ -15,3 +14,9 @@ export namespace VersionMoveBean {
     }
 }
 
+const VersionMoveBean_positionSchema = z.enum(['Earlier', 'Later', 'First', 'Last']);
+
+export const VersionMoveBeanSchema = z.looseObject({
+  after: z.string().optional(),
+  position: VersionMoveBean_positionSchema.optional(),
+}) as unknown as z.ZodType<VersionMoveBean>;

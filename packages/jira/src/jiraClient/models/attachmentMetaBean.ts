@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type AttachmentMetaBean = {
     enabled?: boolean;
     /**
@@ -10,3 +8,7 @@ export type AttachmentMetaBean = {
     uploadLimit?: number;
 };
 
+export const AttachmentMetaBeanSchema = z.looseObject({
+  enabled: z.boolean().optional(),
+  uploadLimit: z.number().optional(),
+}) as unknown as z.ZodType<AttachmentMetaBean>;

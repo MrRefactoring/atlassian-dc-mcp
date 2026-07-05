@@ -1,9 +1,7 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { Application } from './application.js';
-import type { RemoteObject } from './remoteObject.js';
+import { z } from 'zod';
+import { ApplicationSchema, type Application } from './application.js';
+import { RemoteObjectSchema, type RemoteObject } from './remoteObject.js';
+
 export type RemoteIssueLinkCreateOrUpdateRequest = {
     application?: Application;
     globalId?: string;
@@ -11,3 +9,9 @@ export type RemoteIssueLinkCreateOrUpdateRequest = {
     relationship?: string;
 };
 
+export const RemoteIssueLinkCreateOrUpdateRequestSchema = z.lazy(() => z.looseObject({
+  application: ApplicationSchema.optional(),
+  globalId: z.string().optional(),
+  object: RemoteObjectSchema.optional(),
+  relationship: z.string().optional(),
+})) as unknown as z.ZodType<RemoteIssueLinkCreateOrUpdateRequest>;

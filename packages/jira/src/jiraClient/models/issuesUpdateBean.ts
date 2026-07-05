@@ -1,9 +1,10 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { IssueUpdateBean } from './issueUpdateBean.js';
+import { z } from 'zod';
+import { IssueUpdateBeanSchema, type IssueUpdateBean } from './issueUpdateBean.js';
+
 export type IssuesUpdateBean = {
     issueUpdates?: Array<IssueUpdateBean>;
 };
 
+export const IssuesUpdateBeanSchema = z.lazy(() => z.looseObject({
+  issueUpdates: z.array(IssueUpdateBeanSchema).optional(),
+})) as unknown as z.ZodType<IssuesUpdateBean>;

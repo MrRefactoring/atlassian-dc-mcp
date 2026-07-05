@@ -1,8 +1,6 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { ListWrapperCallbackGroupJsonBean } from './listWrapperCallbackGroupJsonBean.js';
+import { z } from 'zod';
+import { ListWrapperCallbackGroupJsonBeanSchema, type ListWrapperCallbackGroupJsonBean } from './listWrapperCallbackGroupJsonBean.js';
+
 export type SimpleListWrapperGroupJsonBean = {
     callback?: ListWrapperCallbackGroupJsonBean;
     maxResults?: number;
@@ -10,3 +8,9 @@ export type SimpleListWrapperGroupJsonBean = {
     size?: number;
 };
 
+export const SimpleListWrapperGroupJsonBeanSchema = z.lazy(() => z.looseObject({
+  callback: ListWrapperCallbackGroupJsonBeanSchema.optional(),
+  maxResults: z.number().optional(),
+  pagingCallback: ListWrapperCallbackGroupJsonBeanSchema.optional(),
+  size: z.number().optional(),
+})) as unknown as z.ZodType<SimpleListWrapperGroupJsonBean>;

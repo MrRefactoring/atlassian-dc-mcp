@@ -1,8 +1,6 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { Fields } from './fields.js';
+import { z } from 'zod';
+import { FieldsSchema, type Fields } from './fields.js';
+
 export type IssueRefJsonBean = {
     fields?: Fields;
     id?: string;
@@ -10,3 +8,9 @@ export type IssueRefJsonBean = {
     self?: string;
 };
 
+export const IssueRefJsonBeanSchema = z.lazy(() => z.looseObject({
+  fields: FieldsSchema.optional(),
+  id: z.string().optional(),
+  key: z.string().optional(),
+  self: z.string().optional(),
+})) as unknown as z.ZodType<IssueRefJsonBean>;

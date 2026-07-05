@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type ReindexBean = {
     currentProgress?: number;
     currentSubTask?: string;
@@ -12,6 +10,7 @@ export type ReindexBean = {
     success?: boolean;
     type?: ReindexBean.type;
 };
+
 export namespace ReindexBean {
     export enum type {
         FOREGROUND = 'FOREGROUND',
@@ -21,3 +20,15 @@ export namespace ReindexBean {
     }
 }
 
+const ReindexBean_typeSchema = z.enum(['FOREGROUND', 'BACKGROUND', 'BACKGROUND_PREFFERED', 'BACKGROUND_PREFERRED']);
+
+export const ReindexBeanSchema = z.looseObject({
+  currentProgress: z.number().optional(),
+  currentSubTask: z.string().optional(),
+  finishTime: z.string().optional(),
+  progressUrl: z.string().optional(),
+  startTime: z.string().optional(),
+  submittedTime: z.string().optional(),
+  success: z.boolean().optional(),
+  type: ReindexBean_typeSchema.optional(),
+}) as unknown as z.ZodType<ReindexBean>;

@@ -1,8 +1,9 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type IndexSnapshotStatusBean = {
     running?: boolean;
 };
 
+export const IndexSnapshotStatusBeanSchema = z.looseObject({
+  running: z.boolean().optional(),
+}) as unknown as z.ZodType<IndexSnapshotStatusBean>;

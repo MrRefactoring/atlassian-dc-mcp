@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type IssueLinkTypeJsonBean = {
     id?: string;
     inward?: string;
@@ -10,3 +8,10 @@ export type IssueLinkTypeJsonBean = {
     self?: string;
 };
 
+export const IssueLinkTypeJsonBeanSchema = z.looseObject({
+  id: z.string().optional(),
+  inward: z.string().optional(),
+  name: z.string().optional(),
+  outward: z.string().optional(),
+  self: z.string().optional(),
+}) as unknown as z.ZodType<IssueLinkTypeJsonBean>;

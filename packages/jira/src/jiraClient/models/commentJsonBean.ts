@@ -1,10 +1,8 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { EntityPropertyBean } from './entityPropertyBean.js';
-import type { UserJsonBean } from './userJsonBean.js';
-import type { VisibilityJsonBean } from './visibilityJsonBean.js';
+import { z } from 'zod';
+import { EntityPropertyBeanSchema, type EntityPropertyBean } from './entityPropertyBean.js';
+import { UserJsonBeanSchema, type UserJsonBean } from './userJsonBean.js';
+import { VisibilityJsonBeanSchema, type VisibilityJsonBean } from './visibilityJsonBean.js';
+
 export type CommentJsonBean = {
     author?: UserJsonBean;
     body?: string;
@@ -18,3 +16,15 @@ export type CommentJsonBean = {
     visibility?: VisibilityJsonBean;
 };
 
+export const CommentJsonBeanSchema = z.lazy(() => z.looseObject({
+  author: UserJsonBeanSchema.optional(),
+  body: z.string().optional(),
+  created: z.string().optional(),
+  id: z.string().optional(),
+  properties: z.array(EntityPropertyBeanSchema).optional(),
+  renderedBody: z.string().optional(),
+  self: z.string().optional(),
+  updateAuthor: UserJsonBeanSchema.optional(),
+  updated: z.string().optional(),
+  visibility: VisibilityJsonBeanSchema.optional(),
+})) as unknown as z.ZodType<CommentJsonBean>;

@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type IssueRankRequestBean = {
     issues?: Array<string>;
     rankAfterIssue?: string;
@@ -9,3 +7,9 @@ export type IssueRankRequestBean = {
     rankCustomFieldId?: number;
 };
 
+export const IssueRankRequestBeanSchema = z.looseObject({
+  issues: z.array(z.string()).optional(),
+  rankAfterIssue: z.string().optional(),
+  rankBeforeIssue: z.string().optional(),
+  rankCustomFieldId: z.number().optional(),
+}) as unknown as z.ZodType<IssueRankRequestBean>;

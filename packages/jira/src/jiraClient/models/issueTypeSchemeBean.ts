@@ -1,8 +1,6 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { IssueTypeJsonBean } from './issueTypeJsonBean.js';
+import { z } from 'zod';
+import { IssueTypeJsonBeanSchema, type IssueTypeJsonBean } from './issueTypeJsonBean.js';
+
 export type IssueTypeSchemeBean = {
     defaultIssueType?: IssueTypeJsonBean;
     description?: string;
@@ -13,3 +11,12 @@ export type IssueTypeSchemeBean = {
     self?: string;
 };
 
+export const IssueTypeSchemeBeanSchema = z.lazy(() => z.looseObject({
+  defaultIssueType: IssueTypeJsonBeanSchema.optional(),
+  description: z.string().optional(),
+  expand: z.string().optional(),
+  id: z.string().optional(),
+  issueTypes: z.array(IssueTypeJsonBeanSchema).optional(),
+  name: z.string().optional(),
+  self: z.string().optional(),
+})) as unknown as z.ZodType<IssueTypeSchemeBean>;

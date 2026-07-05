@@ -1,9 +1,7 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { ListWrapperCallbackUserBean } from './listWrapperCallbackUserBean.js';
-import type { UserBean } from './userBean.js';
+import { z } from 'zod';
+import { ListWrapperCallbackUserBeanSchema, type ListWrapperCallbackUserBean } from './listWrapperCallbackUserBean.js';
+import { UserBeanSchema, type UserBean } from './userBean.js';
+
 export type UserBeanListWrapper = {
     backingListSize?: number;
     callback?: ListWrapperCallbackUserBean;
@@ -13,3 +11,11 @@ export type UserBeanListWrapper = {
     size?: number;
 };
 
+export const UserBeanListWrapperSchema = z.lazy(() => z.looseObject({
+  backingListSize: z.number().optional(),
+  callback: ListWrapperCallbackUserBeanSchema.optional(),
+  items: z.array(UserBeanSchema).optional(),
+  maxResults: z.number().optional(),
+  pagingCallback: ListWrapperCallbackUserBeanSchema.optional(),
+  size: z.number().optional(),
+})) as unknown as z.ZodType<UserBeanListWrapper>;

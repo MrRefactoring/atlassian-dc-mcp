@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type HistoryMetadataParticipant = {
     avatarUrl?: string;
     displayName?: string;
@@ -11,3 +9,11 @@ export type HistoryMetadataParticipant = {
     url?: string;
 };
 
+export const HistoryMetadataParticipantSchema = z.looseObject({
+  avatarUrl: z.string().optional(),
+  displayName: z.string().optional(),
+  displayNameKey: z.string().optional(),
+  id: z.string().optional(),
+  type: z.string().optional(),
+  url: z.string().optional(),
+}) as unknown as z.ZodType<HistoryMetadataParticipant>;

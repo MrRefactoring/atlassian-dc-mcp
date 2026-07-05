@@ -1,11 +1,10 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type VisibilityJsonBean = {
     type?: VisibilityJsonBean.type;
     value?: string;
 };
+
 export namespace VisibilityJsonBean {
     export enum type {
         GROUP = 'group',
@@ -13,3 +12,9 @@ export namespace VisibilityJsonBean {
     }
 }
 
+const VisibilityJsonBean_typeSchema = z.enum(['group', 'role']);
+
+export const VisibilityJsonBeanSchema = z.looseObject({
+  type: VisibilityJsonBean_typeSchema.optional(),
+  value: z.string().optional(),
+}) as unknown as z.ZodType<VisibilityJsonBean>;

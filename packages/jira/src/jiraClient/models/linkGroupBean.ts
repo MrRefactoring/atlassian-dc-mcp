@@ -1,8 +1,6 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { SimpleLinkBean } from './simpleLinkBean.js';
+import { z } from 'zod';
+import { SimpleLinkBeanSchema, type SimpleLinkBean } from './simpleLinkBean.js';
+
 export type LinkGroupBean = {
     groups?: Array<LinkGroupBean>;
     header?: SimpleLinkBean;
@@ -12,3 +10,11 @@ export type LinkGroupBean = {
     weight?: number;
 };
 
+export const LinkGroupBeanSchema = z.lazy(() => z.looseObject({
+  groups: z.array(LinkGroupBeanSchema).optional(),
+  header: SimpleLinkBeanSchema.optional(),
+  id: z.string().optional(),
+  links: z.array(SimpleLinkBeanSchema).optional(),
+  styleClass: z.string().optional(),
+  weight: z.number().optional(),
+})) as unknown as z.ZodType<LinkGroupBean>;

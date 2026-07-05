@@ -1,9 +1,7 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { IssueTypeJsonBean } from './issueTypeJsonBean.js';
-import type { UserBean } from './userBean.js';
+import { z } from 'zod';
+import { IssueTypeJsonBeanSchema, type IssueTypeJsonBean } from './issueTypeJsonBean.js';
+import { UserBeanSchema, type UserBean } from './userBean.js';
+
 export type WorkflowSchemeBean = {
     defaultWorkflow?: string;
     description?: string;
@@ -20,3 +18,18 @@ export type WorkflowSchemeBean = {
     updateDraftIfNeeded?: boolean;
 };
 
+export const WorkflowSchemeBeanSchema = z.lazy(() => z.looseObject({
+  defaultWorkflow: z.string().optional(),
+  description: z.string().optional(),
+  draft: z.boolean().optional(),
+  id: z.number().optional(),
+  issueTypeMappings: z.record(z.string(), z.string()).optional(),
+  issueTypes: z.record(z.string(), IssueTypeJsonBeanSchema).optional(),
+  lastModified: z.string().optional(),
+  lastModifiedUser: UserBeanSchema.optional(),
+  name: z.string().optional(),
+  originalDefaultWorkflow: z.string().optional(),
+  originalIssueTypeMappings: z.record(z.string(), z.string()).optional(),
+  self: z.string().optional(),
+  updateDraftIfNeeded: z.boolean().optional(),
+})) as unknown as z.ZodType<WorkflowSchemeBean>;

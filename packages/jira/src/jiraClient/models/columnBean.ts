@@ -1,8 +1,6 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { RelationBean } from './relationBean.js';
+import { z } from 'zod';
+import { RelationBeanSchema, type RelationBean } from './relationBean.js';
+
 export type ColumnBean = {
     max?: number;
     min?: number;
@@ -10,3 +8,9 @@ export type ColumnBean = {
     statuses?: Array<RelationBean>;
 };
 
+export const ColumnBeanSchema = z.lazy(() => z.looseObject({
+  max: z.number().optional(),
+  min: z.number().optional(),
+  name: z.string().optional(),
+  statuses: z.array(RelationBeanSchema).optional(),
+})) as unknown as z.ZodType<ColumnBean>;

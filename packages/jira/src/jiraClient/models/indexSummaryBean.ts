@@ -1,9 +1,7 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { IndexReplicationQueueSummaryBean } from './indexReplicationQueueSummaryBean.js';
-import type { IssueIndexSummaryBean } from './issueIndexSummaryBean.js';
+import { z } from 'zod';
+import { IndexReplicationQueueSummaryBeanSchema, type IndexReplicationQueueSummaryBean } from './indexReplicationQueueSummaryBean.js';
+import { IssueIndexSummaryBeanSchema, type IssueIndexSummaryBean } from './issueIndexSummaryBean.js';
+
 export type IndexSummaryBean = {
     issueIndex?: IssueIndexSummaryBean;
     nodeId?: string;
@@ -11,3 +9,9 @@ export type IndexSummaryBean = {
     reportTime?: string;
 };
 
+export const IndexSummaryBeanSchema = z.lazy(() => z.looseObject({
+  issueIndex: IssueIndexSummaryBeanSchema.optional(),
+  nodeId: z.string().optional(),
+  replicationQueues: z.record(z.string(), IndexReplicationQueueSummaryBeanSchema).optional(),
+  reportTime: z.string().optional(),
+})) as unknown as z.ZodType<IndexSummaryBean>;
