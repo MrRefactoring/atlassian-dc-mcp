@@ -342,4 +342,43 @@ export function registerUserTools(server: McpServer, service: JiraService) {
       return formatToolResponse(result);
     },
   );
+
+  server.registerTool(
+    'jira_get_my_columns',
+    {
+      description: `Get the issue-navigator columns for a user (defaults to the current user) in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getMyColumns,
+    },
+    async ({ username }) => {
+      const result = await service.getMyColumns(username);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_set_my_columns',
+    {
+      description: `Set the ordered issue-navigator columns for a user (defaults to the current user) in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.setMyColumns,
+    },
+    async ({ columns, username }) => {
+      const result = await service.setMyColumns(columns, username);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_reset_my_columns',
+    {
+      description: `Reset a user's issue-navigator columns to the system default (defaults to the current user) in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.resetMyColumns,
+    },
+    async ({ username }) => {
+      const result = await service.resetMyColumns(username);
+
+      return formatToolResponse(result);
+    },
+  );
 }

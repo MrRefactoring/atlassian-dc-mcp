@@ -386,3 +386,5 @@ export { ConfigurationBeanSchema } from './configurationBean.js';
 export type { ConfigurationBean } from './configurationBean.js';
 export { IssuePickerResultsSchema } from './issuePickerResults.js';
 export type { IssuePickerResults } from './issuePickerResults.js';
+export { ColumnItemSchema } from './columnItem.js';
+export type { ColumnItem } from './columnItem.js';

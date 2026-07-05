@@ -656,6 +656,32 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
+    'jira_get_default_columns',
+    {
+      description: `Get the system default issue-navigator columns in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getDefaultColumns,
+    },
+    async () => {
+      const result = await service.getDefaultColumns();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_set_default_columns',
+    {
+      description: `Set the system default issue-navigator columns in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.setDefaultColumns,
+    },
+    async ({ columns }) => {
+      const result = await service.setDefaultColumns(columns);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
     'jira_set_application_property',
     {
       description: `Update an application property's value in the ${jiraInstanceType}`,

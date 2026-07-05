@@ -378,4 +378,55 @@ describe('JiraService', () => {
       expect(result.error).toBe('Key not found.');
     });
   });
+
+  describe('issue-navigator columns', () => {
+    it('gets the current user columns', async () => {
+      const mockColumns = [{ label: 'Key', value: 'issuekey' }];
+      (jira.users.getMyColumns as Mock).mockResolvedValue(mockColumns);
+
+      const result = await jiraService.getMyColumns();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockColumns);
+      expect(jira.users.getMyColumns).toHaveBeenCalledWith({ username: undefined });
+    });
+
+    it('sets user columns for a named user', async () => {
+      (jira.users.setMyColumns as Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setMyColumns(['issuekey', 'summary'], 'bob');
+
+      expect(result.success).toBe(true);
+      expect(jira.users.setMyColumns).toHaveBeenCalledWith({ username: 'bob', columns: ['issuekey', 'summary'] });
+    });
+
+    it('resets user columns', async () => {
+      (jira.users.resetMyColumns as Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.resetMyColumns();
+
+      expect(result.success).toBe(true);
+      expect(jira.users.resetMyColumns).toHaveBeenCalledWith({ username: undefined });
+    });
+
+    it('gets the system default columns', async () => {
+      const mockColumns = [{ label: 'Key', value: 'issuekey' }];
+      (jira.admin.getDefaultColumns as Mock).mockResolvedValue(mockColumns);
+
+      const result = await jiraService.getDefaultColumns();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockColumns);
+      expect(jira.admin.getDefaultColumns).toHaveBeenCalledWith({});
+    });
+
+    it('sets the system default columns', async () => {
+      (jira.admin.setDefaultColumns as Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.setDefaultColumns(['issuekey', 'status']);
+
+      expect(result.success).toBe(true);
+      expect(jira.admin.setDefaultColumns).toHaveBeenCalledWith({ columns: ['issuekey', 'status'] });
+    });
+  });
 });

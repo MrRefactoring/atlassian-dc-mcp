@@ -319,6 +319,26 @@ export class JiraService {
     return handleApiOperation(() => this.jira.admin.getConfiguration({}), 'Error getting global configuration');
   }
 
+  async getMyColumns(username?: string) {
+    return handleApiOperation(() => this.jira.users.getMyColumns({ username }), 'Error getting user columns');
+  }
+
+  async setMyColumns(columns: string[], username?: string) {
+    return handleApiOperation(() => this.jira.users.setMyColumns({ username, columns }), 'Error setting user columns');
+  }
+
+  async resetMyColumns(username?: string) {
+    return handleApiOperation(() => this.jira.users.resetMyColumns({ username }), 'Error resetting user columns');
+  }
+
+  async getDefaultColumns() {
+    return handleApiOperation(() => this.jira.admin.getDefaultColumns({}), 'Error getting default columns');
+  }
+
+  async setDefaultColumns(columns: string[]) {
+    return handleApiOperation(() => this.jira.admin.setDefaultColumns({ columns }), 'Error setting default columns');
+  }
+
   async getIssuePickerSuggestions(query?: string, currentJQL?: string, currentIssueKey?: string, currentProjectId?: string, showSubTasks?: boolean, showSubTaskParent?: boolean) {
     return handleApiOperation(
       () => this.jira.issues.getIssuePickerSuggestions({ query, currentJQL, currentIssueKey, currentProjectId, showSubTasks, showSubTaskParent }),
@@ -2236,6 +2256,20 @@ export const jiraToolSchemas = {
     idOrKey: z.string().describe('Status category id or key (e.g., 2 or "new")'),
   },
   getConfiguration: {},
+  getMyColumns: {
+    username: z.string().optional().describe('Username whose columns to read (defaults to the current user)'),
+  },
+  setMyColumns: {
+    columns: z.array(z.string()).describe('Ordered list of column ids (e.g. issuekey, summary, status, assignee)'),
+    username: z.string().optional().describe('Username whose columns to set (defaults to the current user)'),
+  },
+  resetMyColumns: {
+    username: z.string().optional().describe('Username whose columns to reset to the default (defaults to the current user)'),
+  },
+  getDefaultColumns: {},
+  setDefaultColumns: {
+    columns: z.array(z.string()).describe('Ordered list of column ids for the system default issue-navigator columns'),
+  },
   getIssuePickerSuggestions: {
     query: z.string().optional().describe('Text to search issue summaries for'),
     currentJQL: z.string().optional().describe('JQL to constrain the suggested issues'),
