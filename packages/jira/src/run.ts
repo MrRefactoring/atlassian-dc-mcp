@@ -3,5 +3,5 @@ const sub = process.argv[2];
 if (sub === 'setup') {
   await import('./setup.js');
 } else {
-  await import('./index.js');
+  await import('./server.js');
 }

@@ -34,10 +34,10 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
-    "inspect": "mcp-inspector node dist/index.js",
-    "inspect:dev": "mcp-inspector ts-node src/index.ts",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "inspect": "mcp-inspector node dist/server.js",
+    "inspect:dev": "mcp-inspector ts-node src/server.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.test.json"
   },
