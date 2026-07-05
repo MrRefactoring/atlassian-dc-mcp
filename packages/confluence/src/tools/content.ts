@@ -6,10 +6,12 @@ import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService, ConfluenceContent } from '../confluenceService.js';
 
 export function registerContentTools(server: McpServer, service: ConfluenceService) {
-  server.tool(
+  server.registerTool(
     'confluence_getContent',
-    `Get Confluence content by ID from the ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContent,
+    {
+      description: `Get Confluence content by ID from the ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContent,
+    },
     async ({ contentId, expand, bodyMode, maxBodyChars, bodyStart }) => {
       const result = await service.getContent(contentId, expand, bodyMode, maxBodyChars, bodyStart);
 
@@ -17,10 +19,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_searchContent',
-    `Search for content in ${confluenceInstanceType} using CQL`,
-    confluenceToolSchemas.searchContent,
+    {
+      description: `Search for content in ${confluenceInstanceType} using CQL`,
+      inputSchema: confluenceToolSchemas.searchContent,
+    },
     async ({ cql, limit, start, expand, excerpt }) => {
       const result = await service.searchContent(cql, limit, start, expand, excerpt);
 
@@ -28,10 +32,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_createContent',
-    `Create new content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.createContent,
+    {
+      description: `Create new content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.createContent,
+    },
     async ({ title, spaceKey, type, content, parentId, output }) => {
       const contentObj: ConfluenceContent = {
         type: type || 'page',
@@ -62,10 +68,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_updateContent',
-    `Update existing content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.updateContent,
+    {
+      description: `Update existing content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.updateContent,
+    },
     async ({ contentId, title, content, version, versionComment, output }) => {
       // First get the current content to build upon
       const currentContent = await service.getContentRaw(contentId);
@@ -117,10 +125,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_deleteContent',
-    `Delete (trash or purge) content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.deleteContent,
+    {
+      description: `Delete (trash or purge) content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.deleteContent,
+    },
     async ({ contentId, status }) => {
       const result = await service.deleteContent(contentId, status);
 
@@ -128,10 +138,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentHistory',
-    `Get the version history of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentHistory,
+    {
+      description: `Get the version history of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentHistory,
+    },
     async ({ contentId, expand }) => {
       const result = await service.getContentHistory(contentId, expand);
 
@@ -139,10 +151,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentChildren',
-    `Get the direct children of a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentChildren,
+    {
+      description: `Get the direct children of a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentChildren,
+    },
     async ({ contentId, expand, limit, start }) => {
       const result = await service.getContentChildren(contentId, expand, limit, start);
 
@@ -150,10 +164,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentChildrenByType',
-    `Get the children of a piece of content limited to a single type in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentChildrenByType,
+    {
+      description: `Get the children of a piece of content limited to a single type in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentChildrenByType,
+    },
     async ({ contentId, type, expand, limit, start }) => {
       const result = await service.getContentChildrenByType(contentId, type, expand, limit, start);
 
@@ -161,10 +177,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentComments',
-    `Get the comments of a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentComments,
+    {
+      description: `Get the comments of a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentComments,
+    },
     async ({ contentId, expand, depth, limit, start, location }) => {
       const result = await service.getContentComments(contentId, expand, depth, limit, start, location);
 
@@ -172,10 +190,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentDescendants',
-    `Get the descendants of a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentDescendants,
+    {
+      description: `Get the descendants of a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentDescendants,
+    },
     async ({ contentId, expand }) => {
       const result = await service.getContentDescendants(contentId, expand);
 
@@ -183,10 +203,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentDescendantsByType',
-    `Get the descendants of a piece of content limited to a single type in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentDescendantsByType,
+    {
+      description: `Get the descendants of a piece of content limited to a single type in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentDescendantsByType,
+    },
     async ({ contentId, type, expand, limit, start }) => {
       const result = await service.getContentDescendantsByType(contentId, type, expand, limit, start);
 
@@ -194,10 +216,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentLabels',
-    `Get the labels attached to a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentLabels,
+    {
+      description: `Get the labels attached to a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentLabels,
+    },
     async ({ contentId, prefix, limit, start }) => {
       const result = await service.getContentLabels(contentId, prefix, limit, start);
 
@@ -205,10 +229,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_addContentLabels',
-    `Add one or more labels to a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.addContentLabels,
+    {
+      description: `Add one or more labels to a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.addContentLabels,
+    },
     async ({ contentId, labels }) => {
       const result = await service.addContentLabels(contentId, labels);
 
@@ -216,10 +242,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_deleteContentLabel',
-    `Remove a label from a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.deleteContentLabel,
+    {
+      description: `Remove a label from a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.deleteContentLabel,
+    },
     async ({ contentId, name }) => {
       const result = await service.deleteContentLabel(contentId, name);
 
@@ -227,10 +255,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentProperties',
-    `Get the properties stored on a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentProperties,
+    {
+      description: `Get the properties stored on a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentProperties,
+    },
     async ({ contentId, expand, limit, start }) => {
       const result = await service.getContentProperties(contentId, expand, limit, start);
 
@@ -238,10 +268,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentProperty',
-    `Get a single content property by key in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentProperty,
+    {
+      description: `Get a single content property by key in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentProperty,
+    },
     async ({ contentId, key, expand }) => {
       const result = await service.getContentProperty(contentId, key, expand);
 
@@ -249,10 +281,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_createContentProperty',
-    `Create a content property in ${confluenceInstanceType}`,
-    confluenceToolSchemas.createContentProperty,
+    {
+      description: `Create a content property in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.createContentProperty,
+    },
     async ({ contentId, key, value }) => {
       const result = await service.createContentProperty(contentId, key, value);
 
@@ -260,10 +294,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_updateContentProperty',
-    `Update a content property in ${confluenceInstanceType}`,
-    confluenceToolSchemas.updateContentProperty,
+    {
+      description: `Update a content property in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.updateContentProperty,
+    },
     async ({ contentId, key, value, version }) => {
       const result = await service.updateContentProperty(contentId, key, value, version);
 
@@ -271,10 +307,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_deleteContentProperty',
-    `Delete a content property in ${confluenceInstanceType}`,
-    confluenceToolSchemas.deleteContentProperty,
+    {
+      description: `Delete a content property in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.deleteContentProperty,
+    },
     async ({ contentId, key }) => {
       const result = await service.deleteContentProperty(contentId, key);
 
@@ -282,10 +320,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentRestrictions',
-    `Get all restrictions on a piece of content, grouped by operation, in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentRestrictions,
+    {
+      description: `Get all restrictions on a piece of content, grouped by operation, in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentRestrictions,
+    },
     async ({ contentId, expand }) => {
       const result = await service.getContentRestrictions(contentId, expand);
 
@@ -293,10 +333,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentRestrictionsByOperation',
-    `Get the restrictions on a piece of content for a single operation in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentRestrictionsByOperation,
+    {
+      description: `Get the restrictions on a piece of content for a single operation in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentRestrictionsByOperation,
+    },
     async ({ operationKey, contentId, expand, limit, start }) => {
       const result = await service.getContentRestrictionsByOperation(operationKey, contentId, expand, limit, start);
 
@@ -304,10 +346,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_updateContentRestrictions',
-    `Overwrite the restrictions on a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.updateContentRestrictions,
+    {
+      description: `Overwrite the restrictions on a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.updateContentRestrictions,
+    },
     async ({ contentId, restrictions, expand }) => {
       const result = await service.updateContentRestrictions(contentId, restrictions, expand);
 
@@ -315,10 +359,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_getContentWatchers',
-    `List the users watching a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.getContentWatchers,
+    {
+      description: `List the users watching a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getContentWatchers,
+    },
     async ({ contentId, limit, start }) => {
       const result = await service.getContentWatchers(contentId, limit, start);
 
@@ -326,10 +372,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_isWatchingContent',
-    `Check whether a user is watching a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.isWatchingContent,
+    {
+      description: `Check whether a user is watching a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.isWatchingContent,
+    },
     async ({ contentId, key, username }) => {
       const result = await service.isWatchingContent(contentId, key, username);
 
@@ -337,10 +385,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_addContentWatcher',
-    `Add a watcher to a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.addContentWatcher,
+    {
+      description: `Add a watcher to a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.addContentWatcher,
+    },
     async ({ contentId, key, username }) => {
       const result = await service.addContentWatcher(contentId, key, username);
 
@@ -348,10 +398,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_removeContentWatcher',
-    `Remove a watcher from a piece of content in ${confluenceInstanceType}`,
-    confluenceToolSchemas.removeContentWatcher,
+    {
+      description: `Remove a watcher from a piece of content in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.removeContentWatcher,
+    },
     async ({ contentId, key, username }) => {
       const result = await service.removeContentWatcher(contentId, key, username);
 
@@ -359,10 +411,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_publishBlueprintSharedDraft',
-    `Publish a shared draft created from a content blueprint (template) in ${confluenceInstanceType}, turning it into live content`,
-    confluenceToolSchemas.publishBlueprintSharedDraft,
+    {
+      description: `Publish a shared draft created from a content blueprint (template) in ${confluenceInstanceType}, turning it into live content`,
+      inputSchema: confluenceToolSchemas.publishBlueprintSharedDraft,
+    },
     async ({ draftId, title, spaceKey, content, parentId, expand }) => {
       const contentObj: ConfluenceContent = {
         id: draftId,
@@ -386,10 +440,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_publishBlueprintLegacyDraft',
-    `Publish a legacy draft created from a content blueprint (template) in ${confluenceInstanceType}, turning it into live content`,
-    confluenceToolSchemas.publishBlueprintLegacyDraft,
+    {
+      description: `Publish a legacy draft created from a content blueprint (template) in ${confluenceInstanceType}, turning it into live content`,
+      inputSchema: confluenceToolSchemas.publishBlueprintLegacyDraft,
+    },
     async ({ draftId, title, spaceKey, content, parentId, expand }) => {
       const contentObj: ConfluenceContent = {
         id: draftId,
@@ -413,10 +469,12 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.tool(
+  server.registerTool(
     'confluence_convertContentBody',
-    `Convert a content body between representations (e.g. storage to view) in ${confluenceInstanceType}`,
-    confluenceToolSchemas.convertContentBody,
+    {
+      description: `Convert a content body between representations (e.g. storage to view) in ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.convertContentBody,
+    },
     async ({ to, value, representation, expand }) => {
       const result = await service.convertContentBody(to, value, representation, expand);
 

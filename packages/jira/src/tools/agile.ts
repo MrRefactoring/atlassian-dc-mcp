@@ -5,10 +5,12 @@ import { jiraToolSchemas } from '../jiraService.js';
 import type { JiraService } from '../jiraService.js';
 
 export function registerAgileTools(server: McpServer, service: JiraService) {
-  server.tool(
+  server.registerTool(
     'jira_getBoards',
-    `Get Agile boards visible to the current user in the ${jiraInstanceType}, optionally filtered by name or project`,
-    jiraToolSchemas.getBoards,
+    {
+      description: `Get Agile boards visible to the current user in the ${jiraInstanceType}, optionally filtered by name or project`,
+      inputSchema: jiraToolSchemas.getBoards,
+    },
     async ({ maxResults, name, projectKeyOrId, startAt }) => {
       const result = await service.getBoards(maxResults, name, projectKeyOrId, startAt);
 
@@ -16,10 +18,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getBoard',
-    `Get a single Agile board by id from the ${jiraInstanceType}`,
-    jiraToolSchemas.getBoard,
+    {
+      description: `Get a single Agile board by id from the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getBoard,
+    },
     async ({ boardId }) => {
       const result = await service.getBoard(boardId);
 
@@ -27,10 +31,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getBoardConfiguration',
-    `Get the configuration (columns, estimation, ranking) of an Agile board in the ${jiraInstanceType}`,
-    jiraToolSchemas.getBoardConfiguration,
+    {
+      description: `Get the configuration (columns, estimation, ranking) of an Agile board in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getBoardConfiguration,
+    },
     async ({ boardId }) => {
       const result = await service.getBoardConfiguration(boardId);
 
@@ -38,10 +44,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getBoardIssues',
-    `Get the issues on an Agile board in the ${jiraInstanceType}, optionally filtered by JQL`,
-    jiraToolSchemas.getBoardIssues,
+    {
+      description: `Get the issues on an Agile board in the ${jiraInstanceType}, optionally filtered by JQL`,
+      inputSchema: jiraToolSchemas.getBoardIssues,
+    },
     async ({ boardId, jql, maxResults, startAt }) => {
       const result = await service.getBoardIssues(boardId, jql, maxResults, startAt);
 
@@ -49,10 +57,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getBoardSprints',
-    `Get the sprints of an Agile board in the ${jiraInstanceType}`,
-    jiraToolSchemas.getBoardSprints,
+    {
+      description: `Get the sprints of an Agile board in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getBoardSprints,
+    },
     async ({ boardId, maxResults, startAt }) => {
       const result = await service.getBoardSprints(boardId, maxResults, startAt);
 
@@ -60,10 +70,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getBoardVersions',
-    `Get the versions of an Agile board's project in the ${jiraInstanceType}`,
-    jiraToolSchemas.getBoardVersions,
+    {
+      description: `Get the versions of an Agile board's project in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getBoardVersions,
+    },
     async ({ boardId, maxResults, startAt }) => {
       const result = await service.getBoardVersions(boardId, maxResults, startAt);
 
@@ -71,10 +83,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getBoardBacklogIssues',
-    `Get the backlog issues of an Agile board in the ${jiraInstanceType}`,
-    jiraToolSchemas.getBoardBacklogIssues,
+    {
+      description: `Get the backlog issues of an Agile board in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getBoardBacklogIssues,
+    },
     async ({ boardId, jql, maxResults, startAt }) => {
       const result = await service.getBoardBacklogIssues(boardId, jql, maxResults, startAt);
 
@@ -82,10 +96,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getBoardEpics',
-    `Get the epics of an Agile board in the ${jiraInstanceType}`,
-    jiraToolSchemas.getBoardEpics,
+    {
+      description: `Get the epics of an Agile board in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getBoardEpics,
+    },
     async ({ boardId, maxResults, done, startAt }) => {
       const result = await service.getBoardEpics(boardId, maxResults, done, startAt);
 
@@ -93,10 +109,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getBoardIssuesWithoutEpic',
-    `Get the issues on an Agile board that are not assigned to any epic, in the ${jiraInstanceType}`,
-    jiraToolSchemas.getBoardIssuesWithoutEpic,
+    {
+      description: `Get the issues on an Agile board that are not assigned to any epic, in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getBoardIssuesWithoutEpic,
+    },
     async ({ boardId, jql, maxResults, startAt }) => {
       const result = await service.getBoardIssuesWithoutEpic(boardId, jql, maxResults, startAt);
 
@@ -104,10 +122,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getBoardEpicIssues',
-    `Get the issues assigned to a specific epic on an Agile board in the ${jiraInstanceType}`,
-    jiraToolSchemas.getBoardEpicIssues,
+    {
+      description: `Get the issues assigned to a specific epic on an Agile board in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getBoardEpicIssues,
+    },
     async ({ boardId, epicId, jql, maxResults, startAt }) => {
       const result = await service.getBoardEpicIssues(boardId, epicId, jql, maxResults, startAt);
 
@@ -115,10 +135,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_moveIssuesToBacklog',
-    `Move issues to the backlog in the ${jiraInstanceType}, removing them from any sprint`,
-    jiraToolSchemas.moveIssuesToBacklog,
+    {
+      description: `Move issues to the backlog in the ${jiraInstanceType}, removing them from any sprint`,
+      inputSchema: jiraToolSchemas.moveIssuesToBacklog,
+    },
     async ({ issueKeys }) => {
       const result = await service.moveIssuesToBacklog(issueKeys);
 
@@ -126,10 +148,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_createSprint',
-    `Create a sprint on an Agile board in the ${jiraInstanceType}`,
-    jiraToolSchemas.createSprint,
+    {
+      description: `Create a sprint on an Agile board in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.createSprint,
+    },
     async ({ name, originBoardId, startDate, endDate, goal }) => {
       const result = await service.createSprint(name, originBoardId, startDate, endDate, goal);
 
@@ -137,10 +161,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getSprint',
-    `Get a single sprint by id from the ${jiraInstanceType}`,
-    jiraToolSchemas.getSprint,
+    {
+      description: `Get a single sprint by id from the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getSprint,
+    },
     async ({ sprintId }) => {
       const result = await service.getSprint(sprintId);
 
@@ -148,10 +174,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_updateSprint',
-    `Update a sprint in the ${jiraInstanceType}, including starting or closing it via the state field`,
-    jiraToolSchemas.updateSprint,
+    {
+      description: `Update a sprint in the ${jiraInstanceType}, including starting or closing it via the state field`,
+      inputSchema: jiraToolSchemas.updateSprint,
+    },
     async ({ sprintId, name, startDate, endDate, goal, state }) => {
       const result = await service.updateSprint(sprintId, name, startDate, endDate, goal, state);
 
@@ -159,10 +187,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_deleteSprint',
-    `Delete a sprint from the ${jiraInstanceType}. This is irreversible.`,
-    jiraToolSchemas.deleteSprint,
+    {
+      description: `Delete a sprint from the ${jiraInstanceType}. This is irreversible.`,
+      inputSchema: jiraToolSchemas.deleteSprint,
+    },
     async ({ sprintId }) => {
       const result = await service.deleteSprint(sprintId);
 
@@ -170,10 +200,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getSprintIssues',
-    `Get the issues in a sprint in the ${jiraInstanceType}`,
-    jiraToolSchemas.getSprintIssues,
+    {
+      description: `Get the issues in a sprint in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getSprintIssues,
+    },
     async ({ sprintId, jql, maxResults, startAt }) => {
       const result = await service.getSprintIssues(sprintId, jql, maxResults, startAt);
 
@@ -181,10 +213,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_moveIssuesToSprint',
-    `Move issues into a sprint in the ${jiraInstanceType}`,
-    jiraToolSchemas.moveIssuesToSprint,
+    {
+      description: `Move issues into a sprint in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.moveIssuesToSprint,
+    },
     async ({ sprintId, issueKeys }) => {
       const result = await service.moveIssuesToSprint(sprintId, issueKeys);
 
@@ -192,10 +226,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getEpic',
-    `Get a single epic by id or issue key from the ${jiraInstanceType}`,
-    jiraToolSchemas.getEpic,
+    {
+      description: `Get a single epic by id or issue key from the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getEpic,
+    },
     async ({ epicIdOrKey }) => {
       const result = await service.getEpic(epicIdOrKey);
 
@@ -203,10 +239,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_updateEpic',
-    `Update an epic (name, summary, done status) in the ${jiraInstanceType}`,
-    jiraToolSchemas.updateEpic,
+    {
+      description: `Update an epic (name, summary, done status) in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.updateEpic,
+    },
     async ({ epicIdOrKey, name, summary, done }) => {
       const result = await service.updateEpic(epicIdOrKey, name, summary, done);
 
@@ -214,10 +252,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getEpicIssues',
-    `Get the issues assigned to an epic in the ${jiraInstanceType}`,
-    jiraToolSchemas.getEpicIssues,
+    {
+      description: `Get the issues assigned to an epic in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getEpicIssues,
+    },
     async ({ epicIdOrKey, jql, maxResults, startAt }) => {
       const result = await service.getEpicIssues(epicIdOrKey, jql, maxResults, startAt);
 
@@ -225,10 +265,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_moveIssuesToEpic',
-    `Move issues into an epic in the ${jiraInstanceType}`,
-    jiraToolSchemas.moveIssuesToEpic,
+    {
+      description: `Move issues into an epic in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.moveIssuesToEpic,
+    },
     async ({ epicIdOrKey, issueKeys }) => {
       const result = await service.moveIssuesToEpic(epicIdOrKey, issueKeys);
 
@@ -236,10 +278,12 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_rankEpic',
-    `Reorder (rank) an epic relative to another epic in the ${jiraInstanceType}`,
-    jiraToolSchemas.rankEpic,
+    {
+      description: `Reorder (rank) an epic relative to another epic in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.rankEpic,
+    },
     async ({ epicIdOrKey, rankBeforeEpic, rankAfterEpic, rankCustomFieldId }) => {
       const result = await service.rankEpic(epicIdOrKey, rankBeforeEpic, rankAfterEpic, rankCustomFieldId);
 

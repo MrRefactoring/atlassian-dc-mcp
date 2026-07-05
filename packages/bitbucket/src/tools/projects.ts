@@ -4,10 +4,12 @@ import type { BitbucketService } from '../bitbucketService.js';
 import { bitbucketToolSchemas } from '../bitbucketService.js';
 
 export function registerProjectTools(server: McpServer, service: BitbucketService) {
-  server.tool(
+  server.registerTool(
     'bitbucket_getProjects',
-    'Get a list of Bitbucket projects',
-    bitbucketToolSchemas.getProjects,
+    {
+      description: 'Get a list of Bitbucket projects',
+      inputSchema: bitbucketToolSchemas.getProjects,
+    },
     async ({ name, permission, start, limit }) => {
       const result = await service.getProjects(name, permission, start, limit);
 
@@ -15,10 +17,12 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
     },
   );
 
-  server.tool(
+  server.registerTool(
     'bitbucket_getProject',
-    'Get a specific Bitbucket project by key',
-    bitbucketToolSchemas.getProject,
+    {
+      description: 'Get a specific Bitbucket project by key',
+      inputSchema: bitbucketToolSchemas.getProject,
+    },
     async ({ projectKey }) => {
       const result = await service.getProject(projectKey);
 
@@ -26,10 +30,12 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
     },
   );
 
-  server.tool(
+  server.registerTool(
     'bitbucket_createProject',
-    'Create a new Bitbucket project. Requires PROJECT_CREATE permission. The key must be unique.',
-    bitbucketToolSchemas.createProject,
+    {
+      description: 'Create a new Bitbucket project. Requires PROJECT_CREATE permission. The key must be unique.',
+      inputSchema: bitbucketToolSchemas.createProject,
+    },
     async ({ key, name, description }) => {
       const result = await service.createProject(key, name, description);
 
@@ -37,10 +43,12 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
     },
   );
 
-  server.tool(
+  server.registerTool(
     'bitbucket_updateProject',
-    'Update an existing Bitbucket project\'s name or description. Requires PROJECT_ADMIN permission. The project key is never changed. Only the provided fields are updated.',
-    bitbucketToolSchemas.updateProject,
+    {
+      description: 'Update an existing Bitbucket project\'s name or description. Requires PROJECT_ADMIN permission. The project key is never changed. Only the provided fields are updated.',
+      inputSchema: bitbucketToolSchemas.updateProject,
+    },
     async ({ key, name, description }) => {
       const result = await service.updateProject(key, name, description);
 
@@ -48,10 +56,12 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
     },
   );
 
-  server.tool(
+  server.registerTool(
     'bitbucket_deleteProject',
-    'Delete a Bitbucket project. Requires PROJECT_ADMIN permission. The project must contain no repositories or the call fails with a conflict.',
-    bitbucketToolSchemas.deleteProject,
+    {
+      description: 'Delete a Bitbucket project. Requires PROJECT_ADMIN permission. The project must contain no repositories or the call fails with a conflict.',
+      inputSchema: bitbucketToolSchemas.deleteProject,
+    },
     async ({ key }) => {
       const result = await service.deleteProject(key);
 

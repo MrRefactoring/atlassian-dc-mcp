@@ -5,10 +5,12 @@ import { jiraToolSchemas } from '../jiraService.js';
 import type { JiraService } from '../jiraService.js';
 
 export function registerUserTools(server: McpServer, service: JiraService) {
-  server.tool(
+  server.registerTool(
     'jira_getUser',
-    `Get details of a single user by username or key from the ${jiraInstanceType}`,
-    jiraToolSchemas.getUser,
+    {
+      description: `Get details of a single user by username or key from the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getUser,
+    },
     async ({ username, key, includeDeleted }) => {
       const result = await service.getUser(username, key, includeDeleted);
 
@@ -16,10 +18,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_findUsers',
-    `Search for users by free-text query in the ${jiraInstanceType}`,
-    jiraToolSchemas.findUsers,
+    {
+      description: `Search for users by free-text query in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.findUsers,
+    },
     async ({ username, maxResults, startAt, includeActive, includeInactive }) => {
       const result = await service.findUsers(username, maxResults, startAt, includeActive, includeInactive);
 
@@ -27,10 +31,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_findAssignableUsers',
-    `Search for users assignable to a project or issue in the ${jiraInstanceType}. Use before jira_assignIssue to find valid candidates.`,
-    jiraToolSchemas.findAssignableUsers,
+    {
+      description: `Search for users assignable to a project or issue in the ${jiraInstanceType}. Use before jira_assignIssue to find valid candidates.`,
+      inputSchema: jiraToolSchemas.findAssignableUsers,
+    },
     async ({ project, issueKey, username, maxResults }) => {
       const result = await service.findAssignableUsers(project, issueKey, username, maxResults);
 
@@ -38,10 +44,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_createGroup',
-    `Create a group in the ${jiraInstanceType}`,
-    jiraToolSchemas.createGroup,
+    {
+      description: `Create a group in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.createGroup,
+    },
     async ({ name }) => {
       const result = await service.createGroup(name);
 
@@ -49,10 +57,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_deleteGroup',
-    `Delete a group from the ${jiraInstanceType}. This is irreversible.`,
-    jiraToolSchemas.deleteGroup,
+    {
+      description: `Delete a group from the ${jiraInstanceType}. This is irreversible.`,
+      inputSchema: jiraToolSchemas.deleteGroup,
+    },
     async ({ groupname, swapGroup }) => {
       const result = await service.deleteGroup(groupname, swapGroup);
 
@@ -60,10 +70,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getGroupUsers',
-    `Get the members of a group in the ${jiraInstanceType}`,
-    jiraToolSchemas.getGroupUsers,
+    {
+      description: `Get the members of a group in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getGroupUsers,
+    },
     async ({ groupname, includeInactiveUsers, maxResults, startAt }) => {
       const result = await service.getGroupUsers(groupname, includeInactiveUsers, maxResults, startAt);
 
@@ -71,10 +83,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_addUserToGroup',
-    `Add a user to a group in the ${jiraInstanceType}`,
-    jiraToolSchemas.addUserToGroup,
+    {
+      description: `Add a user to a group in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.addUserToGroup,
+    },
     async ({ groupname, username }) => {
       const result = await service.addUserToGroup(groupname, username);
 
@@ -82,10 +96,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_removeUserFromGroup',
-    `Remove a user from a group in the ${jiraInstanceType}`,
-    jiraToolSchemas.removeUserFromGroup,
+    {
+      description: `Remove a user from a group in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.removeUserFromGroup,
+    },
     async ({ groupname, username }) => {
       const result = await service.removeUserFromGroup(groupname, username);
 
@@ -93,10 +109,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_findGroups',
-    `Search for groups by a substring match against group names in the ${jiraInstanceType}. Used for group-picker style autocomplete.`,
-    jiraToolSchemas.findGroups,
+    {
+      description: `Search for groups by a substring match against group names in the ${jiraInstanceType}. Used for group-picker style autocomplete.`,
+      inputSchema: jiraToolSchemas.findGroups,
+    },
     async ({ query, maxResults, exclude, userName }) => {
       const result = await service.findGroups(query, maxResults, exclude, userName);
 
@@ -104,10 +122,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_findUsersAndGroups',
-    `Search for users and groups matching a query, with match highlighting, in the ${jiraInstanceType}. Used for combined user/group-picker style autocomplete fields such as assignee, reporter, or a group-picker custom field.`,
-    jiraToolSchemas.findUsersAndGroups,
+    {
+      description: `Search for users and groups matching a query, with match highlighting, in the ${jiraInstanceType}. Used for combined user/group-picker style autocomplete fields such as assignee, reporter, or a group-picker custom field.`,
+      inputSchema: jiraToolSchemas.findUsersAndGroups,
+    },
     async ({ query, maxResults, showAvatar, issueTypeId, projectId, fieldId }) => {
       const result = await service.findUsersAndGroups(query, maxResults, showAvatar, issueTypeId, projectId, fieldId);
 
@@ -115,10 +135,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_createUser',
-    `Create a new user in the ${jiraInstanceType}`,
-    jiraToolSchemas.createUser,
+    {
+      description: `Create a new user in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.createUser,
+    },
     async ({ name, emailAddress, displayName, password, notification }) => {
       const result = await service.createUser(name, emailAddress, displayName, password, notification);
 
@@ -126,10 +148,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_removeUser',
-    `Remove a user and its references in the ${jiraInstanceType}`,
-    jiraToolSchemas.removeUser,
+    {
+      description: `Remove a user and its references in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.removeUser,
+    },
     async ({ key, username }) => {
       const result = await service.removeUser(key, username);
 
@@ -137,10 +161,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_changeUserPassword',
-    `Change a user's password in the ${jiraInstanceType}`,
-    jiraToolSchemas.changeUserPassword,
+    {
+      description: `Change a user's password in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.changeUserPassword,
+    },
     async ({ password, currentPassword, key, username }) => {
       const result = await service.changeUserPassword(password, currentPassword, key, username);
 
@@ -148,10 +174,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_validateUserAnonymization',
-    `Validate whether a user can be anonymized in the ${jiraInstanceType}`,
-    jiraToolSchemas.validateUserAnonymization,
+    {
+      description: `Validate whether a user can be anonymized in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.validateUserAnonymization,
+    },
     async ({ userKey, expand }) => {
       const result = await service.validateUserAnonymization(userKey, expand);
 
@@ -159,10 +187,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_scheduleUserAnonymization',
-    `Schedule a user anonymization process in the ${jiraInstanceType}. Requires system admin permission.`,
-    jiraToolSchemas.scheduleUserAnonymization,
+    {
+      description: `Schedule a user anonymization process in the ${jiraInstanceType}. Requires system admin permission.`,
+      inputSchema: jiraToolSchemas.scheduleUserAnonymization,
+    },
     async ({ userKey, newOwnerKey }) => {
       const result = await service.scheduleUserAnonymization(userKey, newOwnerKey);
 
@@ -170,10 +200,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getUserAnonymizationProgress',
-    `Get the progress of a user anonymization task in the ${jiraInstanceType}`,
-    jiraToolSchemas.getUserAnonymizationProgress,
+    {
+      description: `Get the progress of a user anonymization task in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getUserAnonymizationProgress,
+    },
     async ({ taskId }) => {
       const result = await service.getUserAnonymizationProgress(taskId);
 
@@ -181,10 +213,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getSystemAvatars',
-    `Get all system avatars of a given type in the ${jiraInstanceType}`,
-    jiraToolSchemas.getSystemAvatars,
+    {
+      description: `Get all system avatars of a given type in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getSystemAvatars,
+    },
     async ({ type }) => {
       const result = await service.getSystemAvatars(type);
 
@@ -192,10 +226,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getAvatars',
-    `Get all avatars (system and custom) for a given type and owner in the ${jiraInstanceType}`,
-    jiraToolSchemas.getAvatars,
+    {
+      description: `Get all avatars (system and custom) for a given type and owner in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getAvatars,
+    },
     async ({ type, owningObjectId }) => {
       const result = await service.getAvatars(type, owningObjectId);
 
@@ -203,10 +239,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_uploadTemporaryAvatar',
-    `Upload a temporary avatar image in the ${jiraInstanceType}. Returns cropping instructions to pass to jira_createAvatarFromTemporary.`,
-    jiraToolSchemas.uploadTemporaryAvatar,
+    {
+      description: `Upload a temporary avatar image in the ${jiraInstanceType}. Returns cropping instructions to pass to jira_createAvatarFromTemporary.`,
+      inputSchema: jiraToolSchemas.uploadTemporaryAvatar,
+    },
     async ({ type, owningObjectId, fileName, contentBase64 }) => {
       const result = await service.uploadTemporaryAvatar(type, owningObjectId, fileName, contentBase64);
 
@@ -214,10 +252,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_createAvatarFromTemporary',
-    `Finalize a temporary avatar into a real avatar in the ${jiraInstanceType}, using the cropping instructions from jira_uploadTemporaryAvatar.`,
-    jiraToolSchemas.createAvatarFromTemporary,
+    {
+      description: `Finalize a temporary avatar into a real avatar in the ${jiraInstanceType}, using the cropping instructions from jira_uploadTemporaryAvatar.`,
+      inputSchema: jiraToolSchemas.createAvatarFromTemporary,
+    },
     async ({ type, owningObjectId, cropperOffsetX, cropperOffsetY, cropperWidth, needsCropping, url }) => {
       const result = await service.createAvatarFromTemporary(type, owningObjectId, cropperOffsetX, cropperOffsetY, cropperWidth, needsCropping, url);
 
@@ -225,10 +265,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_deleteAvatar',
-    `Delete an avatar by id in the ${jiraInstanceType}`,
-    jiraToolSchemas.deleteAvatar,
+    {
+      description: `Delete an avatar by id in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.deleteAvatar,
+    },
     async ({ id, type, owningObjectId }) => {
       const result = await service.deleteAvatar(id, type, owningObjectId);
 
@@ -236,10 +278,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getMyPermissions',
-    `Get the permissions the currently logged in user has in the ${jiraInstanceType}, optionally scoped to a project or issue`,
-    jiraToolSchemas.getMyPermissions,
+    {
+      description: `Get the permissions the currently logged in user has in the ${jiraInstanceType}, optionally scoped to a project or issue`,
+      inputSchema: jiraToolSchemas.getMyPermissions,
+    },
     async ({ projectKey, projectId, issueKey, issueId }) => {
       const result = await service.getMyPermissions(projectKey, projectId, issueKey, issueId);
 
@@ -247,10 +291,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getAllPermissions',
-    `Get the full catalog of permission types present in the ${jiraInstanceType} — global, project, and plugin-added`,
-    jiraToolSchemas.getAllPermissions,
+    {
+      description: `Get the full catalog of permission types present in the ${jiraInstanceType} — global, project, and plugin-added`,
+      inputSchema: jiraToolSchemas.getAllPermissions,
+    },
     async () => {
       const result = await service.getAllPermissions();
 
@@ -258,10 +304,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_getMyPreference',
-    `Get a preference value for the current user by key in the ${jiraInstanceType}`,
-    jiraToolSchemas.getMyPreference,
+    {
+      description: `Get a preference value for the current user by key in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getMyPreference,
+    },
     async ({ key }) => {
       const result = await service.getMyPreference(key);
 
@@ -269,10 +317,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_setMyPreference',
-    `Set a preference value for the current user by key in the ${jiraInstanceType}`,
-    jiraToolSchemas.setMyPreference,
+    {
+      description: `Set a preference value for the current user by key in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.setMyPreference,
+    },
     async ({ key, value }) => {
       const result = await service.setMyPreference(key, value);
 
@@ -280,10 +330,12 @@ export function registerUserTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     'jira_deleteMyPreference',
-    `Remove a preference value for the current user by key in the ${jiraInstanceType}`,
-    jiraToolSchemas.deleteMyPreference,
+    {
+      description: `Remove a preference value for the current user by key in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.deleteMyPreference,
+    },
     async ({ key }) => {
       const result = await service.deleteMyPreference(key);
 
