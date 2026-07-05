@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { SimplifiedInboxPRResponse } from '../src/inboxPrMapper.js';
+import type { SimplifiedInboxPRResponse } from '../src/interface/index.js';
 import { simplifyInboxPullRequests } from '../src/inboxPrMapper.js';
 
 describe('simplifyInboxPullRequests', () => {

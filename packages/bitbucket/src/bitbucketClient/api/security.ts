@@ -1,6 +1,7 @@
-import type { HttpClient } from '../core/types.js';
-import { route, pickBody } from '../core/types.js';
-import { restPage, type RestPage } from '../core/page.js';
+import type { HttpClient } from '../interface/index.js';
+import { route, pickBody } from '../core/helpers.js';
+import { restPage } from '../core/page.js';
+import type { RestPage } from '../interface/index.js';
 import { GpgKeySchema } from '../models/index.js';
 import type { GpgKey } from '../models/index.js';
 import type { AddKey, DeleteKey, GetKeysForUser } from '../parameters/index.js';

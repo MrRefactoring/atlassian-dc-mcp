@@ -17,14 +17,3 @@ export const restPage = <T extends z.ZodType>(item: T) =>
     nextPageStart: z.number().nullish().transform((v) => v ?? undefined),
     values: z.array(item).optional(),
   });
-
-/** Static type of a {@link restPage} envelope. */
-export interface RestPage<T> {
-  size?: number;
-  limit?: number;
-  isLastPage?: boolean;
-  start?: number;
-  nextPageStart?: number;
-  values?: T[];
-  [key: string]: unknown;
-}

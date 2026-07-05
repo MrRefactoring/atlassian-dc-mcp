@@ -1,5 +1,5 @@
 import { createHttpClient } from './httpClient.js';
-import type { BitbucketClientConfig, HttpClient, SendRequestOptions } from './types.js';
+import type { BitbucketClientConfig, HttpClient, SendRequestOptions } from '../interface/index.js';
 import * as authentication from '../api/authentication.js';
 import * as builds from '../api/builds.js';
 import * as permissions from '../api/permissions.js';

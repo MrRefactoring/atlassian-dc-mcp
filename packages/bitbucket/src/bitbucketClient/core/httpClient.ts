@@ -1,5 +1,5 @@
 import { ApiError } from './apiError.js';
-import type { BitbucketClientConfig, CredentialSource, HttpClient, SendRequestOptions } from './types.js';
+import type { BitbucketClientConfig, CredentialSource, HttpClient, SendRequestOptions } from '../interface/index.js';
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 const REQUEST_TIMEOUT_MS_ENV_VAR = 'ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS';

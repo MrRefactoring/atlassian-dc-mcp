@@ -1,6 +1,7 @@
-import type { HttpClient } from '../core/types.js';
-import { route, pickBody } from '../core/types.js';
-import { restPage, type RestPage } from '../core/page.js';
+import type { HttpClient } from '../interface/index.js';
+import { route, pickBody } from '../core/helpers.js';
+import { restPage } from '../core/page.js';
+import type { RestPage } from '../interface/index.js';
 import { z } from 'zod';
 import { ChangeSchema, CommentSchema, PullRequestActivitySchema, PullRequestConditionSchema, PullRequestMergeabilitySchema, PullRequestParticipantSchema, PullRequestSchema, ApplySuggestionRequestSchema, PullRequestAssignParticipantRoleRequestSchema, DefaultReviewersRequestSchema, PullRequestDeclineRequestSchema, PullRequestMergeRequestSchema, PullRequestReopenRequestSchema, PullRequestAssignStatusRequestSchema } from '../models/index.js';
 import type { Change, Comment, PullRequest, PullRequestActivity, PullRequestCondition, PullRequestMergeability, PullRequestParticipant } from '../models/index.js';

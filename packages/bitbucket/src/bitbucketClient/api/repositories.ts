@@ -1,6 +1,7 @@
-import type { HttpClient } from '../core/types.js';
-import { route, pickBody } from '../core/types.js';
-import { restPage, type RestPage } from '../core/page.js';
+import type { HttpClient } from '../interface/index.js';
+import { route, pickBody } from '../core/helpers.js';
+import { restPage } from '../core/page.js';
+import type { RestPage } from '../interface/index.js';
 import { SettingsSchema, AutoDeclineSettingsSchema, AutoMergeRestrictedSettingsSchema, BranchSchema, ChangeSchema, CommentSchema, CommitSchema, DiffSchema, RefRestrictionSchema, RepositoryHookSchema, RepositoryPullRequestSettingsSchema, TagSchema, WebhookSchema, BranchCreateRequestSchema, CreateTagRequestSchema, BranchDeleteRequestSchema, MultipartFormDataSchema, AutoDeclineSettingsRequestSchema, AutoMergeSettingsRequestSchema } from '../models/index.js';
 import type { Settings, AutoDeclineSettings, AutoMergeRestrictedSettings, Branch, Change, Comment, Commit, Diff, RefRestriction, RepositoryHook, RepositoryPullRequestSettings, Tag, Webhook } from '../models/index.js';
 import type { CreateBranch, CreateCommitComment, CreateRestrictions, CreateTagForRepository, CreateWebhook, DeleteAutoDeclineSettings, DeleteAutoMergeSettings, DeleteBranch, DeleteRestriction, DeleteWebhook, DisableHook, EditFile, EnableHook, FindWebhooks, GetAutoDeclineSettings, GetAutoMergeSettings, GetBranches, GetComments, GetCommit, GetCommits, GetContent, GetDefaultBranch, GetPullRequestSettings, GetRepositoryHooks, GetRestriction, GetRestrictions, GetSettings, GetTag, GetTags, GetWebhook, SetAutoDeclineSettings, SetAutoMergeSettings, SetSettings, StreamCompareChanges, StreamCommits, StreamDiff, StreamRaw, UpdatePullRequestSettings, UpdateWebhook } from '../parameters/index.js';
