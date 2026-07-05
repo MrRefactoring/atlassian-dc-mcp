@@ -2,12 +2,10 @@ import type { HttpClient } from '../core/types.js';
 import { enc } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
 import { PermittedGroupSchema, PermittedUserSchema, ProjectSchema, RepositorySchema } from '../models/index.js';
-import type { Branch, PermittedGroup, PermittedUser, Project, Repository } from '../models/index.js';
+import type { PermittedGroup, PermittedUser, Project, Repository } from '../models/index.js';
+import type { CreateProject, CreateRepository, DeleteProject, DeleteRepository, ForkRepository, GetForkedRepositories, GetProjectGroupsWithAnyPermission, GetProject, GetProjects, GetRepositories, GetRepository, GetProjectUsersWithAnyPermission, RevokeProjectPermissions, SetDefaultBranch, SetPermissionForGroups, SetPermissionForUsers, UpdateProject, UpdateRepository } from '../parameters/index.js';
 
 /** POST /api/latest/projects */
-export interface CreateProject {
-  requestBody?: Project;
-}
 export function createProject(client: HttpClient, params: CreateProject): Promise<Project> {
   return client.sendRequest({
     method: 'POST',
@@ -19,10 +17,6 @@ export function createProject(client: HttpClient, params: CreateProject): Promis
 }
 
 /** POST /api/latest/projects/{projectKey}/repos */
-export interface CreateRepository {
-  projectKey: string;
-  requestBody?: Repository;
-}
 export function createRepository(client: HttpClient, params: CreateRepository): Promise<Repository> {
   return client.sendRequest({
     method: 'POST',
@@ -34,9 +28,6 @@ export function createRepository(client: HttpClient, params: CreateRepository): 
 }
 
 /** DELETE /api/latest/projects/{projectKey} */
-export interface DeleteProject {
-  projectKey: string;
-}
 export function deleteProject(client: HttpClient, params: DeleteProject): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
@@ -45,10 +36,6 @@ export function deleteProject(client: HttpClient, params: DeleteProject): Promis
 }
 
 /** DELETE /api/latest/projects/{projectKey}/repos/{repositorySlug} */
-export interface DeleteRepository {
-  projectKey: string;
-  repositorySlug: string;
-}
 export function deleteRepository(client: HttpClient, params: DeleteRepository): Promise<unknown> {
   return client.sendRequest({
     method: 'DELETE',
@@ -57,11 +44,6 @@ export function deleteRepository(client: HttpClient, params: DeleteRepository): 
 }
 
 /** POST /api/latest/projects/{projectKey}/repos/{repositorySlug} */
-export interface ForkRepository {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: Repository;
-}
 export function forkRepository(client: HttpClient, params: ForkRepository): Promise<Repository> {
   return client.sendRequest({
     method: 'POST',
@@ -73,12 +55,6 @@ export function forkRepository(client: HttpClient, params: ForkRepository): Prom
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug}/forks */
-export interface GetForkedRepositories {
-  projectKey: string;
-  repositorySlug: string;
-  start?: number;
-  limit?: number;
-}
 export function getForkedRepositories(client: HttpClient, params: GetForkedRepositories): Promise<RestPage<Repository>> {
   return client.sendRequest({
     method: 'GET',
@@ -89,13 +65,7 @@ export function getForkedRepositories(client: HttpClient, params: GetForkedRepos
 }
 
 /** GET /api/latest/projects/{projectKey}/permissions/groups */
-export interface GetGroupsWithAnyPermission {
-  projectKey: string;
-  filter?: string;
-  start?: number;
-  limit?: number;
-}
-export function getGroupsWithAnyPermission(client: HttpClient, params: GetGroupsWithAnyPermission): Promise<RestPage<PermittedGroup>> {
+export function getGroupsWithAnyPermission(client: HttpClient, params: GetProjectGroupsWithAnyPermission): Promise<RestPage<PermittedGroup>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/permissions/groups`,
@@ -105,9 +75,6 @@ export function getGroupsWithAnyPermission(client: HttpClient, params: GetGroups
 }
 
 /** GET /api/latest/projects/{projectKey} */
-export interface GetProject {
-  projectKey: string;
-}
 export function getProject(client: HttpClient, params: GetProject): Promise<Project> {
   return client.sendRequest({
     method: 'GET',
@@ -117,12 +84,6 @@ export function getProject(client: HttpClient, params: GetProject): Promise<Proj
 }
 
 /** GET /api/latest/projects */
-export interface GetProjects {
-  name?: string;
-  permission?: string;
-  start?: number;
-  limit?: number;
-}
 export function getProjects(client: HttpClient, params: GetProjects): Promise<RestPage<Project>> {
   return client.sendRequest({
     method: 'GET',
@@ -133,11 +94,6 @@ export function getProjects(client: HttpClient, params: GetProjects): Promise<Re
 }
 
 /** GET /api/latest/projects/{projectKey}/repos */
-export interface GetRepositories {
-  projectKey: string;
-  start?: number;
-  limit?: number;
-}
 export function getRepositories(client: HttpClient, params: GetRepositories): Promise<RestPage<Repository>> {
   return client.sendRequest({
     method: 'GET',
@@ -148,10 +104,6 @@ export function getRepositories(client: HttpClient, params: GetRepositories): Pr
 }
 
 /** GET /api/latest/projects/{projectKey}/repos/{repositorySlug} */
-export interface GetRepository {
-  projectKey: string;
-  repositorySlug: string;
-}
 export function getRepository(client: HttpClient, params: GetRepository): Promise<Repository> {
   return client.sendRequest({
     method: 'GET',
@@ -161,13 +113,7 @@ export function getRepository(client: HttpClient, params: GetRepository): Promis
 }
 
 /** GET /api/latest/projects/{projectKey}/permissions/users */
-export interface GetUsersWithAnyPermission {
-  projectKey: string;
-  filter?: string;
-  start?: number;
-  limit?: number;
-}
-export function getUsersWithAnyPermission(client: HttpClient, params: GetUsersWithAnyPermission): Promise<RestPage<PermittedUser>> {
+export function getUsersWithAnyPermission(client: HttpClient, params: GetProjectUsersWithAnyPermission): Promise<RestPage<PermittedUser>> {
   return client.sendRequest({
     method: 'GET',
     url: `/api/latest/projects/${enc(params.projectKey)}/permissions/users`,
@@ -177,12 +123,7 @@ export function getUsersWithAnyPermission(client: HttpClient, params: GetUsersWi
 }
 
 /** DELETE /api/latest/projects/{projectKey}/permissions */
-export interface RevokePermissions {
-  projectKey: string;
-  user?: string;
-  group?: string;
-}
-export function revokePermissions(client: HttpClient, params: RevokePermissions): Promise<void> {
+export function revokePermissions(client: HttpClient, params: RevokeProjectPermissions): Promise<void> {
   return client.sendRequest({
     method: 'DELETE',
     url: `/api/latest/projects/${enc(params.projectKey)}/permissions`,
@@ -191,11 +132,6 @@ export function revokePermissions(client: HttpClient, params: RevokePermissions)
 }
 
 /** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug}/default-branch */
-export interface SetDefaultBranch {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: Branch;
-}
 export function setDefaultBranch(client: HttpClient, params: SetDefaultBranch): Promise<void> {
   return client.sendRequest({
     method: 'PUT',
@@ -206,11 +142,6 @@ export function setDefaultBranch(client: HttpClient, params: SetDefaultBranch): 
 }
 
 /** PUT /api/latest/projects/{projectKey}/permissions/groups */
-export interface SetPermissionForGroups {
-  projectKey: string;
-  name?: string;
-  permission?: string;
-}
 export function setPermissionForGroups(client: HttpClient, params: SetPermissionForGroups): Promise<void> {
   return client.sendRequest({
     method: 'PUT',
@@ -220,11 +151,6 @@ export function setPermissionForGroups(client: HttpClient, params: SetPermission
 }
 
 /** PUT /api/latest/projects/{projectKey}/permissions/users */
-export interface SetPermissionForUsers {
-  projectKey: string;
-  name?: string;
-  permission?: string;
-}
 export function setPermissionForUsers(client: HttpClient, params: SetPermissionForUsers): Promise<void> {
   return client.sendRequest({
     method: 'PUT',
@@ -234,10 +160,6 @@ export function setPermissionForUsers(client: HttpClient, params: SetPermissionF
 }
 
 /** PUT /api/latest/projects/{projectKey} */
-export interface UpdateProject {
-  projectKey: string;
-  requestBody?: Project;
-}
 export function updateProject(client: HttpClient, params: UpdateProject): Promise<Project> {
   return client.sendRequest({
     method: 'PUT',
@@ -249,11 +171,6 @@ export function updateProject(client: HttpClient, params: UpdateProject): Promis
 }
 
 /** PUT /api/latest/projects/{projectKey}/repos/{repositorySlug} */
-export interface UpdateRepository {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: Repository;
-}
 export function updateRepository(client: HttpClient, params: UpdateRepository): Promise<Repository> {
   return client.sendRequest({
     method: 'PUT',
