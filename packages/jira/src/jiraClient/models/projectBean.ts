@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
 export type ProjectBean = {
-    archived?: boolean;
-    avatarUrls?: Record<string, string>;
-    description?: string;
-    id?: string;
-    key?: string;
-    name?: string;
-    self?: string;
+  archived?: boolean;
+  avatarUrls?: Record<string, string>;
+  description?: string;
+  id?: string;
+  key?: string;
+  name?: string;
+  self?: string;
 };
 
 export const ProjectBeanSchema = z.looseObject({

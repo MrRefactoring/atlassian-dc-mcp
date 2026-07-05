@@ -1,17 +1,17 @@
 import { z } from 'zod';
 
 export type VersionMoveBean = {
-    after?: string;
-    position?: VersionMoveBean.position;
+  after?: string;
+  position?: VersionMoveBean.position;
 };
 
 export namespace VersionMoveBean {
-    export enum position {
-        EARLIER = 'Earlier',
-        LATER = 'Later',
-        FIRST = 'First',
-        LAST = 'Last',
-    }
+  export enum position {
+    EARLIER = 'Earlier',
+    LATER = 'Later',
+    FIRST = 'First',
+    LAST = 'Last',
+  }
 }
 
 const VersionMoveBean_positionSchema = z.enum(['Earlier', 'Later', 'First', 'Last']);

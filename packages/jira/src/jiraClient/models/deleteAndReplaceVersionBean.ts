@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { CustomFieldReplacementSchema, type CustomFieldReplacement } from './customFieldReplacement.js';
 
 export type DeleteAndReplaceVersionBean = {
-    customFieldReplacementList?: Array<CustomFieldReplacement>;
-    moveAffectedIssuesTo?: number;
-    moveFixIssuesTo?: number;
+  customFieldReplacementList?: Array<CustomFieldReplacement>;
+  moveAffectedIssuesTo?: number;
+  moveFixIssuesTo?: number;
 };
 
 export const DeleteAndReplaceVersionBeanSchema = z.lazy(() => z.looseObject({

@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { IconSchema, type Icon } from './icon.js';
 
 export type Status = {
-    icon?: Icon;
-    resolved?: boolean;
+  icon?: Icon;
+  resolved?: boolean;
 };
 
 export const StatusSchema = z.lazy(() => z.looseObject({

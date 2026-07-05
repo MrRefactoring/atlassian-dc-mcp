@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type ProjectRoleActorsUpdateBean = {
-    categorisedActors?: Record<string, Array<string>>;
-    id?: number;
+  categorisedActors?: Record<string, Array<string>>;
+  id?: number;
 };
 
 export const ProjectRoleActorsUpdateBeanSchema = z.looseObject({

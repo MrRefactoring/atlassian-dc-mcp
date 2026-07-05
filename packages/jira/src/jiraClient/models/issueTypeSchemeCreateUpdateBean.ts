@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export type IssueTypeSchemeCreateUpdateBean = {
-    defaultIssueTypeId?: string;
-    description?: string;
-    issueTypeIDs?: Array<string>;
-    issueTypeIds?: Array<string>;
-    name?: string;
+  defaultIssueTypeId?: string;
+  description?: string;
+  issueTypeIDs?: Array<string>;
+  issueTypeIds?: Array<string>;
+  name?: string;
 };
 
 export const IssueTypeSchemeCreateUpdateBeanSchema = z.looseObject({

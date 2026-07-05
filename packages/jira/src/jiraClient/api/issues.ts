@@ -200,7 +200,7 @@ export function getAttachment(client: HttpClient, params: { id: string }): Promi
   });
 }
 
-export function getAttachmentMeta(client: HttpClient, params: Record<string, never>): Promise<AttachmentMetaBean> {
+export function getAttachmentMeta(client: HttpClient, _params: Record<string, never>): Promise<AttachmentMetaBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/attachment/meta`,
@@ -294,7 +294,7 @@ export function getIssueLink(client: HttpClient, params: { linkId: string }): Pr
   });
 }
 
-export function getIssueLinkTypes(client: HttpClient, params: Record<string, never>): Promise<IssueLinkTypesBean> {
+export function getIssueLinkTypes(client: HttpClient, _params: Record<string, never>): Promise<IssueLinkTypesBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/issueLinkType`,

@@ -17,7 +17,6 @@ export default tseslint.config(
     ignores: [
       '**/dist/**',
       '**/coverage/**',
-      '**/jiraClient/**',
       '**/confluenceClient/**',
       '.worktrees/**',
       '.claude/worktrees/**',
@@ -107,6 +106,16 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  {
+    // The hand-written jira client models mirror the API's enum-bearing shapes:
+    // `export type X` + a sibling `export namespace X { export enum ... }` so the
+    // enum members are reachable as `X.member`. That legitimate pattern trips
+    // `no-namespace`, so allow namespaces in the model files only.
+    files: ['**/jiraClient/models/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-namespace': 'off',
     },
   },
 );

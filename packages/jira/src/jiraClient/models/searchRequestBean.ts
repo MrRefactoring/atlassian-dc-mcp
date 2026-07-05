@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
 export type SearchRequestBean = {
-    expand?: Array<string>;
-    fields?: Array<string>;
-    jql?: string;
-    maxResults?: number;
-    startAt?: number;
-    validateQuery?: boolean;
+  expand?: Array<string>;
+  fields?: Array<string>;
+  jql?: string;
+  maxResults?: number;
+  startAt?: number;
+  validateQuery?: boolean;
 };
 
 export const SearchRequestBeanSchema = z.looseObject({

@@ -3,8 +3,8 @@ import { GroupJsonBeanSchema, type GroupJsonBean } from './groupJsonBean.js';
 import { PermissionJsonBeanSchema, type PermissionJsonBean } from './permissionJsonBean.js';
 
 export type RestrictJsonBean = {
-    groups?: Array<GroupJsonBean>;
-    permissions?: Array<PermissionJsonBean>;
+  groups?: Array<GroupJsonBean>;
+  permissions?: Array<PermissionJsonBean>;
 };
 
 export const RestrictJsonBeanSchema = z.lazy(() => z.looseObject({

@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
 export type ChangeItemBean = {
-    field?: string;
-    fieldtype?: string;
-    from?: string;
-    fromString?: string;
-    to?: string;
-    toString?: string;
+  field?: string;
+  fieldtype?: string;
+  from?: string;
+  fromString?: string;
+  to?: string;
+  toString?: string;
 };
 
 export const ChangeItemBeanSchema = z.looseObject({

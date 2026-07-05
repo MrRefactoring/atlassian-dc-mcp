@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type NodeBuildInfo = {
-    buildNumber?: number;
-    version?: string;
+  buildNumber?: number;
+  version?: string;
 };
 
 export const NodeBuildInfoSchema = z.looseObject({

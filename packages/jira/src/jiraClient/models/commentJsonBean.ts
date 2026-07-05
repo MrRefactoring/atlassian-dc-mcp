@@ -4,16 +4,16 @@ import { UserJsonBeanSchema, type UserJsonBean } from './userJsonBean.js';
 import { VisibilityJsonBeanSchema, type VisibilityJsonBean } from './visibilityJsonBean.js';
 
 export type CommentJsonBean = {
-    author?: UserJsonBean;
-    body?: string;
-    created?: string;
-    id?: string;
-    properties?: Array<EntityPropertyBean>;
-    renderedBody?: string;
-    self?: string;
-    updateAuthor?: UserJsonBean;
-    updated?: string;
-    visibility?: VisibilityJsonBean;
+  author?: UserJsonBean;
+  body?: string;
+  created?: string;
+  id?: string;
+  properties?: Array<EntityPropertyBean>;
+  renderedBody?: string;
+  self?: string;
+  updateAuthor?: UserJsonBean;
+  updated?: string;
+  visibility?: VisibilityJsonBean;
 };
 
 export const CommentJsonBeanSchema = z.lazy(() => z.looseObject({

@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export type JsonTypeBean = {
-    custom?: string;
-    customId?: number;
-    items?: string;
-    system?: string;
-    type?: string;
+  custom?: string;
+  customId?: number;
+  items?: string;
+  system?: string;
+  type?: string;
 };
 
 export const JsonTypeBeanSchema = z.looseObject({

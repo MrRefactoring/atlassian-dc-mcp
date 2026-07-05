@@ -1,19 +1,19 @@
 import { z } from 'zod';
 
 export type SprintBean = {
-    activatedDate?: string;
-    autoStartStop?: boolean;
-    completeDate?: string;
-    endDate?: string;
-    goal?: string;
-    id?: number;
-    incompleteIssuesDestinationId?: number;
-    name?: string;
-    originBoardId?: number;
-    self?: string;
-    startDate?: string;
-    state?: string;
-    synced?: boolean;
+  activatedDate?: string;
+  autoStartStop?: boolean;
+  completeDate?: string;
+  endDate?: string;
+  goal?: string;
+  id?: number;
+  incompleteIssuesDestinationId?: number;
+  name?: string;
+  originBoardId?: number;
+  self?: string;
+  startDate?: string;
+  state?: string;
+  synced?: boolean;
 };
 
 export const SprintBeanSchema = z.looseObject({

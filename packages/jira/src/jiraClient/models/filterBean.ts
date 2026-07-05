@@ -4,18 +4,18 @@ import { UserBeanSchema, type UserBean } from './userBean.js';
 import { UserBeanListWrapperSchema, type UserBeanListWrapper } from './userBeanListWrapper.js';
 
 export type FilterBean = {
-    description?: string;
-    editable?: boolean;
-    favourite?: boolean;
-    id?: string;
-    jql?: string;
-    name?: string;
-    owner?: UserBean;
-    searchUrl?: string;
-    self?: string;
-    sharePermissions?: Array<FilterPermissionBean>;
-    sharedUsers?: UserBeanListWrapper;
-    viewUrl?: string;
+  description?: string;
+  editable?: boolean;
+  favourite?: boolean;
+  id?: string;
+  jql?: string;
+  name?: string;
+  owner?: UserBean;
+  searchUrl?: string;
+  self?: string;
+  sharePermissions?: Array<FilterPermissionBean>;
+  sharedUsers?: UserBeanListWrapper;
+  viewUrl?: string;
 };
 
 export const FilterBeanSchema = z.lazy(() => z.looseObject({

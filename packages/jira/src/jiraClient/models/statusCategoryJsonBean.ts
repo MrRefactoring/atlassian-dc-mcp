@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export type StatusCategoryJsonBean = {
-    colorName?: string;
-    id?: number;
-    key?: string;
-    name?: string;
-    self?: string;
+  colorName?: string;
+  id?: number;
+  key?: string;
+  name?: string;
+  self?: string;
 };
 
 export const StatusCategoryJsonBeanSchema = z.looseObject({

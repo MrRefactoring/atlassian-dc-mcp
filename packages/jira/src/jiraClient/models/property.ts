@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export type Property = {
-    example?: string;
-    key?: string;
-    value?: string;
+  example?: string;
+  key?: string;
+  value?: string;
 };
 
 export const PropertySchema = z.looseObject({

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type IncludedFields = {
-    included?: Array<string>;
+  included?: Array<string>;
 };
 
 export const IncludedFieldsSchema = z.looseObject({

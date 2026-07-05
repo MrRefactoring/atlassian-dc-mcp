@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export type IssueTypeMappingBean = {
-    issueType?: string;
-    updateDraftIfNeeded?: boolean;
-    workflow?: string;
+  issueType?: string;
+  updateDraftIfNeeded?: boolean;
+  workflow?: string;
 };
 
 export const IssueTypeMappingBeanSchema = z.looseObject({

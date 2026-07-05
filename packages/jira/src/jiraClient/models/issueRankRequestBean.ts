@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export type IssueRankRequestBean = {
-    issues?: Array<string>;
-    rankAfterIssue?: string;
-    rankBeforeIssue?: string;
-    rankCustomFieldId?: number;
+  issues?: Array<string>;
+  rankAfterIssue?: string;
+  rankBeforeIssue?: string;
+  rankCustomFieldId?: number;
 };
 
 export const IssueRankRequestBeanSchema = z.looseObject({

@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type EstimationFieldBean = {
-    displayName?: string;
-    fieldId?: string;
+  displayName?: string;
+  fieldId?: string;
 };
 
 export const EstimationFieldBeanSchema = z.looseObject({

@@ -2,14 +2,14 @@ import { z } from 'zod';
 import { FieldMetaBeanSchema, type FieldMetaBean } from './fieldMetaBean.js';
 
 export type CreateMetaIssueTypeBean = {
-    avatarId?: number;
-    description?: string;
-    fields?: Record<string, FieldMetaBean>;
-    iconUrl?: string;
-    id?: string;
-    name?: string;
-    self?: string;
-    subtask?: boolean;
+  avatarId?: number;
+  description?: string;
+  fields?: Record<string, FieldMetaBean>;
+  iconUrl?: string;
+  id?: string;
+  name?: string;
+  self?: string;
+  subtask?: boolean;
 };
 
 export const CreateMetaIssueTypeBeanSchema = z.lazy(() => z.looseObject({

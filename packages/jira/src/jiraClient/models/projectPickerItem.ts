@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export type ProjectPickerItem = {
-    avatar?: string;
-    html?: string;
-    id?: string;
-    key?: string;
-    name?: string;
+  avatar?: string;
+  html?: string;
+  id?: string;
+  key?: string;
+  name?: string;
 };
 
 export const ProjectPickerItemSchema = z.looseObject({

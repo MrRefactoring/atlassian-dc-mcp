@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 export type CustomFieldDefinitionJsonBean = {
-    description?: string;
-    id?: string;
-    issueTypeIds?: Array<string>;
-    name?: string;
-    projectIds?: Array<number>;
-    searcherKey?: string;
-    self?: string;
-    type?: string;
+  description?: string;
+  id?: string;
+  issueTypeIds?: Array<string>;
+  name?: string;
+  projectIds?: Array<number>;
+  searcherKey?: string;
+  self?: string;
+  type?: string;
 };
 
 export const CustomFieldDefinitionJsonBeanSchema = z.looseObject({

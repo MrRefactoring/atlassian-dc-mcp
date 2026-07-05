@@ -4,11 +4,11 @@ import { HistoryMetadataSchema, type HistoryMetadata } from './historyMetadata.j
 import { UserJsonBeanSchema, type UserJsonBean } from './userJsonBean.js';
 
 export type ChangeHistoryBean = {
-    author?: UserJsonBean;
-    created?: string;
-    historyMetadata?: HistoryMetadata;
-    id?: string;
-    items?: Array<ChangeItemBean>;
+  author?: UserJsonBean;
+  created?: string;
+  historyMetadata?: HistoryMetadata;
+  id?: string;
+  items?: Array<ChangeItemBean>;
 };
 
 export const ChangeHistoryBeanSchema = z.lazy(() => z.looseObject({

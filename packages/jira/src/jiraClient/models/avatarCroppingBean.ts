@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export type AvatarCroppingBean = {
-    cropperOffsetX?: number;
-    cropperOffsetY?: number;
-    cropperWidth?: number;
-    needsCropping?: boolean;
-    url?: string;
+  cropperOffsetX?: number;
+  cropperOffsetY?: number;
+  cropperWidth?: number;
+  needsCropping?: boolean;
+  url?: string;
 };
 
 export const AvatarCroppingBeanSchema = z.looseObject({

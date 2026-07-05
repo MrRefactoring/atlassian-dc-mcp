@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export type ProjectIdentity = {
-    id?: number;
-    key?: string;
-    self?: string;
+  id?: number;
+  key?: string;
+  self?: string;
 };
 
 export const ProjectIdentitySchema = z.looseObject({

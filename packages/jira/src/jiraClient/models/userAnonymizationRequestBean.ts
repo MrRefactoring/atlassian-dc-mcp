@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type UserAnonymizationRequestBean = {
-    newOwnerKey?: string;
-    userKey?: string;
+  newOwnerKey?: string;
+  userKey?: string;
 };
 
 export const UserAnonymizationRequestBeanSchema = z.looseObject({

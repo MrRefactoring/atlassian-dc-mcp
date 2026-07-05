@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
 export type HistoryMetadataParticipant = {
-    avatarUrl?: string;
-    displayName?: string;
-    displayNameKey?: string;
-    id?: string;
-    type?: string;
-    url?: string;
+  avatarUrl?: string;
+  displayName?: string;
+  displayNameKey?: string;
+  id?: string;
+  type?: string;
+  url?: string;
 };
 
 export const HistoryMetadataParticipantSchema = z.looseObject({

@@ -3,11 +3,11 @@ import { RestrictJsonBeanSchema, type RestrictJsonBean } from './restrictJsonBea
 import { ToJsonBeanSchema, type ToJsonBean } from './toJsonBean.js';
 
 export type NotificationJsonBean = {
-    htmlBody?: string;
-    restrict?: RestrictJsonBean;
-    subject?: string;
-    textBody?: string;
-    to?: ToJsonBean;
+  htmlBody?: string;
+  restrict?: RestrictJsonBean;
+  subject?: string;
+  textBody?: string;
+  to?: ToJsonBean;
 };
 
 export const NotificationJsonBeanSchema = z.lazy(() => z.looseObject({

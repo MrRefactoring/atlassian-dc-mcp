@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { ColumnBeanSchema, type ColumnBean } from './columnBean.js';
 
 export type ColumnConfigBean = {
-    columns?: Array<ColumnBean>;
-    constraintType?: string;
+  columns?: Array<ColumnBean>;
+  constraintType?: string;
 };
 
 export const ColumnConfigBeanSchema = z.lazy(() => z.looseObject({

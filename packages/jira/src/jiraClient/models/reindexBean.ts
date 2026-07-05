@@ -1,23 +1,23 @@
 import { z } from 'zod';
 
 export type ReindexBean = {
-    currentProgress?: number;
-    currentSubTask?: string;
-    finishTime?: string;
-    progressUrl?: string;
-    startTime?: string;
-    submittedTime?: string;
-    success?: boolean;
-    type?: ReindexBean.type;
+  currentProgress?: number;
+  currentSubTask?: string;
+  finishTime?: string;
+  progressUrl?: string;
+  startTime?: string;
+  submittedTime?: string;
+  success?: boolean;
+  type?: ReindexBean.type;
 };
 
 export namespace ReindexBean {
-    export enum type {
-        FOREGROUND = 'FOREGROUND',
-        BACKGROUND = 'BACKGROUND',
-        BACKGROUND_PREFFERED = 'BACKGROUND_PREFFERED',
-        BACKGROUND_PREFERRED = 'BACKGROUND_PREFERRED',
-    }
+  export enum type {
+    FOREGROUND = 'FOREGROUND',
+    BACKGROUND = 'BACKGROUND',
+    BACKGROUND_PREFFERED = 'BACKGROUND_PREFFERED',
+    BACKGROUND_PREFERRED = 'BACKGROUND_PREFERRED',
+  }
 }
 
 const ReindexBean_typeSchema = z.enum(['FOREGROUND', 'BACKGROUND', 'BACKGROUND_PREFFERED', 'BACKGROUND_PREFERRED']);

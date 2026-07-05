@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type GroupJsonBean = {
-    name?: string;
-    self?: string;
+  name?: string;
+  self?: string;
 };
 
 export const GroupJsonBeanSchema = z.looseObject({

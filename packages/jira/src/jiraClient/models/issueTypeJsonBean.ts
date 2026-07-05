@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
 export type IssueTypeJsonBean = {
-    avatarId?: number;
-    description?: string;
-    iconUrl?: string;
-    id?: string;
-    name?: string;
-    self?: string;
-    subtask?: boolean;
+  avatarId?: number;
+  description?: string;
+  iconUrl?: string;
+  id?: string;
+  name?: string;
+  self?: string;
+  subtask?: boolean;
 };
 
 export const IssueTypeJsonBeanSchema = z.looseObject({

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type SubqueryBean = {
-    query?: string;
+  query?: string;
 };
 
 export const SubqueryBeanSchema = z.looseObject({

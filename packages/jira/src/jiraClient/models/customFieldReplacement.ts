@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type CustomFieldReplacement = {
-    customFieldId?: number;
-    moveTo?: number;
+  customFieldId?: number;
+  moveTo?: number;
 };
 
 export const CustomFieldReplacementSchema = z.looseObject({

@@ -3,12 +3,12 @@ import { ListWrapperCallbackUserJsonBeanSchema, type ListWrapperCallbackUserJson
 import { UserJsonBeanSchema, type UserJsonBean } from './userJsonBean.js';
 
 export type PagedListWrapperUserJsonBeanApplicationUser = {
-    backingListSize?: number;
-    callback?: ListWrapperCallbackUserJsonBean;
-    items?: Array<UserJsonBean>;
-    maxResults?: number;
-    pagingCallback?: ListWrapperCallbackUserJsonBean;
-    size?: number;
+  backingListSize?: number;
+  callback?: ListWrapperCallbackUserJsonBean;
+  items?: Array<UserJsonBean>;
+  maxResults?: number;
+  pagingCallback?: ListWrapperCallbackUserJsonBean;
+  size?: number;
 };
 
 export const PagedListWrapperUserJsonBeanApplicationUserSchema = z.lazy(() => z.looseObject({

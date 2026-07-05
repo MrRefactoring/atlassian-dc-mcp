@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EntrySchema, type Entry } from './entry.js';
 
 export type PartialSuccessBean = {
-    entries?: Array<Entry>;
+  entries?: Array<Entry>;
 };
 
 export const PartialSuccessBeanSchema = z.lazy(() => z.looseObject({

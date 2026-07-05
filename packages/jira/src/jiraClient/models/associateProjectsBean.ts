@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type AssociateProjectsBean = {
-    idsOrKeys?: Array<string>;
+  idsOrKeys?: Array<string>;
 };
 
 export const AssociateProjectsBeanSchema = z.looseObject({

@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export type CustomFieldOptionBean = {
-    childrenIds?: Array<number>;
-    disabled?: boolean;
-    id?: number;
-    self?: string;
-    value?: string;
+  childrenIds?: Array<number>;
+  disabled?: boolean;
+  id?: number;
+  self?: string;
+  value?: string;
 };
 
 export const CustomFieldOptionBeanSchema = z.looseObject({

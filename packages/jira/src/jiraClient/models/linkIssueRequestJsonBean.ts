@@ -4,10 +4,10 @@ import { IssueLinkTypeJsonBeanSchema, type IssueLinkTypeJsonBean } from './issue
 import { IssueRefJsonBeanSchema, type IssueRefJsonBean } from './issueRefJsonBean.js';
 
 export type LinkIssueRequestJsonBean = {
-    comment?: CommentJsonBean;
-    inwardIssue?: IssueRefJsonBean;
-    outwardIssue?: IssueRefJsonBean;
-    type?: IssueLinkTypeJsonBean;
+  comment?: CommentJsonBean;
+  inwardIssue?: IssueRefJsonBean;
+  outwardIssue?: IssueRefJsonBean;
+  type?: IssueLinkTypeJsonBean;
 };
 
 export const LinkIssueRequestJsonBeanSchema = z.lazy(() => z.looseObject({

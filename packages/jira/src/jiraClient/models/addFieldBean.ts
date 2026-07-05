@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type AddFieldBean = {
-    fieldId?: string;
+  fieldId?: string;
 };
 
 export const AddFieldBeanSchema = z.looseObject({

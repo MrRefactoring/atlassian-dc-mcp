@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type IndexReplicationQueueEntryBean = {
-    id?: number;
-    replicationTime?: string;
+  id?: number;
+  replicationTime?: string;
 };
 
 export const IndexReplicationQueueEntryBeanSchema = z.looseObject({

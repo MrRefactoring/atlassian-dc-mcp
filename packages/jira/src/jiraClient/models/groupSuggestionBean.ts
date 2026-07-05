@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { GroupLabelBeanSchema, type GroupLabelBean } from './groupLabelBean.js';
 
 export type GroupSuggestionBean = {
-    html?: string;
-    labels?: Array<GroupLabelBean>;
-    name?: string;
+  html?: string;
+  labels?: Array<GroupLabelBean>;
+  name?: string;
 };
 
 export const GroupSuggestionBeanSchema = z.lazy(() => z.looseObject({

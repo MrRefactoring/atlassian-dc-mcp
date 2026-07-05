@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { CommentJsonBeanSchema, type CommentJsonBean } from './commentJsonBean.js';
 
 export type PinnedCommentJsonBean = {
-    comment?: CommentJsonBean;
-    pinnedBy?: string;
-    pinnedDate?: string;
+  comment?: CommentJsonBean;
+  pinnedBy?: string;
+  pinnedDate?: string;
 };
 
 export const PinnedCommentJsonBeanSchema = z.lazy(() => z.looseObject({

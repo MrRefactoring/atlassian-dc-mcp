@@ -135,7 +135,7 @@ export function getFieldsToAdd(client: HttpClient, params: { screenId: number })
   });
 }
 
-export function getIssueAllTypes(client: HttpClient, params: Record<string, never>): Promise<IssueTypeJsonBean> {
+export function getIssueAllTypes(client: HttpClient, _params: Record<string, never>): Promise<IssueTypeJsonBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/issuetype`,
@@ -152,7 +152,7 @@ export function getIssueType(client: HttpClient, params: { issueType: string; id
   });
 }
 
-export function getPriorities(client: HttpClient, params: Record<string, never>): Promise<PriorityJsonBean> {
+export function getPriorities(client: HttpClient, _params: Record<string, never>): Promise<PriorityJsonBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/priority`,
@@ -160,7 +160,7 @@ export function getPriorities(client: HttpClient, params: Record<string, never>)
   });
 }
 
-export function getResolutions(client: HttpClient, params: Record<string, never>): Promise<ResolutionJsonBean> {
+export function getResolutions(client: HttpClient, _params: Record<string, never>): Promise<ResolutionJsonBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/resolution`,
@@ -168,7 +168,7 @@ export function getResolutions(client: HttpClient, params: Record<string, never>
   });
 }
 
-export function getStatuses(client: HttpClient, params: Record<string, never>): Promise<StatusJsonBean> {
+export function getStatuses(client: HttpClient, _params: Record<string, never>): Promise<StatusJsonBean> {
   return client.sendRequest({
     method: 'GET',
     url: route`/api/2/status`,

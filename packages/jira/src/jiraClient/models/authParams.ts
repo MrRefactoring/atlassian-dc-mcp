@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type AuthParams = {
-    password?: string;
-    username?: string;
+  password?: string;
+  username?: string;
 };
 
 export const AuthParamsSchema = z.looseObject({

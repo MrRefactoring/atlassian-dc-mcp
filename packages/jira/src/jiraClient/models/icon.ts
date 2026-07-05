@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export type Icon = {
-    link?: string;
-    title?: string;
-    url16x16?: string;
+  link?: string;
+  title?: string;
+  url16x16?: string;
 };
 
 export const IconSchema = z.looseObject({

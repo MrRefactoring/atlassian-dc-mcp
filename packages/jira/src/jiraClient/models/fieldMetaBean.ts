@@ -2,15 +2,15 @@ import { z } from 'zod';
 import { JsonTypeBeanSchema, type JsonTypeBean } from './jsonTypeBean.js';
 
 export type FieldMetaBean = {
-    allowedValues?: Array<Record<string, any>>;
-    autoCompleteUrl?: string;
-    defaultValue?: Record<string, any>;
-    fieldId?: string;
-    hasDefaultValue?: boolean;
-    name?: string;
-    operations?: Array<string>;
-    required?: boolean;
-    schema?: JsonTypeBean;
+  allowedValues?: Array<Record<string, any>>;
+  autoCompleteUrl?: string;
+  defaultValue?: Record<string, any>;
+  fieldId?: string;
+  hasDefaultValue?: boolean;
+  name?: string;
+  operations?: Array<string>;
+  required?: boolean;
+  schema?: JsonTypeBean;
 };
 
 export const FieldMetaBeanSchema = z.lazy(() => z.looseObject({

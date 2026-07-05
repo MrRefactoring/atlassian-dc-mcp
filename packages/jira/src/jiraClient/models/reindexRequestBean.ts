@@ -1,26 +1,26 @@
 import { z } from 'zod';
 
 export type ReindexRequestBean = {
-    completionTime?: string;
-    id?: number;
-    requestTime?: string;
-    startTime?: string;
-    status?: ReindexRequestBean.status;
-    type?: ReindexRequestBean.type;
+  completionTime?: string;
+  id?: number;
+  requestTime?: string;
+  startTime?: string;
+  status?: ReindexRequestBean.status;
+  type?: ReindexRequestBean.type;
 };
 
 export namespace ReindexRequestBean {
-    export enum status {
-        PENDING = 'PENDING',
-        ACTIVE = 'ACTIVE',
-        RUNNING = 'RUNNING',
-        FAILED = 'FAILED',
-        COMPLETE = 'COMPLETE',
-    }
-    export enum type {
-        IMMEDIATE = 'IMMEDIATE',
-        DELAYED = 'DELAYED',
-    }
+  export enum status {
+    PENDING = 'PENDING',
+    ACTIVE = 'ACTIVE',
+    RUNNING = 'RUNNING',
+    FAILED = 'FAILED',
+    COMPLETE = 'COMPLETE',
+  }
+  export enum type {
+    IMMEDIATE = 'IMMEDIATE',
+    DELAYED = 'DELAYED',
+  }
 }
 
 const ReindexRequestBean_statusSchema = z.enum(['PENDING', 'ACTIVE', 'RUNNING', 'FAILED', 'COMPLETE']);

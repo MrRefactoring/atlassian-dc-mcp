@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type RankingConfigBean = {
-    rankCustomFieldId?: number;
+  rankCustomFieldId?: number;
 };
 
 export const RankingConfigBeanSchema = z.looseObject({

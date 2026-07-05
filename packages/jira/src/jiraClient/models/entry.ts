@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export type Entry = {
-    errors?: Array<string>;
-    issueId?: number;
-    issueKey?: string;
-    status?: number;
+  errors?: Array<string>;
+  issueId?: number;
+  issueKey?: string;
+  status?: number;
 };
 
 export const EntrySchema = z.looseObject({

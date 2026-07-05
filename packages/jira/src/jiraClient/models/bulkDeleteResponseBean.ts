@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export type BulkDeleteResponseBean = {
-    deletedCustomFields?: Array<string>;
-    message?: string;
-    notDeletedCustomFields?: Record<string, string>;
+  deletedCustomFields?: Array<string>;
+  message?: string;
+  notDeletedCustomFields?: Record<string, string>;
 };
 
 export const BulkDeleteResponseBeanSchema = z.looseObject({

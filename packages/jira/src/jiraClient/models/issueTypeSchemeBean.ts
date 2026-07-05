@@ -2,13 +2,13 @@ import { z } from 'zod';
 import { IssueTypeJsonBeanSchema, type IssueTypeJsonBean } from './issueTypeJsonBean.js';
 
 export type IssueTypeSchemeBean = {
-    defaultIssueType?: IssueTypeJsonBean;
-    description?: string;
-    expand?: string;
-    id?: string;
-    issueTypes?: Array<IssueTypeJsonBean>;
-    name?: string;
-    self?: string;
+  defaultIssueType?: IssueTypeJsonBean;
+  description?: string;
+  expand?: string;
+  id?: string;
+  issueTypes?: Array<IssueTypeJsonBean>;
+  name?: string;
+  self?: string;
 };
 
 export const IssueTypeSchemeBeanSchema = z.lazy(() => z.looseObject({

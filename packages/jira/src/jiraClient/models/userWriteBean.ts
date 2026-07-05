@@ -1,15 +1,15 @@
 import { z } from 'zod';
 
 export type UserWriteBean = {
-    active?: boolean;
-    applicationKeys?: Array<string>;
-    displayName?: string;
-    emailAddress?: string;
-    key?: string;
-    name?: string;
-    notification?: string;
-    password?: string;
-    self?: string;
+  active?: boolean;
+  applicationKeys?: Array<string>;
+  displayName?: string;
+  emailAddress?: string;
+  key?: string;
+  name?: string;
+  notification?: string;
+  password?: string;
+  self?: string;
 };
 
 export const UserWriteBeanSchema = z.looseObject({

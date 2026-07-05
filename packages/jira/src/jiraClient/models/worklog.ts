@@ -3,18 +3,18 @@ import { UserJsonBeanSchema, type UserJsonBean } from './userJsonBean.js';
 import { VisibilityJsonBeanSchema, type VisibilityJsonBean } from './visibilityJsonBean.js';
 
 export type worklog = {
-    author?: UserJsonBean;
-    comment?: string;
-    created?: string;
-    id?: string;
-    issueId?: string;
-    self?: string;
-    started?: string;
-    timeSpent?: string;
-    timeSpentSeconds?: number;
-    updateAuthor?: UserJsonBean;
-    updated?: string;
-    visibility?: VisibilityJsonBean;
+  author?: UserJsonBean;
+  comment?: string;
+  created?: string;
+  id?: string;
+  issueId?: string;
+  self?: string;
+  started?: string;
+  timeSpent?: string;
+  timeSpentSeconds?: number;
+  updateAuthor?: UserJsonBean;
+  updated?: string;
+  visibility?: VisibilityJsonBean;
 };
 
 export const worklogSchema = z.lazy(() => z.looseObject({

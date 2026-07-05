@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type SessionInfo = {
-    name?: string;
-    value?: string;
+  name?: string;
+  value?: string;
 };
 
 export const SessionInfoSchema = z.looseObject({

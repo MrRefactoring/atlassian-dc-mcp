@@ -3,19 +3,19 @@ import { IssueTypeJsonBeanSchema, type IssueTypeJsonBean } from './issueTypeJson
 import { UserBeanSchema, type UserBean } from './userBean.js';
 
 export type WorkflowSchemeBean = {
-    defaultWorkflow?: string;
-    description?: string;
-    draft?: boolean;
-    id?: number;
-    issueTypeMappings?: Record<string, string>;
-    issueTypes?: Record<string, IssueTypeJsonBean>;
-    lastModified?: string;
-    lastModifiedUser?: UserBean;
-    name?: string;
-    originalDefaultWorkflow?: string;
-    originalIssueTypeMappings?: Record<string, string>;
-    self?: string;
-    updateDraftIfNeeded?: boolean;
+  defaultWorkflow?: string;
+  description?: string;
+  draft?: boolean;
+  id?: number;
+  issueTypeMappings?: Record<string, string>;
+  issueTypes?: Record<string, IssueTypeJsonBean>;
+  lastModified?: string;
+  lastModifiedUser?: UserBean;
+  name?: string;
+  originalDefaultWorkflow?: string;
+  originalIssueTypeMappings?: Record<string, string>;
+  self?: string;
+  updateDraftIfNeeded?: boolean;
 };
 
 export const WorkflowSchemeBeanSchema = z.lazy(() => z.looseObject({

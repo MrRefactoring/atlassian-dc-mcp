@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { RelationBeanSchema, type RelationBean } from './relationBean.js';
 
 export type ColumnBean = {
-    max?: number;
-    min?: number;
-    name?: string;
-    statuses?: Array<RelationBean>;
+  max?: number;
+  min?: number;
+  name?: string;
+  statuses?: Array<RelationBean>;
 };
 
 export const ColumnBeanSchema = z.lazy(() => z.looseObject({

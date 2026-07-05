@@ -3,8 +3,8 @@ import { BulkOperationErrorResultSchema, type BulkOperationErrorResult } from '.
 import { IssueCreateResponseSchema, type IssueCreateResponse } from './issueCreateResponse.js';
 
 export type IssuesCreateResponse = {
-    errors?: Array<BulkOperationErrorResult>;
-    issues?: Array<IssueCreateResponse>;
+  errors?: Array<BulkOperationErrorResult>;
+  issues?: Array<IssueCreateResponse>;
 };
 
 export const IssuesCreateResponseSchema = z.lazy(() => z.looseObject({

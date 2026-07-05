@@ -2,13 +2,13 @@ import { z } from 'zod';
 import { ColorBeanSchema, type ColorBean } from './colorBean.js';
 
 export type EpicBean = {
-    color?: ColorBean;
-    done?: boolean;
-    id?: number;
-    key?: string;
-    name?: string;
-    self?: string;
-    summary?: string;
+  color?: ColorBean;
+  done?: boolean;
+  id?: number;
+  key?: string;
+  name?: string;
+  self?: string;
+  summary?: string;
 };
 
 export const EpicBeanSchema = z.lazy(() => z.looseObject({

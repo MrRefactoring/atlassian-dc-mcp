@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export type VersionUnresolvedIssueCountsBean = {
-    issuesUnresolvedCount?: number;
-    self?: string;
+  issuesUnresolvedCount?: number;
+  self?: string;
 };
 
 export const VersionUnresolvedIssueCountsBeanSchema = z.looseObject({

@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 export type SimpleLinkBean = {
-    href?: string;
-    iconClass?: string;
-    id?: string;
-    label?: string;
-    params?: Record<string, string>;
-    styleClass?: string;
-    title?: string;
-    weight?: number;
+  href?: string;
+  iconClass?: string;
+  id?: string;
+  label?: string;
+  params?: Record<string, string>;
+  styleClass?: string;
+  title?: string;
+  weight?: number;
 };
 
 export const SimpleLinkBeanSchema = z.looseObject({

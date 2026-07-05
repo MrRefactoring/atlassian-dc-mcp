@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
 export type NotificationSchemeBean = {
-    description?: string;
-    expand?: string;
-    id?: number;
-    name?: string;
-    notificationSchemeEvents?: Record<string, any>;
-    self?: string;
+  description?: string;
+  expand?: string;
+  id?: number;
+  name?: string;
+  notificationSchemeEvents?: Record<string, any>;
+  self?: string;
 };
 
 export const NotificationSchemeBeanSchema = z.looseObject({

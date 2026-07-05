@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
 export type IssueIndexSummaryBean = {
-    countInArchive?: number;
-    countInDatabase?: number;
-    countInIndex?: number;
-    indexReadable?: boolean;
-    lastUpdatedInDatabase?: string;
-    lastUpdatedInIndex?: string;
+  countInArchive?: number;
+  countInDatabase?: number;
+  countInIndex?: number;
+  indexReadable?: boolean;
+  lastUpdatedInDatabase?: string;
+  lastUpdatedInIndex?: string;
 };
 
 export const IssueIndexSummaryBeanSchema = z.looseObject({

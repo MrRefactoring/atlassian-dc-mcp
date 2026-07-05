@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export type ResolutionJsonBean = {
-    description?: string;
-    iconUrl?: string;
-    id?: string;
-    name?: string;
-    self?: string;
+  description?: string;
+  iconUrl?: string;
+  id?: string;
+  name?: string;
+  self?: string;
 };
 
 export const ResolutionJsonBeanSchema = z.looseObject({
