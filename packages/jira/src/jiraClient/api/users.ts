@@ -1,5 +1,5 @@
 import { route, type HttpClient } from 'datacenter-mcp-core';
-import { type AddGroupBean, GroupBeanSchema, type GroupBean, GroupSuggestionsBeanSchema, type GroupSuggestionsBean, type PasswordBean, PermissionsJsonBeanSchema, type PermissionsJsonBean, type UpdateUserToGroupBean, type UserAnonymizationRequestBean, UserBeanSchema, type UserBean, UserJsonBeanSchema, type UserJsonBean, UserWriteBeanSchema, type UserWriteBean, UsersAndGroupsBeanSchema, type UsersAndGroupsBean } from '../models/index.js';
+import { type AddGroupBean, ColumnItemSchema, type ColumnItem, GroupBeanSchema, type GroupBean, GroupSuggestionsBeanSchema, type GroupSuggestionsBean, type PasswordBean, PermissionsJsonBeanSchema, type PermissionsJsonBean, type UpdateUserToGroupBean, type UserAnonymizationRequestBean, UserBeanSchema, type UserBean, UserJsonBeanSchema, type UserJsonBean, UserWriteBeanSchema, type UserWriteBean, UsersAndGroupsBeanSchema, type UsersAndGroupsBean } from '../models/index.js';
 
 export function addUserToGroup(client: HttpClient, params: { groupname: string; requestBody?: UpdateUserToGroupBean }): Promise<GroupBean> {
   return client.sendRequest({
@@ -180,6 +180,34 @@ export function setPreference(client: HttpClient, params: { key?: string; reques
     searchParams: { key: params.key },
     body: params.requestBody,
     contentType: 'application/json',
+  });
+}
+
+export function getMyColumns(client: HttpClient, params: { username?: string }): Promise<ColumnItem[]> {
+  return client.sendRequest({
+    method: 'GET',
+    url: route`/api/2/user/columns`,
+    searchParams: { username: params.username },
+    schema: ColumnItemSchema.array(),
+  });
+}
+
+export function setMyColumns(client: HttpClient, params: { username?: string; columns: string[] }): Promise<void> {
+  return client.sendRequest({
+    method: 'PUT',
+    url: route`/api/2/user/columns`,
+    searchParams: { username: params.username },
+    // The issue-navigator columns endpoints take repeated `columns` form fields, not JSON.
+    body: params.columns.map((column) => `columns=${encodeURIComponent(column)}`).join('&'),
+    contentType: 'application/x-www-form-urlencoded',
+  });
+}
+
+export function resetMyColumns(client: HttpClient, params: { username?: string }): Promise<void> {
+  return client.sendRequest({
+    method: 'DELETE',
+    url: route`/api/2/user/columns`,
+    searchParams: { username: params.username },
   });
 }
 
