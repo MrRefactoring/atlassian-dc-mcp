@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type ExampleSettings = {
-};
+import { z } from 'zod';
 
+export const ExampleSettingsSchema = z.looseObject({});
+
+export type ExampleSettings = z.infer<typeof ExampleSettingsSchema>;

@@ -1,16 +1,8 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestPullRequestAssignStatusRequest = {
-    lastReviewedCommit?: string;
-    status?: RestPullRequestAssignStatusRequest.status;
-};
-export namespace RestPullRequestAssignStatusRequest {
-    export enum status {
-        UNAPPROVED = 'UNAPPROVED',
-        NEEDS_WORK = 'NEEDS_WORK',
-        APPROVED = 'APPROVED',
-    }
-}
+import { z } from 'zod';
 
+export const RestPullRequestAssignStatusRequestSchema = z.looseObject({
+  lastReviewedCommit: z.string().optional(),
+  status: z.enum(['UNAPPROVED', 'NEEDS_WORK', 'APPROVED']).optional(),
+});
+
+export type RestPullRequestAssignStatusRequest = z.infer<typeof RestPullRequestAssignStatusRequestSchema>;

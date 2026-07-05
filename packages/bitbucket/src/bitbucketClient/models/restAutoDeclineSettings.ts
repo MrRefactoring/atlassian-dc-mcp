@@ -1,7 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestAutoDeclineSettings = {
-};
+import { z } from 'zod';
 
+export const RestAutoDeclineSettingsSchema = z.looseObject({
+  enabled: z.boolean().optional(),
+  inactivityWeeks: z.number().optional(),
+  scope: z.looseObject({
+    type: z.string().optional(),
+  }).optional(),
+});
+
+export type RestAutoDeclineSettings = z.infer<typeof RestAutoDeclineSettingsSchema>;

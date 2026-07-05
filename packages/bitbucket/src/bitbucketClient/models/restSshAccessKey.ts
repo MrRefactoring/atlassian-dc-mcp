@@ -1,7 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestSshAccessKey = {
-};
+import { z } from 'zod';
+import { RestSshKeySchema } from './restSshKey.js';
 
+export const RestSshAccessKeySchema = z.looseObject({
+  key: RestSshKeySchema.optional(),
+  permission: z.string().optional(),
+  project: z.looseObject({}).optional(),
+  repository: z.looseObject({}).optional(),
+});
+
+export type RestSshAccessKey = z.infer<typeof RestSshAccessKeySchema>;

@@ -1,7 +1,13 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestGpgKey = {
-};
+import { z } from 'zod';
 
+export const RestGpgKeySchema = z.looseObject({
+  id: z.string().optional(),
+  text: z.string().optional(),
+  fingerprint: z.string().optional(),
+  emailAddress: z.string().optional(),
+  expiryDate: z.number().optional(),
+  lastAuthenticated: z.string().optional(),
+  subKeys: z.array(z.looseObject({})).optional(),
+});
+
+export type RestGpgKey = z.infer<typeof RestGpgKeySchema>;

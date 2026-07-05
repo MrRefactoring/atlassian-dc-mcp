@@ -1,11 +1,10 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestApplySuggestionRequest = {
-    commentVersion?: number;
-    commitMessage?: string;
-    pullRequestVersion?: number;
-    suggestionIndex?: number;
-};
+import { z } from 'zod';
 
+export const RestApplySuggestionRequestSchema = z.looseObject({
+  commentVersion: z.number().optional(),
+  commitMessage: z.string().optional(),
+  pullRequestVersion: z.number().optional(),
+  suggestionIndex: z.number().optional(),
+});
+
+export type RestApplySuggestionRequest = z.infer<typeof RestApplySuggestionRequestSchema>;

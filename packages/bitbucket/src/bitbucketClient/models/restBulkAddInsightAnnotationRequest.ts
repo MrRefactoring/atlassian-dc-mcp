@@ -1,10 +1,8 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { RestSingleAddInsightAnnotationRequest } from './restSingleAddInsightAnnotationRequest.js';
-export type RestBulkAddInsightAnnotationRequest = {
-    annotations?: Array<RestSingleAddInsightAnnotationRequest>;
-};
+import { z } from 'zod';
+import { RestSingleAddInsightAnnotationRequestSchema } from './restSingleAddInsightAnnotationRequest.js';
 
+export const RestBulkAddInsightAnnotationRequestSchema = z.looseObject({
+  annotations: z.array(RestSingleAddInsightAnnotationRequestSchema).optional(),
+});
 
+export type RestBulkAddInsightAnnotationRequest = z.infer<typeof RestBulkAddInsightAnnotationRequestSchema>;

@@ -1,7 +1,13 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestPullRequestMergeability = {
-};
+import { z } from 'zod';
 
+export const RestPullRequestMergeabilitySchema = z.looseObject({
+  canMerge: z.boolean().optional(),
+  conflicted: z.boolean().optional(),
+  outcome: z.string().optional(),
+  vetoes: z.array(z.looseObject({
+    summaryMessage: z.string().optional(),
+    detailedMessage: z.string().optional(),
+  })).optional(),
+});
+
+export type RestPullRequestMergeability = z.infer<typeof RestPullRequestMergeabilitySchema>;

@@ -1,7 +1,12 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-export type RestTag = {
-};
+import { z } from 'zod';
 
+export const RestTagSchema = z.looseObject({
+  id: z.string().optional(),
+  displayId: z.string().optional(),
+  type: z.string().optional(),
+  latestCommit: z.string().optional(),
+  latestChangeset: z.string().optional(),
+  hash: z.string().optional(),
+});
+
+export type RestTag = z.infer<typeof RestTagSchema>;
