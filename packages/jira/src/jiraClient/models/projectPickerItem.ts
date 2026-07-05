@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type ProjectPickerItem = {
     avatar?: string;
     html?: string;
@@ -10,3 +8,10 @@ export type ProjectPickerItem = {
     name?: string;
 };
 
+export const ProjectPickerItemSchema = z.looseObject({
+  avatar: z.string().optional(),
+  html: z.string().optional(),
+  id: z.string().optional(),
+  key: z.string().optional(),
+  name: z.string().optional(),
+}) as unknown as z.ZodType<ProjectPickerItem>;

@@ -1,9 +1,10 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { RoleActorBean } from './roleActorBean.js';
+import { z } from 'zod';
+import { RoleActorBeanSchema, type RoleActorBean } from './roleActorBean.js';
+
 export type ProjectRoleActorsBean = {
     actors?: Array<RoleActorBean>;
 };
 
+export const ProjectRoleActorsBeanSchema = z.lazy(() => z.looseObject({
+  actors: z.array(RoleActorBeanSchema).optional(),
+})) as unknown as z.ZodType<ProjectRoleActorsBean>;

@@ -1,9 +1,10 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { TransitionBean } from './transitionBean.js';
+import { z } from 'zod';
+import { TransitionBeanSchema, type TransitionBean } from './transitionBean.js';
+
 export type TransitionsMetaBean = {
     transitions?: Array<TransitionBean>;
 };
 
+export const TransitionsMetaBeanSchema = z.lazy(() => z.looseObject({
+  transitions: z.array(TransitionBeanSchema).optional(),
+})) as unknown as z.ZodType<TransitionsMetaBean>;

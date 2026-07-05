@@ -1,11 +1,10 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type MoveFieldBean = {
     after?: string;
     position?: MoveFieldBean.position;
 };
+
 export namespace MoveFieldBean {
     export enum position {
         EARLIER = 'Earlier',
@@ -15,3 +14,9 @@ export namespace MoveFieldBean {
     }
 }
 
+const MoveFieldBean_positionSchema = z.enum(['Earlier', 'Later', 'First', 'Last']);
+
+export const MoveFieldBeanSchema = z.looseObject({
+  after: z.string().optional(),
+  position: MoveFieldBean_positionSchema.optional(),
+}) as unknown as z.ZodType<MoveFieldBean>;

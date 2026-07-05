@@ -1,10 +1,9 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type ColorBean = {
     key?: ColorBean.key;
 };
+
 export namespace ColorBean {
     export enum key {
         COLOR_1 = 'color_1',
@@ -24,3 +23,8 @@ export namespace ColorBean {
     }
 }
 
+const ColorBean_keySchema = z.enum(['color_1', 'color_2', 'color_3', 'color_4', 'color_5', 'color_6', 'color_7', 'color_8', 'color_9', 'color_10', 'color_11', 'color_12', 'color_13', 'color_14']);
+
+export const ColorBeanSchema = z.looseObject({
+  key: ColorBean_keySchema.optional(),
+}) as unknown as z.ZodType<ColorBean>;

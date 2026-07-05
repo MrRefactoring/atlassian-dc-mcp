@@ -1,9 +1,7 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { ListWrapperCallbackUserJsonBean } from './listWrapperCallbackUserJsonBean.js';
-import type { UserJsonBean } from './userJsonBean.js';
+import { z } from 'zod';
+import { ListWrapperCallbackUserJsonBeanSchema, type ListWrapperCallbackUserJsonBean } from './listWrapperCallbackUserJsonBean.js';
+import { UserJsonBeanSchema, type UserJsonBean } from './userJsonBean.js';
+
 export type PagedListWrapperUserJsonBeanApplicationUser = {
     backingListSize?: number;
     callback?: ListWrapperCallbackUserJsonBean;
@@ -13,3 +11,11 @@ export type PagedListWrapperUserJsonBeanApplicationUser = {
     size?: number;
 };
 
+export const PagedListWrapperUserJsonBeanApplicationUserSchema = z.lazy(() => z.looseObject({
+  backingListSize: z.number().optional(),
+  callback: ListWrapperCallbackUserJsonBeanSchema.optional(),
+  items: z.array(UserJsonBeanSchema).optional(),
+  maxResults: z.number().optional(),
+  pagingCallback: ListWrapperCallbackUserJsonBeanSchema.optional(),
+  size: z.number().optional(),
+})) as unknown as z.ZodType<PagedListWrapperUserJsonBeanApplicationUser>;

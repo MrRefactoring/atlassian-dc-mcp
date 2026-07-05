@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type ResolutionJsonBean = {
     description?: string;
     iconUrl?: string;
@@ -10,3 +8,10 @@ export type ResolutionJsonBean = {
     self?: string;
 };
 
+export const ResolutionJsonBeanSchema = z.looseObject({
+  description: z.string().optional(),
+  iconUrl: z.string().optional(),
+  id: z.string().optional(),
+  name: z.string().optional(),
+  self: z.string().optional(),
+}) as unknown as z.ZodType<ResolutionJsonBean>;

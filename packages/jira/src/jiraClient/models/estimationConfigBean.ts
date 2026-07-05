@@ -1,10 +1,12 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { EstimationFieldBean } from './estimationFieldBean.js';
+import { z } from 'zod';
+import { EstimationFieldBeanSchema, type EstimationFieldBean } from './estimationFieldBean.js';
+
 export type EstimationConfigBean = {
     field?: EstimationFieldBean;
     type?: string;
 };
 
+export const EstimationConfigBeanSchema = z.lazy(() => z.looseObject({
+  field: EstimationFieldBeanSchema.optional(),
+  type: z.string().optional(),
+})) as unknown as z.ZodType<EstimationConfigBean>;

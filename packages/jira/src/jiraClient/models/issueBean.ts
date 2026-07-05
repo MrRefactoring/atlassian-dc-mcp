@@ -1,14 +1,12 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { ChangelogBean } from './changelogBean.js';
-import type { EditMetaBean } from './editMetaBean.js';
-import type { IncludedFields } from './includedFields.js';
-import type { JsonTypeBean } from './jsonTypeBean.js';
-import type { OpsbarBean } from './opsbarBean.js';
-import type { PropertiesBean } from './propertiesBean.js';
-import type { TransitionBean } from './transitionBean.js';
+import { z } from 'zod';
+import { ChangelogBeanSchema, type ChangelogBean } from './changelogBean.js';
+import { EditMetaBeanSchema, type EditMetaBean } from './editMetaBean.js';
+import { IncludedFieldsSchema, type IncludedFields } from './includedFields.js';
+import { JsonTypeBeanSchema, type JsonTypeBean } from './jsonTypeBean.js';
+import { OpsbarBeanSchema, type OpsbarBean } from './opsbarBean.js';
+import { PropertiesBeanSchema, type PropertiesBean } from './propertiesBean.js';
+import { TransitionBeanSchema, type TransitionBean } from './transitionBean.js';
+
 export type IssueBean = {
     changelog?: ChangelogBean;
     editmeta?: EditMetaBean;
@@ -27,3 +25,20 @@ export type IssueBean = {
     versionedRepresentations?: Record<string, Record<string, Record<string, any>>>;
 };
 
+export const IssueBeanSchema = z.lazy(() => z.looseObject({
+  changelog: ChangelogBeanSchema.optional(),
+  editmeta: EditMetaBeanSchema.optional(),
+  fields: z.record(z.string(), z.record(z.string(), z.any())).optional(),
+  fieldsToInclude: IncludedFieldsSchema.optional(),
+  id: z.string().optional(),
+  key: z.string().optional(),
+  names: z.record(z.string(), z.string()).optional(),
+  operations: OpsbarBeanSchema.optional(),
+  properties: PropertiesBeanSchema.optional(),
+  renderedFields: z.record(z.string(), z.record(z.string(), z.any())).optional(),
+  schema: z.record(z.string(), JsonTypeBeanSchema).optional(),
+  self: z.string().optional(),
+  transitionBeans: z.array(TransitionBeanSchema).optional(),
+  transitions: z.array(TransitionBeanSchema).optional(),
+  versionedRepresentations: z.record(z.string(), z.record(z.string(), z.record(z.string(), z.any()))).optional(),
+})) as unknown as z.ZodType<IssueBean>;

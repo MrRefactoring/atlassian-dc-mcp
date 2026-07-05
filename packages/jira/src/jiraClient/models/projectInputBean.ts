@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type ProjectInputBean = {
     assigneeType?: ProjectInputBean.assigneeType;
     avatarId?: number;
@@ -18,6 +16,7 @@ export type ProjectInputBean = {
     url?: string;
     workflowSchemeId?: number;
 };
+
 export namespace ProjectInputBean {
     export enum assigneeType {
         PROJECT_LEAD = 'PROJECT_LEAD',
@@ -25,3 +24,21 @@ export namespace ProjectInputBean {
     }
 }
 
+const ProjectInputBean_assigneeTypeSchema = z.enum(['PROJECT_LEAD', 'UNASSIGNED']);
+
+export const ProjectInputBeanSchema = z.looseObject({
+  assigneeType: ProjectInputBean_assigneeTypeSchema.optional(),
+  avatarId: z.number().optional(),
+  categoryId: z.number().optional(),
+  description: z.string().optional(),
+  issueSecurityScheme: z.number().optional(),
+  key: z.string().optional(),
+  lead: z.string().optional(),
+  name: z.string().optional(),
+  notificationScheme: z.number().optional(),
+  permissionScheme: z.number().optional(),
+  projectTemplateKey: z.string().optional(),
+  projectTypeKey: z.string().optional(),
+  url: z.string().optional(),
+  workflowSchemeId: z.number().optional(),
+}) as unknown as z.ZodType<ProjectInputBean>;

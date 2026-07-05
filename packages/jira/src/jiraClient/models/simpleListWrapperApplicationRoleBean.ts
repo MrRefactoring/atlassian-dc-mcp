@@ -1,8 +1,6 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { ListWrapperCallbackApplicationRoleBean } from './listWrapperCallbackApplicationRoleBean.js';
+import { z } from 'zod';
+import { ListWrapperCallbackApplicationRoleBeanSchema, type ListWrapperCallbackApplicationRoleBean } from './listWrapperCallbackApplicationRoleBean.js';
+
 export type SimpleListWrapperApplicationRoleBean = {
     callback?: ListWrapperCallbackApplicationRoleBean;
     maxResults?: number;
@@ -10,3 +8,9 @@ export type SimpleListWrapperApplicationRoleBean = {
     size?: number;
 };
 
+export const SimpleListWrapperApplicationRoleBeanSchema = z.lazy(() => z.looseObject({
+  callback: ListWrapperCallbackApplicationRoleBeanSchema.optional(),
+  maxResults: z.number().optional(),
+  pagingCallback: ListWrapperCallbackApplicationRoleBeanSchema.optional(),
+  size: z.number().optional(),
+})) as unknown as z.ZodType<SimpleListWrapperApplicationRoleBean>;

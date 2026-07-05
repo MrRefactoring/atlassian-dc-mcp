@@ -1,8 +1,6 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { StatusCategoryJsonBean } from './statusCategoryJsonBean.js';
+import { z } from 'zod';
+import { StatusCategoryJsonBeanSchema, type StatusCategoryJsonBean } from './statusCategoryJsonBean.js';
+
 export type StatusJsonBean = {
     description?: string;
     iconUrl?: string;
@@ -13,3 +11,12 @@ export type StatusJsonBean = {
     statusColor?: string;
 };
 
+export const StatusJsonBeanSchema = z.lazy(() => z.looseObject({
+  description: z.string().optional(),
+  iconUrl: z.string().optional(),
+  id: z.string().optional(),
+  name: z.string().optional(),
+  self: z.string().optional(),
+  statusCategory: StatusCategoryJsonBeanSchema.optional(),
+  statusColor: z.string().optional(),
+})) as unknown as z.ZodType<StatusJsonBean>;

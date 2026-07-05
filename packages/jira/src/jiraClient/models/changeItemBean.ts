@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type ChangeItemBean = {
     field?: string;
     fieldtype?: string;
@@ -11,3 +9,11 @@ export type ChangeItemBean = {
     toString?: string;
 };
 
+export const ChangeItemBeanSchema = z.looseObject({
+  field: z.string().optional(),
+  fieldtype: z.string().optional(),
+  from: z.string().optional(),
+  fromString: z.string().optional(),
+  to: z.string().optional(),
+  toString: z.string().optional(),
+}) as unknown as z.ZodType<ChangeItemBean>;

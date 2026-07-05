@@ -1,7 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type AvatarCroppingBean = {
     cropperOffsetX?: number;
     cropperOffsetY?: number;
@@ -10,3 +8,10 @@ export type AvatarCroppingBean = {
     url?: string;
 };
 
+export const AvatarCroppingBeanSchema = z.looseObject({
+  cropperOffsetX: z.number().optional(),
+  cropperOffsetY: z.number().optional(),
+  cropperWidth: z.number().optional(),
+  needsCropping: z.boolean().optional(),
+  url: z.string().optional(),
+}) as unknown as z.ZodType<AvatarCroppingBean>;

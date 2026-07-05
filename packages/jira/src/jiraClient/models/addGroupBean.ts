@@ -1,8 +1,9 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type AddGroupBean = {
     name?: string;
 };
 
+export const AddGroupBeanSchema = z.looseObject({
+  name: z.string().optional(),
+}) as unknown as z.ZodType<AddGroupBean>;
