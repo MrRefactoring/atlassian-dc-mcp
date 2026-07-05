@@ -1,7 +1,10 @@
-import type { CreateTagRequest } from '../models/index.js';
+import { z } from 'zod';
+import { CreateTagRequestSchema } from '../models/index.js';
 
-export interface CreateTagForRepository {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: CreateTagRequest;
-}
+export const CreateTagForRepositorySchema = z.object({
+  projectKey: z.string(),
+  repositorySlug: z.string(),
+  ...CreateTagRequestSchema.shape,
+});
+
+export type CreateTagForRepository = z.infer<typeof CreateTagForRepositorySchema>;

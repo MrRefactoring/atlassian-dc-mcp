@@ -1,8 +1,11 @@
-import type { PullRequest } from '../models/index.js';
+import { z } from 'zod';
+import { PullRequestSchema } from '../models/index.js';
 
-export interface Update {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  requestBody?: PullRequest;
-}
+export const UpdateSchema = z.object({
+  projectKey: z.string(),
+  pullRequestId: z.string(),
+  repositorySlug: z.string(),
+  ...PullRequestSchema.shape,
+});
+
+export type Update = z.infer<typeof UpdateSchema>;

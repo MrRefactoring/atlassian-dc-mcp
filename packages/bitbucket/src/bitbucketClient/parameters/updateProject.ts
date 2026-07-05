@@ -1,6 +1,9 @@
-import type { Project } from '../models/index.js';
+import { z } from 'zod';
+import { ProjectSchema } from '../models/index.js';
 
-export interface UpdateProject {
-  projectKey: string;
-  requestBody?: Project;
-}
+export const UpdateProjectSchema = z.object({
+  projectKey: z.string(),
+  ...ProjectSchema.shape,
+});
+
+export type UpdateProject = z.infer<typeof UpdateProjectSchema>;

@@ -106,10 +106,7 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockRawToken);
-      expect(bb.authentication.createUserAccessToken).toHaveBeenCalledWith({ userSlug: 'jsmith', requestBody: {
-        name: 'my-token',
-        permissions: ['PROJECT_READ'],
-      } });
+      expect(bb.authentication.createUserAccessToken).toHaveBeenCalledWith({ userSlug: 'jsmith', name: 'my-token', permissions: ['PROJECT_READ'] });
     });
 
     it('should create a project access token including expiryDays', async () => {
@@ -127,11 +124,7 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockRawToken);
-      expect(bb.authentication.createProjectAccessToken).toHaveBeenCalledWith({ projectKey: 'PROJ', requestBody: {
-        name: 'ci-token',
-        permissions: ['PROJECT_WRITE'],
-        expiryDays: 30,
-      } });
+      expect(bb.authentication.createProjectAccessToken).toHaveBeenCalledWith({ projectKey: 'PROJ', name: 'ci-token', permissions: ['PROJECT_WRITE'], expiryDays: 30 });
     });
 
     it('should create a repository access token, normalizing project key and repo slug', async () => {
@@ -149,10 +142,7 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(bb.authentication.createRepositoryAccessToken).toHaveBeenCalledWith({ projectKey: 'PROJ', repositorySlug: 'test-repo', requestBody: {
-        name: 'repo-token',
-        permissions: ['REPO_WRITE'],
-      } });
+      expect(bb.authentication.createRepositoryAccessToken).toHaveBeenCalledWith({ projectKey: 'PROJ', repositorySlug: 'test-repo', name: 'repo-token', permissions: ['REPO_WRITE'] });
     });
 
     it('should fail when scope is project but projectKey is missing', async () => {
@@ -263,7 +253,7 @@ describe('BitbucketService', () => {
 
         expect(result.success).toBe(true);
         expect(result.data).toBe(mockData);
-        expect(bb.authentication.addSshKey).toHaveBeenCalledWith({ user: undefined, requestBody: { text: 'ssh-rsa AAAA... me@host' } });
+        expect(bb.authentication.addSshKey).toHaveBeenCalledWith({ user: undefined, text: 'ssh-rsa AAAA... me@host' });
       });
 
       it('should add an SSH key for a specified user', async () => {
@@ -271,7 +261,7 @@ describe('BitbucketService', () => {
 
         await bitbucketService.addSshKey('ssh-rsa AAAA... me@host', 'someuser');
 
-        expect(bb.authentication.addSshKey).toHaveBeenCalledWith({ user: 'someuser', requestBody: { text: 'ssh-rsa AAAA... me@host' } });
+        expect(bb.authentication.addSshKey).toHaveBeenCalledWith({ user: 'someuser', text: 'ssh-rsa AAAA... me@host' });
       });
 
       it('should handle errors when adding an SSH key', async () => {
@@ -346,7 +336,7 @@ describe('BitbucketService', () => {
 
         expect(result.success).toBe(true);
         expect(result.data).toBe(mockData);
-        expect(bb.security.addKey).toHaveBeenCalledWith({ user: undefined, requestBody: { text: '-----BEGIN PGP PUBLIC KEY BLOCK-----' } });
+        expect(bb.security.addKey).toHaveBeenCalledWith({ user: undefined, text: '-----BEGIN PGP PUBLIC KEY BLOCK-----' });
       });
 
       it('should add a GPG key for a specified user', async () => {
@@ -354,7 +344,7 @@ describe('BitbucketService', () => {
 
         await bitbucketService.addGpgKey('-----BEGIN PGP PUBLIC KEY BLOCK-----', 'someuser');
 
-        expect(bb.security.addKey).toHaveBeenCalledWith({ user: 'someuser', requestBody: { text: '-----BEGIN PGP PUBLIC KEY BLOCK-----' } });
+        expect(bb.security.addKey).toHaveBeenCalledWith({ user: 'someuser', text: '-----BEGIN PGP PUBLIC KEY BLOCK-----' });
       });
 
       it('should handle errors when adding a GPG key', async () => {

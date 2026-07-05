@@ -1,7 +1,7 @@
 import type { HttpClient } from '../core/types.js';
-import { enc } from '../core/types.js';
+import { enc, pickBody } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
-import { SettingsSchema, AutoDeclineSettingsSchema, AutoMergeRestrictedSettingsSchema, BranchSchema, ChangeSchema, CommentSchema, CommitSchema, DiffSchema, RefRestrictionSchema, RepositoryHookSchema, RepositoryPullRequestSettingsSchema, TagSchema, WebhookSchema } from '../models/index.js';
+import { SettingsSchema, AutoDeclineSettingsSchema, AutoMergeRestrictedSettingsSchema, BranchSchema, ChangeSchema, CommentSchema, CommitSchema, DiffSchema, RefRestrictionSchema, RepositoryHookSchema, RepositoryPullRequestSettingsSchema, TagSchema, WebhookSchema, BranchCreateRequestSchema, CreateTagRequestSchema, BranchDeleteRequestSchema, MultipartFormDataSchema, AutoDeclineSettingsRequestSchema, AutoMergeSettingsRequestSchema } from '../models/index.js';
 import type { Settings, AutoDeclineSettings, AutoMergeRestrictedSettings, Branch, Change, Comment, Commit, Diff, RefRestriction, RepositoryHook, RepositoryPullRequestSettings, Tag, Webhook } from '../models/index.js';
 import type { CreateBranch, CreateCommitComment, CreateRestrictions, CreateTagForRepository, CreateWebhook, DeleteAutoDeclineSettings, DeleteAutoMergeSettings, DeleteBranch, DeleteRestriction, DeleteWebhook, DisableHook, EditFile, EnableHook, FindWebhooks, GetAutoDeclineSettings, GetAutoMergeSettings, GetBranches, GetComments, GetCommit, GetCommits, GetContent, GetDefaultBranch, GetPullRequestSettings, GetRepositoryHooks, GetRestriction, GetRestrictions, GetSettings, GetTag, GetTags, GetWebhook, SetAutoDeclineSettings, SetAutoMergeSettings, SetSettings, StreamCompareChanges, StreamCommits, StreamDiff, StreamRaw, UpdatePullRequestSettings, UpdateWebhook } from '../parameters/index.js';
 
@@ -9,7 +9,7 @@ export function createBranch(client: HttpClient, params: CreateBranch): Promise<
   return client.sendRequest({
     method: 'POST',
     url: `/branch-utils/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/branches`,
-    body: params.requestBody,
+    body: pickBody(params, BranchCreateRequestSchema),
     mediaType: 'application/json',
     schema: BranchSchema,
   });
@@ -20,7 +20,7 @@ export function createComment(client: HttpClient, params: CreateCommitComment): 
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/comments`,
     searchParams: { since: params.since },
-    body: params.requestBody,
+    body: pickBody(params, CommentSchema),
     mediaType: 'application/json',
     schema: CommentSchema,
   });
@@ -30,7 +30,7 @@ export function createRestrictions(client: HttpClient, params: CreateRestriction
   return client.sendRequest({
     method: 'POST',
     url: `/branch-permissions/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/restrictions`,
-    body: params.requestBody,
+    body: params.restrictions,
     mediaType: 'application/vnd.atl.bitbucket.bulk+json',
     schema: RefRestrictionSchema,
   });
@@ -40,7 +40,7 @@ export function createTagForRepository(client: HttpClient, params: CreateTagForR
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/tags`,
-    body: params.requestBody,
+    body: pickBody(params, CreateTagRequestSchema),
     mediaType: 'application/json',
     schema: TagSchema,
   });
@@ -50,7 +50,7 @@ export function createWebhook(client: HttpClient, params: CreateWebhook): Promis
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/webhooks`,
-    body: params.requestBody,
+    body: pickBody(params, WebhookSchema),
     mediaType: 'application/json',
     schema: WebhookSchema,
   });
@@ -74,7 +74,7 @@ export function deleteBranch(client: HttpClient, params: DeleteBranch): Promise<
   return client.sendRequest({
     method: 'DELETE',
     url: `/branch-utils/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/branches`,
-    body: params.requestBody,
+    body: pickBody(params, BranchDeleteRequestSchema),
     mediaType: 'application/json',
   });
 }
@@ -105,7 +105,7 @@ export function editFile(client: HttpClient, params: EditFile): Promise<Commit> 
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/browse/${enc(params.path)}`,
-    formData: params.formData,
+    formData: pickBody(params, MultipartFormDataSchema),
     schema: CommitSchema,
   });
 }
@@ -267,7 +267,7 @@ export function setAutoDeclineSettings(client: HttpClient, params: SetAutoDeclin
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/auto-decline`,
-    body: params.requestBody,
+    body: pickBody(params, AutoDeclineSettingsRequestSchema),
     mediaType: 'application/json',
     schema: AutoDeclineSettingsSchema,
   });
@@ -277,7 +277,7 @@ export function setAutoMergeSettings(client: HttpClient, params: SetAutoMergeSet
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/auto-merge`,
-    body: params.requestBody,
+    body: pickBody(params, AutoMergeSettingsRequestSchema),
     mediaType: 'application/json',
     schema: AutoMergeRestrictedSettingsSchema,
   });
@@ -287,7 +287,7 @@ export function setSettings(client: HttpClient, params: SetSettings): Promise<Se
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/hooks/${enc(params.hookKey)}/settings`,
-    body: params.requestBody,
+    body: pickBody(params, SettingsSchema),
     mediaType: 'application/json',
     schema: SettingsSchema,
   });
@@ -332,7 +332,7 @@ export function updatePullRequestSettings(client: HttpClient, params: UpdatePull
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/settings/pull-requests`,
-    body: params.requestBody,
+    body: pickBody(params, RepositoryPullRequestSettingsSchema),
     mediaType: 'application/json',
     schema: RepositoryPullRequestSettingsSchema,
   });
@@ -342,7 +342,7 @@ export function updateWebhook(client: HttpClient, params: UpdateWebhook): Promis
   return client.sendRequest({
     method: 'PUT',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/webhooks/${enc(params.webhookId)}`,
-    body: params.requestBody,
+    body: pickBody(params, WebhookSchema),
     mediaType: 'application/json',
     schema: WebhookSchema,
   });

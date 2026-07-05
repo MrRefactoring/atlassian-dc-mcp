@@ -1,8 +1,11 @@
-import type { Comment } from '../models/index.js';
+import { z } from 'zod';
+import { CommentSchema } from '../models/index.js';
 
-export interface CreatePullRequestComment {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  requestBody?: Comment;
-}
+export const CreatePullRequestCommentSchema = z.object({
+  projectKey: z.string(),
+  pullRequestId: z.string(),
+  repositorySlug: z.string(),
+  ...CommentSchema.shape,
+});
+
+export type CreatePullRequestComment = z.infer<typeof CreatePullRequestCommentSchema>;

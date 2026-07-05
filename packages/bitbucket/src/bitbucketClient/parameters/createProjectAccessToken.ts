@@ -1,6 +1,9 @@
-import type { AccessTokenRequest } from '../models/index.js';
+import { z } from 'zod';
+import { AccessTokenRequestSchema } from '../models/index.js';
 
-export interface CreateProjectAccessToken {
-  projectKey: string;
-  requestBody?: AccessTokenRequest;
-}
+export const CreateProjectAccessTokenSchema = z.object({
+  projectKey: z.string(),
+  ...AccessTokenRequestSchema.shape,
+});
+
+export type CreateProjectAccessToken = z.infer<typeof CreateProjectAccessTokenSchema>;

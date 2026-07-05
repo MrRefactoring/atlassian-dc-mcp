@@ -1,5 +1,9 @@
-export interface GetRestriction {
-  projectKey: string;
-  id: string;
-  repositorySlug: string;
-}
+import { z } from 'zod';
+
+export const GetRestrictionSchema = z.object({
+  projectKey: z.string(),
+  id: z.string(),
+  repositorySlug: z.string(),
+});
+
+export type GetRestriction = z.infer<typeof GetRestrictionSchema>;

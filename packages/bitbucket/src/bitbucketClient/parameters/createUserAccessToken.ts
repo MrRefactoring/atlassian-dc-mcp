@@ -1,6 +1,9 @@
-import type { AccessTokenRequest } from '../models/index.js';
+import { z } from 'zod';
+import { AccessTokenRequestSchema } from '../models/index.js';
 
-export interface CreateUserAccessToken {
-  userSlug: string;
-  requestBody?: AccessTokenRequest;
-}
+export const CreateUserAccessTokenSchema = z.object({
+  userSlug: z.string(),
+  ...AccessTokenRequestSchema.shape,
+});
+
+export type CreateUserAccessToken = z.infer<typeof CreateUserAccessTokenSchema>;

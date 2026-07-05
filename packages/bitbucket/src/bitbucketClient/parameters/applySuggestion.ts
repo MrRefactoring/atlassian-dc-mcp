@@ -1,9 +1,12 @@
-import type { ApplySuggestionRequest } from '../models/index.js';
+import { z } from 'zod';
+import { ApplySuggestionRequestSchema } from '../models/index.js';
 
-export interface ApplySuggestion {
-  projectKey: string;
-  commentId: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  requestBody?: ApplySuggestionRequest;
-}
+export const ApplySuggestionSchema = z.object({
+  projectKey: z.string(),
+  commentId: z.string(),
+  pullRequestId: z.string(),
+  repositorySlug: z.string(),
+  ...ApplySuggestionRequestSchema.shape,
+});
+
+export type ApplySuggestion = z.infer<typeof ApplySuggestionSchema>;

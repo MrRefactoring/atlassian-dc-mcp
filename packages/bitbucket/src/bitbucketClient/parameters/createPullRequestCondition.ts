@@ -1,7 +1,10 @@
-import type { DefaultReviewersRequest } from '../models/index.js';
+import { z } from 'zod';
+import { DefaultReviewersRequestSchema } from '../models/index.js';
 
-export interface CreatePullRequestCondition {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: DefaultReviewersRequest;
-}
+export const CreatePullRequestConditionSchema = z.object({
+  projectKey: z.string(),
+  repositorySlug: z.string(),
+  ...DefaultReviewersRequestSchema.shape,
+});
+
+export type CreatePullRequestCondition = z.infer<typeof CreatePullRequestConditionSchema>;

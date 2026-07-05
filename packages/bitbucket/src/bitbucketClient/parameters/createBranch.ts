@@ -1,7 +1,10 @@
-import type { BranchCreateRequest } from '../models/index.js';
+import { z } from 'zod';
+import { BranchCreateRequestSchema } from '../models/index.js';
 
-export interface CreateBranch {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody: BranchCreateRequest;
-}
+export const CreateBranchSchema = z.object({
+  projectKey: z.string(),
+  repositorySlug: z.string(),
+  ...BranchCreateRequestSchema.shape,
+});
+
+export type CreateBranch = z.infer<typeof CreateBranchSchema>;

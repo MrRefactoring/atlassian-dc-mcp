@@ -1,9 +1,12 @@
-import type { SetInsightReportRequest } from '../models/index.js';
+import { z } from 'zod';
+import { SetInsightReportRequestSchema } from '../models/index.js';
 
-export interface SetACodeInsightsReport {
-  projectKey: string;
-  commitId: string;
-  repositorySlug: string;
-  key: string;
-  requestBody?: SetInsightReportRequest;
-}
+export const SetACodeInsightsReportSchema = z.object({
+  projectKey: z.string(),
+  commitId: z.string(),
+  repositorySlug: z.string(),
+  key: z.string(),
+  ...SetInsightReportRequestSchema.shape,
+});
+
+export type SetACodeInsightsReport = z.infer<typeof SetACodeInsightsReportSchema>;

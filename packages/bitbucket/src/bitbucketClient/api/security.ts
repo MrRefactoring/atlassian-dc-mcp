@@ -1,5 +1,5 @@
 import type { HttpClient } from '../core/types.js';
-import { enc } from '../core/types.js';
+import { enc, pickBody } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
 import { GpgKeySchema } from '../models/index.js';
 import type { GpgKey } from '../models/index.js';
@@ -10,7 +10,7 @@ export function addKey(client: HttpClient, params: AddKey): Promise<GpgKey> {
     method: 'POST',
     url: '/gpg/latest/keys',
     searchParams: { user: params.user },
-    body: params.requestBody,
+    body: pickBody(params, GpgKeySchema),
     mediaType: 'application/json',
     schema: GpgKeySchema,
   });

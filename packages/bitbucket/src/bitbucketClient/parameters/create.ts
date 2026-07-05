@@ -1,7 +1,10 @@
-import type { PullRequest } from '../models/index.js';
+import { z } from 'zod';
+import { PullRequestSchema } from '../models/index.js';
 
-export interface Create {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: PullRequest;
-}
+export const CreateSchema = z.object({
+  projectKey: z.string(),
+  repositorySlug: z.string(),
+  ...PullRequestSchema.shape,
+});
+
+export type Create = z.infer<typeof CreateSchema>;

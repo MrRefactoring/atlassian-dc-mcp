@@ -50,7 +50,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { text: 'Test comment' },
+        text: 'Test comment',
       });
     });
 
@@ -79,10 +79,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          text: 'Reply comment',
-          parent: { id: 123 },
-        },
+        text: 'Reply comment', parent: { id: 123 },
       });
     });
 
@@ -112,12 +109,9 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          text: 'File comment',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-          },
+        text: 'File comment', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
         },
       });
     });
@@ -152,15 +146,12 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          text: 'Line comment',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-            line: 42,
-            lineType: 'ADDED',
-            fileType: 'TO',
-          },
+        text: 'Line comment', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
+          line: 42,
+          lineType: 'ADDED',
+          fileType: 'TO',
         },
       });
     });
@@ -211,17 +202,14 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          text: 'Multiline comment',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-            line: 15,
-            lineType: 'ADDED',
-            fileType: 'TO',
-            multilineMarker: { startLine: 10, startLineType: 'ADDED' },
-            multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
-          },
+        text: 'Multiline comment', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
+          line: 15,
+          lineType: 'ADDED',
+          fileType: 'TO',
+          multilineMarker: { startLine: 10, startLineType: 'ADDED' },
+          multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
         },
       });
     });
@@ -260,17 +248,14 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          text: 'Mixed multiline comment',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-            line: 8,
-            lineType: 'ADDED',
-            fileType: 'TO',
-            multilineMarker: { startLine: 5, startLineType: 'CONTEXT' },
-            multilineSpan: { dstSpanStart: 5, dstSpanEnd: 8 },
-          },
+        text: 'Mixed multiline comment', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
+          line: 8,
+          lineType: 'ADDED',
+          fileType: 'TO',
+          multilineMarker: { startLine: 5, startLineType: 'CONTEXT' },
+          multilineSpan: { dstSpanStart: 5, dstSpanEnd: 8 },
         },
       });
     });
@@ -295,17 +280,14 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          text: 'Reversed range',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-            line: 15,
-            lineType: 'ADDED',
-            fileType: 'TO',
-            multilineMarker: { startLine: 10, startLineType: 'ADDED' },
-            multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
-          },
+        text: 'Reversed range', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
+          line: 15,
+          lineType: 'ADDED',
+          fileType: 'TO',
+          multilineMarker: { startLine: 10, startLineType: 'ADDED' },
+          multilineSpan: { dstSpanStart: 10, dstSpanEnd: 15 },
         },
       });
     });
@@ -330,17 +312,14 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          text: 'Removed range',
-          anchor: {
-            path: 'src/test.js',
-            diffType: 'EFFECTIVE',
-            line: 5,
-            lineType: 'REMOVED',
-            fileType: 'FROM',
-            multilineMarker: { startLine: 2, startLineType: 'REMOVED' },
-            multilineSpan: { srcSpanStart: 2, srcSpanEnd: 5 },
-          },
+        text: 'Removed range', anchor: {
+          path: 'src/test.js',
+          diffType: 'EFFECTIVE',
+          line: 5,
+          lineType: 'REMOVED',
+          fileType: 'FROM',
+          multilineMarker: { startLine: 2, startLineType: 'REMOVED' },
+          multilineSpan: { srcSpanStart: 2, srcSpanEnd: 5 },
         },
       });
     });
@@ -367,7 +346,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect((result.data as any).warning).toMatch(/multi-line ```suggestion/);
       // single-line anchor: no multiline fields sent
-      const sentAnchor = (bb.pullRequests.createComment as Mock).mock.calls[0][0].requestBody.anchor;
+      const sentAnchor = (bb.pullRequests.createComment as Mock).mock.calls[0][0].anchor;
       expect(sentAnchor.multilineMarker).toBeUndefined();
       expect(sentAnchor.multilineSpan).toBeUndefined();
     });
@@ -436,7 +415,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { text: 'Task comment', severity: 'BLOCKER' },
+        text: 'Task comment', severity: 'BLOCKER',
       });
     });
 
@@ -455,7 +434,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { text: 'Normal comment' }, // no severity field
+        text: 'Normal comment', // no severity field
       });
     });
 
@@ -482,16 +461,12 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          text: 'Inline task',
-          severity: 'BLOCKER',
-          anchor: {
-            path: 'src/index.ts',
-            diffType: 'EFFECTIVE',
-            line: 10,
-            lineType: 'ADDED',
-            fileType: 'TO',
-          },
+        text: 'Inline task', severity: 'BLOCKER', anchor: {
+          path: 'src/index.ts',
+          diffType: 'EFFECTIVE',
+          line: 10,
+          lineType: 'ADDED',
+          fileType: 'TO',
         },
       });
     });
@@ -521,7 +496,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { text: 'Draft comment', state: 'PENDING' },
+        text: 'Draft comment', state: 'PENDING',
       });
     });
 
@@ -540,7 +515,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { text: 'Normal comment' }, // no pending field
+        text: 'Normal comment', // no pending field
       });
     });
 
@@ -566,16 +541,12 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          text: 'Pending file comment',
-          state: 'PENDING',
-          anchor: {
-            path: 'src/index.ts',
-            diffType: 'EFFECTIVE',
-            line: 10,
-            lineType: 'ADDED',
-            fileType: 'TO',
-          },
+        text: 'Pending file comment', state: 'PENDING', anchor: {
+          path: 'src/index.ts',
+          diffType: 'EFFECTIVE',
+          line: 10,
+          lineType: 'ADDED',
+          fileType: 'TO',
         },
       });
     });
@@ -602,7 +573,7 @@ describe('BitbucketService', () => {
         commentId: '500',
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { version: 1, state: 'RESOLVED' },
+        version: 1, state: 'RESOLVED',
       });
     });
 
@@ -624,7 +595,7 @@ describe('BitbucketService', () => {
         commentId: '501',
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { version: 2, text: 'Edited text' },
+        version: 2, text: 'Edited text',
       });
     });
 
@@ -648,7 +619,7 @@ describe('BitbucketService', () => {
         commentId: '502',
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { version: 3, text: 'New body', state: 'RESOLVED', severity: 'BLOCKER' },
+        version: 3, text: 'New body', state: 'RESOLVED', severity: 'BLOCKER',
       });
     });
 

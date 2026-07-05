@@ -1,8 +1,11 @@
-import type { MultipartFormData } from '../models/index.js';
+import { z } from 'zod';
+import { MultipartFormDataSchema } from '../models/index.js';
 
-export interface EditFile {
-  path: string;
-  projectKey: string;
-  repositorySlug: string;
-  formData?: MultipartFormData;
-}
+export const EditFileSchema = z.object({
+  path: z.string(),
+  projectKey: z.string(),
+  repositorySlug: z.string(),
+  ...MultipartFormDataSchema.shape,
+});
+
+export type EditFile = z.infer<typeof EditFileSchema>;

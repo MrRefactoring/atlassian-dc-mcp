@@ -1,5 +1,9 @@
-export interface GetTag {
-  projectKey: string;
-  name: string;
-  repositorySlug: string;
-}
+import { z } from 'zod';
+
+export const GetTagSchema = z.object({
+  projectKey: z.string(),
+  name: z.string(),
+  repositorySlug: z.string(),
+});
+
+export type GetTag = z.infer<typeof GetTagSchema>;

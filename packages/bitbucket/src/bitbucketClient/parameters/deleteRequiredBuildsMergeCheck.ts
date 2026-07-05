@@ -1,5 +1,9 @@
-export interface DeleteRequiredBuildsMergeCheck {
-  projectKey: string;
-  id: number;
-  repositorySlug: string;
-}
+import { z } from 'zod';
+
+export const DeleteRequiredBuildsMergeCheckSchema = z.object({
+  projectKey: z.string(),
+  id: z.number(),
+  repositorySlug: z.string(),
+});
+
+export type DeleteRequiredBuildsMergeCheck = z.infer<typeof DeleteRequiredBuildsMergeCheckSchema>;

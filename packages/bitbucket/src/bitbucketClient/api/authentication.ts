@@ -1,7 +1,7 @@
 import type { HttpClient } from '../core/types.js';
-import { enc } from '../core/types.js';
+import { enc, pickBody } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
-import { AccessTokenSchema, RawAccessTokenSchema, SshKeySchema } from '../models/index.js';
+import { AccessTokenSchema, RawAccessTokenSchema, SshKeySchema, AccessTokenRequestSchema } from '../models/index.js';
 import type { AccessToken, RawAccessToken, SshKey } from '../models/index.js';
 import type { AddSshKey, CreateProjectAccessToken, CreateRepositoryAccessToken, CreateUserAccessToken, DeleteProjectAccessToken, DeleteRepositoryAccessToken, DeleteSshKey, DeleteUserAccessToken, GetProjectAccessTokens, GetRepositoryAccessTokens, GetSshKeys, GetUserAccessTokens } from '../parameters/index.js';
 
@@ -10,7 +10,7 @@ export function addSshKey(client: HttpClient, params: AddSshKey): Promise<SshKey
     method: 'POST',
     url: '/ssh/latest/keys',
     searchParams: { user: params.user },
-    body: params.requestBody,
+    body: pickBody(params, ['algorithmType', 'bitLength', 'createdDate', 'expiryDays', 'fingerprint', 'id', 'label', 'lastAuthenticated', 'text', 'warning']),
     mediaType: 'application/json',
     schema: SshKeySchema,
   });
@@ -20,7 +20,7 @@ export function createProjectAccessToken(client: HttpClient, params: CreateProje
   return client.sendRequest({
     method: 'PUT',
     url: `/access-tokens/latest/projects/${enc(params.projectKey)}`,
-    body: params.requestBody,
+    body: pickBody(params, AccessTokenRequestSchema),
     mediaType: 'application/json',
     schema: RawAccessTokenSchema,
   });
@@ -30,7 +30,7 @@ export function createRepositoryAccessToken(client: HttpClient, params: CreateRe
   return client.sendRequest({
     method: 'PUT',
     url: `/access-tokens/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}`,
-    body: params.requestBody,
+    body: pickBody(params, AccessTokenRequestSchema),
     mediaType: 'application/json',
     schema: RawAccessTokenSchema,
   });
@@ -40,7 +40,7 @@ export function createUserAccessToken(client: HttpClient, params: CreateUserAcce
   return client.sendRequest({
     method: 'PUT',
     url: `/access-tokens/latest/users/${enc(params.userSlug)}`,
-    body: params.requestBody,
+    body: pickBody(params, AccessTokenRequestSchema),
     mediaType: 'application/json',
     schema: RawAccessTokenSchema,
   });

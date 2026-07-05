@@ -112,7 +112,7 @@ describe('BitbucketService', () => {
       expect(bb.repositories.createTagForRepository).toHaveBeenCalledWith({
         projectKey: mockProjectKey,
         repositorySlug: mockRepositorySlug,
-        requestBody: { name: 'v2', startPoint: 'refs/heads/master' },
+        name: 'v2', startPoint: 'refs/heads/master',
       });
     });
 
@@ -128,7 +128,7 @@ describe('BitbucketService', () => {
       expect(bb.repositories.createTagForRepository).toHaveBeenCalledWith({
         projectKey: mockProjectKey,
         repositorySlug: mockRepositorySlug,
-        requestBody: { name: 'v2', startPoint: 'abc123', message: 'Release 2' },
+        name: 'v2', startPoint: 'abc123', message: 'Release 2',
       });
     });
 
@@ -364,7 +364,7 @@ describe('BitbucketService', () => {
         commitId: 'abc123',
         repositorySlug: mockRepositorySlug,
         since: undefined,
-        requestBody: { text: 'nice' },
+        text: 'nice',
       });
     });
 
@@ -384,7 +384,7 @@ describe('BitbucketService', () => {
         commitId: 'abc123',
         repositorySlug: mockRepositorySlug,
         since: undefined,
-        requestBody: { text: 'fix this', anchor: { path: 'src/app.js', line: 12, lineType: 'ADDED', fileType: 'TO' } },
+        text: 'fix this', anchor: { path: 'src/app.js', line: 12, lineType: 'ADDED', fileType: 'TO' },
       });
     });
 
@@ -403,7 +403,7 @@ describe('BitbucketService', () => {
         commitId: 'abc123',
         repositorySlug: mockRepositorySlug,
         since: undefined,
-        requestBody: { text: 'note', anchor: { path: 'src/app.js', line: 3, lineType: 'CONTEXT', fileType: 'TO' } },
+        text: 'note', anchor: { path: 'src/app.js', line: 3, lineType: 'CONTEXT', fileType: 'TO' },
       });
     });
 

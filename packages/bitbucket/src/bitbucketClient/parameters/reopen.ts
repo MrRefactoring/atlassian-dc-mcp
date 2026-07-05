@@ -1,9 +1,12 @@
-import type { PullRequestReopenRequest } from '../models/index.js';
+import { z } from 'zod';
+import { PullRequestReopenRequestSchema } from '../models/index.js';
 
-export interface Reopen {
-  projectKey: string;
-  pullRequestId: string;
-  repositorySlug: string;
-  version?: string;
-  requestBody?: PullRequestReopenRequest;
-}
+export const ReopenSchema = z.object({
+  projectKey: z.string(),
+  pullRequestId: z.string(),
+  repositorySlug: z.string(),
+  version: z.string().optional(),
+  ...PullRequestReopenRequestSchema.omit({ version: true }).shape,
+});
+
+export type Reopen = z.infer<typeof ReopenSchema>;

@@ -650,22 +650,17 @@ describe('BitbucketService', () => {
       expect(bb.pullRequests.create).toHaveBeenCalledWith({
         projectKey: mockProjectKey,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          title: 'Test PR',
-          description: 'Test description',
-          fromRef: {
-            id: 'refs/heads/feature-branch',
-            repository: {
-              slug: mockRepositorySlug,
-              project: { key: mockProjectKey },
-            },
+        title: 'Test PR', description: 'Test description', fromRef: {
+          id: 'refs/heads/feature-branch',
+          repository: {
+            slug: mockRepositorySlug,
+            project: { key: mockProjectKey },
           },
-          toRef: {
-            id: 'refs/heads/main',
-            repository: {
-              slug: mockRepositorySlug,
-              project: { key: mockProjectKey },
-            },
+        }, toRef: {
+          id: 'refs/heads/main',
+          repository: {
+            slug: mockRepositorySlug,
+            project: { key: mockProjectKey },
           },
         },
       });
@@ -713,14 +708,12 @@ describe('BitbucketService', () => {
         toRefId: 'refs/heads/main',
         reviewerCount: 0,
       });
-      expect(bb.pullRequests.create).toHaveBeenCalledWith({
+      expect(bb.pullRequests.create).toHaveBeenCalledWith(expect.objectContaining({
         projectKey: mockProjectKey,
         repositorySlug: mockRepositorySlug,
-        requestBody: expect.objectContaining({
-          title: 'Test PR without description',
-          description: undefined,
-        }),
-      });
+        title: 'Test PR without description',
+        description: undefined,
+      }));
     });
 
     it('should successfully create a PR with reviewers', async () => {
@@ -771,17 +764,15 @@ describe('BitbucketService', () => {
         toRefId: 'refs/heads/main',
         reviewerCount: 2,
       });
-      expect(bb.pullRequests.create).toHaveBeenCalledWith({
+      expect(bb.pullRequests.create).toHaveBeenCalledWith(expect.objectContaining({
         projectKey: mockProjectKey,
         repositorySlug: mockRepositorySlug,
-        requestBody: expect.objectContaining({
-          title: 'Test PR with reviewers',
-          reviewers: [
-            { user: { name: 'reviewer1' } },
-            { user: { name: 'reviewer2' } },
-          ],
-        }),
-      });
+        title: 'Test PR with reviewers',
+        reviewers: [
+          { user: { name: 'reviewer1' } },
+          { user: { name: 'reviewer2' } },
+        ],
+      }));
     });
 
     it('should successfully create a PR with empty reviewers array', async () => {
@@ -805,13 +796,9 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(bb.pullRequests.create).toHaveBeenCalledWith({
-        projectKey: mockProjectKey,
-        repositorySlug: mockRepositorySlug,
-        requestBody: expect.not.objectContaining({
-          reviewers: expect.anything(),
-        }),
-      });
+      expect(bb.pullRequests.create).toHaveBeenCalledWith(expect.not.objectContaining({
+        reviewers: expect.anything(),
+      }));
     });
 
     it('should handle API errors gracefully', async () => {
@@ -863,10 +850,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          version: 0,
-          title: 'Updated Title',
-        },
+        version: 0, title: 'Updated Title',
       });
     });
 
@@ -901,10 +885,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          version: 0,
-          description: 'Updated description',
-        },
+        version: 0, description: 'Updated description',
       });
     });
 
@@ -939,11 +920,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          version: 0,
-          title: 'Updated Title',
-          description: 'Updated description',
-        },
+        version: 0, title: 'Updated Title', description: 'Updated description',
       });
     });
 
@@ -984,14 +961,11 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          version: 0,
-          reviewers: [
-            { user: { name: 'reviewer1' } },
-            { user: { name: 'reviewer2' } },
-            { user: { name: 'reviewer3' } },
-          ],
-        },
+        version: 0, reviewers: [
+          { user: { name: 'reviewer1' } },
+          { user: { name: 'reviewer2' } },
+          { user: { name: 'reviewer3' } },
+        ],
       });
     });
 
@@ -1031,15 +1005,10 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          version: 1,
-          title: 'Updated Title',
-          description: 'Updated description',
-          reviewers: [
-            { user: { name: 'newreviewer1' } },
-            { user: { name: 'newreviewer2' } },
-          ],
-        },
+        version: 1, title: 'Updated Title', description: 'Updated description', reviewers: [
+          { user: { name: 'newreviewer1' } },
+          { user: { name: 'newreviewer2' } },
+        ],
       });
     });
 
@@ -1072,9 +1041,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: {
-          version: 0,
-        },
+        version: 0,
       });
     });
 
@@ -1100,14 +1067,9 @@ describe('BitbucketService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(bb.pullRequests.update).toHaveBeenCalledWith({
-        projectKey: mockProjectKey,
-        pullRequestId: mockPullRequestId,
-        repositorySlug: mockRepositorySlug,
-        requestBody: expect.not.objectContaining({
-          reviewers: expect.anything(),
-        }),
-      });
+      expect(bb.pullRequests.update).toHaveBeenCalledWith(expect.not.objectContaining({
+        reviewers: expect.anything(),
+      }));
     });
 
     it('should handle API errors gracefully', async () => {
@@ -1342,12 +1304,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ applied: true, commentId: '99' });
       expect(bb.pullRequests.applySuggestion).toHaveBeenCalledWith({
-        projectKey: 'TEST', commentId: '99', pullRequestId: '123', repositorySlug: 'test-repo', requestBody: {
-          commentVersion: 2,
-          pullRequestVersion: 5,
-          message: 'apply fix',
-          suggestionIndex: 1,
-        },
+        projectKey: 'TEST', commentId: '99', pullRequestId: '123', repositorySlug: 'test-repo', commentVersion: 2, pullRequestVersion: 5, message: 'apply fix', suggestionIndex: 1,
       });
     });
 
@@ -1357,11 +1314,7 @@ describe('BitbucketService', () => {
       await bitbucketService.applyPullRequestSuggestion('TEST', 'test-repo', '123', '99', 2, 5, 'apply fix');
 
       expect(bb.pullRequests.applySuggestion).toHaveBeenCalledWith({
-        projectKey: 'TEST', commentId: '99', pullRequestId: '123', repositorySlug: 'test-repo', requestBody: {
-          commentVersion: 2,
-          pullRequestVersion: 5,
-          message: 'apply fix',
-        },
+        projectKey: 'TEST', commentId: '99', pullRequestId: '123', repositorySlug: 'test-repo', commentVersion: 2, pullRequestVersion: 5, message: 'apply fix',
       });
     });
 

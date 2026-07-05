@@ -1,5 +1,8 @@
-import type { Project } from '../models/index.js';
+import { z } from 'zod';
+import { ProjectSchema } from '../models/index.js';
 
-export interface CreateProject {
-  requestBody?: Project;
-}
+export const CreateProjectSchema = z.object({
+  ...ProjectSchema.shape,
+});
+
+export type CreateProject = z.infer<typeof CreateProjectSchema>;

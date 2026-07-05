@@ -227,19 +227,17 @@ describe('BitbucketService', () => {
         'refs/heads/feature', 'refs/heads/main',
       );
 
-      expect(bb.pullRequests.create).toHaveBeenCalledWith({
+      expect(bb.pullRequests.create).toHaveBeenCalledWith(expect.objectContaining({
         projectKey: 'TEST',
         repositorySlug: 'test-repo',
-        requestBody: expect.objectContaining({
-          title: 'title',
-          fromRef: expect.objectContaining({
-            repository: expect.objectContaining({
-              slug: 'test-repo',
-              project: { key: 'TEST' },
-            }),
+        title: 'title',
+        fromRef: expect.objectContaining({
+          repository: expect.objectContaining({
+            slug: 'test-repo',
+            project: { key: 'TEST' },
           }),
         }),
-      });
+      }));
     });
 
     it('should uppercase projectKey and lowercase repositorySlug for getRequiredReviewers', async () => {

@@ -83,14 +83,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.repositories.createWebhook).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: {
-          name: 'my hook',
-          url: 'https://example.com/hook',
-          events: ['repo:refs_changed', 'pr:opened'],
-          active: true,
-          configuration: { secret: 's3cret' },
-          sslVerificationRequired: false,
-        },
+        projectKey: 'TEST', repositorySlug: 'test-repo', name: 'my hook', url: 'https://example.com/hook', events: ['repo:refs_changed', 'pr:opened'], active: true, configuration: { secret: 's3cret' }, sslVerificationRequired: false,
       });
     });
 
@@ -102,11 +95,7 @@ describe('BitbucketService', () => {
       );
 
       expect(bb.repositories.createWebhook).toHaveBeenCalledWith({
-        projectKey: 'TEST', repositorySlug: 'test-repo', requestBody: {
-          name: 'minimal',
-          url: 'https://example.com/h',
-          events: ['pr:merged'],
-        },
+        projectKey: 'TEST', repositorySlug: 'test-repo', name: 'minimal', url: 'https://example.com/h', events: ['pr:merged'],
       });
     });
 
@@ -121,12 +110,7 @@ describe('BitbucketService', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockData);
       expect(bb.repositories.updateWebhook).toHaveBeenCalledWith({
-        projectKey: 'TEST', webhookId: '5', repositorySlug: 'test-repo', requestBody: {
-          name: 'renamed',
-          url: 'https://example.com/new',
-          events: ['pr:declined'],
-          active: false,
-        },
+        projectKey: 'TEST', webhookId: '5', repositorySlug: 'test-repo', name: 'renamed', url: 'https://example.com/new', events: ['pr:declined'], active: false,
       });
     });
 

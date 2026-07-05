@@ -1,7 +1,7 @@
 import type { HttpClient } from '../core/types.js';
-import { enc } from '../core/types.js';
+import { enc, pickBody } from '../core/types.js';
 import { restPage, type RestPage } from '../core/page.js';
-import { BuildStatusSchema, InsightAnnotationsResponseSchema, InsightReportSchema, RequiredBuildConditionSchema } from '../models/index.js';
+import { BuildStatusSchema, InsightAnnotationsResponseSchema, InsightReportSchema, RequiredBuildConditionSchema, BuildStatusSetRequestSchema, BulkAddInsightAnnotationRequestSchema, RequiredBuildConditionSetRequestSchema, SetInsightReportRequestSchema } from '../models/index.js';
 import type { BuildStatus, InsightAnnotationsResponse, InsightReport, RequiredBuildCondition } from '../models/index.js';
 import type { Add, AddAnnotations, CreateRequiredBuildsMergeCheck, DeleteACodeInsightsReport, DeleteAnnotations, DeleteRequiredBuildsMergeCheck, GetBuildStatus, GetACodeInsightsReport, GetAnnotations, GetBuildStatusStats, GetPageOfRequiredBuildsMergeChecks, SetACodeInsightsReport, UpdateRequiredBuildsMergeCheck } from '../parameters/index.js';
 
@@ -9,7 +9,7 @@ export function add(client: HttpClient, params: Add): Promise<void> {
   return client.sendRequest({
     method: 'POST',
     url: `/api/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/builds`,
-    body: params.requestBody,
+    body: pickBody(params, BuildStatusSetRequestSchema),
     mediaType: '*/*',
   });
 }
@@ -18,7 +18,7 @@ export function addAnnotations(client: HttpClient, params: AddAnnotations): Prom
   return client.sendRequest({
     method: 'POST',
     url: `/insights/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/reports/${enc(params.key)}/annotations`,
-    body: params.requestBody,
+    body: pickBody(params, BulkAddInsightAnnotationRequestSchema),
     mediaType: 'application/json',
   });
 }
@@ -27,7 +27,7 @@ export function createRequiredBuildsMergeCheck(client: HttpClient, params: Creat
   return client.sendRequest({
     method: 'POST',
     url: `/required-builds/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/condition`,
-    body: params.requestBody,
+    body: pickBody(params, RequiredBuildConditionSetRequestSchema),
     mediaType: '*/*',
     schema: RequiredBuildConditionSchema,
   });
@@ -102,7 +102,7 @@ export function setACodeInsightsReport(client: HttpClient, params: SetACodeInsig
   return client.sendRequest({
     method: 'PUT',
     url: `/insights/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/commits/${enc(params.commitId)}/reports/${enc(params.key)}`,
-    body: params.requestBody,
+    body: pickBody(params, SetInsightReportRequestSchema),
     mediaType: 'application/json',
     schema: InsightReportSchema,
   });
@@ -112,7 +112,7 @@ export function updateRequiredBuildsMergeCheck(client: HttpClient, params: Updat
   return client.sendRequest({
     method: 'PUT',
     url: `/required-builds/latest/projects/${enc(params.projectKey)}/repos/${enc(params.repositorySlug)}/condition/${enc(params.id)}`,
-    body: params.requestBody,
+    body: pickBody(params, RequiredBuildConditionSetRequestSchema),
     mediaType: '*/*',
     schema: RequiredBuildConditionSchema,
   });

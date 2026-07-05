@@ -1,7 +1,10 @@
-import type { RequiredBuildConditionSetRequest } from '../models/index.js';
+import { z } from 'zod';
+import { RequiredBuildConditionSetRequestSchema } from '../models/index.js';
 
-export interface CreateRequiredBuildsMergeCheck {
-  projectKey: string;
-  repositorySlug: string;
-  requestBody?: RequiredBuildConditionSetRequest;
-}
+export const CreateRequiredBuildsMergeCheckSchema = z.object({
+  projectKey: z.string(),
+  repositorySlug: z.string(),
+  ...RequiredBuildConditionSetRequestSchema.shape,
+});
+
+export type CreateRequiredBuildsMergeCheck = z.infer<typeof CreateRequiredBuildsMergeCheckSchema>;

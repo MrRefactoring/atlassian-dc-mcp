@@ -1,28 +1,15 @@
-import type { ApplicationUser, ReviewerGroup } from '../models/index.js';
+import { z } from 'zod';
+import { ApplicationUserSchema, ReviewerGroupSchema } from '../models/index.js';
 
-export interface UpdatePullRequestCondition {
-  projectKey: string;
-  id: string;
-  repositorySlug: string;
-  requestBody?: {
-    requiredApprovals?: number;
-    reviewerGroups?: Array<ReviewerGroup>;
-    reviewers?: Array<ApplicationUser>;
-    sourceMatcher?: {
-      displayId?: string;
-      id?: string;
-      type?: {
-        id?: 'ANY_REF' | 'BRANCH' | 'PATTERN' | 'MODEL_CATEGORY' | 'MODEL_BRANCH';
-        name?: string;
-      };
-    };
-    targetMatcher?: {
-      displayId?: string;
-      id?: string;
-      type?: {
-        id?: 'ANY_REF' | 'BRANCH' | 'PATTERN' | 'MODEL_CATEGORY' | 'MODEL_BRANCH';
-        name?: string;
-      };
-    };
-  };
-}
+export const UpdatePullRequestConditionSchema = z.object({
+  projectKey: z.string(),
+  id: z.string(),
+  repositorySlug: z.string(),
+  requiredApprovals: z.number().optional(),
+  reviewerGroups: z.array(ReviewerGroupSchema).optional(),
+  reviewers: z.array(ApplicationUserSchema).optional(),
+  sourceMatcher: z.object({ displayId: z.string().optional(), id: z.string().optional(), type: z.object({ id: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional(), name: z.string().optional() }).optional() }).optional(),
+  targetMatcher: z.object({ displayId: z.string().optional(), id: z.string().optional(), type: z.object({ id: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional(), name: z.string().optional() }).optional() }).optional(),
+});
+
+export type UpdatePullRequestCondition = z.infer<typeof UpdatePullRequestConditionSchema>;

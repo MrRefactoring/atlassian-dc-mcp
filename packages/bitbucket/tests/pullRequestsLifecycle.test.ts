@@ -101,7 +101,7 @@ describe('BitbucketService', () => {
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
         version: '1',
-        requestBody: {},
+
       });
     });
 
@@ -123,7 +123,7 @@ describe('BitbucketService', () => {
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
         version: '1',
-        requestBody: { message: 'Custom merge message', strategyId: 'squash' },
+        message: 'Custom merge message', strategyId: 'squash',
       });
     });
 
@@ -191,7 +191,7 @@ describe('BitbucketService', () => {
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
         version: '1',
-        requestBody: {},
+
       });
     });
 
@@ -212,7 +212,7 @@ describe('BitbucketService', () => {
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
         version: '1',
-        requestBody: { comment: 'Superseded by another PR' },
+        comment: 'Superseded by another PR',
       });
     });
 
@@ -262,7 +262,7 @@ describe('BitbucketService', () => {
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
         version: '2',
-        requestBody: {},
+
       });
     });
 
@@ -380,7 +380,7 @@ describe('BitbucketService', () => {
         projectKey: mockProjectKey,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { user: { name: 'reviewer1' }, role: 'REVIEWER' },
+        user: { name: 'reviewer1' }, role: 'REVIEWER',
       });
     });
 
@@ -499,7 +499,7 @@ describe('BitbucketService', () => {
         userSlug: mockUserSlug,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { status: 'NEEDS_WORK' },
+        status: 'NEEDS_WORK',
       });
     });
 
@@ -521,7 +521,7 @@ describe('BitbucketService', () => {
         userSlug: mockUserSlug,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { status: 'APPROVED' },
+        status: 'APPROVED',
       });
     });
 
@@ -543,7 +543,7 @@ describe('BitbucketService', () => {
         userSlug: mockUserSlug,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        requestBody: { status: 'NEEDS_WORK', lastReviewedCommit: 'abc123def456' },
+        status: 'NEEDS_WORK', lastReviewedCommit: 'abc123def456',
       });
     });
 
