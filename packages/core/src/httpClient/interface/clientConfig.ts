@@ -1,7 +1,7 @@
 import type { CredentialSource } from './credentialSource.js';
 
-export interface BitbucketClientConfig {
-  /** Fully resolved API base URL, e.g. `http://host:7990/rest`. */
+export interface HttpClientConfig {
+  /** Fully resolved API base URL, e.g. `https://host/rest`. */
   baseUrl: string;
   /** Personal access token → `Authorization: Bearer`. */
   token?: CredentialSource;
