@@ -1,10 +1,10 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import type { BitbucketService } from '../bitbucketService.js';
 import { bitbucketToolSchemas } from '../bitbucketService.js';
 
 export function registerBuildTools(server: McpServer, service: BitbucketService) {
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_list_build_statuses',
     {
       description: 'List build statuses (CI results) for a commit. NOTE: build statuses are keyed globally by commit id, so this does not take a project/repository.',
@@ -17,7 +17,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_add_build_status',
     {
       description: 'Add (or update) a build status (CI result) on a commit. state is SUCCESSFUL, FAILED, or INPROGRESS; key uniquely identifies the build and url links to its result.',
@@ -30,7 +30,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_build_status',
     {
       description: 'Get a single build status for a commit by its key.',
@@ -43,7 +43,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_set_insight_report',
     {
       description: 'Create or replace a Code Insights report on a commit (e.g. linter/scanner results). The report \'key\' must be unique and namespaced. Use bitbucket_add_insight_annotations to attach per-line findings.',
@@ -56,7 +56,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_insight_report',
     {
       description: 'Get a Code Insights report on a commit by its key.',
@@ -69,7 +69,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_delete_insight_report',
     {
       description: 'Delete a Code Insights report (and its annotations) on a commit.',
@@ -82,7 +82,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_add_insight_annotations',
     {
       description: 'Add annotations (per-file/line findings) to a Code Insights report. The report must already exist (bitbucket_set_insight_report).',
@@ -95,7 +95,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_insight_annotations',
     {
       description: 'Get the annotations of a Code Insights report on a commit.',
@@ -108,7 +108,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_delete_insight_annotations',
     {
       description: 'Delete annotations of a Code Insights report. Pass externalId to delete a single annotation, or omit it to delete all.',
@@ -121,7 +121,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_required_builds_merge_checks',
     {
       description: 'List the required-builds merge checks configured for a Bitbucket repository. Each check requires green builds for the given build keys before a PR targeting the matched ref can be merged.',
@@ -134,7 +134,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_create_required_builds_merge_check',
     {
       description: 'Create a required-builds merge check on a Bitbucket repository. Requires REPO_ADMIN. Provide the build parent keys that must be green and a target ref matcher (type + value); optionally exempt source refs.',
@@ -147,7 +147,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_update_required_builds_merge_check',
     {
       description: 'Update a required-builds merge check on a Bitbucket repository. Requires REPO_ADMIN. This replaces the whole check, so provide the complete desired build keys and matcher.',
@@ -160,7 +160,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_delete_required_builds_merge_check',
     {
       description: 'Delete a required-builds merge check from a Bitbucket repository by its ID. Requires REPO_ADMIN.',

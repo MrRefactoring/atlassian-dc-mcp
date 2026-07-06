@@ -1,10 +1,10 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import type { BitbucketService } from '../bitbucketService.js';
 import { bitbucketToolSchemas } from '../bitbucketService.js';
 
 export function registerSecurityTools(server: McpServer, service: BitbucketService) {
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_gpg_keys',
     {
       description: 'List the GPG keys for a user. Defaults to the currently authenticated user; retrieving another user\'s keys requires ADMIN permission.',
@@ -17,7 +17,7 @@ export function registerSecurityTools(server: McpServer, service: BitbucketServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_add_gpg_key',
     {
       description: 'Add an ASCII-armored GPG public key for a user. Defaults to the currently authenticated user; adding for another user requires ADMIN permission.',
@@ -30,7 +30,7 @@ export function registerSecurityTools(server: McpServer, service: BitbucketServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_delete_gpg_key',
     {
       description: 'Delete a GPG key by its ID or fingerprint.',

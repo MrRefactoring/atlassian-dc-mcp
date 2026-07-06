@@ -1,12 +1,12 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import { shapeConfluenceMutationAck } from '../confluenceResponseMapper.js';
 import { confluenceInstanceType } from '../constants.js';
 import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService, ConfluenceContent } from '../confluenceService.js';
 
 export function registerContentTools(server: McpServer, service: ConfluenceService) {
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content',
     {
       description: `Get Confluence content by ID from the ${confluenceInstanceType}`,
@@ -19,7 +19,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_search_content',
     {
       description: `Search for content in ${confluenceInstanceType} using CQL`,
@@ -32,7 +32,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_create_content',
     {
       description: `Create new content in ${confluenceInstanceType}`,
@@ -68,7 +68,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_update_content',
     {
       description: `Update existing content in ${confluenceInstanceType}`,
@@ -125,7 +125,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_delete_content',
     {
       description: `Delete (trash or purge) content in ${confluenceInstanceType}`,
@@ -138,7 +138,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_history',
     {
       description: `Get the version history of content in ${confluenceInstanceType}`,
@@ -151,7 +151,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_children',
     {
       description: `Get the direct children of a piece of content in ${confluenceInstanceType}`,
@@ -164,7 +164,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_children_by_type',
     {
       description: `Get the children of a piece of content limited to a single type in ${confluenceInstanceType}`,
@@ -177,7 +177,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_comments',
     {
       description: `Get the comments of a piece of content in ${confluenceInstanceType}`,
@@ -190,7 +190,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_descendants',
     {
       description: `Get the descendants of a piece of content in ${confluenceInstanceType}`,
@@ -203,7 +203,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_descendants_by_type',
     {
       description: `Get the descendants of a piece of content limited to a single type in ${confluenceInstanceType}`,
@@ -216,7 +216,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_labels',
     {
       description: `Get the labels attached to a piece of content in ${confluenceInstanceType}`,
@@ -229,7 +229,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_add_content_labels',
     {
       description: `Add one or more labels to a piece of content in ${confluenceInstanceType}`,
@@ -242,7 +242,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_delete_content_label',
     {
       description: `Remove a label from a piece of content in ${confluenceInstanceType}`,
@@ -255,7 +255,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_properties',
     {
       description: `Get the properties stored on a piece of content in ${confluenceInstanceType}`,
@@ -268,7 +268,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_property',
     {
       description: `Get a single content property by key in ${confluenceInstanceType}`,
@@ -281,7 +281,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_create_content_property',
     {
       description: `Create a content property in ${confluenceInstanceType}`,
@@ -294,7 +294,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_update_content_property',
     {
       description: `Update a content property in ${confluenceInstanceType}`,
@@ -307,7 +307,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_delete_content_property',
     {
       description: `Delete a content property in ${confluenceInstanceType}`,
@@ -320,7 +320,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_restrictions',
     {
       description: `Get all restrictions on a piece of content, grouped by operation, in ${confluenceInstanceType}`,
@@ -333,7 +333,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_restrictions_by_operation',
     {
       description: `Get the restrictions on a piece of content for a single operation in ${confluenceInstanceType}`,
@@ -346,7 +346,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_update_content_restrictions',
     {
       description: `Overwrite the restrictions on a piece of content in ${confluenceInstanceType}`,
@@ -359,7 +359,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_content_watchers',
     {
       description: `List the users watching a piece of content in ${confluenceInstanceType}`,
@@ -372,7 +372,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_is_watching_content',
     {
       description: `Check whether a user is watching a piece of content in ${confluenceInstanceType}`,
@@ -385,7 +385,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_add_content_watcher',
     {
       description: `Add a watcher to a piece of content in ${confluenceInstanceType}`,
@@ -398,7 +398,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_remove_content_watcher',
     {
       description: `Remove a watcher from a piece of content in ${confluenceInstanceType}`,
@@ -411,7 +411,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_publish_blueprint_shared_draft',
     {
       description: `Publish a shared draft created from a content blueprint (template) in ${confluenceInstanceType}, turning it into live content`,
@@ -440,7 +440,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_publish_blueprint_legacy_draft',
     {
       description: `Publish a legacy draft created from a content blueprint (template) in ${confluenceInstanceType}, turning it into live content`,
@@ -469,7 +469,7 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_convert_content_body',
     {
       description: `Convert a content body between representations (e.g. storage to view) in ${confluenceInstanceType}`,

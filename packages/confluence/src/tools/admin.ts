@@ -1,11 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import { confluenceInstanceType } from '../constants.js';
 import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService } from '../confluenceService.js';
 
 export function registerAdminTools(server: McpServer, service: ConfluenceService) {
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_server_info',
     {
       description: `Get build/version information about the ${confluenceInstanceType}`,
@@ -18,7 +18,7 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_cluster_nodes',
     {
       description: `Get the status of each node in a ${confluenceInstanceType}'s cluster. Requires permission to view cluster information.`,
@@ -31,7 +31,7 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_long_running_task',
     {
       description: `Get information about a single long-running background task (e.g. space export, reindex) in ${confluenceInstanceType}`,
@@ -44,7 +44,7 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_long_running_tasks',
     {
       description: `Get all tracked long-running background tasks (e.g. space export, reindex) in ${confluenceInstanceType}`,
@@ -57,7 +57,7 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_trigger_site_backup',
     {
       description: `Start a new site backup job in ${confluenceInstanceType}. Requires permission to create site backups.`,
@@ -70,7 +70,7 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_backup_restore_job',
     {
       description: `Get a backup/restore job by ID in ${confluenceInstanceType}. Caller must be a system administrator or the job's owner.`,
@@ -83,7 +83,7 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_find_backup_restore_jobs',
     {
       description: `Find backup/restore jobs visible to the calling user in ${confluenceInstanceType}, optionally filtered`,
@@ -96,7 +96,7 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_instance_metrics',
     {
       description: `Get simple metrics about the ${confluenceInstanceType} (e.g. content and user counts)`,
