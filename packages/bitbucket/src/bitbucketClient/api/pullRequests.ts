@@ -5,7 +5,7 @@ import type { RestPage } from '../interface/index.js';
 import { z } from 'zod';
 import { ChangeSchema, CommentSchema, PullRequestActivitySchema, PullRequestConditionSchema, PullRequestMergeabilitySchema, PullRequestParticipantSchema, PullRequestSchema, ApplySuggestionRequestSchema, PullRequestAssignParticipantRoleRequestSchema, DefaultReviewersRequestSchema, PullRequestDeclineRequestSchema, PullRequestMergeRequestSchema, PullRequestReopenRequestSchema, PullRequestAssignStatusRequestSchema } from '../models/index.js';
 import type { Change, Comment, PullRequest, PullRequestActivity, PullRequestCondition, PullRequestMergeability, PullRequestParticipant } from '../models/index.js';
-import type { ApplySuggestion, AssignParticipantRole, CanMerge, Create, CreatePullRequestComment, CreatePullRequestCondition, Decline, DeleteComment, DeletePullRequestCondition, GetPullRequest, GetActivities, GetPage, GetPullRequestConditions, GetReviewers, ListParticipants, Merge, Reopen, StreamPullRequestChanges, UnassignParticipantRole, Unwatch, Update, UpdateComment, UpdatePullRequestCondition, UpdateStatus, Watch } from '../parameters/index.js';
+import type { ApplySuggestion, AssignParticipantRole, CanMerge, Create, CreatePullRequestComment, CreatePullRequestCondition, Decline, DeleteComment, DeletePullRequestCondition, GetPullRequest, GetPullRequestBlockerComments, GetActivities, GetPage, GetPullRequestConditions, GetReviewers, ListParticipants, Merge, Reopen, StreamPullRequestChanges, UnassignParticipantRole, Unwatch, Update, UpdateComment, UpdatePullRequestCondition, UpdateStatus, Watch } from '../parameters/index.js';
 
 export function applySuggestion(client: HttpClient, params: ApplySuggestion): Promise<void> {
   return client.sendRequest({
@@ -232,5 +232,14 @@ export function watch(client: HttpClient, params: Watch): Promise<void> {
   return client.sendRequest({
     url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/watch`,
     method: 'POST',
+  });
+}
+
+export function getBlockerComments(client: HttpClient, params: GetPullRequestBlockerComments): Promise<RestPage<Comment>> {
+  return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/blocker-comments`,
+    method: 'GET',
+    searchParams: { count: params.count, start: params.start, limit: params.limit },
+    schema: restPage(CommentSchema),
   });
 }
