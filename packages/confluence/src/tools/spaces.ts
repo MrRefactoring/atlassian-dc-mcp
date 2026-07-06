@@ -341,4 +341,69 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
       return formatToolResponse(result);
     },
   );
+
+  registerAnnotatedTool(server,
+    'confluence_get_space_labels',
+    {
+      description: `Get all labels used within a space in the ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getSpaceLabels,
+    },
+    async ({ spaceKey, limit, start }) => {
+      const result = await service.getSpaceLabels(spaceKey, limit, start);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'confluence_get_space_popular_labels',
+    {
+      description: `Get the most popular labels within a space in the ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getSpacePopularLabels,
+    },
+    async ({ spaceKey, limit, start }) => {
+      const result = await service.getSpacePopularLabels(spaceKey, limit, start);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'confluence_get_space_recent_labels',
+    {
+      description: `Get the most recently used labels within a space in the ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getSpaceRecentLabels,
+    },
+    async ({ spaceKey, limit, start }) => {
+      const result = await service.getSpaceRecentLabels(spaceKey, limit, start);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'confluence_get_space_related_labels',
+    {
+      description: `Get labels related to a given label within a space in the ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getSpaceRelatedLabels,
+    },
+    async ({ spaceKey, labelName, limit, start }) => {
+      const result = await service.getSpaceRelatedLabels(spaceKey, labelName, limit, start);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'confluence_get_space_watchers',
+    {
+      description: `Get the users watching a space in the ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getSpaceWatchers,
+    },
+    async ({ spaceKey, limit, start }) => {
+      const result = await service.getSpaceWatchers(spaceKey, limit, start);
+
+      return formatToolResponse(result);
+    },
+  );
 }

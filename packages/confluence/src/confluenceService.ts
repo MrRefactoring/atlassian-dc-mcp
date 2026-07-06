@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, BackupAndRestoreService, ChildContentService, ClusterInformationService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentWatchersService, GroupService, InstanceMetricsService, LongTaskService, OpenAPI, SearchService, ServerInformationService, SpacePermissionsService, SpaceService, SpacePropertyService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluenceClient/index.js';
+import { AccessModeService, AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, BackupAndRestoreService, ChildContentService, ClusterInformationService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentVersionService, ContentWatchersService, DefaultService, GlobalPermissionsService, GroupService, InstanceMetricsService, LabelService, LongTaskService, OpenAPI, SearchService, ServerInformationService, SpaceLabelService, SpacePermissionsService, SpaceService, SpacePropertyService, SpaceWatchersService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluenceClient/index.js';
 import type { Content, MockAttachmentRequest } from './confluenceClient/index.js';
 import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
@@ -1322,6 +1322,107 @@ export class ConfluenceService {
     return handleApiOperation(() => InstanceMetricsService.index1(), 'Error getting instance metrics');
   }
 
+  /**
+   * Get the labels most recently used across the whole Confluence instance.
+   */
+  async getRecentlyUsedLabels(limit?: number, start?: number) {
+    return handleApiOperation(
+      () => LabelService.recent((limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting recently used labels',
+    );
+  }
+
+  /**
+   * Get labels related to a given label (co-occurring on the same content).
+   */
+  async getRelatedLabels(labelName: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => LabelService.related(labelName, start?.toString(), (limit ?? this.getPageSize()).toString()),
+      'Error getting related labels',
+    );
+  }
+
+  /**
+   * Get all labels used within a space.
+   */
+  async getSpaceLabels(spaceKey: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => SpaceLabelService.index3(spaceKey, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting space labels',
+    );
+  }
+
+  /**
+   * Get the most popular labels within a space.
+   */
+  async getSpacePopularLabels(spaceKey: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => SpaceLabelService.popular1(spaceKey, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting popular space labels',
+    );
+  }
+
+  /**
+   * Get the most recently used labels within a space.
+   */
+  async getSpaceRecentLabels(spaceKey: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => SpaceLabelService.recent1(spaceKey, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting recent space labels',
+    );
+  }
+
+  /**
+   * Get labels related to a given label within a space.
+   */
+  async getSpaceRelatedLabels(spaceKey: string, labelName: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => SpaceLabelService.related1(spaceKey, labelName, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      'Error getting related space labels',
+    );
+  }
+
+  /**
+   * Get the users watching a space.
+   */
+  async getSpaceWatchers(spaceKey: string, limit?: number, start?: number) {
+    return handleApiOperation(
+      () => SpaceWatchersService.index4(spaceKey, limit ?? this.getPageSize(), start),
+      'Error getting space watchers',
+    );
+  }
+
+  /**
+   * Get the instance access mode (READ_WRITE or READ_ONLY).
+   */
+  async getAccessModeStatus() {
+    return handleApiOperation(() => AccessModeService.getAccessModeStatus(), 'Error getting access mode status');
+  }
+
+  /**
+   * Get audit log records for this Confluence instance (admin only).
+   */
+  async getAuditRecords() {
+    return handleApiOperation(() => DefaultService.getAuditRecords(), 'Error getting audit records');
+  }
+
+  /**
+   * Get all global permissions granted to users and groups (admin only).
+   */
+  async getGlobalPermissions() {
+    return handleApiOperation(() => GlobalPermissionsService.getAllGlobalPermissions(), 'Error getting global permissions');
+  }
+
+  /**
+   * Delete a specific historical version of a piece of content. This is irreversible.
+   */
+  async deleteContentVersion(contentId: string, versionNumber: number) {
+    return handleApiOperation(
+      () => ContentVersionService.deleteContentHistory(contentId, versionNumber.toString()),
+      'Error deleting content version',
+    );
+  }
+
   async validateSetup(): Promise<void> {
     await UserService.getCurrent();
   }
@@ -1889,4 +1990,46 @@ export const confluenceToolSchemas = {
     jobScope: z.enum(['SPACE', 'SITE']).optional().describe('Filter by job scope'),
   },
   getInstanceMetrics: {},
+  getRecentlyUsedLabels: {
+    limit: z.number().optional().describe('Maximum number of labels to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+  },
+  getRelatedLabels: {
+    labelName: z.string().describe('The label name to find related labels for'),
+    limit: z.number().optional().describe('Maximum number of labels to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+  },
+  getSpaceLabels: {
+    spaceKey: z.string().describe('The space key'),
+    limit: z.number().optional().describe('Maximum number of labels to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+  },
+  getSpacePopularLabels: {
+    spaceKey: z.string().describe('The space key'),
+    limit: z.number().optional().describe('Maximum number of labels to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+  },
+  getSpaceRecentLabels: {
+    spaceKey: z.string().describe('The space key'),
+    limit: z.number().optional().describe('Maximum number of labels to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+  },
+  getSpaceRelatedLabels: {
+    spaceKey: z.string().describe('The space key'),
+    labelName: z.string().describe('The label name to find related labels for'),
+    limit: z.number().optional().describe('Maximum number of labels to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+  },
+  getSpaceWatchers: {
+    spaceKey: z.string().describe('The space key'),
+    limit: z.number().optional().describe('Maximum number of watchers to return'),
+    start: z.number().optional().describe('Start index for pagination'),
+  },
+  getAccessModeStatus: {},
+  getAuditRecords: {},
+  getGlobalPermissions: {},
+  deleteContentVersion: {
+    contentId: z.string().describe('ID of the content whose historical version to delete'),
+    versionNumber: z.number().describe('The version number to delete. This is irreversible.'),
+  },
 };
