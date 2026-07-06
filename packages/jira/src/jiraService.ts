@@ -914,6 +914,36 @@ export class JiraService {
     return handleApiOperation(() => this.jira.admin.setDefaultShareScope({ requestBody: { scope } }), 'Error setting default share scope');
   }
 
+  async getWebhooks() {
+    return handleApiOperation(() => this.jira.admin.getWebhooks({}), 'Error getting webhooks');
+  }
+
+  async getWebhook(id: string) {
+    return handleApiOperation(() => this.jira.admin.getWebhook({ id }), 'Error getting webhook');
+  }
+
+  async createWebhook(name: string, url: string, events?: string[], jqlFilter?: string, excludeBody?: boolean) {
+    const filters = jqlFilter ? { 'issue-related-events-section': jqlFilter } : undefined;
+
+    return handleApiOperation(
+      () => this.jira.admin.createWebhook({ requestBody: { name, url, events, filters, excludeBody } }),
+      'Error creating webhook',
+    );
+  }
+
+  async updateWebhook(id: string, name?: string, url?: string, events?: string[], jqlFilter?: string, excludeBody?: boolean) {
+    const filters = jqlFilter ? { 'issue-related-events-section': jqlFilter } : undefined;
+
+    return handleApiOperation(
+      () => this.jira.admin.updateWebhook({ id, requestBody: { name, url, events, filters, excludeBody } }),
+      'Error updating webhook',
+    );
+  }
+
+  async deleteWebhook(id: string) {
+    return handleApiOperation(() => this.jira.admin.deleteWebhook({ id }), 'Error deleting webhook');
+  }
+
   async getFavouriteFilters() {
     return handleApiOperation(
       () => this.jira.admin.getFavouriteFilters({}),
@@ -2318,6 +2348,28 @@ export const jiraToolSchemas = {
   getDefaultShareScope: {},
   setDefaultShareScope: {
     scope: z.enum(['GLOBAL', 'AUTHENTICATED', 'PRIVATE']).describe('Default share scope for new filters and dashboards'),
+  },
+  getWebhooks: {},
+  getWebhook: {
+    id: z.string().describe('Webhook id'),
+  },
+  createWebhook: {
+    name: z.string().describe('Human-readable webhook name'),
+    url: z.string().describe('URL Jira POSTs event payloads to'),
+    events: z.array(z.string()).optional().describe('Events to subscribe to, e.g. jira:issue_created, jira:issue_updated, jira:issue_deleted, comment_created'),
+    jqlFilter: z.string().optional().describe('JQL restricting which issues trigger the issue-related events'),
+    excludeBody: z.boolean().optional().describe('Send an empty callback body instead of the full event payload'),
+  },
+  updateWebhook: {
+    id: z.string().describe('Webhook id to update'),
+    name: z.string().optional().describe('Human-readable webhook name'),
+    url: z.string().optional().describe('URL Jira POSTs event payloads to'),
+    events: z.array(z.string()).optional().describe('Events to subscribe to'),
+    jqlFilter: z.string().optional().describe('JQL restricting which issues trigger the issue-related events'),
+    excludeBody: z.boolean().optional().describe('Send an empty callback body instead of the full event payload'),
+  },
+  deleteWebhook: {
+    id: z.string().describe('Webhook id to delete'),
   },
   getIssuePickerSuggestions: {
     query: z.string().optional().describe('Text to search issue summaries for'),
