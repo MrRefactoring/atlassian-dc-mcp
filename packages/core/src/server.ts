@@ -5,11 +5,48 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { logger } from './logger.js';
 
+export const MAX_RESPONSE_CHARS_ENV_VAR = 'ATLASSIAN_DC_MCP_MAX_RESPONSE_CHARS';
+
+/**
+ * Default ceiling on the serialized size of a single tool response, in characters
+ * (~25k tokens). Oversized API responses — large diffs, long page bodies, or big
+ * unfiltered list results — can otherwise blow the model's context window. Set
+ * ATLASSIAN_DC_MCP_MAX_RESPONSE_CHARS to raise/lower it, or to 0 to disable the cap.
+ */
+export const DEFAULT_MAX_RESPONSE_CHARS = 100_000;
+
+function resolveMaxResponseChars(): number {
+  const raw = process.env[MAX_RESPONSE_CHARS_ENV_VAR];
+  if (raw === undefined || raw.trim() === '') {
+    return DEFAULT_MAX_RESPONSE_CHARS;
+  }
+
+  const parsed = Number.parseInt(raw, 10);
+  if (Number.isNaN(parsed) || parsed < 0) {
+    return DEFAULT_MAX_RESPONSE_CHARS;
+  }
+
+  // An explicit 0 disables the cap entirely.
+  return parsed === 0 ? Number.POSITIVE_INFINITY : parsed;
+}
+
+/**
+ * Truncate an oversized serialized response, appending a clear marker that tells
+ * the model the payload was cut and how to get the rest. Exported for testing.
+ */
+export function capResponseText(text: string, max: number = resolveMaxResponseChars()): string {
+  if (text.length <= max) {
+    return text;
+  }
+
+  return `${text.slice(0, max)}\n\n…[response truncated: showing ${max} of ${text.length} characters. Narrow your query, pass a smaller limit or use pagination, or request specific fields. Set ${MAX_RESPONSE_CHARS_ENV_VAR} to change this cap (0 disables it).]`;
+}
+
 // Helper function to format tool responses
 export const formatToolResponse = (result: unknown) => ({
   content: [{
     type: 'text' as const,
-    text: JSON.stringify(result),
+    text: capResponseText(JSON.stringify(result)),
   }],
 });
 
