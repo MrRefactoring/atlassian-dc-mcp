@@ -1,5 +1,40 @@
 # Change Log
 
+## 0.4.0
+
+### Minor Changes
+
+- [`1bdd046`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/1bdd046a32ece6f0f801a2c52cee916640a00271) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Expand the Confluence MCP API coverage with 11 new tools (all live-verified against a Confluence Data Center 9.2.21 instance):
+
+  - **Label discovery** (6): `confluence_get_recently_used_labels` and `confluence_get_related_labels` (instance-wide), plus `confluence_get_space_labels`, `confluence_get_space_popular_labels`, `confluence_get_space_recent_labels`, and `confluence_get_space_related_labels` (per-space).
+  - **Space watchers**: `confluence_get_space_watchers` lists the users watching a space.
+  - **Admin reads** (3): `confluence_get_access_mode_status` (READ_WRITE / READ_ONLY), `confluence_get_audit_records` (audit log), and `confluence_get_global_permissions` (global permission grants).
+  - **Content cleanup**: `confluence_delete_content_version` removes a specific historical version of a page.
+
+  These wire previously-unused generated client services (`LabelService`, `SpaceLabelService`, `SpaceWatchersService`, `AccessModeService`, `DefaultService`, `GlobalPermissionsService`, `ContentVersionService`) into `ConfluenceService` and the tool registry, bringing the Confluence tool count to 112.
+
+- [`6df9e9d`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6df9e9de4933533a7d99c3752fc2af3232cd9229) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Roll tool annotations out to Confluence (101 tools) and Bitbucket (114 tools) via the shared `registerAnnotatedTool` helper, so every tool across all three products now advertises `readOnlyHint`/`destructiveHint`/`idempotentHint`/`title`/`openWorldHint`.
+
+  The core classifier learned the vocabulary these products use: it skips the `admin_` namespace token so `confluence_admin_delete_user` is correctly flagged destructive, treats `convert`/`compare`/`browse`/`can`/`is` as read-only, and classifies `grant`/`revoke`/`enable`/`disable`/`watch`/`unwatch`/`edit` as idempotent non-destructive writes. Pull-request and version merges are flagged destructive.
+
+- [`386e420`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/386e420b8914f6f2f3acb9ae1254550386613c00) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Rewrite the Confluence client off the generated `openapi-typescript-codegen` output onto the shared hand-written HTTP client, completing the migration already done for Jira and Bitbucket. `packages/confluence/src/confluenceClient/` is now a small hand-written client: `core/client.ts` (`createConfluenceClient` factory over core's `createHttpClient`), `api/` (one free function per endpoint grouped into `content`/`spaces`/`attachments`/`users`/`webhooks`/`admin` namespaces), plus `models.ts` and a thin `index.ts`. The `OpenAPI` singleton, `CancelablePromise`, the generated request plumbing, all 38 generated service classes and 122 generated model files were removed. `ConfluenceService` now constructs the client once (`this.conf = createConfluenceClient({...})`) and calls `this.conf.<group>.<fn>({ named })`. All 112 endpoints were transcribed faithfully (same method/URL/params) and the migration was verified against a live Confluence Data Center 9.2.21 instance — 45 read endpoints and 13 write operations exercised successfully, with the only non-passing endpoints being ones that behave identically on the old client (single-node cluster status, version-specific admin endpoints). No user-facing tool behaviour changes.
+
+- [`231c391`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/231c391028120063d49f57dece25652ff7b1c7d7) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Bring Confluence up to the same MCP maturity as Jira with richer resources, prompts, and opt-in pagination:
+
+  - **Resources 1 → 4**: added `confluence://space/{spaceKey}`, `confluence://space/{spaceKey}/content`, and `confluence://user/{username}` alongside the existing `confluence://page/{pageId}`.
+  - **Prompts 1 → 4**: added `confluence_summarize_space`, `confluence_draft_page`, and `confluence_review_space_access` alongside `confluence_build_cql_query` (each references real Confluence tool names).
+  - **Opt-in pagination**: `confluence_get_spaces`, `confluence_get_attachments`, and `confluence_get_groups` accept `fetchAll` to follow the collection's `_links.next` pagination and return every page as a single flat array (safety-capped). Multi-page following was live-verified against a Confluence Data Center 9.2.21 instance. Type-grouped listings (space content, content children) stay single-page since they are not flat collections; open-ended CQL search stays single-page by design.
+
+- [`8e5a1e3`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/8e5a1e32c9d6459775fa7ee05922771f713c215c) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Add two MCP protocol maturity features across all three products:
+
+  - **Server `instructions`**: each server now advertises an `instructions` string in its `initialize` result, telling the client/model what the server is, that every call acts as the single configured user, the `<product>_<verb>_<noun>` naming and read/write/destructive annotations, how to search (JQL/CQL), the `fetchAll` pagination opt-in, and the addressable resource URIs. `createMcpServer` gained an optional `instructions` field.
+  - **Argument completions (`completion/complete`)**: prompt arguments and resource-template variables now offer live autocompletion, backed by list endpoints and filtered against the partial input (case-insensitive substring, capped). Confluence completes `spaceKey`; Jira completes `projectKey` and `boardId`; Bitbucket completes `projectKey` and (scoped to the chosen project) `repositorySlug`. A shared `filterCompletions` helper was added to core. Completions never throw — a failed lookup yields an empty list. Verified live against Confluence Data Center 9.2.21 and Bitbucket Data Center 9.3.2 instances.
+
+### Patch Changes
+
+- Updated dependencies [[`6df9e9d`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6df9e9de4933533a7d99c3752fc2af3232cd9229), [`6bdf2db`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6bdf2dbaa5340aa5e9e25bc5dc37edfccf60c460), [`7f1c16a`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/7f1c16a1671ffee0e53881da90fb2870220982a1), [`8e5a1e3`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/8e5a1e32c9d6459775fa7ee05922771f713c215c)]:
+  - datacenter-mcp-core@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes

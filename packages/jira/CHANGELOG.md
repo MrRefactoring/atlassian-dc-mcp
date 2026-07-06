@@ -1,5 +1,26 @@
 # Change Log
 
+## 0.4.0
+
+### Minor Changes
+
+- [`6bdf2db`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6bdf2dbaa5340aa5e9e25bc5dc37edfccf60c460) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Mature the Jira MCP surface:
+
+  - **Tool annotations** on all Jira tools. A new `deriveToolAnnotations` / `registerAnnotatedTool` helper in core derives `readOnlyHint`/`destructiveHint`/`idempotentHint`/`title`/`openWorldHint` from each tool's `<product>_<verb>_<noun>` name, so hosts can auto-approve read-only calls and warn before destructive ones (delete/remove/merge-version).
+  - **More resources**: added `jira://project/{key}`, `jira://board/{id}`, and `jira://user/{username}` alongside the existing `jira://issue/{key}`.
+  - **More prompts**: added `jira_plan_sprint`, `jira_break_down_epic`, and `jira_build_jql` alongside `jira_triage_issue`.
+  - **Opt-in pagination**: the bounded agile listers (`jira_get_boards`, `jira_get_board_sprints`, `jira_get_board_versions`, `jira_get_board_epics`) accept `fetchAll` to follow pagination and return every page as a flat array (safety-capped). The JQL-backed issue listings stay single-page and agent-driven.
+
+- [`8e5a1e3`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/8e5a1e32c9d6459775fa7ee05922771f713c215c) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Add two MCP protocol maturity features across all three products:
+
+  - **Server `instructions`**: each server now advertises an `instructions` string in its `initialize` result, telling the client/model what the server is, that every call acts as the single configured user, the `<product>_<verb>_<noun>` naming and read/write/destructive annotations, how to search (JQL/CQL), the `fetchAll` pagination opt-in, and the addressable resource URIs. `createMcpServer` gained an optional `instructions` field.
+  - **Argument completions (`completion/complete`)**: prompt arguments and resource-template variables now offer live autocompletion, backed by list endpoints and filtered against the partial input (case-insensitive substring, capped). Confluence completes `spaceKey`; Jira completes `projectKey` and `boardId`; Bitbucket completes `projectKey` and (scoped to the chosen project) `repositorySlug`. A shared `filterCompletions` helper was added to core. Completions never throw — a failed lookup yields an empty list. Verified live against Confluence Data Center 9.2.21 and Bitbucket Data Center 9.3.2 instances.
+
+### Patch Changes
+
+- Updated dependencies [[`6df9e9d`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6df9e9de4933533a7d99c3752fc2af3232cd9229), [`6bdf2db`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6bdf2dbaa5340aa5e9e25bc5dc37edfccf60c460), [`7f1c16a`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/7f1c16a1671ffee0e53881da90fb2870220982a1), [`8e5a1e3`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/8e5a1e32c9d6459775fa7ee05922771f713c215c)]:
+  - datacenter-mcp-core@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes
