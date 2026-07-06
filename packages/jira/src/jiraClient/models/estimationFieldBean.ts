@@ -1,9 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type EstimationFieldBean = {
-    displayName?: string;
-    fieldId?: string;
+  displayName?: string;
+  fieldId?: string;
 };
 
+export const EstimationFieldBeanSchema = z.looseObject({
+  displayName: z.string().optional(),
+  fieldId: z.string().optional(),
+}) as unknown as z.ZodType<EstimationFieldBean>;

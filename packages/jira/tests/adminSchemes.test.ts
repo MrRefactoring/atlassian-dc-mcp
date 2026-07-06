@@ -1,96 +1,12 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { JiraService } from '../src/jiraService.js';
-import {
-  ApplicationroleService,
-  IssuesecurityschemesService,
-  IssuetypeschemeService,
-  NotificationschemeService,
-  PermissionschemeService,
-  PriorityschemesService,
-  RoleService,
-  SecuritylevelService,
-  WorkflowService,
-  WorkflowschemeService,
-} from '../src/jiraClient/index.js';
 
-vi.mock('../src/jiraClient/index.js', () => ({
-  IssuetypeschemeService: {
-    getAllIssueTypeSchemes: vi.fn(),
-    createIssueTypeScheme: vi.fn(),
-    getIssueTypeScheme: vi.fn(),
-    updateIssueTypeScheme: vi.fn(),
-    deleteIssueTypeScheme: vi.fn(),
-    getAssociatedProjects: vi.fn(),
-    setProjectAssociationsForScheme: vi.fn(),
-    addProjectAssociationsToScheme: vi.fn(),
-    removeAllProjectAssociations: vi.fn(),
-    removeProjectAssociation: vi.fn(),
-  },
-  PriorityschemesService: {
-    getPrioritySchemes: vi.fn(),
-    createPriorityScheme: vi.fn(),
-    getPriorityScheme: vi.fn(),
-    updatePriorityScheme: vi.fn(),
-    deletePriorityScheme: vi.fn(),
-  },
-  RoleService: {
-    getProjectRoles1: vi.fn(),
-    createProjectRole: vi.fn(),
-    getProjectRolesById: vi.fn(),
-    fullyUpdateProjectRole: vi.fn(),
-    partialUpdateProjectRole: vi.fn(),
-    deleteProjectRole: vi.fn(),
-    getProjectRoleActorsForRole: vi.fn(),
-    addProjectRoleActorsToRole: vi.fn(),
-    deleteProjectRoleActorsFromRole: vi.fn(),
-  },
-  PermissionschemeService: {
-    getPermissionSchemes: vi.fn(),
-    getPermissionScheme: vi.fn(),
-    createPermissionScheme: vi.fn(),
-    updatePermissionScheme: vi.fn(),
-    deletePermissionScheme: vi.fn(),
-    getPermissionSchemeGrants: vi.fn(),
-    createPermissionGrant: vi.fn(),
-    deletePermissionSchemeEntity: vi.fn(),
-  },
-  ApplicationroleService: {
-    getAll: vi.fn(),
-    get4: vi.fn(),
-  },
-  WorkflowService: {
-    getAllWorkflows: vi.fn(),
-  },
-  WorkflowschemeService: {
-    getById: vi.fn(),
-    getDefault: vi.fn(),
-    getIssueType: vi.fn(),
-    getWorkflow: vi.fn(),
-    createScheme: vi.fn(),
-    update: vi.fn(),
-    deleteScheme: vi.fn(),
-    setIssueType: vi.fn(),
-    deleteIssueType: vi.fn(),
-    updateWorkflowMapping: vi.fn(),
-    deleteWorkflowMapping: vi.fn(),
-  },
-  NotificationschemeService: {
-    getNotificationSchemes: vi.fn(),
-    getNotificationScheme: vi.fn(),
-  },
-  SecuritylevelService: {
-    getIssuesecuritylevel: vi.fn(),
-  },
-  IssuesecurityschemesService: {
-    getIssueSecuritySchemes: vi.fn(),
-    getIssueSecurityScheme: vi.fn(),
-  },
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-  },
-}));
+const jira = vi.hoisted(() => {
+  const group = () => new Proxy({} as Record<string, ReturnType<typeof vi.fn>>, { get: (t, p: string) => (t[p] ??= vi.fn()) });
+
+  return { issues: group(), projects: group(), users: group(), workflows: group(), agile: group(), admin: group(), request: vi.fn() };
+});
+vi.mock('../src/jiraClient/index.js', () => ({ createJiraClient: () => jira }));
 
 describe('JiraService', () => {
   let jiraService: JiraService;
@@ -103,116 +19,116 @@ describe('JiraService', () => {
   describe('issue type schemes', () => {
     it('gets all issue type schemes', async () => {
       const mockSchemes = { schemes: [{ id: '1', name: 'Default' }] };
-      (IssuetypeschemeService.getAllIssueTypeSchemes as Mock).mockResolvedValue(mockSchemes);
+      (jira.admin.getAllIssueTypeSchemes as Mock).mockResolvedValue(mockSchemes);
 
       const result = await jiraService.getIssueTypeSchemes();
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockSchemes);
-      expect(IssuetypeschemeService.getAllIssueTypeSchemes).toHaveBeenCalledWith();
+      expect(jira.admin.getAllIssueTypeSchemes).toHaveBeenCalledWith({});
     });
 
     it('creates an issue type scheme', async () => {
       const mockScheme = { id: '2', name: 'New Scheme' };
-      (IssuetypeschemeService.createIssueTypeScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.admin.createIssueTypeScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.createIssueTypeScheme('New Scheme', 'A scheme', ['10000', '10001'], '10000');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(IssuetypeschemeService.createIssueTypeScheme).toHaveBeenCalledWith({
+      expect(jira.admin.createIssueTypeScheme).toHaveBeenCalledWith({ requestBody: {
         name: 'New Scheme',
         description: 'A scheme',
         issueTypeIds: ['10000', '10001'],
         defaultIssueTypeId: '10000',
-      });
+      } });
     });
 
     it('gets an issue type scheme by id', async () => {
       const mockScheme = { id: '1', name: 'Default' };
-      (IssuetypeschemeService.getIssueTypeScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.admin.getIssueTypeScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.getIssueTypeScheme('1');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(IssuetypeschemeService.getIssueTypeScheme).toHaveBeenCalledWith('1');
+      expect(jira.admin.getIssueTypeScheme).toHaveBeenCalledWith({ schemeId: '1' });
     });
 
     it('updates an issue type scheme', async () => {
       const mockScheme = { id: '1', name: 'Renamed' };
-      (IssuetypeschemeService.updateIssueTypeScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.admin.updateIssueTypeScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.updateIssueTypeScheme('1', 'Renamed');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(IssuetypeschemeService.updateIssueTypeScheme).toHaveBeenCalledWith('1', {
+      expect(jira.admin.updateIssueTypeScheme).toHaveBeenCalledWith({ schemeId: '1', requestBody: {
         name: 'Renamed',
         description: undefined,
         issueTypeIds: undefined,
         defaultIssueTypeId: undefined,
-      });
+      } });
     });
 
     it('deletes an issue type scheme', async () => {
-      (IssuetypeschemeService.deleteIssueTypeScheme as Mock).mockResolvedValue(undefined);
+      (jira.admin.deleteIssueTypeScheme as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteIssueTypeScheme('1');
 
       expect(result.success).toBe(true);
-      expect(IssuetypeschemeService.deleteIssueTypeScheme).toHaveBeenCalledWith('1');
+      expect(jira.admin.deleteIssueTypeScheme).toHaveBeenCalledWith({ schemeId: '1' });
     });
 
     it('gets projects associated with an issue type scheme', async () => {
       const mockProjects = { values: [{ id: '10000', key: 'TEST' }] };
-      (IssuetypeschemeService.getAssociatedProjects as Mock).mockResolvedValue(mockProjects);
+      (jira.admin.getAssociatedProjects as Mock).mockResolvedValue(mockProjects);
 
       const result = await jiraService.getIssueTypeSchemeProjects('1');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockProjects);
-      expect(IssuetypeschemeService.getAssociatedProjects).toHaveBeenCalledWith('1', undefined);
+      expect(jira.admin.getAssociatedProjects).toHaveBeenCalledWith({ schemeId: '1' });
     });
 
     it('sets project associations for an issue type scheme', async () => {
-      (IssuetypeschemeService.setProjectAssociationsForScheme as Mock).mockResolvedValue(undefined);
+      (jira.admin.setProjectAssociationsForScheme as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.setIssueTypeSchemeProjects('1', ['TEST']);
 
       expect(result.success).toBe(true);
-      expect(IssuetypeschemeService.setProjectAssociationsForScheme).toHaveBeenCalledWith('1', { idsOrKeys: ['TEST'] });
+      expect(jira.admin.setProjectAssociationsForScheme).toHaveBeenCalledWith({ schemeId: '1', requestBody: { idsOrKeys: ['TEST'] } });
     });
 
     it('adds project associations to an issue type scheme', async () => {
-      (IssuetypeschemeService.addProjectAssociationsToScheme as Mock).mockResolvedValue(undefined);
+      (jira.admin.addProjectAssociationsToScheme as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.addIssueTypeSchemeProjects('1', ['TEST']);
 
       expect(result.success).toBe(true);
-      expect(IssuetypeschemeService.addProjectAssociationsToScheme).toHaveBeenCalledWith('1', { idsOrKeys: ['TEST'] });
+      expect(jira.admin.addProjectAssociationsToScheme).toHaveBeenCalledWith({ schemeId: '1', requestBody: { idsOrKeys: ['TEST'] } });
     });
 
     it('removes all project associations from an issue type scheme', async () => {
-      (IssuetypeschemeService.removeAllProjectAssociations as Mock).mockResolvedValue(undefined);
+      (jira.admin.removeAllProjectAssociations as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.removeIssueTypeSchemeProjects('1');
 
       expect(result.success).toBe(true);
-      expect(IssuetypeschemeService.removeAllProjectAssociations).toHaveBeenCalledWith('1');
+      expect(jira.admin.removeAllProjectAssociations).toHaveBeenCalledWith({ schemeId: '1' });
     });
 
     it('removes a single project association from an issue type scheme', async () => {
-      (IssuetypeschemeService.removeProjectAssociation as Mock).mockResolvedValue(undefined);
+      (jira.admin.removeProjectAssociation as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.removeIssueTypeSchemeProject('1', 'TEST');
 
       expect(result.success).toBe(true);
-      expect(IssuetypeschemeService.removeProjectAssociation).toHaveBeenCalledWith('TEST', '1');
+      expect(jira.admin.removeProjectAssociation).toHaveBeenCalledWith({ projIdOrKey: 'TEST', schemeId: '1' });
     });
 
     it('handles errors', async () => {
-      (IssuetypeschemeService.getIssueTypeScheme as Mock).mockRejectedValue(new Error('The scheme does not exist'));
+      (jira.admin.getIssueTypeScheme as Mock).mockRejectedValue(new Error('The scheme does not exist'));
 
       const result = await jiraService.getIssueTypeScheme('999');
 
@@ -223,69 +139,69 @@ describe('JiraService', () => {
   describe('priority schemes', () => {
     it('gets all priority schemes', async () => {
       const mockSchemes = { schemes: [{ id: 1, name: 'Default' }] };
-      (PriorityschemesService.getPrioritySchemes as Mock).mockResolvedValue(mockSchemes);
+      (jira.admin.getPrioritySchemes as Mock).mockResolvedValue(mockSchemes);
 
       const result = await jiraService.getPrioritySchemes();
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockSchemes);
-      expect(PriorityschemesService.getPrioritySchemes).toHaveBeenCalledWith(undefined, undefined);
+      expect(jira.admin.getPrioritySchemes).toHaveBeenCalledWith({});
     });
 
     it('creates a priority scheme', async () => {
       const mockScheme = { id: 2, name: 'New Scheme' };
-      (PriorityschemesService.createPriorityScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.admin.createPriorityScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.createPriorityScheme('New Scheme', 'A scheme', '1', ['1', '2']);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(PriorityschemesService.createPriorityScheme).toHaveBeenCalledWith({
+      expect(jira.admin.createPriorityScheme).toHaveBeenCalledWith({ requestBody: {
         name: 'New Scheme',
         description: 'A scheme',
         defaultOptionId: '1',
         optionIds: ['1', '2'],
-      });
+      } });
     });
 
     it('gets a priority scheme by id', async () => {
       const mockScheme = { id: 1, name: 'Default' };
-      (PriorityschemesService.getPriorityScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.admin.getPriorityScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.getPriorityScheme(1);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(PriorityschemesService.getPriorityScheme).toHaveBeenCalledWith(1);
+      expect(jira.admin.getPriorityScheme).toHaveBeenCalledWith({ schemeId: 1 });
     });
 
     it('updates a priority scheme', async () => {
       const mockScheme = { id: 1, name: 'Renamed' };
-      (PriorityschemesService.updatePriorityScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.admin.updatePriorityScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.updatePriorityScheme(1, 'Renamed');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(PriorityschemesService.updatePriorityScheme).toHaveBeenCalledWith(1, {
+      expect(jira.admin.updatePriorityScheme).toHaveBeenCalledWith({ schemeId: 1, requestBody: {
         name: 'Renamed',
         description: undefined,
         defaultOptionId: undefined,
         optionIds: undefined,
-      });
+      } });
     });
 
     it('deletes a priority scheme', async () => {
-      (PriorityschemesService.deletePriorityScheme as Mock).mockResolvedValue(undefined);
+      (jira.admin.deletePriorityScheme as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deletePriorityScheme(1);
 
       expect(result.success).toBe(true);
-      expect(PriorityschemesService.deletePriorityScheme).toHaveBeenCalledWith(1);
+      expect(jira.admin.deletePriorityScheme).toHaveBeenCalledWith({ schemeId: 1 });
     });
 
     it('handles errors', async () => {
-      (PriorityschemesService.getPriorityScheme as Mock).mockRejectedValue(new Error('The scheme does not exist'));
+      (jira.admin.getPriorityScheme as Mock).mockRejectedValue(new Error('The scheme does not exist'));
 
       const result = await jiraService.getPriorityScheme(999);
 
@@ -296,106 +212,106 @@ describe('JiraService', () => {
   describe('role definitions', () => {
     it('gets all role definitions', async () => {
       const mockRoles = [{ id: 10, name: 'Administrators' }];
-      (RoleService.getProjectRoles1 as Mock).mockResolvedValue(mockRoles);
+      (jira.admin.getProjectRoles as Mock).mockResolvedValue(mockRoles);
 
       const result = await jiraService.getRoleDefinitions();
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockRoles);
-      expect(RoleService.getProjectRoles1).toHaveBeenCalledWith();
+      expect(jira.admin.getProjectRoles).toHaveBeenCalledWith({});
     });
 
     it('creates a role definition', async () => {
       const mockRole = { id: 11, name: 'New Role' };
-      (RoleService.createProjectRole as Mock).mockResolvedValue(mockRole);
+      (jira.admin.createProjectRole as Mock).mockResolvedValue(mockRole);
 
       const result = await jiraService.createRoleDefinition('New Role', 'A role');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockRole);
-      expect(RoleService.createProjectRole).toHaveBeenCalledWith({ name: 'New Role', description: 'A role' });
+      expect(jira.admin.createProjectRole).toHaveBeenCalledWith({ requestBody: { name: 'New Role', description: 'A role' } });
     });
 
     it('gets a role definition by id', async () => {
       const mockRole = { id: 10, name: 'Administrators' };
-      (RoleService.getProjectRolesById as Mock).mockResolvedValue(mockRole);
+      (jira.admin.getProjectRolesById as Mock).mockResolvedValue(mockRole);
 
       const result = await jiraService.getRoleDefinition(10);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockRole);
-      expect(RoleService.getProjectRolesById).toHaveBeenCalledWith(10);
+      expect(jira.admin.getProjectRolesById).toHaveBeenCalledWith({ id: 10 });
     });
 
     it('fully updates a role definition', async () => {
       const mockRole = { id: 10, name: 'Renamed', description: 'Updated' };
-      (RoleService.fullyUpdateProjectRole as Mock).mockResolvedValue(mockRole);
+      (jira.admin.fullyUpdateProjectRole as Mock).mockResolvedValue(mockRole);
 
       const result = await jiraService.updateRoleDefinition(10, 'Renamed', 'Updated');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockRole);
-      expect(RoleService.fullyUpdateProjectRole).toHaveBeenCalledWith(10, { name: 'Renamed', description: 'Updated' });
+      expect(jira.admin.fullyUpdateProjectRole).toHaveBeenCalledWith({ id: 10, requestBody: { name: 'Renamed', description: 'Updated' } });
     });
 
     it('partially updates a role definition', async () => {
       const mockRole = { id: 10, name: 'Renamed' };
-      (RoleService.partialUpdateProjectRole as Mock).mockResolvedValue(mockRole);
+      (jira.admin.partialUpdateProjectRole as Mock).mockResolvedValue(mockRole);
 
       const result = await jiraService.partialUpdateRoleDefinition(10, 'Renamed');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockRole);
-      expect(RoleService.partialUpdateProjectRole).toHaveBeenCalledWith(10, { name: 'Renamed', description: undefined });
+      expect(jira.admin.partialUpdateProjectRole).toHaveBeenCalledWith({ id: 10, requestBody: { name: 'Renamed', description: undefined } });
     });
 
     it('deletes a role definition', async () => {
-      (RoleService.deleteProjectRole as Mock).mockResolvedValue(undefined);
+      (jira.admin.deleteProjectRole as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteRoleDefinition(10, 11);
 
       expect(result.success).toBe(true);
-      expect(RoleService.deleteProjectRole).toHaveBeenCalledWith(10, 11);
+      expect(jira.admin.deleteProjectRole).toHaveBeenCalledWith({ id: 10, swap: 11 });
     });
 
     it('gets role definition actors', async () => {
       const mockActors = { id: 10, actors: [] };
-      (RoleService.getProjectRoleActorsForRole as Mock).mockResolvedValue(mockActors);
+      (jira.admin.getProjectRoleActorsForRole as Mock).mockResolvedValue(mockActors);
 
       const result = await jiraService.getRoleDefinitionActors(10);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockActors);
-      expect(RoleService.getProjectRoleActorsForRole).toHaveBeenCalledWith(10);
+      expect(jira.admin.getProjectRoleActorsForRole).toHaveBeenCalledWith({ id: 10 });
     });
 
     it('adds role definition actors', async () => {
       const mockActors = { id: 10, actors: [] };
-      (RoleService.addProjectRoleActorsToRole as Mock).mockResolvedValue(mockActors);
+      (jira.admin.addProjectRoleActorsToRole as Mock).mockResolvedValue(mockActors);
 
       const result = await jiraService.addRoleDefinitionActors(10, ['jsmith'], ['jira-admins']);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockActors);
-      expect(RoleService.addProjectRoleActorsToRole).toHaveBeenCalledWith(10, {
+      expect(jira.admin.addProjectRoleActorsToRole).toHaveBeenCalledWith({ id: 10, requestBody: {
         user: ['jsmith'],
         group: ['jira-admins'],
-      });
+      } });
     });
 
     it('deletes a role definition actor', async () => {
       const mockActors = { id: 10, actors: [] };
-      (RoleService.deleteProjectRoleActorsFromRole as Mock).mockResolvedValue(mockActors);
+      (jira.admin.deleteProjectRoleActorsFromRole as Mock).mockResolvedValue(mockActors);
 
       const result = await jiraService.deleteRoleDefinitionActor(10, 'jsmith');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockActors);
-      expect(RoleService.deleteProjectRoleActorsFromRole).toHaveBeenCalledWith(10, 'jsmith', undefined);
+      expect(jira.admin.deleteProjectRoleActorsFromRole).toHaveBeenCalledWith({ id: 10, user: 'jsmith' });
     });
 
     it('handles errors', async () => {
-      (RoleService.getProjectRolesById as Mock).mockRejectedValue(new Error('The role does not exist'));
+      (jira.admin.getProjectRolesById as Mock).mockRejectedValue(new Error('The role does not exist'));
 
       const result = await jiraService.getRoleDefinition(999);
 
@@ -406,29 +322,29 @@ describe('JiraService', () => {
   describe('permission schemes', () => {
     it('gets all permission schemes', async () => {
       const mockSchemes = { permissionSchemes: [{ id: 1, name: 'Default' }] };
-      (PermissionschemeService.getPermissionSchemes as Mock).mockResolvedValue(mockSchemes);
+      (jira.admin.getPermissionSchemes as Mock).mockResolvedValue(mockSchemes);
 
       const result = await jiraService.getPermissionSchemes('permissions');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockSchemes);
-      expect(PermissionschemeService.getPermissionSchemes).toHaveBeenCalledWith('permissions');
+      expect(jira.admin.getPermissionSchemes).toHaveBeenCalledWith({ expand: 'permissions' });
     });
 
     it('gets a permission scheme by id', async () => {
       const mockScheme = { id: 1, name: 'Default' };
-      (PermissionschemeService.getPermissionScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.admin.getPermissionScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.getPermissionScheme(1);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(PermissionschemeService.getPermissionScheme).toHaveBeenCalledWith(1, undefined);
+      expect(jira.admin.getPermissionScheme).toHaveBeenCalledWith({ schemeId: 1 });
     });
 
     it('creates a permission scheme', async () => {
       const mockScheme = { id: 2, name: 'New Scheme' };
-      (PermissionschemeService.createPermissionScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.admin.createPermissionScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.createPermissionScheme('New Scheme', 'A scheme', [
         { permission: 'BROWSE_PROJECTS', holderType: 'group', holderParameter: 'jira-users' },
@@ -436,75 +352,75 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(PermissionschemeService.createPermissionScheme).toHaveBeenCalledWith(undefined, {
+      expect(jira.admin.createPermissionScheme).toHaveBeenCalledWith({ requestBody: {
         name: 'New Scheme',
         description: 'A scheme',
         permissions: [
           { permission: 'BROWSE_PROJECTS', holder: { type: 'group', parameter: 'jira-users' } },
         ],
-      });
+      } });
     });
 
     it('updates a permission scheme', async () => {
       const mockScheme = { id: 1, name: 'Renamed' };
-      (PermissionschemeService.updatePermissionScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.admin.updatePermissionScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.updatePermissionScheme(1, 'Renamed');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(PermissionschemeService.updatePermissionScheme).toHaveBeenCalledWith(1, undefined, {
+      expect(jira.admin.updatePermissionScheme).toHaveBeenCalledWith({ schemeId: 1, requestBody: {
         name: 'Renamed',
         description: undefined,
         permissions: undefined,
-      });
+      } });
     });
 
     it('deletes a permission scheme', async () => {
-      (PermissionschemeService.deletePermissionScheme as Mock).mockResolvedValue(undefined);
+      (jira.admin.deletePermissionScheme as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deletePermissionScheme(1);
 
       expect(result.success).toBe(true);
-      expect(PermissionschemeService.deletePermissionScheme).toHaveBeenCalledWith(1);
+      expect(jira.admin.deletePermissionScheme).toHaveBeenCalledWith({ schemeId: 1 });
     });
 
     it('gets permission scheme grants', async () => {
       const mockGrants = { permissions: [{ id: 10, permission: 'BROWSE_PROJECTS' }] };
-      (PermissionschemeService.getPermissionSchemeGrants as Mock).mockResolvedValue(mockGrants);
+      (jira.admin.getPermissionSchemeGrants as Mock).mockResolvedValue(mockGrants);
 
       const result = await jiraService.getPermissionSchemeGrants(1);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockGrants);
-      expect(PermissionschemeService.getPermissionSchemeGrants).toHaveBeenCalledWith(1, undefined);
+      expect(jira.admin.getPermissionSchemeGrants).toHaveBeenCalledWith({ schemeId: 1 });
     });
 
     it('creates a permission grant', async () => {
       const mockGrant = { id: 10, permission: 'BROWSE_PROJECTS' };
-      (PermissionschemeService.createPermissionGrant as Mock).mockResolvedValue(mockGrant);
+      (jira.admin.createPermissionGrant as Mock).mockResolvedValue(mockGrant);
 
       const result = await jiraService.createPermissionGrant(1, 'BROWSE_PROJECTS', 'group', 'jira-users');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockGrant);
-      expect(PermissionschemeService.createPermissionGrant).toHaveBeenCalledWith(1, undefined, {
+      expect(jira.admin.createPermissionGrant).toHaveBeenCalledWith({ schemeId: 1, requestBody: {
         permission: 'BROWSE_PROJECTS',
         holder: { type: 'group', parameter: 'jira-users' },
-      });
+      } });
     });
 
     it('deletes a permission grant', async () => {
-      (PermissionschemeService.deletePermissionSchemeEntity as Mock).mockResolvedValue(undefined);
+      (jira.admin.deletePermissionSchemeEntity as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deletePermissionGrant(1, 10);
 
       expect(result.success).toBe(true);
-      expect(PermissionschemeService.deletePermissionSchemeEntity).toHaveBeenCalledWith(10, 1);
+      expect(jira.admin.deletePermissionSchemeEntity).toHaveBeenCalledWith({ permissionId: 10, schemeId: 1 });
     });
 
     it('handles errors', async () => {
-      (PermissionschemeService.getPermissionScheme as Mock).mockRejectedValue(new Error('The scheme does not exist'));
+      (jira.admin.getPermissionScheme as Mock).mockRejectedValue(new Error('The scheme does not exist'));
 
       const result = await jiraService.getPermissionScheme(999);
 
@@ -515,28 +431,28 @@ describe('JiraService', () => {
   describe('application roles', () => {
     it('gets all application roles', async () => {
       const mockRoles = [{ key: 'jira-software', name: 'JIRA Software' }];
-      (ApplicationroleService.getAll as Mock).mockResolvedValue(mockRoles);
+      (jira.admin.getAll as Mock).mockResolvedValue(mockRoles);
 
       const result = await jiraService.getApplicationRoles();
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockRoles);
-      expect(ApplicationroleService.getAll).toHaveBeenCalledWith();
+      expect(jira.admin.getAll).toHaveBeenCalledWith({});
     });
 
     it('gets a single application role by key', async () => {
       const mockRole = { key: 'jira-software', name: 'JIRA Software' };
-      (ApplicationroleService.get4 as Mock).mockResolvedValue(mockRole);
+      (jira.admin.get as Mock).mockResolvedValue(mockRole);
 
       const result = await jiraService.getApplicationRole('jira-software');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockRole);
-      expect(ApplicationroleService.get4).toHaveBeenCalledWith('jira-software');
+      expect(jira.admin.get).toHaveBeenCalledWith({ key: 'jira-software' });
     });
 
     it('handles errors', async () => {
-      (ApplicationroleService.getAll as Mock).mockRejectedValue(new Error('The current user is not an administrator'));
+      (jira.admin.getAll as Mock).mockRejectedValue(new Error('The current user is not an administrator'));
 
       const result = await jiraService.getApplicationRoles();
 
@@ -547,61 +463,61 @@ describe('JiraService', () => {
   describe('workflows and workflow schemes', () => {
     it('gets all workflows', async () => {
       const mockWorkflows = [{ name: 'jira' }];
-      (WorkflowService.getAllWorkflows as Mock).mockResolvedValue(mockWorkflows);
+      (jira.workflows.getAllWorkflows as Mock).mockResolvedValue(mockWorkflows);
 
       const result = await jiraService.getWorkflows();
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockWorkflows);
-      expect(WorkflowService.getAllWorkflows).toHaveBeenCalledWith(undefined);
+      expect(jira.workflows.getAllWorkflows).toHaveBeenCalledWith({});
     });
 
     it('gets a workflow scheme by id', async () => {
       const mockScheme = { id: 1, name: 'Default Workflow Scheme' };
-      (WorkflowschemeService.getById as Mock).mockResolvedValue(mockScheme);
+      (jira.workflows.getById as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.getWorkflowScheme(1);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(WorkflowschemeService.getById).toHaveBeenCalledWith(1, undefined);
+      expect(jira.workflows.getById).toHaveBeenCalledWith({ id: 1 });
     });
 
     it('gets the default workflow for a scheme', async () => {
       const mockDefault = { defaultWorkflow: 'jira' };
-      (WorkflowschemeService.getDefault as Mock).mockResolvedValue(mockDefault);
+      (jira.workflows.getDefault as Mock).mockResolvedValue(mockDefault);
 
       const result = await jiraService.getWorkflowSchemeDefault(1, true);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockDefault);
-      expect(WorkflowschemeService.getDefault).toHaveBeenCalledWith(1, true);
+      expect(jira.workflows.getDefault).toHaveBeenCalledWith({ id: 1, returnDraftIfExists: true });
     });
 
     it('gets the issue type mapping for a scheme', async () => {
       const mockMapping = { issueType: '10001', workflow: 'jira' };
-      (WorkflowschemeService.getIssueType as Mock).mockResolvedValue(mockMapping);
+      (jira.workflows.getIssueType as Mock).mockResolvedValue(mockMapping);
 
       const result = await jiraService.getWorkflowSchemeIssueTypeMapping(1, '10001');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockMapping);
-      expect(WorkflowschemeService.getIssueType).toHaveBeenCalledWith('10001', 1, undefined);
+      expect(jira.workflows.getIssueType).toHaveBeenCalledWith({ issueType: '10001', id: 1 });
     });
 
     it('gets the workflow mapping for a scheme', async () => {
       const mockMapping = { issueTypes: ['10001'], workflow: 'jira' };
-      (WorkflowschemeService.getWorkflow as Mock).mockResolvedValue(mockMapping);
+      (jira.workflows.getWorkflow as Mock).mockResolvedValue(mockMapping);
 
       const result = await jiraService.getWorkflowSchemeWorkflowMapping(1, 'jira');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockMapping);
-      expect(WorkflowschemeService.getWorkflow).toHaveBeenCalledWith(1, 'jira', undefined);
+      expect(jira.workflows.getWorkflow).toHaveBeenCalledWith({ id: 1, workflowName: 'jira' });
     });
 
     it('handles errors', async () => {
-      (WorkflowschemeService.getById as Mock).mockRejectedValue(new Error('The workflow scheme does not exist'));
+      (jira.workflows.getById as Mock).mockRejectedValue(new Error('The workflow scheme does not exist'));
 
       const result = await jiraService.getWorkflowScheme(999);
 
@@ -611,22 +527,22 @@ describe('JiraService', () => {
 
     it('creates a workflow scheme', async () => {
       const mockScheme = { id: 2, name: 'New Scheme' };
-      (WorkflowschemeService.createScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.workflows.createScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.createWorkflowScheme('New Scheme', 'A new scheme', 'jira', { '10001': 'jira' });
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(WorkflowschemeService.createScheme).toHaveBeenCalledWith({
+      expect(jira.workflows.createScheme).toHaveBeenCalledWith({ requestBody: {
         name: 'New Scheme',
         description: 'A new scheme',
         defaultWorkflow: 'jira',
         issueTypeMappings: { '10001': 'jira' },
-      });
+      } });
     });
 
     it('handles errors creating a workflow scheme', async () => {
-      (WorkflowschemeService.createScheme as Mock).mockRejectedValue(new Error('A scheme with that name already exists'));
+      (jira.workflows.createScheme as Mock).mockRejectedValue(new Error('A scheme with that name already exists'));
 
       const result = await jiraService.createWorkflowScheme('New Scheme');
 
@@ -636,23 +552,23 @@ describe('JiraService', () => {
 
     it('updates a workflow scheme', async () => {
       const mockScheme = { id: 2, name: 'Renamed Scheme' };
-      (WorkflowschemeService.update as Mock).mockResolvedValue(mockScheme);
+      (jira.workflows.update as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.updateWorkflowScheme(2, 'Renamed Scheme');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(WorkflowschemeService.update).toHaveBeenCalledWith(2, {
+      expect(jira.workflows.update).toHaveBeenCalledWith({ id: 2, requestBody: {
         name: 'Renamed Scheme',
         description: undefined,
         defaultWorkflow: undefined,
         issueTypeMappings: undefined,
         updateDraftIfNeeded: undefined,
-      });
+      } });
     });
 
     it('handles errors updating a workflow scheme', async () => {
-      (WorkflowschemeService.update as Mock).mockRejectedValue(new Error('The requested scheme does not exist'));
+      (jira.workflows.update as Mock).mockRejectedValue(new Error('The requested scheme does not exist'));
 
       const result = await jiraService.updateWorkflowScheme(999, 'Renamed Scheme');
 
@@ -661,16 +577,16 @@ describe('JiraService', () => {
     });
 
     it('deletes a workflow scheme', async () => {
-      (WorkflowschemeService.deleteScheme as Mock).mockResolvedValue(undefined);
+      (jira.workflows.deleteScheme as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteWorkflowScheme(2);
 
       expect(result.success).toBe(true);
-      expect(WorkflowschemeService.deleteScheme).toHaveBeenCalledWith(2);
+      expect(jira.workflows.deleteScheme).toHaveBeenCalledWith({ id: 2 });
     });
 
     it('handles errors deleting a workflow scheme', async () => {
-      (WorkflowschemeService.deleteScheme as Mock).mockRejectedValue(new Error('The requested scheme is active'));
+      (jira.workflows.deleteScheme as Mock).mockRejectedValue(new Error('The requested scheme is active'));
 
       const result = await jiraService.deleteWorkflowScheme(2);
 
@@ -680,17 +596,17 @@ describe('JiraService', () => {
 
     it('sets a workflow scheme issue type mapping', async () => {
       const mockScheme = { id: 2, issueTypeMappings: { '10001': 'jira' } };
-      (WorkflowschemeService.setIssueType as Mock).mockResolvedValue(mockScheme);
+      (jira.workflows.setIssueType as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.setWorkflowSchemeIssueTypeMapping(2, '10001', 'jira');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(WorkflowschemeService.setIssueType).toHaveBeenCalledWith('10001', 2, { issueType: '10001', workflow: 'jira', updateDraftIfNeeded: undefined });
+      expect(jira.workflows.setIssueType).toHaveBeenCalledWith({ issueType: '10001', id: 2, requestBody: { issueType: '10001', workflow: 'jira', updateDraftIfNeeded: undefined } });
     });
 
     it('handles errors setting a workflow scheme issue type mapping', async () => {
-      (WorkflowschemeService.setIssueType as Mock).mockRejectedValue(new Error('The requested issue type does not exist'));
+      (jira.workflows.setIssueType as Mock).mockRejectedValue(new Error('The requested issue type does not exist'));
 
       const result = await jiraService.setWorkflowSchemeIssueTypeMapping(2, '99999', 'jira');
 
@@ -700,17 +616,17 @@ describe('JiraService', () => {
 
     it('deletes a workflow scheme issue type mapping', async () => {
       const mockScheme = { id: 2 };
-      (WorkflowschemeService.deleteIssueType as Mock).mockResolvedValue(mockScheme);
+      (jira.workflows.deleteIssueType as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.deleteWorkflowSchemeIssueTypeMapping(2, '10001');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(WorkflowschemeService.deleteIssueType).toHaveBeenCalledWith('10001', 2, undefined);
+      expect(jira.workflows.deleteIssueType).toHaveBeenCalledWith({ issueType: '10001', id: 2 });
     });
 
     it('handles errors deleting a workflow scheme issue type mapping', async () => {
-      (WorkflowschemeService.deleteIssueType as Mock).mockRejectedValue(new Error('The requested mapping does not exist'));
+      (jira.workflows.deleteIssueType as Mock).mockRejectedValue(new Error('The requested mapping does not exist'));
 
       const result = await jiraService.deleteWorkflowSchemeIssueTypeMapping(2, '99999');
 
@@ -720,21 +636,19 @@ describe('JiraService', () => {
 
     it('sets a workflow scheme workflow mapping', async () => {
       const mockScheme = { id: 2 };
-      (WorkflowschemeService.updateWorkflowMapping as Mock).mockResolvedValue(mockScheme);
+      (jira.workflows.updateWorkflowMapping as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.setWorkflowSchemeWorkflowMapping(2, 'jira', ['10001'], true, undefined, 'jira');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(WorkflowschemeService.updateWorkflowMapping).toHaveBeenCalledWith(
-        2,
-        { workflow: 'jira', issueTypes: ['10001'], defaultMapping: true, updateDraftIfNeeded: undefined },
-        'jira',
+      expect(jira.workflows.updateWorkflowMapping).toHaveBeenCalledWith(
+        { id: 2, requestBody: { workflow: 'jira', issueTypes: ['10001'], defaultMapping: true, updateDraftIfNeeded: undefined }, workflowName: 'jira' },
       );
     });
 
     it('handles errors setting a workflow scheme workflow mapping', async () => {
-      (WorkflowschemeService.updateWorkflowMapping as Mock).mockRejectedValue(new Error('The currently authenticated user does not have permission'));
+      (jira.workflows.updateWorkflowMapping as Mock).mockRejectedValue(new Error('The currently authenticated user does not have permission'));
 
       const result = await jiraService.setWorkflowSchemeWorkflowMapping(2, 'jira');
 
@@ -744,17 +658,17 @@ describe('JiraService', () => {
 
     it('deletes a workflow scheme workflow mapping', async () => {
       const mockScheme = { id: 2 };
-      (WorkflowschemeService.deleteWorkflowMapping as Mock).mockResolvedValue(mockScheme);
+      (jira.workflows.deleteWorkflowMapping as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.deleteWorkflowSchemeWorkflowMapping(2, 'jira');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(WorkflowschemeService.deleteWorkflowMapping).toHaveBeenCalledWith(2, undefined, 'jira');
+      expect(jira.workflows.deleteWorkflowMapping).toHaveBeenCalledWith({ id: 2, workflowName: 'jira' });
     });
 
     it('handles errors deleting a workflow scheme workflow mapping', async () => {
-      (WorkflowschemeService.deleteWorkflowMapping as Mock).mockRejectedValue(new Error('The requested scheme or workflow does not exist'));
+      (jira.workflows.deleteWorkflowMapping as Mock).mockRejectedValue(new Error('The requested scheme or workflow does not exist'));
 
       const result = await jiraService.deleteWorkflowSchemeWorkflowMapping(2, 'missing-workflow');
 
@@ -765,28 +679,28 @@ describe('JiraService', () => {
   describe('notification schemes', () => {
     it('gets a paginated list of notification schemes', async () => {
       const mockSchemes = { values: [{ id: 1, name: 'Default Notification Scheme' }] };
-      (NotificationschemeService.getNotificationSchemes as Mock).mockResolvedValue(mockSchemes);
+      (jira.admin.getNotificationSchemes as Mock).mockResolvedValue(mockSchemes);
 
       const result = await jiraService.getNotificationSchemes('all', 50, 0);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockSchemes);
-      expect(NotificationschemeService.getNotificationSchemes).toHaveBeenCalledWith('all', 50, 0);
+      expect(jira.admin.getNotificationSchemes).toHaveBeenCalledWith({ expand: 'all', maxResults: 50, startAt: 0 });
     });
 
     it('gets a notification scheme by id', async () => {
       const mockScheme = { id: 1, name: 'Default Notification Scheme' };
-      (NotificationschemeService.getNotificationScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.admin.getNotificationScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.getNotificationScheme(1);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(NotificationschemeService.getNotificationScheme).toHaveBeenCalledWith(1, undefined);
+      expect(jira.admin.getNotificationScheme).toHaveBeenCalledWith({ id: 1 });
     });
 
     it('handles errors', async () => {
-      (NotificationschemeService.getNotificationScheme as Mock).mockRejectedValue(new Error('The notification scheme does not exist'));
+      (jira.admin.getNotificationScheme as Mock).mockRejectedValue(new Error('The notification scheme does not exist'));
 
       const result = await jiraService.getNotificationScheme(999);
 
@@ -797,44 +711,109 @@ describe('JiraService', () => {
   describe('security levels and schemes', () => {
     it('gets a security level by id', async () => {
       const mockLevel = { id: '10000', name: 'Confidential' };
-      (SecuritylevelService.getIssuesecuritylevel as Mock).mockResolvedValue(mockLevel);
+      (jira.admin.getIssuesecuritylevel as Mock).mockResolvedValue(mockLevel);
 
       const result = await jiraService.getSecurityLevel('10000');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockLevel);
-      expect(SecuritylevelService.getIssuesecuritylevel).toHaveBeenCalledWith('10000');
+      expect(jira.admin.getIssuesecuritylevel).toHaveBeenCalledWith({ id: '10000' });
     });
 
     it('gets all issue security schemes', async () => {
       const mockSchemes = { issueSecuritySchemes: [{ id: '1', name: 'Default Scheme' }] };
-      (IssuesecurityschemesService.getIssueSecuritySchemes as Mock).mockResolvedValue(mockSchemes);
+      (jira.admin.getIssueSecuritySchemes as Mock).mockResolvedValue(mockSchemes);
 
       const result = await jiraService.getIssueSecuritySchemes();
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockSchemes);
-      expect(IssuesecurityschemesService.getIssueSecuritySchemes).toHaveBeenCalledWith();
+      expect(jira.admin.getIssueSecuritySchemes).toHaveBeenCalledWith({});
     });
 
     it('gets an issue security scheme by id', async () => {
       const mockScheme = { id: '1', name: 'Default Scheme' };
-      (IssuesecurityschemesService.getIssueSecurityScheme as Mock).mockResolvedValue(mockScheme);
+      (jira.admin.getIssueSecurityScheme as Mock).mockResolvedValue(mockScheme);
 
       const result = await jiraService.getIssueSecurityScheme('1');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockScheme);
-      expect(IssuesecurityschemesService.getIssueSecurityScheme).toHaveBeenCalledWith('1');
+      expect(jira.admin.getIssueSecurityScheme).toHaveBeenCalledWith({ id: '1' });
     });
 
     it('handles errors', async () => {
-      (SecuritylevelService.getIssuesecuritylevel as Mock).mockRejectedValue(new Error('The security level does not exist'));
+      (jira.admin.getIssuesecuritylevel as Mock).mockRejectedValue(new Error('The security level does not exist'));
 
       const result = await jiraService.getSecurityLevel('missing');
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The security level does not exist');
+    });
+  });
+
+  describe('webhooks', () => {
+    it('lists webhooks', async () => {
+      const mockWebhooks = [{ name: 'CI hook', url: 'https://ci.example/hook' }];
+      (jira.admin.getWebhooks as Mock).mockResolvedValue(mockWebhooks);
+
+      const result = await jiraService.getWebhooks();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWebhooks);
+      expect(jira.admin.getWebhooks).toHaveBeenCalledWith({});
+    });
+
+    it('gets a webhook by id', async () => {
+      const mockWebhook = { name: 'CI hook', url: 'https://ci.example/hook' };
+      (jira.admin.getWebhook as Mock).mockResolvedValue(mockWebhook);
+
+      const result = await jiraService.getWebhook('1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWebhook);
+      expect(jira.admin.getWebhook).toHaveBeenCalledWith({ id: '1' });
+    });
+
+    it('creates a webhook and wraps the JQL filter', async () => {
+      const mockWebhook = { name: 'CI hook', url: 'https://ci.example/hook' };
+      (jira.admin.createWebhook as Mock).mockResolvedValue(mockWebhook);
+
+      const result = await jiraService.createWebhook('CI hook', 'https://ci.example/hook', ['jira:issue_created'], 'project = SS', true);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWebhook);
+      expect(jira.admin.createWebhook).toHaveBeenCalledWith({
+        requestBody: {
+          name: 'CI hook',
+          url: 'https://ci.example/hook',
+          events: ['jira:issue_created'],
+          filters: { 'issue-related-events-section': 'project = SS' },
+          excludeBody: true,
+        },
+      });
+    });
+
+    it('updates a webhook without a JQL filter', async () => {
+      const mockWebhook = { name: 'CI hook renamed' };
+      (jira.admin.updateWebhook as Mock).mockResolvedValue(mockWebhook);
+
+      const result = await jiraService.updateWebhook('1', 'CI hook renamed');
+
+      expect(result.success).toBe(true);
+      expect(jira.admin.updateWebhook).toHaveBeenCalledWith({
+        id: '1',
+        requestBody: { name: 'CI hook renamed', url: undefined, events: undefined, filters: undefined, excludeBody: undefined },
+      });
+    });
+
+    it('deletes a webhook', async () => {
+      (jira.admin.deleteWebhook as Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteWebhook('1');
+
+      expect(result.success).toBe(true);
+      expect(jira.admin.deleteWebhook).toHaveBeenCalledWith({ id: '1' });
     });
   });
 });

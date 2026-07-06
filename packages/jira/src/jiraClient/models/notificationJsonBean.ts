@@ -1,14 +1,19 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { RestrictJsonBean } from './restrictJsonBean.js';
-import type { ToJsonBean } from './toJsonBean.js';
+import { z } from 'zod';
+import { RestrictJsonBeanSchema, type RestrictJsonBean } from './restrictJsonBean.js';
+import { ToJsonBeanSchema, type ToJsonBean } from './toJsonBean.js';
+
 export type NotificationJsonBean = {
-    htmlBody?: string;
-    restrict?: RestrictJsonBean;
-    subject?: string;
-    textBody?: string;
-    to?: ToJsonBean;
+  htmlBody?: string;
+  restrict?: RestrictJsonBean;
+  subject?: string;
+  textBody?: string;
+  to?: ToJsonBean;
 };
 
+export const NotificationJsonBeanSchema = z.lazy(() => z.looseObject({
+  htmlBody: z.string().optional(),
+  restrict: RestrictJsonBeanSchema.optional(),
+  subject: z.string().optional(),
+  textBody: z.string().optional(),
+  to: ToJsonBeanSchema.optional(),
+})) as unknown as z.ZodType<NotificationJsonBean>;

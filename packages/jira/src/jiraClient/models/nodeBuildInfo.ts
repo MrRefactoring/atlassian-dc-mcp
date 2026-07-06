@@ -1,9 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type NodeBuildInfo = {
-    buildNumber?: number;
-    version?: string;
+  buildNumber?: number;
+  version?: string;
 };
 
+export const NodeBuildInfoSchema = z.looseObject({
+  buildNumber: z.number().optional(),
+  version: z.string().optional(),
+}) as unknown as z.ZodType<NodeBuildInfo>;

@@ -1,11 +1,14 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { CustomFieldReplacement } from './customFieldReplacement.js';
+import { z } from 'zod';
+import { CustomFieldReplacementSchema, type CustomFieldReplacement } from './customFieldReplacement.js';
+
 export type DeleteAndReplaceVersionBean = {
-    customFieldReplacementList?: Array<CustomFieldReplacement>;
-    moveAffectedIssuesTo?: number;
-    moveFixIssuesTo?: number;
+  customFieldReplacementList?: Array<CustomFieldReplacement>;
+  moveAffectedIssuesTo?: number;
+  moveFixIssuesTo?: number;
 };
 
+export const DeleteAndReplaceVersionBeanSchema = z.lazy(() => z.looseObject({
+  customFieldReplacementList: z.array(CustomFieldReplacementSchema).optional(),
+  moveAffectedIssuesTo: z.number().optional(),
+  moveFixIssuesTo: z.number().optional(),
+})) as unknown as z.ZodType<DeleteAndReplaceVersionBean>;

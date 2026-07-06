@@ -1,8 +1,9 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type RankingConfigBean = {
-    rankCustomFieldId?: number;
+  rankCustomFieldId?: number;
 };
 
+export const RankingConfigBeanSchema = z.looseObject({
+  rankCustomFieldId: z.number().optional(),
+}) as unknown as z.ZodType<RankingConfigBean>;

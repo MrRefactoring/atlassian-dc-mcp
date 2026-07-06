@@ -1,8 +1,9 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type AddFieldBean = {
-    fieldId?: string;
+  fieldId?: string;
 };
 
+export const AddFieldBeanSchema = z.looseObject({
+  fieldId: z.string().optional(),
+}) as unknown as z.ZodType<AddFieldBean>;

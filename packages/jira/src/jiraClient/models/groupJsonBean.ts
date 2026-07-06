@@ -1,9 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type GroupJsonBean = {
-    name?: string;
-    self?: string;
+  name?: string;
+  self?: string;
 };
 
+export const GroupJsonBeanSchema = z.looseObject({
+  name: z.string().optional(),
+  self: z.string().optional(),
+}) as unknown as z.ZodType<GroupJsonBean>;
