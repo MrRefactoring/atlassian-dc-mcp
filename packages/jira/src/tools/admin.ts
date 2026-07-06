@@ -149,6 +149,71 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
+    'jira_get_webhooks',
+    {
+      description: `List the registered webhooks in the ${jiraInstanceType}. Requires administrator permission and Basic auth (username/password) — the webhook API does not accept personal access tokens.`,
+      inputSchema: jiraToolSchemas.getWebhooks,
+    },
+    async () => {
+      const result = await service.getWebhooks();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_get_webhook',
+    {
+      description: `Get a registered webhook by id in the ${jiraInstanceType}. Requires administrator permission and Basic auth.`,
+      inputSchema: jiraToolSchemas.getWebhook,
+    },
+    async ({ id }) => {
+      const result = await service.getWebhook(id);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_create_webhook',
+    {
+      description: `Register a webhook (subscribe a URL to Jira events, optionally filtered by JQL) in the ${jiraInstanceType}. Requires administrator permission and Basic auth.`,
+      inputSchema: jiraToolSchemas.createWebhook,
+    },
+    async ({ name, url, events, jqlFilter, excludeBody }) => {
+      const result = await service.createWebhook(name, url, events, jqlFilter, excludeBody);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_update_webhook',
+    {
+      description: `Update a registered webhook in the ${jiraInstanceType}. Requires administrator permission and Basic auth.`,
+      inputSchema: jiraToolSchemas.updateWebhook,
+    },
+    async ({ id, name, url, events, jqlFilter, excludeBody }) => {
+      const result = await service.updateWebhook(id, name, url, events, jqlFilter, excludeBody);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_delete_webhook',
+    {
+      description: `Delete a registered webhook in the ${jiraInstanceType}. Requires administrator permission and Basic auth. This is irreversible.`,
+      inputSchema: jiraToolSchemas.deleteWebhook,
+    },
+    async ({ id }) => {
+      const result = await service.deleteWebhook(id);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
     'jira_get_dashboards',
     {
       description: `Get a list of dashboards visible to the current user in the ${jiraInstanceType}`,

@@ -1,5 +1,5 @@
 import { route, type HttpClient } from 'datacenter-mcp-core';
-import { type ActorInputBean, ApplicationRoleBeanSchema, type ApplicationRoleBean, type AssociateProjectsBean, type AuthParams, AuthSuccessSchema, type AuthSuccess, AutoCompleteResponseBeanSchema, type AutoCompleteResponseBean, AutoCompleteResultWrapperSchema, type AutoCompleteResultWrapper, AvatarBeanSchema, type AvatarBean, AvatarCroppingBeanSchema, type AvatarCroppingBean, BulkDeleteResponseBeanSchema, type BulkDeleteResponseBean, ClusterStateSchema, type ClusterState, ColumnItemSchema, type ColumnItem, ConfigurationBeanSchema, type ConfigurationBean, type CreateUpdateRoleRequestBean, DefaultShareScopeBeanSchema, type DefaultShareScopeBean, FilterPermissionBeanSchema, type FilterPermissionBean, CurrentUserSchema, type CurrentUser, CustomFieldBeanSchema, type CustomFieldBean, CustomFieldOptionBeanSchema, type CustomFieldOptionBean, CustomFieldOptionsBeanSchema, type CustomFieldOptionsBean, DashboardBeanSchema, type DashboardBean, DashboardsBeanSchema, type DashboardsBean, type FilePart, FilterBeanSchema, type FilterBean, IndexSnapshotBeanSchema, type IndexSnapshotBean, IndexSnapshotPromiseBeanSchema, type IndexSnapshotPromiseBean, IndexSnapshotStatusBeanSchema, type IndexSnapshotStatusBean, IndexSummaryBeanSchema, type IndexSummaryBean, IssueTypeSchemeBeanSchema, type IssueTypeSchemeBean, type IssueTypeSchemeCreateUpdateBean, IssueTypeSchemeListBeanSchema, type IssueTypeSchemeListBean, LicenseValidationResultsSchema, type LicenseValidationResults, NodeBeanSchema, type NodeBean, NotificationSchemeBeanSchema, type NotificationSchemeBean, PageBeanSchema, type PageBean, PermissionGrantBeanSchema, type PermissionGrantBean, PermissionGrantsBeanSchema, type PermissionGrantsBean, PermissionSchemeBeanSchema, type PermissionSchemeBean, PermissionSchemesBeanSchema, type PermissionSchemesBean, PrioritySchemeBeanSchema, type PrioritySchemeBean, PrioritySchemeListBeanSchema, type PrioritySchemeListBean, type PrioritySchemeUpdateBean, ProjectBeanSchema, type ProjectBean, ProjectRoleActorsBeanSchema, type ProjectRoleActorsBean, ProjectRoleBeanSchema, type ProjectRoleBean, PropertySchema, type Property, ReindexBeanSchema, type ReindexBean, ReindexRequestBeanSchema, type ReindexRequestBean, SecurityLevelJsonBeanSchema, type SecurityLevelJsonBean, SecuritySchemeJsonBeanSchema, type SecuritySchemeJsonBean, SecuritySchemesJsonBeanSchema, type SecuritySchemesJsonBean, ServerInfoBeanSchema, type ServerInfoBean, type StringList } from '../models/index.js';
+import { type ActorInputBean, ApplicationRoleBeanSchema, type ApplicationRoleBean, type AssociateProjectsBean, type AuthParams, AuthSuccessSchema, type AuthSuccess, AutoCompleteResponseBeanSchema, type AutoCompleteResponseBean, AutoCompleteResultWrapperSchema, type AutoCompleteResultWrapper, AvatarBeanSchema, type AvatarBean, AvatarCroppingBeanSchema, type AvatarCroppingBean, BulkDeleteResponseBeanSchema, type BulkDeleteResponseBean, ClusterStateSchema, type ClusterState, ColumnItemSchema, type ColumnItem, ConfigurationBeanSchema, type ConfigurationBean, type CreateUpdateRoleRequestBean, DefaultShareScopeBeanSchema, type DefaultShareScopeBean, FilterPermissionBeanSchema, type FilterPermissionBean, CurrentUserSchema, type CurrentUser, CustomFieldBeanSchema, type CustomFieldBean, CustomFieldOptionBeanSchema, type CustomFieldOptionBean, CustomFieldOptionsBeanSchema, type CustomFieldOptionsBean, DashboardBeanSchema, type DashboardBean, DashboardsBeanSchema, type DashboardsBean, type FilePart, FilterBeanSchema, type FilterBean, IndexSnapshotBeanSchema, type IndexSnapshotBean, IndexSnapshotPromiseBeanSchema, type IndexSnapshotPromiseBean, IndexSnapshotStatusBeanSchema, type IndexSnapshotStatusBean, IndexSummaryBeanSchema, type IndexSummaryBean, IssueTypeSchemeBeanSchema, type IssueTypeSchemeBean, type IssueTypeSchemeCreateUpdateBean, IssueTypeSchemeListBeanSchema, type IssueTypeSchemeListBean, LicenseValidationResultsSchema, type LicenseValidationResults, NodeBeanSchema, type NodeBean, NotificationSchemeBeanSchema, type NotificationSchemeBean, PageBeanSchema, type PageBean, PermissionGrantBeanSchema, type PermissionGrantBean, PermissionGrantsBeanSchema, type PermissionGrantsBean, PermissionSchemeBeanSchema, type PermissionSchemeBean, PermissionSchemesBeanSchema, type PermissionSchemesBean, PrioritySchemeBeanSchema, type PrioritySchemeBean, PrioritySchemeListBeanSchema, type PrioritySchemeListBean, type PrioritySchemeUpdateBean, ProjectBeanSchema, type ProjectBean, ProjectRoleActorsBeanSchema, type ProjectRoleActorsBean, ProjectRoleBeanSchema, type ProjectRoleBean, PropertySchema, type Property, ReindexBeanSchema, type ReindexBean, ReindexRequestBeanSchema, type ReindexRequestBean, SecurityLevelJsonBeanSchema, type SecurityLevelJsonBean, SecuritySchemeJsonBeanSchema, type SecuritySchemeJsonBean, SecuritySchemesJsonBeanSchema, type SecuritySchemesJsonBean, ServerInfoBeanSchema, type ServerInfoBean, type StringList, WebhookBeanSchema, type WebhookBean } from '../models/index.js';
 import { z } from 'zod';
 
 export function acknowledgeErrors(client: HttpClient, _params: Record<string, never>): Promise<any> {
@@ -205,6 +205,50 @@ export function setDefaultShareScope(client: HttpClient, params: { requestBody: 
     url: route`/api/2/filter/defaultShareScope`,
     body: params.requestBody,
     schema: DefaultShareScopeBeanSchema,
+  });
+}
+
+// Webhook registration lives under the /webhooks/1.0 plugin API, not /api/2. Note it is
+// served outside the platform REST auth filter and does not accept PAT Bearer auth — it
+// requires Basic auth (username/password) or a session cookie.
+export function getWebhooks(client: HttpClient, _params: Record<string, never>): Promise<WebhookBean[]> {
+  return client.sendRequest({
+    method: 'GET',
+    url: route`/webhooks/1.0/webhook`,
+    schema: z.array(WebhookBeanSchema),
+  });
+}
+
+export function getWebhook(client: HttpClient, params: { id: string }): Promise<WebhookBean> {
+  return client.sendRequest({
+    method: 'GET',
+    url: route`/webhooks/1.0/webhook/${params.id}`,
+    schema: WebhookBeanSchema,
+  });
+}
+
+export function createWebhook(client: HttpClient, params: { requestBody: { name: string; url: string; events?: string[]; filters?: Record<string, any>; excludeBody?: boolean } }): Promise<WebhookBean> {
+  return client.sendRequest({
+    method: 'POST',
+    url: route`/webhooks/1.0/webhook`,
+    body: params.requestBody,
+    schema: WebhookBeanSchema,
+  });
+}
+
+export function updateWebhook(client: HttpClient, params: { id: string; requestBody: { name?: string; url?: string; events?: string[]; filters?: Record<string, any>; excludeBody?: boolean } }): Promise<WebhookBean> {
+  return client.sendRequest({
+    method: 'PUT',
+    url: route`/webhooks/1.0/webhook/${params.id}`,
+    body: params.requestBody,
+    schema: WebhookBeanSchema,
+  });
+}
+
+export function deleteWebhook(client: HttpClient, params: { id: string }): Promise<void> {
+  return client.sendRequest({
+    method: 'DELETE',
+    url: route`/webhooks/1.0/webhook/${params.id}`,
   });
 }
 

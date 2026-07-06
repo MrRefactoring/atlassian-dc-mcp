@@ -751,4 +751,69 @@ describe('JiraService', () => {
       expect(result.error).toBe('The security level does not exist');
     });
   });
+
+  describe('webhooks', () => {
+    it('lists webhooks', async () => {
+      const mockWebhooks = [{ name: 'CI hook', url: 'https://ci.example/hook' }];
+      (jira.admin.getWebhooks as Mock).mockResolvedValue(mockWebhooks);
+
+      const result = await jiraService.getWebhooks();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWebhooks);
+      expect(jira.admin.getWebhooks).toHaveBeenCalledWith({});
+    });
+
+    it('gets a webhook by id', async () => {
+      const mockWebhook = { name: 'CI hook', url: 'https://ci.example/hook' };
+      (jira.admin.getWebhook as Mock).mockResolvedValue(mockWebhook);
+
+      const result = await jiraService.getWebhook('1');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWebhook);
+      expect(jira.admin.getWebhook).toHaveBeenCalledWith({ id: '1' });
+    });
+
+    it('creates a webhook and wraps the JQL filter', async () => {
+      const mockWebhook = { name: 'CI hook', url: 'https://ci.example/hook' };
+      (jira.admin.createWebhook as Mock).mockResolvedValue(mockWebhook);
+
+      const result = await jiraService.createWebhook('CI hook', 'https://ci.example/hook', ['jira:issue_created'], 'project = SS', true);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockWebhook);
+      expect(jira.admin.createWebhook).toHaveBeenCalledWith({
+        requestBody: {
+          name: 'CI hook',
+          url: 'https://ci.example/hook',
+          events: ['jira:issue_created'],
+          filters: { 'issue-related-events-section': 'project = SS' },
+          excludeBody: true,
+        },
+      });
+    });
+
+    it('updates a webhook without a JQL filter', async () => {
+      const mockWebhook = { name: 'CI hook renamed' };
+      (jira.admin.updateWebhook as Mock).mockResolvedValue(mockWebhook);
+
+      const result = await jiraService.updateWebhook('1', 'CI hook renamed');
+
+      expect(result.success).toBe(true);
+      expect(jira.admin.updateWebhook).toHaveBeenCalledWith({
+        id: '1',
+        requestBody: { name: 'CI hook renamed', url: undefined, events: undefined, filters: undefined, excludeBody: undefined },
+      });
+    });
+
+    it('deletes a webhook', async () => {
+      (jira.admin.deleteWebhook as Mock).mockResolvedValue(undefined);
+
+      const result = await jiraService.deleteWebhook('1');
+
+      expect(result.success).toBe(true);
+      expect(jira.admin.deleteWebhook).toHaveBeenCalledWith({ id: '1' });
+    });
+  });
 });

@@ -390,3 +390,5 @@ export { ColumnItemSchema } from './columnItem.js';
 export type { ColumnItem } from './columnItem.js';
 export { DefaultShareScopeBeanSchema } from './defaultShareScopeBean.js';
 export type { DefaultShareScopeBean } from './defaultShareScopeBean.js';
+export { WebhookBeanSchema } from './webhookBean.js';
+export type { WebhookBean } from './webhookBean.js';
