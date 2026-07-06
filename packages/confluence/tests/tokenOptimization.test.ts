@@ -1,25 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import { ContentResourceService, SearchService } from '../src/confluenceClient/index.js';
 import { ConfluenceService } from '../src/confluenceService.js';
 
-vi.mock('../src/confluenceClient/index.js', () => ({
-  ContentResourceService: {
+const conf = vi.hoisted(() => ({
+  content: {
     getContentById: vi.fn(),
-    createContent: vi.fn(),
-    update2: vi.fn(),
-    delete3: vi.fn(),
-    getHistory: vi.fn(),
-  },
-  SearchService: {
     search1: vi.fn(),
   },
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-    HEADERS: undefined,
-  },
+}));
+
+vi.mock('../src/confluenceClient/index.js', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createConfluenceClient: () => conf,
 }));
 
 describe('ConfluenceService token optimization paths', () => {
@@ -42,17 +34,17 @@ describe('ConfluenceService token optimization paths', () => {
         },
       },
     };
-    (ContentResourceService.getContentById as Mock).mockResolvedValue(mockContent);
+    (conf.content.getContentById as Mock).mockResolvedValue(mockContent);
 
     const result = await service.getContent('123');
 
     expect(result.success).toBe(true);
     expect(result.data).toBe(mockContent);
-    expect(ContentResourceService.getContentById).toHaveBeenCalledWith('123', 'body.storage');
+    expect(conf.content.getContentById).toHaveBeenCalledWith({ id: '123', expand: 'body.storage' });
   });
 
   it('converts storage XML to text when bodyMode is text', async () => {
-    (ContentResourceService.getContentById as Mock).mockResolvedValue({
+    (conf.content.getContentById as Mock).mockResolvedValue({
       id: '123',
       type: 'page',
       title: 'Test page',
@@ -68,7 +60,7 @@ describe('ConfluenceService token optimization paths', () => {
     const result = await service.getContent('123', 'version', 'text');
 
     expect(result.success).toBe(true);
-    expect(ContentResourceService.getContentById).toHaveBeenCalledWith('123', 'version,body.storage');
+    expect(conf.content.getContentById).toHaveBeenCalledWith({ id: '123', expand: 'version,body.storage' });
     expect(result.data).toMatchObject({
       id: '123',
       type: 'page',
@@ -86,7 +78,7 @@ describe('ConfluenceService token optimization paths', () => {
   });
 
   it('truncates text bodies when maxBodyChars is provided', async () => {
-    (ContentResourceService.getContentById as Mock).mockResolvedValue({
+    (conf.content.getContentById as Mock).mockResolvedValue({
       id: '123',
       type: 'page',
       title: 'Test page',
@@ -117,7 +109,7 @@ describe('ConfluenceService token optimization paths', () => {
   });
 
   it('slices text bodies from a requested start offset', async () => {
-    (ContentResourceService.getContentById as Mock).mockResolvedValue({
+    (conf.content.getContentById as Mock).mockResolvedValue({
       id: '123',
       type: 'page',
       title: 'Test page',
@@ -150,7 +142,7 @@ describe('ConfluenceService token optimization paths', () => {
   });
 
   it('supports negative start offsets for tail reads', async () => {
-    (ContentResourceService.getContentById as Mock).mockResolvedValue({
+    (conf.content.getContentById as Mock).mockResolvedValue({
       id: '123',
       type: 'page',
       title: 'Test page',
@@ -183,7 +175,7 @@ describe('ConfluenceService token optimization paths', () => {
   });
 
   it('omits the body when bodyMode is none', async () => {
-    (ContentResourceService.getContentById as Mock).mockResolvedValue({
+    (conf.content.getContentById as Mock).mockResolvedValue({
       id: '123',
       type: 'page',
       title: 'Test page',
@@ -208,34 +200,30 @@ describe('ConfluenceService token optimization paths', () => {
   });
 
   it('uses the package default limit and no excerpt for content search', async () => {
-    (SearchService.search1 as Mock).mockResolvedValue({ results: [] });
+    (conf.content.search1 as Mock).mockResolvedValue({ results: [] });
 
     await service.searchContent('type=page');
 
-    expect(SearchService.search1).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      '25',
-      undefined,
-      'none',
-      'type=page',
-    );
+    expect(conf.content.search1).toHaveBeenCalledWith({
+      expand: undefined,
+      limit: '25',
+      start: undefined,
+      excerpt: 'none',
+      cql: 'type=page',
+    });
   });
 
   it('forwards explicit excerpt for space search', async () => {
-    (SearchService.search1 as Mock).mockResolvedValue({ results: [] });
+    (conf.content.search1 as Mock).mockResolvedValue({ results: [] });
 
     await service.searchSpaces('docs', 5, 10, 'space.icon', 'highlight');
 
-    expect(SearchService.search1).toHaveBeenCalledWith(
-      undefined,
-      'space.icon',
-      undefined,
-      '5',
-      '10',
-      'highlight',
-      'type=space AND title ~ "docs"',
-    );
+    expect(conf.content.search1).toHaveBeenCalledWith({
+      expand: 'space.icon',
+      limit: '5',
+      start: '10',
+      excerpt: 'highlight',
+      cql: 'type=space AND title ~ "docs"',
+    });
   });
 });

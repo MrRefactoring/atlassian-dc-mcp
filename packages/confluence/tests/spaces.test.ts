@@ -1,18 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import {
-  SpaceService,
-  SpacePropertyService,
-  SpacePermissionsService,
-} from '../src/confluenceClient/index.js';
 import { ConfluenceService } from '../src/confluenceService.js';
 
-const SPACE = SpaceService as unknown as Record<string, Mock>;
-const SPACE_PROPERTY = SpacePropertyService as unknown as Record<string, Mock>;
-const SPACE_PERMISSIONS = SpacePermissionsService as unknown as Record<string, Mock>;
-
-vi.mock('../src/confluenceClient/index.js', () => ({
-  SpaceService: {
+const conf = vi.hoisted(() => ({
+  spaces: {
     space: vi.fn(),
     spaces: vi.fn(),
     createSpace: vi.fn(),
@@ -23,15 +14,11 @@ vi.mock('../src/confluenceClient/index.js', () => ({
     contentsWithType1: vi.fn(),
     archive: vi.fn(),
     restore: vi.fn(),
-  },
-  SpacePropertyService: {
     get1: vi.fn(),
     get: vi.fn(),
     create3: vi.fn(),
     update3: vi.fn(),
     delete4: vi.fn(),
-  },
-  SpacePermissionsService: {
     getAllSpacePermissions: vi.fn(),
     setPermissions1: vi.fn(),
     getPermissionsGrantedToAnonymousUsers1: vi.fn(),
@@ -44,12 +31,15 @@ vi.mock('../src/confluenceClient/index.js', () => ({
     revokePermissionsFromGroup1: vi.fn(),
     revokePermissionsFromUser1: vi.fn(),
   },
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-    HEADERS: undefined,
-  },
+}));
+
+const SPACE = conf.spaces as unknown as Record<string, Mock>;
+const SPACE_PROPERTY = conf.spaces as unknown as Record<string, Mock>;
+const SPACE_PERMISSIONS = conf.spaces as unknown as Record<string, Mock>;
+
+vi.mock('../src/confluenceClient/index.js', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createConfluenceClient: () => conf,
 }));
 
 describe('ConfluenceService space CRUD', () => {
@@ -65,7 +55,7 @@ describe('ConfluenceService space CRUD', () => {
 
     await service.getSpace('DEV', 'description.plain');
 
-    expect(SPACE.space).toHaveBeenCalledWith('DEV', 'description.plain');
+    expect(SPACE.space).toHaveBeenCalledWith({ spaceKey: 'DEV', expand: 'description.plain' });
   });
 
   it('lists spaces mapping filters onto the generated positional params', async () => {
@@ -73,22 +63,16 @@ describe('ConfluenceService space CRUD', () => {
 
     await service.getSpaces('DEV', 'global', 'current', 'team', true, 'description.plain', 10, 5);
 
-    expect(SPACE.spaces).toHaveBeenCalledWith(
-      undefined,
-      '5',
-      'team',
-      'true',
-      'global',
-      'DEV',
-      undefined,
-      'description.plain',
-      undefined,
-      '10',
-      undefined,
-      undefined,
-      undefined,
-      'current',
-    );
+    expect(SPACE.spaces).toHaveBeenCalledWith({
+      start: '5',
+      label: 'team',
+      favourite: 'true',
+      type: 'global',
+      spaceKey: 'DEV',
+      expand: 'description.plain',
+      limit: '10',
+      status: 'current',
+    });
   });
 
   it('defaults the limit to the package page size when listing spaces', async () => {
@@ -96,22 +80,16 @@ describe('ConfluenceService space CRUD', () => {
 
     await service.getSpaces();
 
-    expect(SPACE.spaces).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      '25',
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    );
+    expect(SPACE.spaces).toHaveBeenCalledWith({
+      start: undefined,
+      label: undefined,
+      favourite: undefined,
+      type: undefined,
+      spaceKey: undefined,
+      expand: undefined,
+      limit: '25',
+      status: undefined,
+    });
   });
 
   it('creates a public space via createSpace', async () => {
@@ -120,7 +98,7 @@ describe('ConfluenceService space CRUD', () => {
 
     await service.createSpace(body);
 
-    expect(SPACE.createSpace).toHaveBeenCalledWith(body);
+    expect(SPACE.createSpace).toHaveBeenCalledWith({ requestBody: body });
     expect(SPACE.createPrivateSpace).not.toHaveBeenCalled();
   });
 
@@ -130,7 +108,7 @@ describe('ConfluenceService space CRUD', () => {
 
     await service.createSpace(body, true);
 
-    expect(SPACE.createPrivateSpace).toHaveBeenCalledWith(body);
+    expect(SPACE.createPrivateSpace).toHaveBeenCalledWith({ requestBody: body });
     expect(SPACE.createSpace).not.toHaveBeenCalled();
   });
 
@@ -140,7 +118,7 @@ describe('ConfluenceService space CRUD', () => {
 
     await service.updateSpace('DEV', body);
 
-    expect(SPACE.update4).toHaveBeenCalledWith('DEV', body);
+    expect(SPACE.update4).toHaveBeenCalledWith({ spaceKey: 'DEV', requestBody: body });
   });
 
   it('deletes a space', async () => {
@@ -148,7 +126,7 @@ describe('ConfluenceService space CRUD', () => {
 
     const result = await service.deleteSpace('DEV');
 
-    expect(SPACE.delete5).toHaveBeenCalledWith('DEV');
+    expect(SPACE.delete5).toHaveBeenCalledWith({ spaceKey: 'DEV' });
     expect(result.success).toBe(true);
   });
 });
@@ -167,7 +145,7 @@ describe('ConfluenceService space content & archival lifecycle', () => {
 
     await service.getSpaceContent('DEV', undefined, 'history', 'root');
 
-    expect(SPACE.contents).toHaveBeenCalledWith('DEV', 'history', 'root', '25', undefined);
+    expect(SPACE.contents).toHaveBeenCalledWith({ spaceKey: 'DEV', expand: 'history', depth: 'root', limit: '25', start: undefined });
     expect(SPACE.contentsWithType1).not.toHaveBeenCalled();
   });
 
@@ -176,7 +154,7 @@ describe('ConfluenceService space content & archival lifecycle', () => {
 
     await service.getSpaceContent('DEV', 'page', undefined, undefined, 10, 5);
 
-    expect(SPACE.contentsWithType1).toHaveBeenCalledWith('DEV', 'page', undefined, undefined, '10', '5');
+    expect(SPACE.contentsWithType1).toHaveBeenCalledWith({ spaceKey: 'DEV', type: 'page', expand: undefined, depth: undefined, limit: '10', start: '5' });
     expect(SPACE.contents).not.toHaveBeenCalled();
   });
 
@@ -185,7 +163,7 @@ describe('ConfluenceService space content & archival lifecycle', () => {
 
     const result = await service.archiveSpace('DEV');
 
-    expect(SPACE.archive).toHaveBeenCalledWith('DEV');
+    expect(SPACE.archive).toHaveBeenCalledWith({ spaceKey: 'DEV' });
     expect(result.success).toBe(true);
   });
 
@@ -194,7 +172,7 @@ describe('ConfluenceService space content & archival lifecycle', () => {
 
     const result = await service.restoreSpace('DEV');
 
-    expect(SPACE.restore).toHaveBeenCalledWith('DEV');
+    expect(SPACE.restore).toHaveBeenCalledWith({ spaceKey: 'DEV' });
     expect(result.success).toBe(true);
   });
 });
@@ -213,7 +191,7 @@ describe('ConfluenceService space properties', () => {
 
     await service.getSpaceProperties('DEV', 'version');
 
-    expect(SPACE_PROPERTY.get1).toHaveBeenCalledWith('DEV', 'version', '25', undefined);
+    expect(SPACE_PROPERTY.get1).toHaveBeenCalledWith({ spaceKey: 'DEV', expand: 'version', limit: '25', start: undefined });
   });
 
   it('gets a single space property by key', async () => {
@@ -221,7 +199,7 @@ describe('ConfluenceService space properties', () => {
 
     await service.getSpaceProperty('DEV', 'my-key', 'space');
 
-    expect(SPACE_PROPERTY.get).toHaveBeenCalledWith('DEV', 'my-key', 'space');
+    expect(SPACE_PROPERTY.get).toHaveBeenCalledWith({ spaceKey: 'DEV', key: 'my-key', expand: 'space' });
   });
 
   it('creates a space property wrapping key and value into the body', async () => {
@@ -229,7 +207,7 @@ describe('ConfluenceService space properties', () => {
 
     await service.createSpaceProperty('DEV', 'my-key', { enabled: true });
 
-    expect(SPACE_PROPERTY.create3).toHaveBeenCalledWith('DEV', { key: 'my-key', value: { enabled: true } });
+    expect(SPACE_PROPERTY.create3).toHaveBeenCalledWith({ spaceKey: 'DEV', requestBody: { key: 'my-key', value: { enabled: true } } });
   });
 
   it('updates a space property with the new version number', async () => {
@@ -237,11 +215,11 @@ describe('ConfluenceService space properties', () => {
 
     await service.updateSpaceProperty('DEV', 'my-key', 'new-value', 2);
 
-    expect(SPACE_PROPERTY.update3).toHaveBeenCalledWith(
-      'DEV',
-      'my-key',
-      { key: 'my-key', value: 'new-value', version: { number: 2 } },
-    );
+    expect(SPACE_PROPERTY.update3).toHaveBeenCalledWith({
+      spaceKey: 'DEV',
+      key: 'my-key',
+      requestBody: { key: 'my-key', value: 'new-value', version: { number: 2 } },
+    });
   });
 
   it('deletes a space property by key', async () => {
@@ -249,7 +227,7 @@ describe('ConfluenceService space properties', () => {
 
     const result = await service.deleteSpaceProperty('DEV', 'my-key');
 
-    expect(SPACE_PROPERTY.delete4).toHaveBeenCalledWith('DEV', 'my-key');
+    expect(SPACE_PROPERTY.delete4).toHaveBeenCalledWith({ spaceKey: 'DEV', key: 'my-key' });
     expect(result.success).toBe(true);
   });
 });
@@ -268,7 +246,7 @@ describe('ConfluenceService space permissions', () => {
 
     const result = await service.getAllSpacePermissions('DEV');
 
-    expect(SPACE_PERMISSIONS.getAllSpacePermissions).toHaveBeenCalledWith('DEV');
+    expect(SPACE_PERMISSIONS.getAllSpacePermissions).toHaveBeenCalledWith({ spaceKey: 'DEV' });
     expect(result.success).toBe(true);
     expect(result.data).toEqual([{ spaceKey: 'DEV' }]);
   });
@@ -288,7 +266,7 @@ describe('ConfluenceService space permissions', () => {
 
     const result = await service.setSpacePermissions('DEV', permissions);
 
-    expect(SPACE_PERMISSIONS.setPermissions1).toHaveBeenCalledWith('DEV', permissions);
+    expect(SPACE_PERMISSIONS.setPermissions1).toHaveBeenCalledWith({ spaceKey: 'DEV', requestBody: permissions });
     expect(result.success).toBe(true);
   });
 
@@ -306,7 +284,7 @@ describe('ConfluenceService space permissions', () => {
 
     const result = await service.getAnonymousSpacePermissions('DEV');
 
-    expect(SPACE_PERMISSIONS.getPermissionsGrantedToAnonymousUsers1).toHaveBeenCalledWith('DEV');
+    expect(SPACE_PERMISSIONS.getPermissionsGrantedToAnonymousUsers1).toHaveBeenCalledWith({ spaceKey: 'DEV' });
     expect(result.success).toBe(true);
   });
 
@@ -323,7 +301,7 @@ describe('ConfluenceService space permissions', () => {
 
     const result = await service.getGroupSpacePermissions('DEV', 'developers');
 
-    expect(SPACE_PERMISSIONS.getPermissionsGrantedToGroup1).toHaveBeenCalledWith('DEV', 'developers');
+    expect(SPACE_PERMISSIONS.getPermissionsGrantedToGroup1).toHaveBeenCalledWith({ spaceKey: 'DEV', groupName: 'developers' });
     expect(result.success).toBe(true);
   });
 
@@ -340,7 +318,7 @@ describe('ConfluenceService space permissions', () => {
 
     const result = await service.getUserSpacePermissions('DEV', 'user-key-1');
 
-    expect(SPACE_PERMISSIONS.getPermissionsGrantedToUser1).toHaveBeenCalledWith('DEV', 'user-key-1');
+    expect(SPACE_PERMISSIONS.getPermissionsGrantedToUser1).toHaveBeenCalledWith({ spaceKey: 'DEV', userKey: 'user-key-1' });
     expect(result.success).toBe(true);
   });
 
@@ -358,7 +336,7 @@ describe('ConfluenceService space permissions', () => {
 
     const result = await service.grantAnonymousSpacePermissions('DEV', operations);
 
-    expect(SPACE_PERMISSIONS.grantPermissionsToAnonymousUsers1).toHaveBeenCalledWith('DEV', operations);
+    expect(SPACE_PERMISSIONS.grantPermissionsToAnonymousUsers1).toHaveBeenCalledWith({ spaceKey: 'DEV', requestBody: operations });
     expect(result.success).toBe(true);
   });
 
@@ -376,7 +354,7 @@ describe('ConfluenceService space permissions', () => {
 
     const result = await service.grantGroupSpacePermissions('DEV', 'developers', operations);
 
-    expect(SPACE_PERMISSIONS.grantPermissionsToGroup1).toHaveBeenCalledWith('DEV', 'developers', operations);
+    expect(SPACE_PERMISSIONS.grantPermissionsToGroup1).toHaveBeenCalledWith({ spaceKey: 'DEV', groupName: 'developers', requestBody: operations });
     expect(result.success).toBe(true);
   });
 
@@ -394,7 +372,7 @@ describe('ConfluenceService space permissions', () => {
 
     const result = await service.grantUserSpacePermissions('DEV', 'user-key-1', operations);
 
-    expect(SPACE_PERMISSIONS.grantPermissionsToUser1).toHaveBeenCalledWith('DEV', 'user-key-1', operations);
+    expect(SPACE_PERMISSIONS.grantPermissionsToUser1).toHaveBeenCalledWith({ spaceKey: 'DEV', userKey: 'user-key-1', requestBody: operations });
     expect(result.success).toBe(true);
   });
 
@@ -412,7 +390,7 @@ describe('ConfluenceService space permissions', () => {
 
     const result = await service.revokeAnonymousSpacePermissions('DEV', operations);
 
-    expect(SPACE_PERMISSIONS.revokePermissionsFromAnonymousUser).toHaveBeenCalledWith('DEV', operations);
+    expect(SPACE_PERMISSIONS.revokePermissionsFromAnonymousUser).toHaveBeenCalledWith({ spaceKey: 'DEV', requestBody: operations });
     expect(result.success).toBe(true);
   });
 
@@ -430,7 +408,7 @@ describe('ConfluenceService space permissions', () => {
 
     const result = await service.revokeGroupSpacePermissions('DEV', 'developers', operations);
 
-    expect(SPACE_PERMISSIONS.revokePermissionsFromGroup1).toHaveBeenCalledWith('DEV', 'developers', operations);
+    expect(SPACE_PERMISSIONS.revokePermissionsFromGroup1).toHaveBeenCalledWith({ spaceKey: 'DEV', groupName: 'developers', requestBody: operations });
     expect(result.success).toBe(true);
   });
 
@@ -448,7 +426,7 @@ describe('ConfluenceService space permissions', () => {
 
     const result = await service.revokeUserSpacePermissions('DEV', 'user-key-1', operations);
 
-    expect(SPACE_PERMISSIONS.revokePermissionsFromUser1).toHaveBeenCalledWith('DEV', 'user-key-1', operations);
+    expect(SPACE_PERMISSIONS.revokePermissionsFromUser1).toHaveBeenCalledWith({ spaceKey: 'DEV', userKey: 'user-key-1', requestBody: operations });
     expect(result.success).toBe(true);
   });
 

@@ -1,33 +1,35 @@
 import { describe, expect, it, vi } from 'vitest';
-import { OpenAPI } from '../src/confluenceClient/index.js';
 import { ConfluenceService, escapeSearchTextForCql } from '../src/confluenceService.js';
 
-vi.mock('../src/confluenceClient/index.js', () => ({
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-    HEADERS: undefined,
-  },
+const createConfluenceClientMock = vi.hoisted(() =>
+  vi.fn((_config: { username?: unknown; password?: unknown }) => ({})),
+);
+
+vi.mock('../src/confluenceClient/index.js', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createConfluenceClient: createConfluenceClientMock,
 }));
 
 describe('constructor Basic auth wiring', () => {
-  it('resolves username and password onto OpenAPI for Basic auth', async () => {
+  it('resolves username and password onto the client config for Basic auth', () => {
     new ConfluenceService('confluence.example.com', '', undefined, () => 25, 'jdoe', 'hunter2');
-    expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
-    expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+    const config = createConfluenceClientMock.mock.calls.at(-1)?.[0];
+    expect(config?.username).toBe('jdoe');
+    expect(config?.password).toBe('hunter2');
   });
 
-  it('resolves username/password from getter functions, same as token', async () => {
+  it('resolves username/password from getter functions, same as token', () => {
     new ConfluenceService('confluence.example.com', '', undefined, () => 25, () => 'jdoe', () => 'hunter2');
-    expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
-    expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+    const config = createConfluenceClientMock.mock.calls.at(-1)?.[0];
+    expect((config?.username as () => string)()).toBe('jdoe');
+    expect((config?.password as () => string)()).toBe('hunter2');
   });
 
-  it('resolves username/password to an empty string when omitted', async () => {
+  it('leaves username/password undefined when omitted', () => {
     new ConfluenceService('confluence.example.com', 'test-token');
-    expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('');
-    expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('');
+    const config = createConfluenceClientMock.mock.calls.at(-1)?.[0];
+    expect(config?.username).toBeUndefined();
+    expect(config?.password).toBeUndefined();
   });
 });
 
