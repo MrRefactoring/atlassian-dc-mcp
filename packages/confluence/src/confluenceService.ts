@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { AccessModeService, AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, BackupAndRestoreService, ChildContentService, ClusterInformationService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentVersionService, ContentWatchersService, DefaultService, GlobalPermissionsService, GroupService, InstanceMetricsService, LabelService, LongTaskService, OpenAPI, SearchService, ServerInformationService, SpaceLabelService, SpacePermissionsService, SpaceService, SpacePropertyService, SpaceWatchersService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluenceClient/index.js';
-import type { Content, MockAttachmentRequest } from './confluenceClient/index.js';
+import { createConfluenceClient } from './confluenceClient/index.js';
+import type { ConfluenceClient, Content, MockAttachmentRequest } from './confluenceClient/index.js';
 import { handleApiOperation, paginateAll, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import type { ConfluenceBodyMode } from './confluenceResponseMapper.js';
@@ -68,16 +68,10 @@ export interface WebhookInput {
   };
 }
 
-function resolveCredential(value: string | (() => string | undefined) | undefined) {
-  return async () => {
-    const resolved = typeof value === 'function' ? value() : value;
-
-    return resolved ?? '';
-  };
-}
-
 export class ConfluenceService {
   private readonly getPageSize: () => number;
+
+  private readonly conf: ConfluenceClient;
 
   constructor(
     host: string | undefined,
@@ -87,18 +81,17 @@ export class ConfluenceService {
     username?: string | (() => string | undefined),
     password?: string | (() => string | undefined),
   ) {
-    OpenAPI.BASE = resolveOpenApiBase({
-      host,
-      apiBasePath,
-      defaultBasePath: CONFLUENCE_PRODUCT.defaultApiBasePath ?? '',
-      strippableSuffixes: CONFLUENCE_PRODUCT.apiBasePathStrippableSuffixes,
+    this.conf = createConfluenceClient({
+      baseUrl: resolveOpenApiBase({
+        host,
+        apiBasePath,
+        defaultBasePath: CONFLUENCE_PRODUCT.defaultApiBasePath ?? '',
+        strippableSuffixes: CONFLUENCE_PRODUCT.apiBasePathStrippableSuffixes,
+      }),
+      token,
+      username,
+      password,
     });
-    OpenAPI.TOKEN = resolveCredential(token);
-    OpenAPI.USERNAME = resolveCredential(username);
-    OpenAPI.PASSWORD = resolveCredential(password);
-    OpenAPI.VERSION = '1.0';
-    // Attachment endpoints (create/update/move) enforce XSRF protection and require this header on every request.
-    OpenAPI.HEADERS = { 'X-Atlassian-Token': 'no-check' };
     this.getPageSize = getPageSize;
   }
 
@@ -113,7 +106,7 @@ export class ConfluenceService {
       ? `${expand},body.storage`
       : expandValue;
 
-    return handleApiOperation(() => ContentResourceService.getContentById(contentId, finalExpand), 'Error getting content');
+    return handleApiOperation(() => this.conf.content.getContentById({ id: contentId, expand: finalExpand }), 'Error getting content');
   }
 
   async getContent(
@@ -143,15 +136,13 @@ export class ConfluenceService {
    */
   async searchContent(cql: string, limit?: number, start?: number, expand?: string, excerpt: 'none' | 'highlight' = 'none') {
     return handleApiOperation(
-      () => SearchService.search1(
-        undefined,
+      () => this.conf.content.search1({
         expand,
-        undefined,
-        (limit ?? this.getPageSize()).toString(),
-        start?.toString(),
+        limit: (limit ?? this.getPageSize()).toString(),
+        start: start?.toString(),
         excerpt,
         cql,
-      ),
+      }),
       'Error searching for content',
     );
   }
@@ -161,7 +152,7 @@ export class ConfluenceService {
    * @param content The content object to create
    */
   async createContent(content: ConfluenceContent) {
-    return handleApiOperation(() => ContentResourceService.createContent(content), 'Error creating content');
+    return handleApiOperation(() => this.conf.content.createContent({ requestBody: content as unknown as Content }), 'Error creating content');
   }
 
   /**
@@ -170,7 +161,7 @@ export class ConfluenceService {
    * @param content The updated content object
    */
   async updateContent(contentId: string, content: ConfluenceContent) {
-    return handleApiOperation(() => ContentResourceService.update2(contentId, content), 'Error updating content');
+    return handleApiOperation(() => this.conf.content.update2({ contentId, requestBody: content as unknown as Content }), 'Error updating content');
   }
 
   /**
@@ -180,7 +171,7 @@ export class ConfluenceService {
    * @param status Optional content status selector
    */
   async deleteContent(contentId: string, status?: string) {
-    return handleApiOperation(() => ContentResourceService.delete3(contentId, status), 'Error deleting content');
+    return handleApiOperation(() => this.conf.content.delete3({ id: contentId, status }), 'Error deleting content');
   }
 
   /**
@@ -189,7 +180,7 @@ export class ConfluenceService {
    * @param expand Optional comma-separated list of properties to expand
    */
   async getContentHistory(contentId: string, expand?: string) {
-    return handleApiOperation(() => ContentResourceService.getHistory(contentId, expand), 'Error getting content history');
+    return handleApiOperation(() => this.conf.content.getHistory({ id: contentId, expand }), 'Error getting content history');
   }
 
   /**
@@ -201,7 +192,7 @@ export class ConfluenceService {
    */
   async getContentChildren(contentId: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => ChildContentService.children(contentId, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.content.children({ id: contentId, expand, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting content children',
     );
   }
@@ -213,7 +204,7 @@ export class ConfluenceService {
    */
   async getContentChildrenByType(contentId: string, type: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => ChildContentService.childrenOfType(contentId, type, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.content.childrenOfType({ id: contentId, type, expand, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting content children by type',
     );
   }
@@ -226,7 +217,7 @@ export class ConfluenceService {
    */
   async getContentComments(contentId: string, expand?: string, depth?: string, limit?: number, start?: number, location?: string) {
     return handleApiOperation(
-      () => ChildContentService.commentsOfContent(contentId, expand, depth, (limit ?? this.getPageSize()).toString(), start?.toString(), location),
+      () => this.conf.content.commentsOfContent({ id: contentId, expand, depth, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString(), location }),
       'Error getting content comments',
     );
   }
@@ -238,7 +229,7 @@ export class ConfluenceService {
    */
   async getContentDescendants(contentId: string, expand?: string) {
     return handleApiOperation(
-      () => ContentDescendantService.descendants(contentId, expand),
+      () => this.conf.content.descendants({ id: contentId, expand }),
       'Error getting content descendants',
     );
   }
@@ -250,7 +241,7 @@ export class ConfluenceService {
    */
   async getContentDescendantsByType(contentId: string, type: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => ContentDescendantService.descendantsOfType(contentId, type, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.content.descendantsOfType({ id: contentId, type, expand, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting content descendants by type',
     );
   }
@@ -262,7 +253,7 @@ export class ConfluenceService {
    */
   async getContentLabels(contentId: string, prefix?: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => ContentLabelsService.labels(contentId, prefix, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.content.labels({ id: contentId, prefix, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting content labels',
     );
   }
@@ -274,7 +265,7 @@ export class ConfluenceService {
    */
   async addContentLabels(contentId: string, labels: Array<{ name: string; prefix?: string }>) {
     return handleApiOperation(
-      () => ContentLabelsService.addLabels(contentId, labels),
+      () => this.conf.content.addLabels({ id: contentId, requestBody: labels }),
       'Error adding content labels',
     );
   }
@@ -287,7 +278,7 @@ export class ConfluenceService {
    */
   async deleteContentLabel(contentId: string, name: string) {
     return handleApiOperation(
-      () => ContentLabelsService.deleteLabelWithQueryParam(contentId, name),
+      () => this.conf.content.deleteLabelWithQueryParam({ id: contentId, name }),
       'Error deleting content label',
     );
   }
@@ -298,7 +289,7 @@ export class ConfluenceService {
    */
   async getContentProperties(contentId: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => ContentPropertyService.findAll(contentId, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.content.findAll({ id: contentId, expand, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting content properties',
     );
   }
@@ -310,7 +301,7 @@ export class ConfluenceService {
    */
   async getContentProperty(contentId: string, key: string, expand?: string) {
     return handleApiOperation(
-      () => ContentPropertyService.findByKey(contentId, key, expand),
+      () => this.conf.content.findByKey({ id: contentId, key, expand }),
       'Error getting content property',
     );
   }
@@ -323,7 +314,7 @@ export class ConfluenceService {
    */
   async createContentProperty(contentId: string, key: string, value: unknown) {
     return handleApiOperation(
-      () => ContentPropertyService.create1(contentId, { key, value }),
+      () => this.conf.content.create1({ id: contentId, requestBody: { key, value } }),
       'Error creating content property',
     );
   }
@@ -337,7 +328,7 @@ export class ConfluenceService {
    */
   async updateContentProperty(contentId: string, key: string, value: unknown, version: number) {
     return handleApiOperation(
-      () => ContentPropertyService.update1(contentId, key, undefined, { key, value, version: { number: version } }),
+      () => this.conf.content.update1({ id: contentId, key, requestBody: { key, value, version: { number: version } } }),
       'Error updating content property',
     );
   }
@@ -349,7 +340,7 @@ export class ConfluenceService {
    */
   async deleteContentProperty(contentId: string, key: string) {
     return handleApiOperation(
-      () => ContentPropertyService.delete2(contentId, key),
+      () => this.conf.content.delete2({ id: contentId, key }),
       'Error deleting content property',
     );
   }
@@ -360,7 +351,7 @@ export class ConfluenceService {
    */
   async getContentRestrictions(contentId: string, expand?: string) {
     return handleApiOperation(
-      () => ContentRestrictionsService.byOperation(contentId, expand),
+      () => this.conf.content.byOperation({ id: contentId, expand }),
       'Error getting content restrictions',
     );
   }
@@ -372,7 +363,7 @@ export class ConfluenceService {
    */
   async getContentRestrictionsByOperation(operationKey: string, contentId: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => ContentRestrictionsService.forOperation(operationKey, contentId, expand, limit?.toString(), start?.toString()),
+      () => this.conf.content.forOperation({ operationKey, id: contentId, expand, limit: limit?.toString(), start: start?.toString() }),
       'Error getting content restrictions by operation',
     );
   }
@@ -391,7 +382,7 @@ export class ConfluenceService {
     start?: number,
   ) {
     return handleApiOperation(
-      () => ContentRestrictionsService.updateRestrictions(contentId, expand, limit?.toString(), start?.toString(), restrictions),
+      () => this.conf.content.updateRestrictions({ id: contentId, expand, limit: limit?.toString(), start: start?.toString(), requestBody: restrictions }),
       'Error updating content restrictions',
     );
   }
@@ -403,7 +394,7 @@ export class ConfluenceService {
    */
   async getContentWatchers(contentId: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => ContentWatchersService.index(contentId, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.content.index({ contentId, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting content watchers',
     );
   }
@@ -417,7 +408,7 @@ export class ConfluenceService {
    */
   async isWatchingContent(contentId: string, key?: string, username?: string) {
     return handleApiOperation(
-      () => UserWatchService.isWatchingContent(contentId, key, username),
+      () => this.conf.content.isWatchingContent({ contentId, key, username }),
       'Error checking content watch state',
     );
   }
@@ -430,7 +421,7 @@ export class ConfluenceService {
    */
   async addContentWatcher(contentId: string, key?: string, username?: string) {
     return handleApiOperation(
-      () => UserWatchService.addContentWatcher(contentId, key, username),
+      () => this.conf.content.addContentWatcher({ contentId, key, username }),
       'Error adding content watcher',
     );
   }
@@ -443,7 +434,7 @@ export class ConfluenceService {
    */
   async removeContentWatcher(contentId: string, key?: string, username?: string) {
     return handleApiOperation(
-      () => UserWatchService.removeContentWatcher(contentId, key, username),
+      () => this.conf.content.removeContentWatcher({ contentId, key, username }),
       'Error removing content watcher',
     );
   }
@@ -457,7 +448,7 @@ export class ConfluenceService {
   async getAttachments(contentId: string, expand?: string, filename?: string, limit?: number, start?: number, mediaType?: string, fetchAll?: boolean) {
     const pageSize = (limit ?? this.getPageSize()).toString();
     const fetchPage = (offset?: number) =>
-      AttachmentsService.getAttachments(contentId, expand, filename, pageSize, offset?.toString(), mediaType);
+      this.conf.attachments.getAttachments({ id: contentId, expand, filename, limit: pageSize, start: offset?.toString(), mediaType });
 
     if (fetchAll) {
       return handleApiOperation(
@@ -476,7 +467,7 @@ export class ConfluenceService {
    */
   async removeAttachment(attachmentId: string, contentId: string) {
     return handleApiOperation(
-      () => AttachmentsService.removeAttachment(attachmentId, contentId),
+      () => this.conf.attachments.removeAttachment({ attachmentId, id: contentId }),
       'Error removing attachment',
     );
   }
@@ -500,15 +491,13 @@ export class ConfluenceService {
     const escapedSearchText = escapeSearchTextForCql(searchText);
     const cql = `type=space AND title ~ "${escapedSearchText}"`;
 
-    return handleApiOperation(() => SearchService.search1(
-      undefined,
+    return handleApiOperation(() => this.conf.content.search1({
       expand,
-      undefined,
-      (limit ?? this.getPageSize()).toString(),
-      start?.toString(),
+      limit: (limit ?? this.getPageSize()).toString(),
+      start: start?.toString(),
       excerpt,
       cql,
-    ), 'Error searching for spaces');
+    }), 'Error searching for spaces');
   }
 
   /**
@@ -517,7 +506,7 @@ export class ConfluenceService {
    * @param expand Optional comma-separated list of properties to expand
    */
   async getSpace(spaceKey: string, expand?: string) {
-    return handleApiOperation(() => SpaceService.space(spaceKey, expand), 'Error getting space');
+    return handleApiOperation(() => this.conf.spaces.space({ spaceKey, expand }), 'Error getting space');
   }
 
   /**
@@ -555,22 +544,16 @@ export class ConfluenceService {
     fetchAll?: boolean,
   ) {
     const pageSize = (limit ?? this.getPageSize()).toString();
-    const fetchPage = (offset?: number) => SpaceService.spaces(
-      undefined,
-      offset?.toString(),
+    const fetchPage = (offset?: number) => this.conf.spaces.spaces({
+      start: offset?.toString(),
       label,
-      favourite?.toString(),
+      favourite: favourite?.toString(),
       type,
       spaceKey,
-      undefined,
       expand,
-      undefined,
-      pageSize,
-      undefined,
-      undefined,
-      undefined,
+      limit: pageSize,
       status,
-    );
+    });
 
     if (fetchAll) {
       return handleApiOperation(
@@ -589,7 +572,7 @@ export class ConfluenceService {
    */
   async createSpace(space: ConfluenceSpace, isPrivate = false) {
     return handleApiOperation(
-      () => (isPrivate ? SpaceService.createPrivateSpace(space) : SpaceService.createSpace(space)),
+      () => (isPrivate ? this.conf.spaces.createPrivateSpace({ requestBody: space }) : this.conf.spaces.createSpace({ requestBody: space })),
       'Error creating space',
     );
   }
@@ -615,13 +598,13 @@ export class ConfluenceService {
       const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
       const formData = { file, comment, minorEdit, hidden } as unknown as MockAttachmentRequest;
 
-      return AttachmentsService.createAttachments(
-        contentId,
+      return this.conf.attachments.createAttachments({
+        id: contentId,
         expand,
-        allowDuplicated ? 'true' : undefined,
+        allowDuplicated: allowDuplicated ? 'true' : undefined,
         status,
         formData,
-      );
+      });
     }, 'Error creating attachment');
   }
 
@@ -650,7 +633,7 @@ export class ConfluenceService {
     };
 
     return handleApiOperation(
-      () => AttachmentsService.update(attachmentId, contentId, body),
+      () => this.conf.attachments.update({ attachmentId, id: contentId, requestBody: body }),
       'Error updating attachment metadata',
     );
   }
@@ -661,7 +644,7 @@ export class ConfluenceService {
    * @param space The space body ({ name, description? })
    */
   async updateSpace(spaceKey: string, space: ConfluenceSpace) {
-    return handleApiOperation(() => SpaceService.update4(spaceKey, space), 'Error updating space');
+    return handleApiOperation(() => this.conf.spaces.update4({ spaceKey, requestBody: space }), 'Error updating space');
   }
 
   /**
@@ -669,7 +652,7 @@ export class ConfluenceService {
    * @param spaceKey The key of the space to delete
    */
   async deleteSpace(spaceKey: string) {
-    return handleApiOperation(() => SpaceService.delete5(spaceKey), 'Error deleting space');
+    return handleApiOperation(() => this.conf.spaces.delete5({ spaceKey }), 'Error deleting space');
   }
 
   /**
@@ -683,8 +666,8 @@ export class ConfluenceService {
 
     return handleApiOperation(
       () => (type
-        ? SpaceService.contentsWithType1(spaceKey, type, expand, depth, limitValue, start?.toString())
-        : SpaceService.contents(spaceKey, expand, depth, limitValue, start?.toString())),
+        ? this.conf.spaces.contentsWithType1({ spaceKey, type, expand, depth, limit: limitValue, start: start?.toString() })
+        : this.conf.spaces.contents({ spaceKey, expand, depth, limit: limitValue, start: start?.toString() })),
       'Error getting space content',
     );
   }
@@ -708,7 +691,7 @@ export class ConfluenceService {
       const file = new File([Buffer.from(contentBase64, 'base64')], fileName);
       const formData = { file, comment, minorEdit } as unknown as MockAttachmentRequest;
 
-      return AttachmentsService.updateData(attachmentId, contentId, formData);
+      return this.conf.attachments.updateData({ attachmentId, id: contentId, formData });
     }, 'Error updating attachment data');
   }
 
@@ -719,7 +702,7 @@ export class ConfluenceService {
    */
   async moveAttachment(contentId: string, attachmentId: string, newContentId?: string, newName?: string) {
     return handleApiOperation(
-      () => AttachmentsService.move(attachmentId, contentId, newName, newContentId),
+      () => this.conf.attachments.move({ attachmentId, id: contentId, newName, newContentId }),
       'Error moving attachment',
     );
   }
@@ -729,7 +712,7 @@ export class ConfluenceService {
    * @param spaceKey The key of the space to archive
    */
   async archiveSpace(spaceKey: string) {
-    return handleApiOperation(() => SpaceService.archive(spaceKey), 'Error archiving space');
+    return handleApiOperation(() => this.conf.spaces.archive({ spaceKey }), 'Error archiving space');
   }
 
   /**
@@ -737,7 +720,7 @@ export class ConfluenceService {
    * @param spaceKey The key of the space to restore
    */
   async restoreSpace(spaceKey: string) {
-    return handleApiOperation(() => SpaceService.restore(spaceKey), 'Error restoring space');
+    return handleApiOperation(() => this.conf.spaces.restore({ spaceKey }), 'Error restoring space');
   }
 
   /**
@@ -746,7 +729,7 @@ export class ConfluenceService {
    */
   async getSpaceProperties(spaceKey: string, expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => SpacePropertyService.get1(spaceKey, expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.spaces.get1({ spaceKey, expand, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting space properties',
     );
   }
@@ -758,7 +741,7 @@ export class ConfluenceService {
    */
   async deleteAttachment(contentId: string, attachmentId: string) {
     return handleApiOperation(
-      () => AttachmentsService.removeAttachment(attachmentId, contentId),
+      () => this.conf.attachments.removeAttachment({ attachmentId, id: contentId }),
       'Error deleting attachment',
     );
   }
@@ -770,7 +753,7 @@ export class ConfluenceService {
    */
   async getSpaceProperty(spaceKey: string, key: string, expand?: string) {
     return handleApiOperation(
-      () => SpacePropertyService.get(spaceKey, key, expand),
+      () => this.conf.spaces.get({ spaceKey, key, expand }),
       'Error getting space property',
     );
   }
@@ -783,7 +766,7 @@ export class ConfluenceService {
    */
   async createSpaceProperty(spaceKey: string, key: string, value: unknown) {
     return handleApiOperation(
-      () => SpacePropertyService.create3(spaceKey, { key, value }),
+      () => this.conf.spaces.create3({ spaceKey, requestBody: { key, value } }),
       'Error creating space property',
     );
   }
@@ -797,7 +780,7 @@ export class ConfluenceService {
    */
   async updateSpaceProperty(spaceKey: string, key: string, value: unknown, version: number) {
     return handleApiOperation(
-      () => SpacePropertyService.update3(spaceKey, key, { key, value, version: { number: version } }),
+      () => this.conf.spaces.update3({ spaceKey, key, requestBody: { key, value, version: { number: version } } }),
       'Error updating space property',
     );
   }
@@ -809,7 +792,7 @@ export class ConfluenceService {
    */
   async deleteSpaceProperty(spaceKey: string, key: string) {
     return handleApiOperation(
-      () => SpacePropertyService.delete4(spaceKey, key),
+      () => this.conf.spaces.delete4({ spaceKey, key }),
       'Error deleting space property',
     );
   }
@@ -822,7 +805,7 @@ export class ConfluenceService {
    */
   async deleteAttachmentVersion(contentId: string, attachmentId: string, version: number) {
     return handleApiOperation(
-      () => AttachmentsService.removeAttachmentVersion(attachmentId, contentId, version),
+      () => this.conf.attachments.removeAttachmentVersion({ attachmentId, id: contentId, version }),
       'Error deleting attachment version',
     );
   }
@@ -833,7 +816,7 @@ export class ConfluenceService {
    */
   async getAllSpacePermissions(spaceKey: string) {
     return handleApiOperation(
-      () => SpacePermissionsService.getAllSpacePermissions(spaceKey),
+      () => this.conf.spaces.getAllSpacePermissions({ spaceKey }),
       'Error getting space permissions',
     );
   }
@@ -846,7 +829,7 @@ export class ConfluenceService {
    */
   async setSpacePermissions(spaceKey: string, permissions: SpacePermissionsForSubjectInput[]) {
     return handleApiOperation(
-      () => SpacePermissionsService.setPermissions1(spaceKey, permissions),
+      () => this.conf.spaces.setPermissions1({ spaceKey, requestBody: permissions }),
       'Error setting space permissions',
     );
   }
@@ -857,7 +840,7 @@ export class ConfluenceService {
    */
   async getAnonymousSpacePermissions(spaceKey: string) {
     return handleApiOperation(
-      () => SpacePermissionsService.getPermissionsGrantedToAnonymousUsers1(spaceKey),
+      () => this.conf.spaces.getPermissionsGrantedToAnonymousUsers1({ spaceKey }),
       'Error getting anonymous space permissions',
     );
   }
@@ -869,7 +852,7 @@ export class ConfluenceService {
    */
   async getGroupSpacePermissions(spaceKey: string, groupName: string) {
     return handleApiOperation(
-      () => SpacePermissionsService.getPermissionsGrantedToGroup1(spaceKey, groupName),
+      () => this.conf.spaces.getPermissionsGrantedToGroup1({ spaceKey, groupName }),
       'Error getting group space permissions',
     );
   }
@@ -881,7 +864,7 @@ export class ConfluenceService {
    */
   async getUserSpacePermissions(spaceKey: string, userKey: string) {
     return handleApiOperation(
-      () => SpacePermissionsService.getPermissionsGrantedToUser1(spaceKey, userKey),
+      () => this.conf.spaces.getPermissionsGrantedToUser1({ spaceKey, userKey }),
       'Error getting user space permissions',
     );
   }
@@ -893,7 +876,7 @@ export class ConfluenceService {
    */
   async grantAnonymousSpacePermissions(spaceKey: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
-      () => SpacePermissionsService.grantPermissionsToAnonymousUsers1(spaceKey, operations),
+      () => this.conf.spaces.grantPermissionsToAnonymousUsers1({ spaceKey, requestBody: operations }),
       'Error granting anonymous space permissions',
     );
   }
@@ -906,7 +889,7 @@ export class ConfluenceService {
    */
   async grantGroupSpacePermissions(spaceKey: string, groupName: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
-      () => SpacePermissionsService.grantPermissionsToGroup1(spaceKey, groupName, operations),
+      () => this.conf.spaces.grantPermissionsToGroup1({ spaceKey, groupName, requestBody: operations }),
       'Error granting group space permissions',
     );
   }
@@ -919,7 +902,7 @@ export class ConfluenceService {
    */
   async grantUserSpacePermissions(spaceKey: string, userKey: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
-      () => SpacePermissionsService.grantPermissionsToUser1(spaceKey, userKey, operations),
+      () => this.conf.spaces.grantPermissionsToUser1({ spaceKey, userKey, requestBody: operations }),
       'Error granting user space permissions',
     );
   }
@@ -931,7 +914,7 @@ export class ConfluenceService {
    */
   async revokeAnonymousSpacePermissions(spaceKey: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
-      () => SpacePermissionsService.revokePermissionsFromAnonymousUser(spaceKey, operations),
+      () => this.conf.spaces.revokePermissionsFromAnonymousUser({ spaceKey, requestBody: operations }),
       'Error revoking anonymous space permissions',
     );
   }
@@ -944,7 +927,7 @@ export class ConfluenceService {
    */
   async revokeGroupSpacePermissions(spaceKey: string, groupName: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
-      () => SpacePermissionsService.revokePermissionsFromGroup1(spaceKey, groupName, operations),
+      () => this.conf.spaces.revokePermissionsFromGroup1({ spaceKey, groupName, requestBody: operations }),
       'Error revoking group space permissions',
     );
   }
@@ -957,7 +940,7 @@ export class ConfluenceService {
    */
   async revokeUserSpacePermissions(spaceKey: string, userKey: string, operations: OperationDescriptionInput[]) {
     return handleApiOperation(
-      () => SpacePermissionsService.revokePermissionsFromUser1(spaceKey, userKey, operations),
+      () => this.conf.spaces.revokePermissionsFromUser1({ spaceKey, userKey, requestBody: operations }),
       'Error revoking user space permissions',
     );
   }
@@ -966,21 +949,21 @@ export class ConfluenceService {
    * Get information about the current logged in user.
    */
   async getCurrentUser(expand?: string) {
-    return handleApiOperation(() => UserService.getCurrent(expand), 'Error getting current user');
+    return handleApiOperation(() => this.conf.users.getCurrent({ expand }), 'Error getting current user');
   }
 
   /**
    * Get information about how the anonymous user is represented.
    */
   async getAnonymousUser(expand?: string) {
-    return handleApiOperation(() => UserService.getAnonymous(expand), 'Error getting anonymous user');
+    return handleApiOperation(() => this.conf.users.getAnonymous({ expand }), 'Error getting anonymous user');
   }
 
   /**
    * Get a user by user key or username. Exactly one of key or username should be supplied.
    */
   async getUser(key?: string, username?: string, expand?: string) {
-    return handleApiOperation(() => UserService.getUser(expand, key, username), 'Error getting user');
+    return handleApiOperation(() => this.conf.users.getUser({ expand, key, username }), 'Error getting user');
   }
 
   /**
@@ -988,7 +971,7 @@ export class ConfluenceService {
    */
   async getUsers(limit?: number, start?: number, expand?: string) {
     return handleApiOperation(
-      () => UserService.getUsers(expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.users.getUsers({ expand, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting users',
     );
   }
@@ -998,7 +981,7 @@ export class ConfluenceService {
    */
   async getUserGroups(key?: string, username?: string, limit?: number, start?: number, expand?: string) {
     return handleApiOperation(
-      () => UserService.getGroups1(expand, (limit ?? this.getPageSize()).toString(), start?.toString(), key, username),
+      () => this.conf.users.getGroups1({ expand, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString(), key, username }),
       'Error getting user groups',
     );
   }
@@ -1008,7 +991,7 @@ export class ConfluenceService {
    */
   async updateCurrentUser(fullName?: string, email?: string, currentPassword?: string) {
     return handleApiOperation(
-      () => UserService.updateUser1({ fullName, email, currentPassword }),
+      () => this.conf.users.updateUser1({ requestBody: { fullName, email, currentPassword } }),
       'Error updating current user',
     );
   }
@@ -1018,7 +1001,7 @@ export class ConfluenceService {
    */
   async changeCurrentUserPassword(newPassword: string, oldPassword?: string) {
     return handleApiOperation(
-      () => UserService.changePassword1({ newPassword, oldPassword }),
+      () => this.conf.users.changePassword1({ requestBody: { newPassword, oldPassword } }),
       'Error changing current user password',
     );
   }
@@ -1027,7 +1010,7 @@ export class ConfluenceService {
    * Get a user group by name.
    */
   async getGroup(groupName: string, expand?: string) {
-    return handleApiOperation(() => GroupService.getGroup(groupName, expand), 'Error getting group');
+    return handleApiOperation(() => this.conf.users.getGroup({ groupName, expand }), 'Error getting group');
   }
 
   /**
@@ -1035,7 +1018,7 @@ export class ConfluenceService {
    */
   async getGroups(limit?: number, start?: number, expand?: string, fetchAll?: boolean) {
     const pageSize = limit ?? this.getPageSize();
-    const fetchPage = (offset?: number) => GroupService.getGroups(expand, pageSize, offset);
+    const fetchPage = (offset?: number) => this.conf.users.getGroups({ expand, limit: pageSize, start: offset });
 
     if (fetchAll) {
       return handleApiOperation(
@@ -1052,7 +1035,7 @@ export class ConfluenceService {
    */
   async getGroupMembers(groupName: string, limit?: number, start?: number, expand?: string) {
     return handleApiOperation(
-      () => GroupService.getMembers(groupName, expand, limit ?? this.getPageSize(), start),
+      () => this.conf.users.getMembers({ groupName, expand, limit: limit ?? this.getPageSize(), start }),
       'Error getting group members',
     );
   }
@@ -1062,7 +1045,7 @@ export class ConfluenceService {
    */
   async getNestedGroupMembers(groupName: string, limit?: number, start?: number, expand?: string) {
     return handleApiOperation(
-      () => GroupService.getNestedGroupMembers(groupName, expand, limit ?? this.getPageSize(), start),
+      () => this.conf.users.getNestedGroupMembers({ groupName, expand, limit: limit ?? this.getPageSize(), start }),
       'Error getting nested group members',
     );
   }
@@ -1072,7 +1055,7 @@ export class ConfluenceService {
    */
   async addUserToGroup(username: string, groupName: string) {
     return handleApiOperation(
-      () => UserGroupService.update5(groupName, username),
+      () => this.conf.users.update5({ groupName, username }),
       'Error adding user to group',
     );
   }
@@ -1082,7 +1065,7 @@ export class ConfluenceService {
    */
   async removeUserFromGroup(username: string, groupName: string) {
     return handleApiOperation(
-      () => UserGroupService.delete6(groupName, username),
+      () => this.conf.users.delete6({ groupName, username }),
       'Error removing user from group',
     );
   }
@@ -1093,7 +1076,7 @@ export class ConfluenceService {
    */
   async adminCreateUser(userName: string, fullName: string, email: string, password?: string, notifyViaEmail?: boolean) {
     return handleApiOperation(
-      () => AdminUserService.createUser({ userName, fullName, email, password, notifyViaEmail }),
+      () => this.conf.users.createUser({ requestBody: { userName, fullName, email, password, notifyViaEmail } }),
       'Error creating user',
     );
   }
@@ -1103,7 +1086,7 @@ export class ConfluenceService {
    */
   async adminUpdateUser(username: string, fullName?: string, email?: string) {
     return handleApiOperation(
-      () => AdminUserService.updateUser(username, { fullName, email }),
+      () => this.conf.users.updateUser({ username, requestBody: { fullName, email } }),
       'Error updating user',
     );
   }
@@ -1112,21 +1095,21 @@ export class ConfluenceService {
    * Delete a user. Requires system administrator permission. Runs asynchronously as a long-running task.
    */
   async adminDeleteUser(username: string) {
-    return handleApiOperation(() => AdminUserService.delete1(username), 'Error deleting user');
+    return handleApiOperation(() => this.conf.users.delete1({ username }), 'Error deleting user');
   }
 
   /**
    * Disable (deactivate) a user. Requires system administrator permission. Idempotent.
    */
   async adminDisableUser(username: string) {
-    return handleApiOperation(() => AdminUserService.disable(username), 'Error disabling user');
+    return handleApiOperation(() => this.conf.users.disable({ username }), 'Error disabling user');
   }
 
   /**
    * Enable (reactivate) a user. Requires system administrator permission. Idempotent.
    */
   async adminEnableUser(username: string) {
-    return handleApiOperation(() => AdminUserService.enable(username), 'Error enabling user');
+    return handleApiOperation(() => this.conf.users.enable({ username }), 'Error enabling user');
   }
 
   /**
@@ -1134,7 +1117,7 @@ export class ConfluenceService {
    */
   async adminChangeUserPassword(username: string, password: string) {
     return handleApiOperation(
-      () => AdminUserService.changePassword(username, { password }),
+      () => this.conf.users.changePassword({ username, requestBody: { password } }),
       'Error changing user password',
     );
   }
@@ -1143,14 +1126,14 @@ export class ConfluenceService {
    * Create a new user group. Requires system administrator permission.
    */
   async adminCreateGroup(name: string) {
-    return handleApiOperation(() => AdminGroupService.create({ name }), 'Error creating group');
+    return handleApiOperation(() => this.conf.users.create({ requestBody: { name } }), 'Error creating group');
   }
 
   /**
    * Delete a user group. Requires system administrator permission.
    */
   async adminDeleteGroup(groupName: string) {
-    return handleApiOperation(() => AdminGroupService.delete(groupName), 'Error deleting group');
+    return handleApiOperation(() => this.conf.users.deleteGroup({ groupName }), 'Error deleting group');
   }
 
   /**
@@ -1158,7 +1141,7 @@ export class ConfluenceService {
    */
   async adminGetActiveUsers(limit?: number, start?: number, expand?: string) {
     return handleApiOperation(
-      () => AdminUsersService.getActiveUsers(expand, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.users.getActiveUsers({ expand, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting active users',
     );
   }
@@ -1171,7 +1154,7 @@ export class ConfluenceService {
    */
   async publishBlueprintSharedDraft(draftId: string, content: ConfluenceContent, expand?: string) {
     return handleApiOperation(
-      () => ContentBlueprintService.publishSharedDraft(draftId, expand, 'draft', content),
+      () => this.conf.content.publishSharedDraft({ draftId, expand, status: 'draft', requestBody: content as unknown as Content }),
       'Error publishing shared blueprint draft',
     );
   }
@@ -1184,7 +1167,7 @@ export class ConfluenceService {
    */
   async publishBlueprintLegacyDraft(draftId: string, content: ConfluenceContent, expand?: string) {
     return handleApiOperation(
-      () => ContentBlueprintService.publishLegacyDraft(draftId, expand, 'draft', content),
+      () => this.conf.content.publishLegacyDraft({ draftId, expand, status: 'draft', requestBody: content as unknown as Content }),
       'Error publishing legacy blueprint draft',
     );
   }
@@ -1199,7 +1182,7 @@ export class ConfluenceService {
    */
   async convertContentBody(to: string, value: string, representation: string, expand?: string) {
     return handleApiOperation(
-      () => ContentBodyService.convert(to, expand, { value, representation }),
+      () => this.conf.content.convert({ to, expand, requestBody: { value, representation } }),
       'Error converting content body',
     );
   }
@@ -1209,12 +1192,12 @@ export class ConfluenceService {
    */
   async findWebhooks(limit?: number, start?: number, event?: string, statistics?: boolean) {
     return handleApiOperation(
-      () => WebhooksService.findWebhooks(
-        (limit ?? this.getPageSize()).toString(),
-        start?.toString(),
+      () => this.conf.webhooks.findWebhooks({
+        limit: (limit ?? this.getPageSize()).toString(),
+        start: start?.toString(),
         event,
-        statistics?.toString(),
-      ),
+        statistics: statistics?.toString(),
+      }),
       'Error finding webhooks',
     );
   }
@@ -1223,28 +1206,28 @@ export class ConfluenceService {
    * Create a webhook. Requires administrator permission.
    */
   async createWebhook(webhook: WebhookInput) {
-    return handleApiOperation(() => WebhooksService.createWebhook(webhook), 'Error creating webhook');
+    return handleApiOperation(() => this.conf.webhooks.createWebhook({ requestBody: webhook }), 'Error creating webhook');
   }
 
   /**
    * Get a webhook by ID. Requires administrator permission.
    */
   async getWebhook(webhookId: string, statistics?: boolean) {
-    return handleApiOperation(() => WebhooksService.getWebhook(webhookId, statistics), 'Error getting webhook');
+    return handleApiOperation(() => this.conf.webhooks.getWebhook({ webhookId, statistics }), 'Error getting webhook');
   }
 
   /**
    * Update an existing webhook. Requires administrator permission.
    */
   async updateWebhook(webhookId: string, webhook: WebhookInput) {
-    return handleApiOperation(() => WebhooksService.updateWebhook(webhookId, webhook), 'Error updating webhook');
+    return handleApiOperation(() => this.conf.webhooks.updateWebhook({ webhookId, requestBody: webhook }), 'Error updating webhook');
   }
 
   /**
    * Delete a webhook. Requires administrator permission.
    */
   async deleteWebhook(webhookId: string) {
-    return handleApiOperation(() => WebhooksService.deleteWebhook(webhookId), 'Error deleting webhook');
+    return handleApiOperation(() => this.conf.webhooks.deleteWebhook({ webhookId }), 'Error deleting webhook');
   }
 
   /**
@@ -1252,7 +1235,7 @@ export class ConfluenceService {
    */
   async getWebhookLatestInvocation(webhookId: string, outcomes?: string, event?: string) {
     return handleApiOperation(
-      () => WebhooksService.getLatestInvocation(webhookId, outcomes, event),
+      () => this.conf.webhooks.getLatestInvocation({ webhookId, outcomes, event }),
       'Error getting webhook latest invocation',
     );
   }
@@ -1262,7 +1245,7 @@ export class ConfluenceService {
    */
   async getWebhookStatistics(webhookId: string, event?: string) {
     return handleApiOperation(
-      () => WebhooksService.getStatistics(webhookId, event),
+      () => this.conf.webhooks.getStatistics({ webhookId, event }),
       'Error getting webhook statistics',
     );
   }
@@ -1272,7 +1255,7 @@ export class ConfluenceService {
    */
   async getWebhookStatisticsSummary(webhookId: string) {
     return handleApiOperation(
-      () => WebhooksService.getStatisticsSummary(webhookId),
+      () => this.conf.webhooks.getStatisticsSummary({ webhookId }),
       'Error getting webhook statistics summary',
     );
   }
@@ -1281,7 +1264,7 @@ export class ConfluenceService {
    * Test connectivity to a webhook endpoint URL. Requires administrator permission.
    */
   async testWebhook(url: string) {
-    return handleApiOperation(() => WebhooksService.testWebhook(url), 'Error testing webhook');
+    return handleApiOperation(() => this.conf.webhooks.testWebhook({ url }), 'Error testing webhook');
   }
 
   /**
@@ -1289,7 +1272,7 @@ export class ConfluenceService {
    * (version, build number, etc). Requires authentication.
    */
   async getServerInfo() {
-    return handleApiOperation(() => ServerInformationService.index2(), 'Error getting server information');
+    return handleApiOperation(() => this.conf.admin.index2(undefined), 'Error getting server information');
   }
 
   /**
@@ -1298,7 +1281,7 @@ export class ConfluenceService {
    */
   async getClusterNodes(limit?: number, start?: number) {
     return handleApiOperation(
-      () => ClusterInformationService.getClusterNodeStatuses(limit?.toString(), start?.toString()),
+      () => this.conf.admin.getClusterNodeStatuses({ limit: limit?.toString(), start: start?.toString() }),
       'Error getting cluster node statuses',
     );
   }
@@ -1307,7 +1290,7 @@ export class ConfluenceService {
    * Get information about a single long-running background task (e.g. space export, reindex) by ID.
    */
   async getLongRunningTask(id: string, expand?: string) {
-    return handleApiOperation(() => LongTaskService.getTask(id, expand), 'Error getting long-running task');
+    return handleApiOperation(() => this.conf.admin.getTask({ id, expand }), 'Error getting long-running task');
   }
 
   /**
@@ -1315,7 +1298,7 @@ export class ConfluenceService {
    */
   async getLongRunningTasks(expand?: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => LongTaskService.getTasks(expand, limit?.toString(), start?.toString()),
+      () => this.conf.admin.getTasks({ expand, limit: limit?.toString(), start: start?.toString() }),
       'Error getting long-running tasks',
     );
   }
@@ -1326,7 +1309,7 @@ export class ConfluenceService {
    */
   async triggerSiteBackup(settings?: Record<string, unknown>) {
     return handleApiOperation(
-      () => BackupAndRestoreService.createSiteBackupJob(settings),
+      () => this.conf.admin.createSiteBackupJob({ requestBody: settings }),
       'Error triggering site backup',
     );
   }
@@ -1335,7 +1318,7 @@ export class ConfluenceService {
    * Get a backup/restore job by ID. The caller must be a system administrator or the job's owner.
    */
   async getBackupRestoreJob(jobId: string) {
-    return handleApiOperation(() => BackupAndRestoreService.getJob(jobId), 'Error getting backup/restore job');
+    return handleApiOperation(() => this.conf.admin.getJob({ jobId }), 'Error getting backup/restore job');
   }
 
   /**
@@ -1352,7 +1335,7 @@ export class ConfluenceService {
     jobScope?: string,
   ) {
     return handleApiOperation(
-      () => BackupAndRestoreService.findJobs(owner, spaceKey, fromDate, jobStates, toDate, jobOperation, limit?.toString(), jobScope),
+      () => this.conf.admin.findJobs({ owner, spaceKey, fromDate, jobStates, toDate, jobOperation, limit: limit?.toString(), jobScope }),
       'Error finding backup/restore jobs',
     );
   }
@@ -1361,7 +1344,7 @@ export class ConfluenceService {
    * Get simple metrics about this Confluence instance (e.g. content and user counts).
    */
   async getInstanceMetrics() {
-    return handleApiOperation(() => InstanceMetricsService.index1(), 'Error getting instance metrics');
+    return handleApiOperation(() => this.conf.admin.index1(undefined), 'Error getting instance metrics');
   }
 
   /**
@@ -1369,7 +1352,7 @@ export class ConfluenceService {
    */
   async getRecentlyUsedLabels(limit?: number, start?: number) {
     return handleApiOperation(
-      () => LabelService.recent((limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.content.recent({ limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting recently used labels',
     );
   }
@@ -1379,7 +1362,7 @@ export class ConfluenceService {
    */
   async getRelatedLabels(labelName: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => LabelService.related(labelName, start?.toString(), (limit ?? this.getPageSize()).toString()),
+      () => this.conf.content.related({ labelName, start: start?.toString(), limit: (limit ?? this.getPageSize()).toString() }),
       'Error getting related labels',
     );
   }
@@ -1389,7 +1372,7 @@ export class ConfluenceService {
    */
   async getSpaceLabels(spaceKey: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => SpaceLabelService.index3(spaceKey, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.spaces.index3({ spaceKey, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting space labels',
     );
   }
@@ -1399,7 +1382,7 @@ export class ConfluenceService {
    */
   async getSpacePopularLabels(spaceKey: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => SpaceLabelService.popular1(spaceKey, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.spaces.popular1({ spaceKey, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting popular space labels',
     );
   }
@@ -1409,7 +1392,7 @@ export class ConfluenceService {
    */
   async getSpaceRecentLabels(spaceKey: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => SpaceLabelService.recent1(spaceKey, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.spaces.recent1({ spaceKey, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting recent space labels',
     );
   }
@@ -1419,7 +1402,7 @@ export class ConfluenceService {
    */
   async getSpaceRelatedLabels(spaceKey: string, labelName: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => SpaceLabelService.related1(spaceKey, labelName, (limit ?? this.getPageSize()).toString(), start?.toString()),
+      () => this.conf.spaces.related1({ spaceKey, labelName, limit: (limit ?? this.getPageSize()).toString(), start: start?.toString() }),
       'Error getting related space labels',
     );
   }
@@ -1429,7 +1412,7 @@ export class ConfluenceService {
    */
   async getSpaceWatchers(spaceKey: string, limit?: number, start?: number) {
     return handleApiOperation(
-      () => SpaceWatchersService.index4(spaceKey, limit ?? this.getPageSize(), start),
+      () => this.conf.spaces.index4({ spaceKey, limit: limit ?? this.getPageSize(), start }),
       'Error getting space watchers',
     );
   }
@@ -1438,21 +1421,21 @@ export class ConfluenceService {
    * Get the instance access mode (READ_WRITE or READ_ONLY).
    */
   async getAccessModeStatus() {
-    return handleApiOperation(() => AccessModeService.getAccessModeStatus(), 'Error getting access mode status');
+    return handleApiOperation(() => this.conf.admin.getAccessModeStatus(undefined), 'Error getting access mode status');
   }
 
   /**
    * Get audit log records for this Confluence instance (admin only).
    */
   async getAuditRecords() {
-    return handleApiOperation(() => DefaultService.getAuditRecords(), 'Error getting audit records');
+    return handleApiOperation(() => this.conf.admin.getAuditRecords(undefined), 'Error getting audit records');
   }
 
   /**
    * Get all global permissions granted to users and groups (admin only).
    */
   async getGlobalPermissions() {
-    return handleApiOperation(() => GlobalPermissionsService.getAllGlobalPermissions(), 'Error getting global permissions');
+    return handleApiOperation(() => this.conf.admin.getAllGlobalPermissions(undefined), 'Error getting global permissions');
   }
 
   /**
@@ -1460,13 +1443,13 @@ export class ConfluenceService {
    */
   async deleteContentVersion(contentId: string, versionNumber: number) {
     return handleApiOperation(
-      () => ContentVersionService.deleteContentHistory(contentId, versionNumber.toString()),
+      () => this.conf.content.deleteContentHistory({ id: contentId, versionNumber: versionNumber.toString() }),
       'Error deleting content version',
     );
   }
 
   async validateSetup(): Promise<void> {
-    await UserService.getCurrent();
+    await this.conf.users.getCurrent({});
   }
 
   static validateConfig(): string[] {

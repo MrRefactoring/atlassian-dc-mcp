@@ -1,25 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Mock } from 'vitest';
-import {
-  ContentBlueprintService,
-  ContentBodyService,
-  WebhooksService,
-} from '../src/confluenceClient/index.js';
 import { ConfluenceService } from '../src/confluenceService.js';
 
-const CONTENT_BLUEPRINT = ContentBlueprintService as unknown as Record<string, Mock>;
-const CONTENT_BODY = ContentBodyService as unknown as Record<string, Mock>;
-const WEBHOOKS = WebhooksService as unknown as Record<string, Mock>;
-
-vi.mock('../src/confluenceClient/index.js', () => ({
-  ContentBlueprintService: {
+const conf = vi.hoisted(() => ({
+  content: {
     publishSharedDraft: vi.fn(),
     publishLegacyDraft: vi.fn(),
-  },
-  ContentBodyService: {
     convert: vi.fn(),
   },
-  WebhooksService: {
+  webhooks: {
     findWebhooks: vi.fn(),
     createWebhook: vi.fn(),
     getWebhook: vi.fn(),
@@ -30,12 +18,11 @@ vi.mock('../src/confluenceClient/index.js', () => ({
     getStatisticsSummary: vi.fn(),
     testWebhook: vi.fn(),
   },
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-    HEADERS: undefined,
-  },
+}));
+
+vi.mock('../src/confluenceClient/index.js', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createConfluenceClient: () => conf,
 }));
 
 describe('ConfluenceService blueprint draft publishing', () => {
@@ -54,16 +41,16 @@ describe('ConfluenceService blueprint draft publishing', () => {
   });
 
   it('publishes a shared blueprint draft', async () => {
-    CONTENT_BLUEPRINT.publishSharedDraft.mockResolvedValue({ id: 'draft-1' });
+    conf.content.publishSharedDraft.mockResolvedValue({ id: 'draft-1' });
 
     const result = await service.publishBlueprintSharedDraft('draft-1', draftContent);
 
-    expect(CONTENT_BLUEPRINT.publishSharedDraft).toHaveBeenCalledWith('draft-1', undefined, 'draft', draftContent);
+    expect(conf.content.publishSharedDraft).toHaveBeenCalledWith({ draftId: 'draft-1', expand: undefined, status: 'draft', requestBody: draftContent });
     expect(result.success).toBe(true);
   });
 
   it('forwards API errors when publishing a shared blueprint draft', async () => {
-    CONTENT_BLUEPRINT.publishSharedDraft.mockRejectedValue(new Error('boom'));
+    conf.content.publishSharedDraft.mockRejectedValue(new Error('boom'));
 
     const result = await service.publishBlueprintSharedDraft('draft-1', draftContent);
 
@@ -71,16 +58,16 @@ describe('ConfluenceService blueprint draft publishing', () => {
   });
 
   it('publishes a legacy blueprint draft', async () => {
-    CONTENT_BLUEPRINT.publishLegacyDraft.mockResolvedValue({ id: 'draft-1' });
+    conf.content.publishLegacyDraft.mockResolvedValue({ id: 'draft-1' });
 
     const result = await service.publishBlueprintLegacyDraft('draft-1', draftContent, 'history');
 
-    expect(CONTENT_BLUEPRINT.publishLegacyDraft).toHaveBeenCalledWith('draft-1', 'history', 'draft', draftContent);
+    expect(conf.content.publishLegacyDraft).toHaveBeenCalledWith({ draftId: 'draft-1', expand: 'history', status: 'draft', requestBody: draftContent });
     expect(result.success).toBe(true);
   });
 
   it('forwards API errors when publishing a legacy blueprint draft', async () => {
-    CONTENT_BLUEPRINT.publishLegacyDraft.mockRejectedValue(new Error('boom'));
+    conf.content.publishLegacyDraft.mockRejectedValue(new Error('boom'));
 
     const result = await service.publishBlueprintLegacyDraft('draft-1', draftContent);
 
@@ -98,17 +85,17 @@ describe('ConfluenceService.convertContentBody', () => {
   });
 
   it('converts a content body between representations', async () => {
-    CONTENT_BODY.convert.mockResolvedValue({ value: '<p>Hello</p>', representation: 'view' });
+    conf.content.convert.mockResolvedValue({ value: '<p>Hello</p>', representation: 'view' });
 
     const result = await service.convertContentBody('view', '<p>Hello</p>', 'storage');
 
-    expect(CONTENT_BODY.convert).toHaveBeenCalledWith('view', undefined, { value: '<p>Hello</p>', representation: 'storage' });
+    expect(conf.content.convert).toHaveBeenCalledWith({ to: 'view', expand: undefined, requestBody: { value: '<p>Hello</p>', representation: 'storage' } });
     expect(result.success).toBe(true);
     expect(result.data).toEqual({ value: '<p>Hello</p>', representation: 'view' });
   });
 
   it('forwards API errors when converting a content body', async () => {
-    CONTENT_BODY.convert.mockRejectedValue(new Error('boom'));
+    conf.content.convert.mockRejectedValue(new Error('boom'));
 
     const result = await service.convertContentBody('view', '<p>Hello</p>', 'storage');
 
@@ -127,15 +114,15 @@ describe('ConfluenceService webhooks', () => {
   });
 
   it('finds webhooks with the default page-size limit', async () => {
-    WEBHOOKS.findWebhooks.mockResolvedValue({ results: [] });
+    conf.webhooks.findWebhooks.mockResolvedValue({ results: [] });
 
     await service.findWebhooks();
 
-    expect(WEBHOOKS.findWebhooks).toHaveBeenCalledWith('25', undefined, undefined, undefined);
+    expect(conf.webhooks.findWebhooks).toHaveBeenCalledWith({ limit: '25', start: undefined, event: undefined, statistics: undefined });
   });
 
   it('forwards API errors when finding webhooks', async () => {
-    WEBHOOKS.findWebhooks.mockRejectedValue(new Error('boom'));
+    conf.webhooks.findWebhooks.mockRejectedValue(new Error('boom'));
 
     const result = await service.findWebhooks();
 
@@ -143,16 +130,16 @@ describe('ConfluenceService webhooks', () => {
   });
 
   it('creates a webhook', async () => {
-    WEBHOOKS.createWebhook.mockResolvedValue({ id: 'wh-1' });
+    conf.webhooks.createWebhook.mockResolvedValue({ id: 'wh-1' });
 
     const result = await service.createWebhook(webhook);
 
-    expect(WEBHOOKS.createWebhook).toHaveBeenCalledWith(webhook);
+    expect(conf.webhooks.createWebhook).toHaveBeenCalledWith({ requestBody: webhook });
     expect(result.success).toBe(true);
   });
 
   it('forwards API errors when creating a webhook', async () => {
-    WEBHOOKS.createWebhook.mockRejectedValue(new Error('boom'));
+    conf.webhooks.createWebhook.mockRejectedValue(new Error('boom'));
 
     const result = await service.createWebhook(webhook);
 
@@ -160,16 +147,16 @@ describe('ConfluenceService webhooks', () => {
   });
 
   it('gets a webhook by ID', async () => {
-    WEBHOOKS.getWebhook.mockResolvedValue({ id: 'wh-1' });
+    conf.webhooks.getWebhook.mockResolvedValue({ id: 'wh-1' });
 
     const result = await service.getWebhook('wh-1', true);
 
-    expect(WEBHOOKS.getWebhook).toHaveBeenCalledWith('wh-1', true);
+    expect(conf.webhooks.getWebhook).toHaveBeenCalledWith({ webhookId: 'wh-1', statistics: true });
     expect(result.success).toBe(true);
   });
 
   it('forwards API errors when getting a webhook', async () => {
-    WEBHOOKS.getWebhook.mockRejectedValue(new Error('boom'));
+    conf.webhooks.getWebhook.mockRejectedValue(new Error('boom'));
 
     const result = await service.getWebhook('wh-1');
 
@@ -177,16 +164,16 @@ describe('ConfluenceService webhooks', () => {
   });
 
   it('updates a webhook', async () => {
-    WEBHOOKS.updateWebhook.mockResolvedValue({ id: 'wh-1' });
+    conf.webhooks.updateWebhook.mockResolvedValue({ id: 'wh-1' });
 
     const result = await service.updateWebhook('wh-1', webhook);
 
-    expect(WEBHOOKS.updateWebhook).toHaveBeenCalledWith('wh-1', webhook);
+    expect(conf.webhooks.updateWebhook).toHaveBeenCalledWith({ webhookId: 'wh-1', requestBody: webhook });
     expect(result.success).toBe(true);
   });
 
   it('forwards API errors when updating a webhook', async () => {
-    WEBHOOKS.updateWebhook.mockRejectedValue(new Error('boom'));
+    conf.webhooks.updateWebhook.mockRejectedValue(new Error('boom'));
 
     const result = await service.updateWebhook('wh-1', webhook);
 
@@ -194,16 +181,16 @@ describe('ConfluenceService webhooks', () => {
   });
 
   it('deletes a webhook', async () => {
-    WEBHOOKS.deleteWebhook.mockResolvedValue(undefined);
+    conf.webhooks.deleteWebhook.mockResolvedValue(undefined);
 
     const result = await service.deleteWebhook('wh-1');
 
-    expect(WEBHOOKS.deleteWebhook).toHaveBeenCalledWith('wh-1');
+    expect(conf.webhooks.deleteWebhook).toHaveBeenCalledWith({ webhookId: 'wh-1' });
     expect(result.success).toBe(true);
   });
 
   it('forwards API errors when deleting a webhook', async () => {
-    WEBHOOKS.deleteWebhook.mockRejectedValue(new Error('boom'));
+    conf.webhooks.deleteWebhook.mockRejectedValue(new Error('boom'));
 
     const result = await service.deleteWebhook('wh-1');
 
@@ -211,16 +198,16 @@ describe('ConfluenceService webhooks', () => {
   });
 
   it('gets the latest invocation of a webhook', async () => {
-    WEBHOOKS.getLatestInvocation.mockResolvedValue({ outcome: 'SUCCESS' });
+    conf.webhooks.getLatestInvocation.mockResolvedValue({ outcome: 'SUCCESS' });
 
     const result = await service.getWebhookLatestInvocation('wh-1', 'SUCCESS', 'page_created');
 
-    expect(WEBHOOKS.getLatestInvocation).toHaveBeenCalledWith('wh-1', 'SUCCESS', 'page_created');
+    expect(conf.webhooks.getLatestInvocation).toHaveBeenCalledWith({ webhookId: 'wh-1', outcomes: 'SUCCESS', event: 'page_created' });
     expect(result.success).toBe(true);
   });
 
   it('forwards API errors when getting the latest invocation', async () => {
-    WEBHOOKS.getLatestInvocation.mockRejectedValue(new Error('boom'));
+    conf.webhooks.getLatestInvocation.mockRejectedValue(new Error('boom'));
 
     const result = await service.getWebhookLatestInvocation('wh-1');
 
@@ -228,16 +215,16 @@ describe('ConfluenceService webhooks', () => {
   });
 
   it('gets webhook statistics', async () => {
-    WEBHOOKS.getStatistics.mockResolvedValue({ successCount: 1 });
+    conf.webhooks.getStatistics.mockResolvedValue({ successCount: 1 });
 
     const result = await service.getWebhookStatistics('wh-1', 'page_created');
 
-    expect(WEBHOOKS.getStatistics).toHaveBeenCalledWith('wh-1', 'page_created');
+    expect(conf.webhooks.getStatistics).toHaveBeenCalledWith({ webhookId: 'wh-1', event: 'page_created' });
     expect(result.success).toBe(true);
   });
 
   it('forwards API errors when getting webhook statistics', async () => {
-    WEBHOOKS.getStatistics.mockRejectedValue(new Error('boom'));
+    conf.webhooks.getStatistics.mockRejectedValue(new Error('boom'));
 
     const result = await service.getWebhookStatistics('wh-1');
 
@@ -245,16 +232,16 @@ describe('ConfluenceService webhooks', () => {
   });
 
   it('gets the webhook statistics summary', async () => {
-    WEBHOOKS.getStatisticsSummary.mockResolvedValue({ successCount: 1 });
+    conf.webhooks.getStatisticsSummary.mockResolvedValue({ successCount: 1 });
 
     const result = await service.getWebhookStatisticsSummary('wh-1');
 
-    expect(WEBHOOKS.getStatisticsSummary).toHaveBeenCalledWith('wh-1');
+    expect(conf.webhooks.getStatisticsSummary).toHaveBeenCalledWith({ webhookId: 'wh-1' });
     expect(result.success).toBe(true);
   });
 
   it('forwards API errors when getting the webhook statistics summary', async () => {
-    WEBHOOKS.getStatisticsSummary.mockRejectedValue(new Error('boom'));
+    conf.webhooks.getStatisticsSummary.mockRejectedValue(new Error('boom'));
 
     const result = await service.getWebhookStatisticsSummary('wh-1');
 
@@ -262,16 +249,16 @@ describe('ConfluenceService webhooks', () => {
   });
 
   it('tests connectivity to a webhook endpoint', async () => {
-    WEBHOOKS.testWebhook.mockResolvedValue({ ok: true });
+    conf.webhooks.testWebhook.mockResolvedValue({ ok: true });
 
     const result = await service.testWebhook('https://example.com/webhook');
 
-    expect(WEBHOOKS.testWebhook).toHaveBeenCalledWith('https://example.com/webhook');
+    expect(conf.webhooks.testWebhook).toHaveBeenCalledWith({ url: 'https://example.com/webhook' });
     expect(result.success).toBe(true);
   });
 
   it('forwards API errors when testing a webhook', async () => {
-    WEBHOOKS.testWebhook.mockRejectedValue(new Error('boom'));
+    conf.webhooks.testWebhook.mockRejectedValue(new Error('boom'));
 
     const result = await service.testWebhook('https://example.com/webhook');
 

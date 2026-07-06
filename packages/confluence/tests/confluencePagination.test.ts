@@ -1,23 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Mock } from 'vitest';
-import {
-  AttachmentsService,
-  GroupService,
-  SpaceService,
-} from '../src/confluenceClient/index.js';
 import { ConfluenceService } from '../src/confluenceService.js';
 
-const GROUP = GroupService as unknown as Record<string, Mock>;
-const SPACE = SpaceService as unknown as Record<string, Mock>;
-const ATTACHMENTS = AttachmentsService as unknown as Record<string, Mock>;
-
-vi.mock('../src/confluenceClient/index.js', () => ({
-  OpenAPI: {},
-  UserService: { getCurrent: vi.fn() },
-  GroupService: { getGroups: vi.fn() },
-  SpaceService: { spaces: vi.fn() },
-  AttachmentsService: { getAttachments: vi.fn() },
+const conf = vi.hoisted(() => ({
+  users: { getCurrent: vi.fn(), getGroups: vi.fn() },
+  spaces: { spaces: vi.fn() },
+  attachments: { getAttachments: vi.fn() },
 }));
+
+vi.mock('../src/confluenceClient/index.js', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createConfluenceClient: () => conf,
+}));
+
+const GROUP = conf.users;
+const SPACE = conf.spaces;
+const ATTACHMENTS = conf.attachments;
 
 describe('ConfluenceService opt-in fetchAll pagination', () => {
   let service: ConfluenceService;

@@ -1,52 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Mock } from 'vitest';
-import {
-  AccessModeService,
-  ContentVersionService,
-  DefaultService,
-  GlobalPermissionsService,
-  LabelService,
-  SpaceLabelService,
-  SpaceWatchersService,
-} from '../src/confluenceClient/index.js';
 import { ConfluenceService } from '../src/confluenceService.js';
 
-const LABEL = LabelService as unknown as Record<string, Mock>;
-const SPACE_LABEL = SpaceLabelService as unknown as Record<string, Mock>;
-const SPACE_WATCHERS = SpaceWatchersService as unknown as Record<string, Mock>;
-const ACCESS_MODE = AccessModeService as unknown as Record<string, Mock>;
-const DEFAULT = DefaultService as unknown as Record<string, Mock>;
-const GLOBAL_PERMS = GlobalPermissionsService as unknown as Record<string, Mock>;
-const CONTENT_VERSION = ContentVersionService as unknown as Record<string, Mock>;
-
-vi.mock('../src/confluenceClient/index.js', () => ({
-  OpenAPI: {},
-  UserService: { getCurrent: vi.fn() },
-  LabelService: {
+const conf = vi.hoisted(() => ({
+  content: {
     recent: vi.fn(),
     related: vi.fn(),
+    deleteContentHistory: vi.fn(),
   },
-  SpaceLabelService: {
+  spaces: {
     index3: vi.fn(),
     popular1: vi.fn(),
     recent1: vi.fn(),
     related1: vi.fn(),
-  },
-  SpaceWatchersService: {
     index4: vi.fn(),
   },
-  AccessModeService: {
+  admin: {
     getAccessModeStatus: vi.fn(),
-  },
-  DefaultService: {
     getAuditRecords: vi.fn(),
-  },
-  GlobalPermissionsService: {
     getAllGlobalPermissions: vi.fn(),
   },
-  ContentVersionService: {
-    deleteContentHistory: vi.fn(),
-  },
+}));
+
+vi.mock('../src/confluenceClient/index.js', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createConfluenceClient: () => conf,
 }));
 
 describe('ConfluenceService labels/permissions/audit', () => {
@@ -60,115 +37,115 @@ describe('ConfluenceService labels/permissions/audit', () => {
 
   describe('instance-wide labels', () => {
     it('getRecentlyUsedLabels passes limit/start as strings, defaulting limit to page size', async () => {
-      LABEL.recent.mockResolvedValue({ results: [] });
+      conf.content.recent.mockResolvedValue({ results: [] });
 
       const result = await service.getRecentlyUsedLabels();
 
-      expect(LABEL.recent).toHaveBeenCalledWith('25', undefined);
+      expect(conf.content.recent).toHaveBeenCalledWith({ limit: '25', start: undefined });
       expect(result.success).toBe(true);
     });
 
     it('getRelatedLabels forwards labelName and (start, limit) order', async () => {
-      LABEL.related.mockResolvedValue({ results: [] });
+      conf.content.related.mockResolvedValue({ results: [] });
 
       await service.getRelatedLabels('bug', 10, 5);
 
-      expect(LABEL.related).toHaveBeenCalledWith('bug', '5', '10');
+      expect(conf.content.related).toHaveBeenCalledWith({ labelName: 'bug', start: '5', limit: '10' });
     });
   });
 
   describe('space labels', () => {
     it('getSpaceLabels forwards spaceKey and pagination', async () => {
-      SPACE_LABEL.index3.mockResolvedValue({ results: [] });
+      conf.spaces.index3.mockResolvedValue({ results: [] });
 
       await service.getSpaceLabels('DS', 5, 10);
 
-      expect(SPACE_LABEL.index3).toHaveBeenCalledWith('DS', '5', '10');
+      expect(conf.spaces.index3).toHaveBeenCalledWith({ spaceKey: 'DS', limit: '5', start: '10' });
     });
 
     it('getSpacePopularLabels forwards spaceKey', async () => {
-      SPACE_LABEL.popular1.mockResolvedValue({ results: [] });
+      conf.spaces.popular1.mockResolvedValue({ results: [] });
 
       await service.getSpacePopularLabels('DS');
 
-      expect(SPACE_LABEL.popular1).toHaveBeenCalledWith('DS', '25', undefined);
+      expect(conf.spaces.popular1).toHaveBeenCalledWith({ spaceKey: 'DS', limit: '25', start: undefined });
     });
 
     it('getSpaceRecentLabels forwards spaceKey', async () => {
-      SPACE_LABEL.recent1.mockResolvedValue({ results: [] });
+      conf.spaces.recent1.mockResolvedValue({ results: [] });
 
       await service.getSpaceRecentLabels('DS');
 
-      expect(SPACE_LABEL.recent1).toHaveBeenCalledWith('DS', '25', undefined);
+      expect(conf.spaces.recent1).toHaveBeenCalledWith({ spaceKey: 'DS', limit: '25', start: undefined });
     });
 
     it('getSpaceRelatedLabels forwards spaceKey and labelName', async () => {
-      SPACE_LABEL.related1.mockResolvedValue({ results: [] });
+      conf.spaces.related1.mockResolvedValue({ results: [] });
 
       await service.getSpaceRelatedLabels('DS', 'bug', 5);
 
-      expect(SPACE_LABEL.related1).toHaveBeenCalledWith('DS', 'bug', '5', undefined);
+      expect(conf.spaces.related1).toHaveBeenCalledWith({ spaceKey: 'DS', labelName: 'bug', limit: '5', start: undefined });
     });
   });
 
   describe('space watchers', () => {
     it('getSpaceWatchers passes numeric limit/start (not stringified)', async () => {
-      SPACE_WATCHERS.index4.mockResolvedValue({ results: [] });
+      conf.spaces.index4.mockResolvedValue({ results: [] });
 
       await service.getSpaceWatchers('DS', 5, 10);
 
-      expect(SPACE_WATCHERS.index4).toHaveBeenCalledWith('DS', 5, 10);
+      expect(conf.spaces.index4).toHaveBeenCalledWith({ spaceKey: 'DS', limit: 5, start: 10 });
     });
 
     it('getSpaceWatchers defaults limit to page size', async () => {
-      SPACE_WATCHERS.index4.mockResolvedValue({ results: [] });
+      conf.spaces.index4.mockResolvedValue({ results: [] });
 
       await service.getSpaceWatchers('DS');
 
-      expect(SPACE_WATCHERS.index4).toHaveBeenCalledWith('DS', 25, undefined);
+      expect(conf.spaces.index4).toHaveBeenCalledWith({ spaceKey: 'DS', limit: 25, start: undefined });
     });
   });
 
   describe('admin reads', () => {
     it('getAccessModeStatus returns the access mode', async () => {
-      ACCESS_MODE.getAccessModeStatus.mockResolvedValue('READ_WRITE');
+      conf.admin.getAccessModeStatus.mockResolvedValue('READ_WRITE');
 
       const result = await service.getAccessModeStatus();
 
-      expect(ACCESS_MODE.getAccessModeStatus).toHaveBeenCalled();
+      expect(conf.admin.getAccessModeStatus).toHaveBeenCalledWith(undefined);
       expect(result).toEqual({ success: true, data: 'READ_WRITE' });
     });
 
     it('getAuditRecords returns audit entities', async () => {
-      DEFAULT.getAuditRecords.mockResolvedValue({ entities: [] });
+      conf.admin.getAuditRecords.mockResolvedValue({ entities: [] });
 
       const result = await service.getAuditRecords();
 
-      expect(DEFAULT.getAuditRecords).toHaveBeenCalled();
+      expect(conf.admin.getAuditRecords).toHaveBeenCalledWith(undefined);
       expect(result.success).toBe(true);
     });
 
     it('getGlobalPermissions returns the permission list', async () => {
-      GLOBAL_PERMS.getAllGlobalPermissions.mockResolvedValue([{ operation: {} }]);
+      conf.admin.getAllGlobalPermissions.mockResolvedValue([{ operation: {} }]);
 
       const result = await service.getGlobalPermissions();
 
-      expect(GLOBAL_PERMS.getAllGlobalPermissions).toHaveBeenCalled();
+      expect(conf.admin.getAllGlobalPermissions).toHaveBeenCalledWith(undefined);
       expect(result.success).toBe(true);
     });
   });
 
   describe('content version deletion', () => {
     it('deleteContentVersion stringifies the version number', async () => {
-      CONTENT_VERSION.deleteContentHistory.mockResolvedValue(undefined);
+      conf.content.deleteContentHistory.mockResolvedValue(undefined);
 
       await service.deleteContentVersion('123', 4);
 
-      expect(CONTENT_VERSION.deleteContentHistory).toHaveBeenCalledWith('123', '4');
+      expect(conf.content.deleteContentHistory).toHaveBeenCalledWith({ id: '123', versionNumber: '4' });
     });
 
     it('deleteContentVersion surfaces a graceful error shape', async () => {
-      CONTENT_VERSION.deleteContentHistory.mockRejectedValue({ status: 400, statusText: 'Bad Request', body: {} });
+      conf.content.deleteContentHistory.mockRejectedValue({ status: 400, statusText: 'Bad Request', body: {} });
 
       const result = await service.deleteContentVersion('123', 999);
 
