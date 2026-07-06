@@ -11,8 +11,8 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
       description: `Get the attachments on a piece of content in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getAttachments,
     },
-    async ({ contentId, expand, filename, limit, start, mediaType }) => {
-      const result = await service.getAttachments(contentId, expand, filename, limit, start, mediaType);
+    async ({ contentId, expand, filename, limit, start, mediaType, fetchAll }) => {
+      const result = await service.getAttachments(contentId, expand, filename, limit, start, mediaType, fetchAll);
 
       return formatToolResponse(result);
     },

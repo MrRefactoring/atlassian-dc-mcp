@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { AccessModeService, AdminGroupService, AdminUserService, AdminUsersService, AttachmentsService, BackupAndRestoreService, ChildContentService, ClusterInformationService, ContentBlueprintService, ContentBodyService, ContentDescendantService, ContentLabelsService, ContentPropertyService, ContentResourceService, ContentRestrictionsService, ContentVersionService, ContentWatchersService, DefaultService, GlobalPermissionsService, GroupService, InstanceMetricsService, LabelService, LongTaskService, OpenAPI, SearchService, ServerInformationService, SpaceLabelService, SpacePermissionsService, SpaceService, SpacePropertyService, SpaceWatchersService, UserGroupService, UserService, UserWatchService, WebhooksService } from './confluenceClient/index.js';
 import type { Content, MockAttachmentRequest } from './confluenceClient/index.js';
-import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
+import { handleApiOperation, paginateAll, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import type { ConfluenceBodyMode } from './confluenceResponseMapper.js';
 import { shapeConfluenceContent } from './confluenceResponseMapper.js';
@@ -454,11 +454,19 @@ export class ConfluenceService {
    * @param filename Optional exact filename filter
    * @param mediaType Optional media type filter
    */
-  async getAttachments(contentId: string, expand?: string, filename?: string, limit?: number, start?: number, mediaType?: string) {
-    return handleApiOperation(
-      () => AttachmentsService.getAttachments(contentId, expand, filename, (limit ?? this.getPageSize()).toString(), start?.toString(), mediaType),
-      'Error getting attachments',
-    );
+  async getAttachments(contentId: string, expand?: string, filename?: string, limit?: number, start?: number, mediaType?: string, fetchAll?: boolean) {
+    const pageSize = (limit ?? this.getPageSize()).toString();
+    const fetchPage = (offset?: number) =>
+      AttachmentsService.getAttachments(contentId, expand, filename, pageSize, offset?.toString(), mediaType);
+
+    if (fetchAll) {
+      return handleApiOperation(
+        () => this.collectConfluencePages((s) => fetchPage(s), start),
+        'Error getting attachments',
+      );
+    }
+
+    return handleApiOperation(() => fetchPage(start), 'Error getting attachments');
   }
 
   /**
@@ -516,6 +524,25 @@ export class ConfluenceService {
    * List spaces with optional filters (type, status, label, favourite).
    * @param spaceKey Optional key to fetch a single space's information
    */
+  /**
+   * Follow a Confluence collection's `_links.next` pagination and return every page's
+   * results as a single flat array (safety-capped). Only valid for endpoints returning
+   * the flat `{ results, _links }` envelope, not type-grouped containers.
+   */
+  private async collectConfluencePages(
+    fetchPage: (start: number) => Promise<unknown>,
+    startAt?: number,
+  ): Promise<unknown[]> {
+    return paginateAll(
+      async (offset) => {
+        const page = (await fetchPage(offset)) as { results?: unknown[]; _links?: { next?: string } };
+
+        return { items: page.results ?? [], isLast: !page._links?.next };
+      },
+      startAt !== undefined ? { startAt } : {},
+    );
+  }
+
   async getSpaces(
     spaceKey?: string,
     type?: string,
@@ -525,26 +552,34 @@ export class ConfluenceService {
     expand?: string,
     limit?: number,
     start?: number,
+    fetchAll?: boolean,
   ) {
-    return handleApiOperation(
-      () => SpaceService.spaces(
-        undefined,
-        start?.toString(),
-        label,
-        favourite?.toString(),
-        type,
-        spaceKey,
-        undefined,
-        expand,
-        undefined,
-        (limit ?? this.getPageSize()).toString(),
-        undefined,
-        undefined,
-        undefined,
-        status,
-      ),
-      'Error getting spaces',
+    const pageSize = (limit ?? this.getPageSize()).toString();
+    const fetchPage = (offset?: number) => SpaceService.spaces(
+      undefined,
+      offset?.toString(),
+      label,
+      favourite?.toString(),
+      type,
+      spaceKey,
+      undefined,
+      expand,
+      undefined,
+      pageSize,
+      undefined,
+      undefined,
+      undefined,
+      status,
     );
+
+    if (fetchAll) {
+      return handleApiOperation(
+        () => this.collectConfluencePages((s) => fetchPage(s), start),
+        'Error getting spaces',
+      );
+    }
+
+    return handleApiOperation(() => fetchPage(start), 'Error getting spaces');
   }
 
   /**
@@ -998,11 +1033,18 @@ export class ConfluenceService {
   /**
    * Get a paginated collection of all user groups.
    */
-  async getGroups(limit?: number, start?: number, expand?: string) {
-    return handleApiOperation(
-      () => GroupService.getGroups(expand, limit ?? this.getPageSize(), start),
-      'Error getting groups',
-    );
+  async getGroups(limit?: number, start?: number, expand?: string, fetchAll?: boolean) {
+    const pageSize = limit ?? this.getPageSize();
+    const fetchPage = (offset?: number) => GroupService.getGroups(expand, pageSize, offset);
+
+    if (fetchAll) {
+      return handleApiOperation(
+        () => this.collectConfluencePages((s) => fetchPage(s), start),
+        'Error getting groups',
+      );
+    }
+
+    return handleApiOperation(() => fetchPage(start), 'Error getting groups');
   }
 
   /**
@@ -1602,6 +1644,7 @@ export const confluenceToolSchemas = {
     limit: z.number().optional().describe('Maximum number of attachments to return'),
     start: z.number().optional().describe('Start index for pagination'),
     mediaType: z.string().optional().describe('Return only attachments matching this media type (e.g. image/png)'),
+    fetchAll: z.boolean().optional().describe('Follow pagination and return every attachment as a flat array (safety-capped). Overrides single-page behaviour.'),
   },
   removeAttachment: {
     attachmentId: z.string().describe('ID of the attachment to remove'),
@@ -1627,6 +1670,7 @@ export const confluenceToolSchemas = {
     expand: z.string().optional().describe('Comma-separated list of properties to expand on the spaces'),
     limit: z.number().optional().describe('Maximum number of spaces to return'),
     start: z.number().optional().describe('Start index for pagination'),
+    fetchAll: z.boolean().optional().describe('Follow pagination and return every space as a flat array (safety-capped). Overrides single-page behaviour.'),
   },
   createSpace: {
     key: z.string().describe('Key for the new space (unique, uppercase letters/numbers)'),
@@ -1837,6 +1881,7 @@ export const confluenceToolSchemas = {
     limit: z.number().optional().describe('Maximum number of groups to return'),
     start: z.number().optional().describe('Start index for pagination'),
     expand: z.string().optional().describe('Comma-separated list of properties to expand'),
+    fetchAll: z.boolean().optional().describe('Follow pagination and return every group as a flat array (safety-capped). Overrides single-page behaviour.'),
   },
   getGroupMembers: {
     groupName: z.string().describe('Name of the group to fetch members for'),

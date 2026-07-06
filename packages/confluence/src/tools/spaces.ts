@@ -41,8 +41,8 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
       description: `List spaces with optional filters in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getSpaces,
     },
-    async ({ spaceKey, type, status, label, favourite, expand, limit, start }) => {
-      const result = await service.getSpaces(spaceKey, type, status, label, favourite, expand, limit, start);
+    async ({ spaceKey, type, status, label, favourite, expand, limit, start, fetchAll }) => {
+      const result = await service.getSpaces(spaceKey, type, status, label, favourite, expand, limit, start, fetchAll);
 
       return formatToolResponse(result);
     },

@@ -115,8 +115,8 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
       description: `Get a paginated collection of all user groups in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.getGroups,
     },
-    async ({ limit, start, expand }) => {
-      const result = await service.getGroups(limit, start, expand);
+    async ({ limit, start, expand, fetchAll }) => {
+      const result = await service.getGroups(limit, start, expand, fetchAll);
 
       return formatToolResponse(result);
     },
