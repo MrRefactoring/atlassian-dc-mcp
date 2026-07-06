@@ -1,6 +1,9 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { completable } from '@modelcontextprotocol/sdk/server/completable.js';
 import { z } from 'zod';
 import { jiraInstanceType } from './constants.js';
+import { createJiraCompleters } from './completions.js';
+import type { JiraService } from './jiraService.js';
 
 function userPrompt(text: string) {
   return {
@@ -13,7 +16,9 @@ function userPrompt(text: string) {
   };
 }
 
-export function registerPrompts(server: McpServer) {
+export function registerPrompts(server: McpServer, service: JiraService) {
+  const completers = createJiraCompleters(service);
+
   server.registerPrompt(
     'jira_triage_issue',
     {
@@ -40,7 +45,7 @@ export function registerPrompts(server: McpServer) {
       title: 'Plan a sprint from a board',
       description: `Reviews an agile board's backlog and active sprint in the ${jiraInstanceType} and proposes which issues to pull into the sprint, based on priority, estimates, and readiness.`,
       argsSchema: {
-        boardId: z.string().describe('The numeric board id, e.g. 42'),
+        boardId: completable(z.string().describe('The numeric board id, e.g. 42'), completers.boardId),
         capacity: z
           .string()
           .optional()

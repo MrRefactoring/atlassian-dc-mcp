@@ -1,6 +1,7 @@
 import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { confluenceInstanceType } from './constants.js';
+import { createConfluenceCompleters } from './completions.js';
 import type { ConfluenceService } from './confluenceService.js';
 
 function firstValue(value: string | string[]): string {
@@ -20,6 +21,8 @@ function jsonResource(uriHref: string, result: unknown) {
 }
 
 export function registerResources(server: McpServer, service: ConfluenceService) {
+  const completers = createConfluenceCompleters(service);
+
   server.registerResource(
     'confluence-page',
     new ResourceTemplate('confluence://page/{pageId}', { list: undefined }),
@@ -37,7 +40,7 @@ export function registerResources(server: McpServer, service: ConfluenceService)
 
   server.registerResource(
     'confluence-space',
-    new ResourceTemplate('confluence://space/{spaceKey}', { list: undefined }),
+    new ResourceTemplate('confluence://space/{spaceKey}', { list: undefined, complete: { spaceKey: completers.spaceKey } }),
     {
       title: 'Confluence space',
       description: `A space in ${confluenceInstanceType}, addressable by its key (e.g. confluence://space/ENG).`,
@@ -52,7 +55,7 @@ export function registerResources(server: McpServer, service: ConfluenceService)
 
   server.registerResource(
     'confluence-space-content',
-    new ResourceTemplate('confluence://space/{spaceKey}/content', { list: undefined }),
+    new ResourceTemplate('confluence://space/{spaceKey}/content', { list: undefined, complete: { spaceKey: completers.spaceKey } }),
     {
       title: 'Confluence space content',
       description: `The top-level content (pages and blog posts) of a space in ${confluenceInstanceType}, addressable by space key (e.g. confluence://space/ENG/content).`,

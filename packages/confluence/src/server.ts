@@ -10,6 +10,7 @@ import { registerWebhookTools } from './tools/webhooks.js';
 import { registerAdminTools } from './tools/admin.js';
 import { registerResources } from './resources.js';
 import { registerPrompts } from './prompts.js';
+import { confluenceServerInstructions } from './constants.js';
 
 const require = createRequire(import.meta.url);
 
@@ -37,6 +38,7 @@ const confluenceService = new ConfluenceService(
 const server = createMcpServer({
   name: 'atlassian-confluence-mcp',
   version,
+  instructions: confluenceServerInstructions,
 });
 
 registerContentTools(server, confluenceService);
@@ -46,6 +48,6 @@ registerUserTools(server, confluenceService);
 registerWebhookTools(server, confluenceService);
 registerAdminTools(server, confluenceService);
 registerResources(server, confluenceService);
-registerPrompts(server);
+registerPrompts(server, confluenceService);
 
 await connectServer(server);

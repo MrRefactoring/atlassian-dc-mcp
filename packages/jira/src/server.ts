@@ -10,6 +10,7 @@ import { registerAgileTools } from './tools/agile.js';
 import { registerAdminTools } from './tools/admin.js';
 import { registerResources } from './resources.js';
 import { registerPrompts } from './prompts.js';
+import { jiraServerInstructions } from './constants.js';
 
 const require = createRequire(import.meta.url);
 
@@ -37,6 +38,7 @@ const jiraService = new JiraService(
 const server = createMcpServer({
   name: 'atlassian-jira-mcp',
   version,
+  instructions: jiraServerInstructions,
 });
 
 registerIssueTools(server, jiraService);
@@ -46,6 +48,6 @@ registerWorkflowTools(server, jiraService);
 registerAgileTools(server, jiraService);
 registerAdminTools(server, jiraService);
 registerResources(server, jiraService);
-registerPrompts(server);
+registerPrompts(server, jiraService);
 
 await connectServer(server);

@@ -1,5 +1,8 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { completable } from '@modelcontextprotocol/sdk/server/completable.js';
 import { z } from 'zod';
+import { createBitbucketCompleters } from './completions.js';
+import type { BitbucketService } from './bitbucketService.js';
 
 function userPrompt(text: string) {
   return {
@@ -12,15 +15,17 @@ function userPrompt(text: string) {
   };
 }
 
-export function registerPrompts(server: McpServer) {
+export function registerPrompts(server: McpServer, service: BitbucketService) {
+  const completers = createBitbucketCompleters(service);
+
   server.registerPrompt(
     'bitbucket_review_pull_request',
     {
       title: 'Review a Bitbucket pull request',
       description: 'Guides a structured code review of a pull request in a Bitbucket Data Center edition instance: read the diff and existing comments, then produce a review with actionable, anchored comments.',
       argsSchema: {
-        projectKey: z.string().describe('The project key, e.g. PROJ'),
-        repositorySlug: z.string().describe('The repository slug'),
+        projectKey: completable(z.string().describe('The project key, e.g. PROJ'), completers.projectKey),
+        repositorySlug: completable(z.string().describe('The repository slug'), completers.repositorySlug),
         pullRequestId: z.number().describe('The pull request ID'),
       },
     },
@@ -40,8 +45,8 @@ export function registerPrompts(server: McpServer) {
       title: 'Triage open pull requests',
       description: 'Reviews the open pull requests in a Bitbucket Data Center edition repository and proposes a review order based on age, size, reviewer coverage, and readiness.',
       argsSchema: {
-        projectKey: z.string().describe('The project key, e.g. PROJ'),
-        repositorySlug: z.string().describe('The repository slug'),
+        projectKey: completable(z.string().describe('The project key, e.g. PROJ'), completers.projectKey),
+        repositorySlug: completable(z.string().describe('The repository slug'), completers.repositorySlug),
       },
     },
     ({ projectKey, repositorySlug }) => userPrompt(`Triage the open pull requests in ${projectKey}/${repositorySlug}.
@@ -60,8 +65,8 @@ export function registerPrompts(server: McpServer) {
       title: 'Investigate why a PR cannot merge',
       description: 'Diagnoses what is blocking a Bitbucket Data Center edition pull request from merging: unresolved tasks, missing approvals, failing builds, or merge conflicts.',
       argsSchema: {
-        projectKey: z.string().describe('The project key, e.g. PROJ'),
-        repositorySlug: z.string().describe('The repository slug'),
+        projectKey: completable(z.string().describe('The project key, e.g. PROJ'), completers.projectKey),
+        repositorySlug: completable(z.string().describe('The repository slug'), completers.repositorySlug),
         pullRequestId: z.number().describe('The pull request ID'),
       },
     },
@@ -81,8 +86,8 @@ export function registerPrompts(server: McpServer) {
       title: 'Prepare a pull request from a branch',
       description: 'Summarizes the changes between two refs in a Bitbucket Data Center edition repository and drafts a pull request title and description.',
       argsSchema: {
-        projectKey: z.string().describe('The project key, e.g. PROJ'),
-        repositorySlug: z.string().describe('The repository slug'),
+        projectKey: completable(z.string().describe('The project key, e.g. PROJ'), completers.projectKey),
+        repositorySlug: completable(z.string().describe('The repository slug'), completers.repositorySlug),
         from: z.string().describe('The source ref/branch to merge from, e.g. feature/my-change'),
         to: z.string().describe('The target ref/branch to merge into, e.g. master'),
       },
