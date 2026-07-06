@@ -1,11 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import { jiraInstanceType } from '../constants.js';
 import { jiraToolSchemas } from '../jiraService.js';
 import type { JiraService } from '../jiraService.js';
 
 export function registerWorkflowTools(server: McpServer, service: JiraService) {
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_workflows',
     {
       description: `Get all workflows (or a workflow by name) in the ${jiraInstanceType}`,
@@ -18,7 +18,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_workflow_scheme',
     {
       description: `Get a workflow scheme by id in the ${jiraInstanceType}`,
@@ -31,7 +31,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_workflow_scheme_default',
     {
       description: `Get the default workflow of a workflow scheme in the ${jiraInstanceType}`,
@@ -44,7 +44,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_workflow_scheme_issue_type_mapping',
     {
       description: `Get the workflow mapping for a specific issue type in a workflow scheme in the ${jiraInstanceType}`,
@@ -57,7 +57,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_workflow_scheme_workflow_mapping',
     {
       description: `Get the issue type mappings for a workflow (or all workflows) in a workflow scheme in the ${jiraInstanceType}`,
@@ -70,7 +70,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_create_workflow_scheme',
     {
       description: `Create a new workflow scheme in the ${jiraInstanceType}`,
@@ -83,7 +83,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_update_workflow_scheme',
     {
       description: `Update a workflow scheme in the ${jiraInstanceType}`,
@@ -96,7 +96,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_workflow_scheme',
     {
       description: `Delete a workflow scheme in the ${jiraInstanceType}. This is irreversible.`,
@@ -109,7 +109,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_set_workflow_scheme_issue_type_mapping',
     {
       description: `Set the workflow mapping for a specific issue type in a workflow scheme in the ${jiraInstanceType}`,
@@ -122,7 +122,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_workflow_scheme_issue_type_mapping',
     {
       description: `Remove an issue type's workflow mapping from a workflow scheme in the ${jiraInstanceType}`,
@@ -135,7 +135,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_set_workflow_scheme_workflow_mapping',
     {
       description: `Set (add or replace) a workflow's issue type mapping in a workflow scheme in the ${jiraInstanceType}`,
@@ -148,7 +148,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_workflow_scheme_workflow_mapping',
     {
       description: `Remove a workflow's mapping from a workflow scheme in the ${jiraInstanceType}`,
@@ -161,7 +161,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_all_screens',
     {
       description: `Get a paginated, searchable list of field screens in the ${jiraInstanceType}`,
@@ -174,7 +174,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_add_field_to_default_screen',
     {
       description: `Add a field or custom field to the default screen's default tab in the ${jiraInstanceType}`,
@@ -187,7 +187,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_screen_available_fields',
     {
       description: `Get fields available to add to a screen (ones not already present on any tab) in the ${jiraInstanceType}`,
@@ -200,7 +200,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_screen_tabs',
     {
       description: `Get all tabs for a screen in the ${jiraInstanceType}`,
@@ -213,7 +213,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_add_screen_tab',
     {
       description: `Add a new tab to a screen in the ${jiraInstanceType}`,
@@ -226,7 +226,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_rename_screen_tab',
     {
       description: `Rename a tab on a screen in the ${jiraInstanceType}`,
@@ -239,7 +239,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_screen_tab',
     {
       description: `Delete a tab from a screen in the ${jiraInstanceType}. The screen must have at least one tab remaining.`,
@@ -252,7 +252,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_move_screen_tab',
     {
       description: `Move a tab to a new position on a screen in the ${jiraInstanceType}`,
@@ -265,7 +265,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_screen_tab_fields',
     {
       description: `Get all fields on a screen tab in the ${jiraInstanceType}`,
@@ -278,7 +278,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_add_field_to_screen_tab',
     {
       description: `Add a field to a screen tab in the ${jiraInstanceType}`,
@@ -291,7 +291,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_remove_field_from_screen_tab',
     {
       description: `Remove a field from a screen tab in the ${jiraInstanceType}`,
@@ -304,7 +304,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_move_screen_tab_field',
     {
       description: `Move a field's position on a screen tab in the ${jiraInstanceType}`,
@@ -317,7 +317,7 @@ export function registerWorkflowTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_update_screen_tab_field_show_when_empty',
     {
       description: `Update whether a field on a screen tab shows a 'no value' indicator when empty in the ${jiraInstanceType}`,
