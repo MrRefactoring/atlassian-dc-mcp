@@ -1,8 +1,13 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { completable } from '@modelcontextprotocol/sdk/server/completable.js';
 import { z } from 'zod';
 import { confluenceInstanceType } from './constants.js';
+import { createConfluenceCompleters } from './completions.js';
+import type { ConfluenceService } from './confluenceService.js';
 
-export function registerPrompts(server: McpServer) {
+export function registerPrompts(server: McpServer, service: ConfluenceService) {
+  const completers = createConfluenceCompleters(service);
+
   server.registerPrompt(
     'confluence_build_cql_query',
     {
@@ -39,7 +44,7 @@ export function registerPrompts(server: McpServer) {
       title: 'Summarize a Confluence space',
       description: `Produce a structured overview of a space in ${confluenceInstanceType}: its purpose, top-level structure, and notable recent activity.`,
       argsSchema: {
-        spaceKey: z.string().describe('The key of the space to summarize (e.g. ENG)'),
+        spaceKey: completable(z.string().describe('The key of the space to summarize (e.g. ENG)'), completers.spaceKey),
       },
     },
     ({ spaceKey }) => ({
@@ -68,7 +73,7 @@ export function registerPrompts(server: McpServer) {
       title: 'Draft a Confluence page',
       description: `Turn rough notes into a well-structured Confluence page and create it in a space in ${confluenceInstanceType}.`,
       argsSchema: {
-        spaceKey: z.string().describe('The key of the space to create the page in (e.g. ENG)'),
+        spaceKey: completable(z.string().describe('The key of the space to create the page in (e.g. ENG)'), completers.spaceKey),
         title: z.string().describe('The title for the new page'),
         notes: z.string().describe('Rough notes / bullet points / requirements the page should cover'),
       },
@@ -99,7 +104,7 @@ export function registerPrompts(server: McpServer) {
       title: 'Review Confluence space access',
       description: `Audit who can access a space in ${confluenceInstanceType} and flag over-broad or risky permissions.`,
       argsSchema: {
-        spaceKey: z.string().describe('The key of the space whose access to review (e.g. ENG)'),
+        spaceKey: completable(z.string().describe('The key of the space whose access to review (e.g. ENG)'), completers.spaceKey),
       },
     },
     ({ spaceKey }) => ({

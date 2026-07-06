@@ -11,6 +11,7 @@ import { registerAuthenticationTools } from './tools/authentication.js';
 import { registerSecurityTools } from './tools/security.js';
 import { registerResources } from './resources.js';
 import { registerPrompts } from './prompts.js';
+import { bitbucketServerInstructions } from './constants.js';
 
 const require = createRequire(import.meta.url);
 
@@ -39,6 +40,7 @@ const bitbucketService = new BitbucketService(
 const server = createMcpServer({
   name: 'atlassian-bitbucket-mcp',
   version,
+  instructions: bitbucketServerInstructions,
 });
 
 registerProjectTools(server, bitbucketService);
@@ -49,6 +51,6 @@ registerPermissionTools(server, bitbucketService);
 registerAuthenticationTools(server, bitbucketService);
 registerSecurityTools(server, bitbucketService);
 registerResources(server, bitbucketService);
-registerPrompts(server);
+registerPrompts(server, bitbucketService);
 
 await connectServer(server);

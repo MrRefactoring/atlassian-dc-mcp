@@ -1,6 +1,7 @@
 import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { jiraInstanceType } from './constants.js';
+import { createJiraCompleters } from './completions.js';
 import type { JiraService } from './jiraService.js';
 
 function firstValue(value: string | string[]): string {
@@ -20,6 +21,8 @@ function jsonResource(uriHref: string, result: unknown) {
 }
 
 export function registerResources(server: McpServer, service: JiraService) {
+  const completers = createJiraCompleters(service);
+
   server.registerResource(
     'jira-issue',
     new ResourceTemplate('jira://issue/{issueKey}', { list: undefined }),
@@ -37,7 +40,7 @@ export function registerResources(server: McpServer, service: JiraService) {
 
   server.registerResource(
     'jira-project',
-    new ResourceTemplate('jira://project/{projectKey}', { list: undefined }),
+    new ResourceTemplate('jira://project/{projectKey}', { list: undefined, complete: { projectKey: completers.projectKey } }),
     {
       title: 'Jira project',
       description: `A project in the ${jiraInstanceType}, addressable by its key or id (e.g. jira://project/PROJ).`,
@@ -52,7 +55,7 @@ export function registerResources(server: McpServer, service: JiraService) {
 
   server.registerResource(
     'jira-board',
-    new ResourceTemplate('jira://board/{boardId}', { list: undefined }),
+    new ResourceTemplate('jira://board/{boardId}', { list: undefined, complete: { boardId: completers.boardId } }),
     {
       title: 'Jira agile board',
       description: `An agile (Scrum/Kanban) board in the ${jiraInstanceType}, addressable by its numeric id (e.g. jira://board/42).`,

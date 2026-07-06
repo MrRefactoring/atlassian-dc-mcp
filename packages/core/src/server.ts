@@ -23,11 +23,15 @@ export const handleError = (error: Error) => {
 export function createMcpServer(options: {
   name: string;
   version: string;
+  instructions?: string;
 }) {
-  return new McpServer({
-    name: options.name,
-    version: options.version,
-  });
+  return new McpServer(
+    {
+      name: options.name,
+      version: options.version,
+    },
+    options.instructions ? { instructions: options.instructions } : undefined,
+  );
 }
 
 export const HTTP_PORT_ENV_VAR = 'ATLASSIAN_DC_MCP_HTTP_PORT';
