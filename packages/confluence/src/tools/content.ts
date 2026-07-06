@@ -481,4 +481,43 @@ export function registerContentTools(server: McpServer, service: ConfluenceServi
       return formatToolResponse(result);
     },
   );
+
+  registerAnnotatedTool(server,
+    'confluence_get_recently_used_labels',
+    {
+      description: `Get the labels most recently used across the whole ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getRecentlyUsedLabels,
+    },
+    async ({ limit, start }) => {
+      const result = await service.getRecentlyUsedLabels(limit, start);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'confluence_get_related_labels',
+    {
+      description: `Get labels related to a given label (co-occurring on the same content) in the ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getRelatedLabels,
+    },
+    async ({ labelName, limit, start }) => {
+      const result = await service.getRelatedLabels(labelName, limit, start);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'confluence_delete_content_version',
+    {
+      description: `Delete a specific historical version of a piece of content in the ${confluenceInstanceType}. This is irreversible.`,
+      inputSchema: confluenceToolSchemas.deleteContentVersion,
+    },
+    async ({ contentId, versionNumber }) => {
+      const result = await service.deleteContentVersion(contentId, versionNumber);
+
+      return formatToolResponse(result);
+    },
+  );
 }

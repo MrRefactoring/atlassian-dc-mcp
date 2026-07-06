@@ -108,4 +108,43 @@ export function registerAdminTools(server: McpServer, service: ConfluenceService
       return formatToolResponse(result);
     },
   );
+
+  registerAnnotatedTool(server,
+    'confluence_get_access_mode_status',
+    {
+      description: `Get the access mode (READ_WRITE or READ_ONLY) of the ${confluenceInstanceType}`,
+      inputSchema: confluenceToolSchemas.getAccessModeStatus,
+    },
+    async () => {
+      const result = await service.getAccessModeStatus();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'confluence_get_audit_records',
+    {
+      description: `Get audit log records for the ${confluenceInstanceType} (admin only)`,
+      inputSchema: confluenceToolSchemas.getAuditRecords,
+    },
+    async () => {
+      const result = await service.getAuditRecords();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'confluence_get_global_permissions',
+    {
+      description: `Get all global permissions granted to users and groups in the ${confluenceInstanceType} (admin only)`,
+      inputSchema: confluenceToolSchemas.getGlobalPermissions,
+    },
+    async () => {
+      const result = await service.getGlobalPermissions();
+
+      return formatToolResponse(result);
+    },
+  );
 }
