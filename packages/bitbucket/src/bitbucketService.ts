@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { createBitbucketClient, route } from './bitbucketClient/index.js';
 import type { BitbucketClient, AccessTokenRequest } from './bitbucketClient/index.js';
-import { handleApiOperation, resolveOpenApiBase } from 'datacenter-mcp-core';
+import { handleApiOperation, paginateAll, resolveOpenApiBase } from 'datacenter-mcp-core';
 import { simplifyInboxPullRequests } from './inboxPrMapper.js';
 import { BITBUCKET_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import type {
@@ -374,6 +374,56 @@ export class BitbucketService {
     );
   }
 
+  async getCommitChanges(projectKey: string, repositorySlug: string, commitId: string, since?: string, start?: number, limit?: number) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+
+    return handleApiOperation(
+      () => this.bb.repositories.getCommitChanges({ projectKey: projectKey, repositorySlug: repositorySlug, commitId: commitId, since: since, start: start, limit: limit ?? this.getPageSize() }),
+      'Error fetching commit changes',
+    );
+  }
+
+  async getCommitPullRequests(projectKey: string, repositorySlug: string, commitId: string, start?: number, limit?: number) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+
+    return handleApiOperation(
+      () => this.bb.repositories.getCommitPullRequests({ projectKey: projectKey, repositorySlug: repositorySlug, commitId: commitId, start: start, limit: limit ?? this.getPageSize() }),
+      'Error fetching pull requests for commit',
+    );
+  }
+
+  async getCompareDiff(projectKey: string, repositorySlug: string, from: string, to: string, fromRepo?: string, srcPath?: string, contextLines?: number, whitespace?: string) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+
+    return handleApiOperation(
+      () => this.bb.repositories.getCompareDiff({ projectKey: projectKey, repositorySlug: repositorySlug, from: from, to: to, fromRepo: fromRepo, srcPath: srcPath, contextLines: contextLines, whitespace: whitespace }),
+      'Error fetching compare diff',
+    );
+  }
+
+  async getRepositoryLabels(projectKey: string, repositorySlug: string, start?: number, limit?: number) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+
+    return handleApiOperation(
+      () => this.bb.repositories.getRepositoryLabels({ projectKey: projectKey, repositorySlug: repositorySlug, start: start, limit: limit ?? this.getPageSize() }),
+      'Error fetching repository labels',
+    );
+  }
+
+  async getPullRequestBlockerComments(projectKey: string, repositorySlug: string, pullRequestId: string, count?: boolean, start?: number, limit?: number) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+
+    return handleApiOperation(
+      () => this.bb.pullRequests.getBlockerComments({ projectKey: projectKey, repositorySlug: repositorySlug, pullRequestId: pullRequestId, count: count, start: start, limit: limit ?? this.getPageSize() }),
+      'Error fetching pull request blocker comments (tasks)',
+    );
+  }
+
   /**
    * Create or replace a Code Insights report on a commit
    * @param projectKey The project key
@@ -638,6 +688,26 @@ export class BitbucketService {
    * @param limit Optional pagination limit (defaults to the package page size)
    * @returns Promise with branches data
    */
+  /**
+   * Collect every page of a Bitbucket startAt-paged listing endpoint into a
+   * single flat array. Reads the standard `{ values, isLastPage, nextPageStart }`
+   * envelope. Only use for naturally bounded lists (a repo's branches/tags),
+   * never for open-ended commit or pull-request listings.
+   */
+  private async collectPages(
+    fetchPage: (start: number) => Promise<unknown>,
+    start?: number,
+  ): Promise<unknown[]> {
+    return paginateAll(
+      async (offset) => {
+        const page = (await fetchPage(offset)) as { values?: unknown[]; isLastPage?: boolean; nextPageStart?: number };
+
+        return { items: page.values ?? [], isLast: page.isLastPage ?? true, nextStart: page.nextPageStart };
+      },
+      start !== undefined ? { startAt: start } : {},
+    );
+  }
+
   async getBranches(
     projectKey: string,
     repositorySlug: string,
@@ -645,12 +715,21 @@ export class BitbucketService {
     orderBy?: 'ALPHABETICAL' | 'MODIFICATION',
     start?: number,
     limit?: number,
+    fetchAll?: boolean,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+    const pageSize = limit ?? this.getPageSize();
+
+    if (fetchAll) {
+      return handleApiOperation(
+        () => this.collectPages((s) => this.bb.repositories.getBranches({ projectKey: projectKey, repositorySlug: repositorySlug, orderBy: orderBy, filterText: filterText, start: s, limit: pageSize }), start),
+        'Error fetching branches',
+      );
+    }
 
     return handleApiOperation(
-      () => this.bb.repositories.getBranches({ projectKey: projectKey, repositorySlug: repositorySlug, orderBy: orderBy, filterText: filterText, start: start, limit: limit ?? this.getPageSize() }),
+      () => this.bb.repositories.getBranches({ projectKey: projectKey, repositorySlug: repositorySlug, orderBy: orderBy, filterText: filterText, start: start, limit: pageSize }),
       'Error fetching branches',
     );
   }
@@ -672,12 +751,21 @@ export class BitbucketService {
     orderBy?: string,
     start?: number,
     limit?: number,
+    fetchAll?: boolean,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+    const pageSize = limit ?? this.getPageSize();
+
+    if (fetchAll) {
+      return handleApiOperation(
+        () => this.collectPages((s) => this.bb.repositories.getTags({ projectKey: projectKey, repositorySlug: repositorySlug, orderBy: orderBy, filterText: filterText, start: s, limit: pageSize }), start),
+        'Error fetching tags',
+      );
+    }
 
     return handleApiOperation(
-      () => this.bb.repositories.getTags({ projectKey: projectKey, repositorySlug: repositorySlug, orderBy: orderBy, filterText: filterText, start: start, limit: limit ?? this.getPageSize() }),
+      () => this.bb.repositories.getTags({ projectKey: projectKey, repositorySlug: repositorySlug, orderBy: orderBy, filterText: filterText, start: start, limit: pageSize }),
       'Error fetching tags',
     );
   }
@@ -3265,6 +3353,7 @@ export const bitbucketToolSchemas = {
     orderBy: z.enum(['ALPHABETICAL', 'MODIFICATION']).optional().describe('Ordering of the results: ALPHABETICAL by branch name, or MODIFICATION (most recently modified first)'),
     start: z.number().optional().describe('Start number for pagination'),
     limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
+    fetchAll: z.boolean().optional().describe('Follow pagination and return every branch as a flat array (capped for safety). Ignores limit as a total cap.'),
   },
   getDefaultBranch: {
     projectKey: z.string().describe('The project key'),
@@ -3287,6 +3376,7 @@ export const bitbucketToolSchemas = {
     orderBy: z.enum(['ALPHABETICAL', 'MODIFICATION']).optional().describe('Ordering of the results: ALPHABETICAL or MODIFICATION (most recently modified first)'),
     start: z.number().optional().describe('Start number for pagination'),
     limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
+    fetchAll: z.boolean().optional().describe('Follow pagination and return every tag as a flat array (capped for safety). Ignores limit as a total cap.'),
   },
   getTag: {
     projectKey: z.string().describe('The project key'),
@@ -3425,6 +3515,45 @@ export const bitbucketToolSchemas = {
     to: z.string().describe('The target ref or commit to compare to (e.g. \'refs/heads/master\')'),
     fromRepo: z.string().optional().describe('Optional \'projectKey/repositorySlug\' the \'from\' ref lives in, for cross-repository comparisons'),
     compareType: z.enum(['commits', 'changes']).optional().describe('\'commits\' (default) lists the commits between the refs; \'changes\' lists the changed files'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
+  },
+  getCommitChanges: {
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash) whose changed files to list'),
+    since: z.string().optional().describe('Optional parent commit id to diff against; defaults to the commit\'s first parent'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
+  },
+  getCommitPullRequests: {
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    commitId: z.string().describe('The commit id (hash) to find pull requests for'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
+  },
+  getCompareDiff: {
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    from: z.string().describe('The source ref or commit to compare from (e.g. \'refs/heads/feature\' or a commit hash)'),
+    to: z.string().describe('The target ref or commit to compare to (e.g. \'refs/heads/master\')'),
+    fromRepo: z.string().optional().describe('Optional \'projectKey/repositorySlug\' the \'from\' ref lives in, for cross-repository comparisons'),
+    srcPath: z.string().optional().describe('Optional source path to restrict the diff to a single file'),
+    contextLines: z.number().optional().describe('Number of context lines to include around each diff hunk'),
+    whitespace: z.string().optional().describe('Whitespace handling, e.g. \'ignore-all\''),
+  },
+  getRepositoryLabels: {
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
+  },
+  getPullRequestBlockerComments: {
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request id'),
+    count: z.boolean().optional().describe('Whether to include the total count of blocker comments (tasks) in the response'),
     start: z.number().optional().describe('Start number for pagination'),
     limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },

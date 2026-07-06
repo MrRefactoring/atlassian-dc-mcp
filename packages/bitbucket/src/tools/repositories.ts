@@ -62,8 +62,8 @@ export function registerRepositoryTools(server: McpServer, service: BitbucketSer
       description: 'Get branches for a Bitbucket repository. Supports filtering by name substring and ordering (ALPHABETICAL or MODIFICATION). Useful before creating a pull request to discover valid source/target refs.',
       inputSchema: bitbucketToolSchemas.getBranches,
     },
-    async ({ projectKey, repositorySlug, filterText, orderBy, start, limit }) => {
-      const result = await service.getBranches(projectKey, repositorySlug, filterText, orderBy, start, limit);
+    async ({ projectKey, repositorySlug, filterText, orderBy, start, limit, fetchAll }) => {
+      const result = await service.getBranches(projectKey, repositorySlug, filterText, orderBy, start, limit, fetchAll);
 
       return formatToolResponse(result);
     },
@@ -75,8 +75,8 @@ export function registerRepositoryTools(server: McpServer, service: BitbucketSer
       description: 'Get tags for a Bitbucket repository. Supports filtering by name substring and ordering (ALPHABETICAL or MODIFICATION).',
       inputSchema: bitbucketToolSchemas.getTags,
     },
-    async ({ projectKey, repositorySlug, filterText, orderBy, start, limit }) => {
-      const result = await service.getTags(projectKey, repositorySlug, filterText, orderBy, start, limit);
+    async ({ projectKey, repositorySlug, filterText, orderBy, start, limit, fetchAll }) => {
+      const result = await service.getTags(projectKey, repositorySlug, filterText, orderBy, start, limit, fetchAll);
 
       return formatToolResponse(result);
     },
@@ -649,6 +649,58 @@ export function registerRepositoryTools(server: McpServer, service: BitbucketSer
     },
     async ({ projectKey, repositorySlug, hookKey, settings }) => {
       const result = await service.setRepoHookSettings(projectKey, repositorySlug, hookKey, settings);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'bitbucket_get_commit_changes',
+    {
+      description: 'List the files changed in a specific commit in a Bitbucket repository. By default diffs against the commit\'s first parent; pass \'since\' to diff against another commit.',
+      inputSchema: bitbucketToolSchemas.getCommitChanges,
+    },
+    async ({ projectKey, repositorySlug, commitId, since, start, limit }) => {
+      const result = await service.getCommitChanges(projectKey, repositorySlug, commitId, since, start, limit);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'bitbucket_get_commit_pull_requests',
+    {
+      description: 'List the pull requests that contain a specific commit in a Bitbucket repository.',
+      inputSchema: bitbucketToolSchemas.getCommitPullRequests,
+    },
+    async ({ projectKey, repositorySlug, commitId, start, limit }) => {
+      const result = await service.getCommitPullRequests(projectKey, repositorySlug, commitId, start, limit);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'bitbucket_get_compare_diff',
+    {
+      description: 'Get the raw diff between two refs/commits in a Bitbucket repository. Complements bitbucket_compare_refs (which lists commits or changed files) by returning the actual patch. Supports cross-repository comparison via fromRepo.',
+      inputSchema: bitbucketToolSchemas.getCompareDiff,
+    },
+    async ({ projectKey, repositorySlug, from, to, fromRepo, srcPath, contextLines, whitespace }) => {
+      const result = await service.getCompareDiff(projectKey, repositorySlug, from, to, fromRepo, srcPath, contextLines, whitespace);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'bitbucket_get_repository_labels',
+    {
+      description: 'List the labels applied to a Bitbucket repository.',
+      inputSchema: bitbucketToolSchemas.getRepositoryLabels,
+    },
+    async ({ projectKey, repositorySlug, start, limit }) => {
+      const result = await service.getRepositoryLabels(projectKey, repositorySlug, start, limit);
 
       return formatToolResponse(result);
     },

@@ -19,6 +19,7 @@ export * from './comment.js';
 export * from './commit.js';
 export * from './createTagRequest.js';
 export * from './defaultReviewersRequest.js';
+export * from './label.js';
 export * from './diff.js';
 export * from './gpgKey.js';
 export * from './insightAnnotationsResponse.js';

@@ -381,4 +381,17 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
       return formatToolResponse(result);
     },
   );
+
+  registerAnnotatedTool(server,
+    'bitbucket_get_pull_request_blocker_comments',
+    {
+      description: 'List the blocker comments (tasks) on a Bitbucket pull request — the unresolved items that block it from merging.',
+      inputSchema: bitbucketToolSchemas.getPullRequestBlockerComments,
+    },
+    async ({ projectKey, repositorySlug, pullRequestId, count, start, limit }) => {
+      const result = await service.getPullRequestBlockerComments(projectKey, repositorySlug, pullRequestId, count, start, limit);
+
+      return formatToolResponse(result);
+    },
+  );
 }

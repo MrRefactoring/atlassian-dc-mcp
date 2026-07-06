@@ -2,9 +2,9 @@ import type { HttpClient } from 'datacenter-mcp-core';
 import { route, pickBody } from 'datacenter-mcp-core';
 import { restPage } from '../core/page.js';
 import type { RestPage } from '../interface/index.js';
-import { SettingsSchema, AutoDeclineSettingsSchema, AutoMergeRestrictedSettingsSchema, BranchSchema, ChangeSchema, CommentSchema, CommitSchema, DiffSchema, RefRestrictionSchema, RepositoryHookSchema, RepositoryPullRequestSettingsSchema, TagSchema, WebhookSchema, BranchCreateRequestSchema, CreateTagRequestSchema, BranchDeleteRequestSchema, MultipartFormDataSchema, AutoDeclineSettingsRequestSchema, AutoMergeSettingsRequestSchema } from '../models/index.js';
-import type { Settings, AutoDeclineSettings, AutoMergeRestrictedSettings, Branch, Change, Comment, Commit, Diff, RefRestriction, RepositoryHook, RepositoryPullRequestSettings, Tag, Webhook } from '../models/index.js';
-import type { CreateBranch, CreateCommitComment, CreateRestrictions, CreateTagForRepository, CreateWebhook, DeleteAutoDeclineSettings, DeleteAutoMergeSettings, DeleteBranch, DeleteRestriction, DeleteWebhook, DisableHook, EditFile, EnableHook, FindWebhooks, GetAutoDeclineSettings, GetAutoMergeSettings, GetBranches, GetComments, GetCommit, GetCommits, GetContent, GetDefaultBranch, GetPullRequestSettings, GetRepositoryHooks, GetRestriction, GetRestrictions, GetSettings, GetTag, GetTags, GetWebhook, SetAutoDeclineSettings, SetAutoMergeSettings, SetSettings, StreamCompareChanges, StreamCommits, StreamDiff, StreamRaw, UpdatePullRequestSettings, UpdateWebhook } from '../parameters/index.js';
+import { SettingsSchema, AutoDeclineSettingsSchema, AutoMergeRestrictedSettingsSchema, BranchSchema, ChangeSchema, CommentSchema, CommitSchema, DiffSchema, LabelSchema, PullRequestSchema, RefRestrictionSchema, RepositoryHookSchema, RepositoryPullRequestSettingsSchema, TagSchema, WebhookSchema, BranchCreateRequestSchema, CreateTagRequestSchema, BranchDeleteRequestSchema, MultipartFormDataSchema, AutoDeclineSettingsRequestSchema, AutoMergeSettingsRequestSchema } from '../models/index.js';
+import type { Settings, AutoDeclineSettings, AutoMergeRestrictedSettings, Branch, Change, Comment, Commit, Diff, Label, PullRequest, RefRestriction, RepositoryHook, RepositoryPullRequestSettings, Tag, Webhook } from '../models/index.js';
+import type { CreateBranch, CreateCommitComment, CreateRestrictions, CreateTagForRepository, CreateWebhook, DeleteAutoDeclineSettings, DeleteAutoMergeSettings, DeleteBranch, DeleteRestriction, DeleteWebhook, DisableHook, EditFile, EnableHook, FindWebhooks, GetAutoDeclineSettings, GetAutoMergeSettings, GetBranches, GetComments, GetCommit, GetCommitChanges, GetCommitPullRequests, GetCommits, GetCompareDiff, GetContent, GetDefaultBranch, GetPullRequestSettings, GetRepositoryHooks, GetRepositoryLabels, GetRestriction, GetRestrictions, GetSettings, GetTag, GetTags, GetWebhook, SetAutoDeclineSettings, SetAutoMergeSettings, SetSettings, StreamCompareChanges, StreamCommits, StreamDiff, StreamRaw, UpdatePullRequestSettings, UpdateWebhook } from '../parameters/index.js';
 
 export function createBranch(client: HttpClient, params: CreateBranch): Promise<Branch> {
   return client.sendRequest({
@@ -346,5 +346,48 @@ export function updateWebhook(client: HttpClient, params: UpdateWebhook): Promis
     body: pickBody(params, WebhookSchema),
     contentType: 'application/json',
     schema: WebhookSchema,
+  });
+}
+
+export function getCommitChanges(client: HttpClient, params: GetCommitChanges): Promise<RestPage<Change>> {
+  return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/commits/${params.commitId}/changes`,
+    method: 'GET',
+    searchParams: { since: params.since, start: params.start, limit: params.limit },
+    schema: restPage(ChangeSchema),
+  });
+}
+
+export function getCommitPullRequests(client: HttpClient, params: GetCommitPullRequests): Promise<RestPage<PullRequest>> {
+  return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/commits/${params.commitId}/pull-requests`,
+    method: 'GET',
+    searchParams: { start: params.start, limit: params.limit },
+    schema: restPage(PullRequestSchema),
+  });
+}
+
+export function getCompareDiff(client: HttpClient, params: GetCompareDiff): Promise<Diff> {
+  return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/compare/diff`,
+    method: 'GET',
+    searchParams: {
+      from: params.from,
+      to: params.to,
+      fromRepo: params.fromRepo,
+      srcPath: params.srcPath,
+      contextLines: params.contextLines,
+      whitespace: params.whitespace,
+    },
+    schema: DiffSchema,
+  });
+}
+
+export function getRepositoryLabels(client: HttpClient, params: GetRepositoryLabels): Promise<RestPage<Label>> {
+  return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/labels`,
+    method: 'GET',
+    searchParams: { start: params.start, limit: params.limit },
+    schema: restPage(LabelSchema),
   });
 }
