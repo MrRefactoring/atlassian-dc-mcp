@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { handleApiOperation, resolveOpenApiBase, route } from 'datacenter-mcp-core';
+import { handleApiOperation, paginateAll, resolveOpenApiBase, route } from 'datacenter-mcp-core';
 import { createJiraClient, type JiraClient } from './jiraClient/index.js';
 import type { VersionMoveBean } from './jiraClient/models/versionMoveBean.js';
 import type { MoveFieldBean } from './jiraClient/models/moveFieldBean.js';
@@ -1108,7 +1108,36 @@ export class JiraService {
     );
   }
 
-  async getBoards(maxResults?: number, name?: string, projectKeyOrId?: string, startAt?: number) {
+  /**
+   * Collect every page of an agile (`/agile/1.0`) startAt-paged listing endpoint
+   * into a single flat array. The agile paged envelope (`{ values, isLast, … }`)
+   * is stable at runtime even though the generated model types describe only the
+   * item shape, so the response is read through a minimal structural cast. Only
+   * use for naturally bounded lists (a board's sprints/versions/epics), never for
+   * the JQL-backed issue listings.
+   */
+  private async collectAgilePages(
+    fetchPage: (startAt: number) => Promise<unknown>,
+    startAt?: number,
+  ): Promise<unknown[]> {
+    return paginateAll(
+      async (offset) => {
+        const page = (await fetchPage(offset)) as { values?: unknown[]; isLast?: boolean };
+
+        return { items: page.values ?? [], isLast: page.isLast ?? true };
+      },
+      startAt !== undefined ? { startAt } : {},
+    );
+  }
+
+  async getBoards(maxResults?: number, name?: string, projectKeyOrId?: string, startAt?: number, fetchAll?: boolean) {
+    if (fetchAll) {
+      return handleApiOperation(
+        () => this.collectAgilePages((s) => this.jira.agile.getAllBoards({ maxResults, name, projectKeyOrId, startAt: s }), startAt),
+        'Error getting boards',
+      );
+    }
+
     return handleApiOperation(
       () => this.jira.agile.getAllBoards({ maxResults, name, projectKeyOrId, startAt }),
       'Error getting boards',
@@ -1133,14 +1162,28 @@ export class JiraService {
     );
   }
 
-  async getBoardSprints(boardId: number, maxResults?: number, startAt?: number) {
+  async getBoardSprints(boardId: number, maxResults?: number, startAt?: number, fetchAll?: boolean) {
+    if (fetchAll) {
+      return handleApiOperation(
+        () => this.collectAgilePages((s) => this.jira.agile.getAllSprints({ boardId, maxResults, startAt: s }), startAt),
+        'Error getting board sprints',
+      );
+    }
+
     return handleApiOperation(
       () => this.jira.agile.getAllSprints({ boardId, maxResults, startAt }),
       'Error getting board sprints',
     );
   }
 
-  async getBoardVersions(boardId: number, maxResults?: number, startAt?: number) {
+  async getBoardVersions(boardId: number, maxResults?: number, startAt?: number, fetchAll?: boolean) {
+    if (fetchAll) {
+      return handleApiOperation(
+        () => this.collectAgilePages((s) => this.jira.agile.getAllVersions({ boardId, maxResults, startAt: s }), startAt),
+        'Error getting board versions',
+      );
+    }
+
     return handleApiOperation(
       () => this.jira.agile.getAllVersions({ boardId, maxResults, startAt }),
       'Error getting board versions',
@@ -1154,7 +1197,14 @@ export class JiraService {
     );
   }
 
-  async getBoardEpics(boardId: number, maxResults?: number, done?: boolean, startAt?: number) {
+  async getBoardEpics(boardId: number, maxResults?: number, done?: boolean, startAt?: number, fetchAll?: boolean) {
+    if (fetchAll) {
+      return handleApiOperation(
+        () => this.collectAgilePages((s) => this.jira.agile.getEpics({ boardId, maxResults, done: done?.toString(), startAt: s }), startAt),
+        'Error getting board epics',
+      );
+    }
+
     return handleApiOperation(
       () => this.jira.agile.getEpics({ boardId, maxResults, done: done?.toString(), startAt }),
       'Error getting board epics',
@@ -2805,6 +2855,7 @@ export const jiraToolSchemas = {
     name: z.string().optional().describe('Filter boards by name'),
     projectKeyOrId: z.string().optional().describe('Filter boards by project key or id'),
     startAt: z.number().optional().describe('Index of the first board to return'),
+    fetchAll: z.boolean().optional().describe('Follow pagination and return every board as a flat array (capped for safety). Ignores maxResults as a total limit.'),
   },
   getBoard: {
     boardId: z.number().describe('Id of the Agile board'),
@@ -2822,11 +2873,13 @@ export const jiraToolSchemas = {
     boardId: z.number().describe('Id of the Agile board'),
     maxResults: z.number().optional().describe('Maximum number of sprints to return'),
     startAt: z.number().optional().describe('Index of the first sprint to return'),
+    fetchAll: z.boolean().optional().describe('Follow pagination and return every sprint as a flat array (capped for safety). Ignores maxResults as a total limit.'),
   },
   getBoardVersions: {
     boardId: z.number().describe('Id of the Agile board'),
     maxResults: z.number().optional().describe('Maximum number of versions to return'),
     startAt: z.number().optional().describe('Index of the first version to return'),
+    fetchAll: z.boolean().optional().describe('Follow pagination and return every version as a flat array (capped for safety). Ignores maxResults as a total limit.'),
   },
   getBoardBacklogIssues: {
     boardId: z.number().describe('Id of the Agile board'),
@@ -2839,6 +2892,7 @@ export const jiraToolSchemas = {
     maxResults: z.number().optional().describe('Maximum number of epics to return'),
     done: z.boolean().optional().describe('Filter epics by done status'),
     startAt: z.number().optional().describe('Index of the first epic to return'),
+    fetchAll: z.boolean().optional().describe('Follow pagination and return every epic as a flat array (capped for safety). Ignores maxResults as a total limit.'),
   },
   getBoardIssuesWithoutEpic: {
     boardId: z.number().describe('Id of the Agile board'),

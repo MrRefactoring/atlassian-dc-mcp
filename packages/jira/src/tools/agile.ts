@@ -1,24 +1,24 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import { jiraInstanceType } from '../constants.js';
 import { jiraToolSchemas } from '../jiraService.js';
 import type { JiraService } from '../jiraService.js';
 
 export function registerAgileTools(server: McpServer, service: JiraService) {
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_boards',
     {
       description: `Get Agile boards visible to the current user in the ${jiraInstanceType}, optionally filtered by name or project`,
       inputSchema: jiraToolSchemas.getBoards,
     },
-    async ({ maxResults, name, projectKeyOrId, startAt }) => {
-      const result = await service.getBoards(maxResults, name, projectKeyOrId, startAt);
+    async ({ maxResults, name, projectKeyOrId, startAt, fetchAll }) => {
+      const result = await service.getBoards(maxResults, name, projectKeyOrId, startAt, fetchAll);
 
       return formatToolResponse(result);
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_board',
     {
       description: `Get a single Agile board by id from the ${jiraInstanceType}`,
@@ -31,7 +31,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_board_configuration',
     {
       description: `Get the configuration (columns, estimation, ranking) of an Agile board in the ${jiraInstanceType}`,
@@ -44,7 +44,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_board_issues',
     {
       description: `Get the issues on an Agile board in the ${jiraInstanceType}, optionally filtered by JQL`,
@@ -57,33 +57,33 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_board_sprints',
     {
       description: `Get the sprints of an Agile board in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getBoardSprints,
     },
-    async ({ boardId, maxResults, startAt }) => {
-      const result = await service.getBoardSprints(boardId, maxResults, startAt);
+    async ({ boardId, maxResults, startAt, fetchAll }) => {
+      const result = await service.getBoardSprints(boardId, maxResults, startAt, fetchAll);
 
       return formatToolResponse(result);
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_board_versions',
     {
       description: `Get the versions of an Agile board's project in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getBoardVersions,
     },
-    async ({ boardId, maxResults, startAt }) => {
-      const result = await service.getBoardVersions(boardId, maxResults, startAt);
+    async ({ boardId, maxResults, startAt, fetchAll }) => {
+      const result = await service.getBoardVersions(boardId, maxResults, startAt, fetchAll);
 
       return formatToolResponse(result);
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_board_backlog_issues',
     {
       description: `Get the backlog issues of an Agile board in the ${jiraInstanceType}`,
@@ -96,20 +96,20 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_board_epics',
     {
       description: `Get the epics of an Agile board in the ${jiraInstanceType}`,
       inputSchema: jiraToolSchemas.getBoardEpics,
     },
-    async ({ boardId, maxResults, done, startAt }) => {
-      const result = await service.getBoardEpics(boardId, maxResults, done, startAt);
+    async ({ boardId, maxResults, done, startAt, fetchAll }) => {
+      const result = await service.getBoardEpics(boardId, maxResults, done, startAt, fetchAll);
 
       return formatToolResponse(result);
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_board_issues_without_epic',
     {
       description: `Get the issues on an Agile board that are not assigned to any epic, in the ${jiraInstanceType}`,
@@ -122,7 +122,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_board_epic_issues',
     {
       description: `Get the issues assigned to a specific epic on an Agile board in the ${jiraInstanceType}`,
@@ -135,7 +135,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_move_issues_to_backlog',
     {
       description: `Move issues to the backlog in the ${jiraInstanceType}, removing them from any sprint`,
@@ -148,7 +148,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_create_sprint',
     {
       description: `Create a sprint on an Agile board in the ${jiraInstanceType}`,
@@ -161,7 +161,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_sprint',
     {
       description: `Get a single sprint by id from the ${jiraInstanceType}`,
@@ -174,7 +174,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_update_sprint',
     {
       description: `Update a sprint in the ${jiraInstanceType}, including starting or closing it via the state field`,
@@ -187,7 +187,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_sprint',
     {
       description: `Delete a sprint from the ${jiraInstanceType}. This is irreversible.`,
@@ -200,7 +200,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_sprint_issues',
     {
       description: `Get the issues in a sprint in the ${jiraInstanceType}`,
@@ -213,7 +213,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_move_issues_to_sprint',
     {
       description: `Move issues into a sprint in the ${jiraInstanceType}`,
@@ -226,7 +226,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_epic',
     {
       description: `Get a single epic by id or issue key from the ${jiraInstanceType}`,
@@ -239,7 +239,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_update_epic',
     {
       description: `Update an epic (name, summary, done status) in the ${jiraInstanceType}`,
@@ -252,7 +252,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_epic_issues',
     {
       description: `Get the issues assigned to an epic in the ${jiraInstanceType}`,
@@ -265,7 +265,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_move_issues_to_epic',
     {
       description: `Move issues into an epic in the ${jiraInstanceType}`,
@@ -278,7 +278,7 @@ export function registerAgileTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_rank_epic',
     {
       description: `Reorder (rank) an epic relative to another epic in the ${jiraInstanceType}`,

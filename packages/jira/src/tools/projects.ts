@@ -1,11 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import { jiraInstanceType } from '../constants.js';
 import { jiraToolSchemas } from '../jiraService.js';
 import type { JiraService } from '../jiraService.js';
 
 export function registerProjectTools(server: McpServer, service: JiraService) {
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_projects',
     {
       description: `Get all projects visible to the current user in the ${jiraInstanceType}`,
@@ -18,7 +18,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_search_projects',
     {
       description: `Search for projects by name or key using the picker-style search in the ${jiraInstanceType}`,
@@ -31,7 +31,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_project',
     {
       description: `Get details of a single project by id or key from the ${jiraInstanceType}`,
@@ -44,7 +44,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_project_components',
     {
       description: `Get all components of a project from the ${jiraInstanceType}`,
@@ -57,7 +57,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_project_versions',
     {
       description: `Get all versions of a project from the ${jiraInstanceType}`,
@@ -70,7 +70,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_create_project',
     {
       description: `Create a new project in the ${jiraInstanceType}`,
@@ -98,7 +98,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_update_project',
     {
       description: `Update an existing project in the ${jiraInstanceType}. Only non-null values sent are updated.`,
@@ -124,7 +124,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_project',
     {
       description: `Delete a project from the ${jiraInstanceType}. WARNING: this is irreversible.`,
@@ -137,7 +137,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_archive_project',
     {
       description: `Archive a project in the ${jiraInstanceType}`,
@@ -150,7 +150,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_restore_project',
     {
       description: `Restore a previously archived project in the ${jiraInstanceType}`,
@@ -163,7 +163,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_project_property_keys',
     {
       description: `Get the keys of all entity properties stored on a project in the ${jiraInstanceType}`,
@@ -176,7 +176,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_project_property',
     {
       description: `Get a single entity property value from a project in the ${jiraInstanceType}`,
@@ -189,7 +189,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_set_project_property',
     {
       description: `Set an entity property (arbitrary JSON key/value metadata) on a project in the ${jiraInstanceType}`,
@@ -202,7 +202,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_project_property',
     {
       description: `Delete an entity property from a project in the ${jiraInstanceType}`,
@@ -215,7 +215,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_create_component',
     {
       description: `Create a component in a project in the ${jiraInstanceType}`,
@@ -228,7 +228,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_components',
     {
       description: `Get a paginated list of components in the ${jiraInstanceType}, optionally filtered by project or name query`,
@@ -241,7 +241,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_component',
     {
       description: `Get a single component by id from the ${jiraInstanceType}`,
@@ -254,7 +254,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_update_component',
     {
       description: `Update a component in the ${jiraInstanceType}`,
@@ -267,7 +267,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_component',
     {
       description: `Delete a component from the ${jiraInstanceType}. This is irreversible.`,
@@ -280,7 +280,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_component_related_issues',
     {
       description: `Get counts of issues related to a component in the ${jiraInstanceType}`,
@@ -293,7 +293,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_create_version',
     {
       description: `Create a version in a project in the ${jiraInstanceType}`,
@@ -306,7 +306,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_versions',
     {
       description: `Get a paginated list of versions in the ${jiraInstanceType}, optionally filtered by project or name query`,
@@ -319,7 +319,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_version',
     {
       description: `Get a single version by id from the ${jiraInstanceType}`,
@@ -332,7 +332,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_update_version',
     {
       description: `Update a version in the ${jiraInstanceType}`,
@@ -345,7 +345,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_and_replace_version',
     {
       description: `Delete a version from the ${jiraInstanceType}, moving affected/fix-version issues to replacement versions. This is irreversible.`,
@@ -358,7 +358,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_merge_version',
     {
       description: `Merge a version into another version in the ${jiraInstanceType}, moving all its issues to the target version. This is irreversible.`,
@@ -371,7 +371,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_move_version',
     {
       description: `Reposition a version within its project's version sequence in the ${jiraInstanceType}`,
@@ -384,7 +384,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_version_related_issues',
     {
       description: `Get counts of issues related to a version in the ${jiraInstanceType}`,
@@ -397,7 +397,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_version_unresolved_issues',
     {
       description: `Get the count of unresolved issues for a version in the ${jiraInstanceType}`,
@@ -410,7 +410,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_project_roles',
     {
       description: `Get the project roles defined for a project in the ${jiraInstanceType}`,
@@ -423,7 +423,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_project_role',
     {
       description: `Get details (including current actors) for a single project role in the ${jiraInstanceType}`,
@@ -436,7 +436,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_set_project_role_actors',
     {
       description: `Replace all actors (users/groups) of a project role in the ${jiraInstanceType}`,
@@ -449,7 +449,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_add_project_role_actors',
     {
       description: `Add users and/or groups as actors of a project role in the ${jiraInstanceType}, without affecting existing actors`,
@@ -462,7 +462,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_project_role_actor',
     {
       description: `Remove a single user or group actor from a project role in the ${jiraInstanceType}`,
@@ -475,7 +475,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_project_categories',
     {
       description: `Get all project categories in the ${jiraInstanceType}`,
@@ -488,7 +488,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_create_project_category',
     {
       description: `Create a new project category in the ${jiraInstanceType}`,
@@ -501,7 +501,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_project_category',
     {
       description: `Get a single project category by id from the ${jiraInstanceType}`,
@@ -514,7 +514,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_update_project_category',
     {
       description: `Update a project category's name or description in the ${jiraInstanceType}`,
@@ -527,7 +527,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_project_category',
     {
       description: `Delete a project category in the ${jiraInstanceType}`,
@@ -540,7 +540,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_role_definitions',
     {
       description: `Get all global role definitions available in the ${jiraInstanceType}. This is the global role catalog, distinct from jira_get_project_roles which returns roles for a specific project.`,
@@ -553,7 +553,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_create_role_definition',
     {
       description: `Create a new global role definition in the ${jiraInstanceType}. The created role has no default actors assigned.`,
@@ -566,7 +566,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_role_definition',
     {
       description: `Get a single global role definition by id from the ${jiraInstanceType}`,
@@ -579,7 +579,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_update_role_definition',
     {
       description: `Fully update a global role definition's name and description in the ${jiraInstanceType}. Both fields must be given.`,
@@ -592,7 +592,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_partial_update_role_definition',
     {
       description: `Partially update a global role definition's name or description in the ${jiraInstanceType}`,
@@ -605,7 +605,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_role_definition',
     {
       description: `Delete a global role definition in the ${jiraInstanceType}`,
@@ -618,7 +618,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_get_role_definition_actors',
     {
       description: `Get the default actors for a global role definition in the ${jiraInstanceType}`,
@@ -631,7 +631,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_add_role_definition_actors',
     {
       description: `Add default actors to a global role definition in the ${jiraInstanceType}`,
@@ -644,7 +644,7 @@ export function registerProjectTools(server: McpServer, service: JiraService) {
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'jira_delete_role_definition_actor',
     {
       description: `Remove a default actor from a global role definition in the ${jiraInstanceType}`,
