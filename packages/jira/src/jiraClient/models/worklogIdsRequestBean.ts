@@ -1,11 +1,12 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type WorklogIdsRequestBean = {
-    /**
+  /**
      * List of worklog ids
      */
-    ids?: Array<number>;
+  ids?: Array<number>;
 };
 
+export const WorklogIdsRequestBeanSchema = z.looseObject({
+  ids: z.array(z.number()).optional(),
+}) as unknown as z.ZodType<WorklogIdsRequestBean>;

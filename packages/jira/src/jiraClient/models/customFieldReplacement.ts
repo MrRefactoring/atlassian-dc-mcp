@@ -1,9 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type CustomFieldReplacement = {
-    customFieldId?: number;
-    moveTo?: number;
+  customFieldId?: number;
+  moveTo?: number;
 };
 
+export const CustomFieldReplacementSchema = z.looseObject({
+  customFieldId: z.number().optional(),
+  moveTo: z.number().optional(),
+}) as unknown as z.ZodType<CustomFieldReplacement>;

@@ -71,6 +71,149 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   server.registerTool(
+    'jira_get_filter_share_permissions',
+    {
+      description: `Get the share permissions of a saved filter in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getFilterSharePermissions,
+    },
+    async ({ filterId }) => {
+      const result = await service.getFilterSharePermissions(filterId);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_get_filter_share_permission',
+    {
+      description: `Get a single share permission of a saved filter by id in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getFilterSharePermission,
+    },
+    async ({ filterId, permissionId }) => {
+      const result = await service.getFilterSharePermission(filterId, permissionId);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_add_filter_share_permission',
+    {
+      description: `Add a share permission to a saved filter (share it with a group, project, project role, all logged-in users, or globally) in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.addFilterSharePermission,
+    },
+    async ({ filterId, type, projectId, groupname, projectRoleId }) => {
+      const result = await service.addFilterSharePermission(filterId, type, projectId, groupname, projectRoleId);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_delete_filter_share_permission',
+    {
+      description: `Remove a share permission from a saved filter in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.deleteFilterSharePermission,
+    },
+    async ({ filterId, permissionId }) => {
+      const result = await service.deleteFilterSharePermission(filterId, permissionId);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_get_default_share_scope',
+    {
+      description: `Get the current user's default share scope for new filters and dashboards in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getDefaultShareScope,
+    },
+    async () => {
+      const result = await service.getDefaultShareScope();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_set_default_share_scope',
+    {
+      description: `Set the current user's default share scope (GLOBAL, AUTHENTICATED, or PRIVATE) for new filters and dashboards in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.setDefaultShareScope,
+    },
+    async ({ scope }) => {
+      const result = await service.setDefaultShareScope(scope);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_get_webhooks',
+    {
+      description: `List the registered webhooks in the ${jiraInstanceType}. Requires administrator permission and Basic auth (username/password) — the webhook API does not accept personal access tokens.`,
+      inputSchema: jiraToolSchemas.getWebhooks,
+    },
+    async () => {
+      const result = await service.getWebhooks();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_get_webhook',
+    {
+      description: `Get a registered webhook by id in the ${jiraInstanceType}. Requires administrator permission and Basic auth.`,
+      inputSchema: jiraToolSchemas.getWebhook,
+    },
+    async ({ id }) => {
+      const result = await service.getWebhook(id);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_create_webhook',
+    {
+      description: `Register a webhook (subscribe a URL to Jira events, optionally filtered by JQL) in the ${jiraInstanceType}. Requires administrator permission and Basic auth.`,
+      inputSchema: jiraToolSchemas.createWebhook,
+    },
+    async ({ name, url, events, jqlFilter, excludeBody }) => {
+      const result = await service.createWebhook(name, url, events, jqlFilter, excludeBody);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_update_webhook',
+    {
+      description: `Update a registered webhook in the ${jiraInstanceType}. Requires administrator permission and Basic auth.`,
+      inputSchema: jiraToolSchemas.updateWebhook,
+    },
+    async ({ id, name, url, events, jqlFilter, excludeBody }) => {
+      const result = await service.updateWebhook(id, name, url, events, jqlFilter, excludeBody);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_delete_webhook',
+    {
+      description: `Delete a registered webhook in the ${jiraInstanceType}. Requires administrator permission and Basic auth. This is irreversible.`,
+      inputSchema: jiraToolSchemas.deleteWebhook,
+    },
+    async ({ id }) => {
+      const result = await service.deleteWebhook(id);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
     'jira_get_dashboards',
     {
       description: `Get a list of dashboards visible to the current user in the ${jiraInstanceType}`,
@@ -637,6 +780,45 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
     },
     async () => {
       const result = await service.getAdvancedSettings();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_get_configuration',
+    {
+      description: `Get the global configuration (which optional features — voting, watching, sub-tasks, time tracking, attachments, issue linking — are enabled) in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getConfiguration,
+    },
+    async () => {
+      const result = await service.getConfiguration();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_get_default_columns',
+    {
+      description: `Get the system default issue-navigator columns in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.getDefaultColumns,
+    },
+    async () => {
+      const result = await service.getDefaultColumns();
+
+      return formatToolResponse(result);
+    },
+  );
+
+  server.registerTool(
+    'jira_set_default_columns',
+    {
+      description: `Set the system default issue-navigator columns in the ${jiraInstanceType}`,
+      inputSchema: jiraToolSchemas.setDefaultColumns,
+    },
+    async ({ columns }) => {
+      const result = await service.setDefaultColumns(columns);
 
       return formatToolResponse(result);
     },

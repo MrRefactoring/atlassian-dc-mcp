@@ -1,11 +1,13 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { BulkOperationErrorResult } from './bulkOperationErrorResult.js';
-import type { IssueCreateResponse } from './issueCreateResponse.js';
+import { z } from 'zod';
+import { BulkOperationErrorResultSchema, type BulkOperationErrorResult } from './bulkOperationErrorResult.js';
+import { IssueCreateResponseSchema, type IssueCreateResponse } from './issueCreateResponse.js';
+
 export type IssuesCreateResponse = {
-    errors?: Array<BulkOperationErrorResult>;
-    issues?: Array<IssueCreateResponse>;
+  errors?: Array<BulkOperationErrorResult>;
+  issues?: Array<IssueCreateResponse>;
 };
 
+export const IssuesCreateResponseSchema = z.lazy(() => z.looseObject({
+  errors: z.array(BulkOperationErrorResultSchema).optional(),
+  issues: z.array(IssueCreateResponseSchema).optional(),
+})) as unknown as z.ZodType<IssuesCreateResponse>;

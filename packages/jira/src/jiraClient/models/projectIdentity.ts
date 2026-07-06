@@ -1,10 +1,13 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type ProjectIdentity = {
-    id?: number;
-    key?: string;
-    self?: string;
+  id?: number;
+  key?: string;
+  self?: string;
 };
 
+export const ProjectIdentitySchema = z.looseObject({
+  id: z.number().optional(),
+  key: z.string().optional(),
+  self: z.string().optional(),
+}) as unknown as z.ZodType<ProjectIdentity>;

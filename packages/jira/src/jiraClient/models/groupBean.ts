@@ -1,11 +1,14 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { PagedListWrapperUserJsonBeanApplicationUser } from './pagedListWrapperUserJsonBeanApplicationUser.js';
+import { z } from 'zod';
+import { PagedListWrapperUserJsonBeanApplicationUserSchema, type PagedListWrapperUserJsonBeanApplicationUser } from './pagedListWrapperUserJsonBeanApplicationUser.js';
+
 export type GroupBean = {
-    name?: string;
-    self?: string;
-    users?: PagedListWrapperUserJsonBeanApplicationUser;
+  name?: string;
+  self?: string;
+  users?: PagedListWrapperUserJsonBeanApplicationUser;
 };
 
+export const GroupBeanSchema = z.lazy(() => z.looseObject({
+  name: z.string().optional(),
+  self: z.string().optional(),
+  users: PagedListWrapperUserJsonBeanApplicationUserSchema.optional(),
+})) as unknown as z.ZodType<GroupBean>;

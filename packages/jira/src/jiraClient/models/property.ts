@@ -1,10 +1,13 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type Property = {
-    example?: string;
-    key?: string;
-    value?: string;
+  example?: string;
+  key?: string;
+  value?: string;
 };
 
+export const PropertySchema = z.looseObject({
+  example: z.string().optional(),
+  key: z.string().optional(),
+  value: z.string().optional(),
+}) as unknown as z.ZodType<Property>;

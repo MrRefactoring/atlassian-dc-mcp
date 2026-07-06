@@ -1,9 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type WorklogChangeBean = {
-    updatedTime?: number;
-    worklogId?: number;
+  updatedTime?: number;
+  worklogId?: number;
 };
 
+export const WorklogChangeBeanSchema = z.looseObject({
+  updatedTime: z.number().optional(),
+  worklogId: z.number().optional(),
+}) as unknown as z.ZodType<WorklogChangeBean>;

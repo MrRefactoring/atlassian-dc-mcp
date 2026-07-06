@@ -1,10 +1,12 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { ColumnBean } from './columnBean.js';
+import { z } from 'zod';
+import { ColumnBeanSchema, type ColumnBean } from './columnBean.js';
+
 export type ColumnConfigBean = {
-    columns?: Array<ColumnBean>;
-    constraintType?: string;
+  columns?: Array<ColumnBean>;
+  constraintType?: string;
 };
 
+export const ColumnConfigBeanSchema = z.lazy(() => z.looseObject({
+  columns: z.array(ColumnBeanSchema).optional(),
+  constraintType: z.string().optional(),
+})) as unknown as z.ZodType<ColumnConfigBean>;

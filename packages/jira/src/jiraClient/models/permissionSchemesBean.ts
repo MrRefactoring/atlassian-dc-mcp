@@ -1,9 +1,10 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
-import type { PermissionSchemeBean } from './permissionSchemeBean.js';
+import { z } from 'zod';
+import { PermissionSchemeBeanSchema, type PermissionSchemeBean } from './permissionSchemeBean.js';
+
 export type PermissionSchemesBean = {
-    permissionSchemes?: Array<PermissionSchemeBean>;
+  permissionSchemes?: Array<PermissionSchemeBean>;
 };
 
+export const PermissionSchemesBeanSchema = z.lazy(() => z.looseObject({
+  permissionSchemes: z.array(PermissionSchemeBeanSchema).optional(),
+})) as unknown as z.ZodType<PermissionSchemesBean>;

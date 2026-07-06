@@ -1,5 +1,5 @@
-import type { HttpClient } from '../interface/index.js';
-import { route } from '../core/helpers.js';
+import type { HttpClient } from 'datacenter-mcp-core';
+import { route } from 'datacenter-mcp-core';
 import { restPage } from '../core/page.js';
 import type { RestPage } from '../interface/index.js';
 import { PermittedGroupSchema, PermittedUserSchema } from '../models/index.js';

@@ -1,8 +1,9 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+import { z } from 'zod';
+
 export type IncludedFields = {
-    included?: Array<string>;
+  included?: Array<string>;
 };
 
+export const IncludedFieldsSchema = z.looseObject({
+  included: z.array(z.string()).optional(),
+}) as unknown as z.ZodType<IncludedFields>;

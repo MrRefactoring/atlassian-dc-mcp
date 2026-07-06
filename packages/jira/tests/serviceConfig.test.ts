@@ -4,15 +4,9 @@ import path from 'node:path';
 import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import { JiraService } from '../src/jiraService.js';
-import { OpenAPI } from '../src/jiraClient/index.js';
 
-vi.mock('../src/jiraClient/index.js', () => ({
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-  },
-}));
+const createJiraClient = vi.hoisted(() => vi.fn((_config: unknown) => ({})));
+vi.mock('../src/jiraClient/index.js', () => ({ createJiraClient }));
 
 describe('JiraService', () => {
   // Unlike the other split files, every test here constructs its own JiraService
@@ -23,38 +17,41 @@ describe('JiraService', () => {
   });
 
   describe('constructor base URL resolution', () => {
-    it('builds BASE from host + default /rest when apiBasePath is missing', () => {
+    it('builds baseUrl from host + default /rest when apiBasePath is missing', () => {
       new JiraService('jira.example.com', 'test-token');
-      expect(OpenAPI.BASE).toBe('https://jira.example.com/rest');
+      expect(createJiraClient).toHaveBeenCalledWith(expect.objectContaining({ baseUrl: 'https://jira.example.com/rest' }));
     });
 
     it('strips accidentally-included /api/2 suffix from saved apiBasePath', () => {
       new JiraService('jira.example.com', 'test-token', '/rest/api/2');
-      expect(OpenAPI.BASE).toBe('https://jira.example.com/rest');
+      expect(createJiraClient).toHaveBeenCalledWith(expect.objectContaining({ baseUrl: 'https://jira.example.com/rest' }));
     });
 
     it('accepts a fully-qualified apiBasePath as an override', () => {
       new JiraService('ignored.example.com', 'test-token', 'https://real.example.com/rest');
-      expect(OpenAPI.BASE).toBe('https://real.example.com/rest');
+      expect(createJiraClient).toHaveBeenCalledWith(expect.objectContaining({ baseUrl: 'https://real.example.com/rest' }));
     });
   });
-  describe('constructor Basic auth wiring', () => {
-    it('resolves username and password onto OpenAPI for Basic auth', async () => {
+  describe('constructor auth wiring', () => {
+    const configArg = () => createJiraClient.mock.calls[0][0] as { token?: unknown; username?: unknown; password?: unknown };
+    const resolve = (v: unknown) => (typeof v === 'function' ? (v as () => unknown)() : v);
+
+    it('passes username and password to the client for Basic auth', () => {
       new JiraService('jira.example.com', '', undefined, () => 25, 'jdoe', 'hunter2');
-      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
-      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+      expect(resolve(configArg().username)).toBe('jdoe');
+      expect(resolve(configArg().password)).toBe('hunter2');
     });
 
-    it('resolves username/password from getter functions, same as token', async () => {
+    it('passes username/password getter functions through, same as token', () => {
       new JiraService('jira.example.com', '', undefined, () => 25, () => 'jdoe', () => 'hunter2');
-      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('jdoe');
-      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('hunter2');
+      expect(resolve(configArg().username)).toBe('jdoe');
+      expect(resolve(configArg().password)).toBe('hunter2');
     });
 
-    it('resolves username/password to an empty string when omitted', async () => {
+    it('leaves username/password undefined when omitted', () => {
       new JiraService('jira.example.com', 'test-token');
-      expect(await (OpenAPI.USERNAME as () => Promise<string>)()).toBe('');
-      expect(await (OpenAPI.PASSWORD as () => Promise<string>)()).toBe('');
+      expect(configArg().username).toBeUndefined();
+      expect(configArg().password).toBeUndefined();
     });
   });
   describe('validateConfig', () => {

@@ -1,55 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock, type MockInstance } from 'vitest';
 import { JiraService } from '../src/jiraService.js';
-import {
-  AttachmentService,
-  IssueLinkService,
-  IssueLinkTypeService,
-  IssueService,
-  WorklogService,
-} from '../src/jiraClient/index.js';
 
-vi.mock('../src/jiraClient/index.js', () => ({
-  IssueService: {
-    getIssueWorklog: vi.fn(),
-    addWorklog: vi.fn(),
-    getWorklog: vi.fn(),
-    updateWorklog: vi.fn(),
-    deleteWorklog: vi.fn(),
-    addAttachment: vi.fn(),
-    getRemoteIssueLinks: vi.fn(),
-    getRemoteIssueLinkById: vi.fn(),
-    createOrUpdateRemoteIssueLink: vi.fn(),
-    updateRemoteIssueLink: vi.fn(),
-    deleteRemoteIssueLinkById: vi.fn(),
-    deleteRemoteIssueLinkByGlobalId: vi.fn(),
-  },
-  WorklogService: {
-    getIdsOfWorklogsDeletedSince: vi.fn(),
-    getIdsOfWorklogsModifiedSince: vi.fn(),
-    getWorklogsForIds: vi.fn(),
-  },
-  AttachmentService: {
-    getAttachmentMeta: vi.fn(),
-    getAttachment: vi.fn(),
-    removeAttachment: vi.fn(),
-  },
-  IssueLinkService: {
-    linkIssues: vi.fn(),
-    getIssueLink: vi.fn(),
-    deleteIssueLink: vi.fn(),
-  },
-  IssueLinkTypeService: {
-    getIssueLinkTypes: vi.fn(),
-    createIssueLinkType: vi.fn(),
-    updateIssueLinkType: vi.fn(),
-    deleteIssueLinkType: vi.fn(),
-  },
-  OpenAPI: {
-    BASE: '',
-    TOKEN: '',
-    VERSION: '',
-  },
-}));
+const jira = vi.hoisted(() => {
+  const group = () => new Proxy({} as Record<string, ReturnType<typeof vi.fn>>, { get: (t, p: string) => (t[p] ??= vi.fn()) });
+
+  return { issues: group(), projects: group(), users: group(), workflows: group(), agile: group(), admin: group(), request: vi.fn() };
+});
+vi.mock('../src/jiraClient/index.js', () => ({ createJiraClient: () => jira }));
 
 describe('JiraService', () => {
   let jiraService: JiraService;
@@ -63,67 +20,67 @@ describe('JiraService', () => {
   describe('worklogs', () => {
     it('gets all worklogs for an issue', async () => {
       const mockWorklogs = { worklogs: [{ id: '100', timeSpent: '3h' }] };
-      (IssueService.getIssueWorklog as Mock).mockResolvedValue(mockWorklogs);
+      (jira.issues.getIssueWorklog as Mock).mockResolvedValue(mockWorklogs);
 
       const result = await jiraService.getIssueWorklogs(mockIssueKey);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockWorklogs);
-      expect(IssueService.getIssueWorklog).toHaveBeenCalledWith(mockIssueKey);
+      expect(jira.issues.getIssueWorklog).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
     });
 
     it('adds a worklog entry', async () => {
       const mockWorklog = { id: '100', timeSpent: '3h' };
-      (IssueService.addWorklog as Mock).mockResolvedValue(mockWorklog);
+      (jira.issues.addWorklog as Mock).mockResolvedValue(mockWorklog);
 
       const result = await jiraService.addIssueWorklog(mockIssueKey, '3h', 'Fixed the bug');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockWorklog);
-      expect(IssueService.addWorklog).toHaveBeenCalledWith(mockIssueKey, undefined, undefined, undefined, {
+      expect(jira.issues.addWorklog).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: {
         timeSpent: '3h',
         comment: 'Fixed the bug',
         started: undefined,
-      });
+      } });
     });
 
     it('gets a single worklog entry', async () => {
       const mockWorklog = { id: '100', timeSpent: '3h' };
-      (IssueService.getWorklog as Mock).mockResolvedValue(mockWorklog);
+      (jira.issues.getWorklog as Mock).mockResolvedValue(mockWorklog);
 
       const result = await jiraService.getIssueWorklog(mockIssueKey, '100');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockWorklog);
-      expect(IssueService.getWorklog).toHaveBeenCalledWith(mockIssueKey, '100');
+      expect(jira.issues.getWorklog).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, id: '100' });
     });
 
     it('updates a worklog entry', async () => {
       const mockWorklog = { id: '100', timeSpent: '4h' };
-      (IssueService.updateWorklog as Mock).mockResolvedValue(mockWorklog);
+      (jira.issues.updateWorklog as Mock).mockResolvedValue(mockWorklog);
 
       const result = await jiraService.updateIssueWorklog(mockIssueKey, '100', '4h');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockWorklog);
-      expect(IssueService.updateWorklog).toHaveBeenCalledWith(mockIssueKey, '100', undefined, undefined, {
+      expect(jira.issues.updateWorklog).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, id: '100', requestBody: {
         timeSpent: '4h',
         comment: undefined,
         started: undefined,
-      });
+      } });
     });
 
     it('deletes a worklog entry', async () => {
-      (IssueService.deleteWorklog as Mock).mockResolvedValue(undefined);
+      (jira.issues.deleteWorklog as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteIssueWorklog(mockIssueKey, '100');
 
       expect(result.success).toBe(true);
-      expect(IssueService.deleteWorklog).toHaveBeenCalledWith(mockIssueKey, '100');
+      expect(jira.issues.deleteWorklog).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, id: '100' });
     });
 
     it('handles errors', async () => {
-      (IssueService.addWorklog as Mock).mockRejectedValue(new Error('Time tracking is disabled'));
+      (jira.issues.addWorklog as Mock).mockRejectedValue(new Error('Time tracking is disabled'));
 
       const result = await jiraService.addIssueWorklog(mockIssueKey, '3h');
 
@@ -134,17 +91,17 @@ describe('JiraService', () => {
   describe('bulk worklog sync', () => {
     it('gets ids of worklogs deleted since a given time', async () => {
       const mockChanges = { values: [{ worklogId: 100, updatedTime: 123 }], lastPage: true };
-      (WorklogService.getIdsOfWorklogsDeletedSince as Mock).mockResolvedValue(mockChanges);
+      (jira.issues.getIdsOfWorklogsDeletedSince as Mock).mockResolvedValue(mockChanges);
 
       const result = await jiraService.getWorklogsDeletedSince(1000);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockChanges);
-      expect(WorklogService.getIdsOfWorklogsDeletedSince).toHaveBeenCalledWith(1000);
+      expect(jira.issues.getIdsOfWorklogsDeletedSince).toHaveBeenCalledWith({ since: 1000 });
     });
 
     it('handles errors getting ids of worklogs deleted since a given time', async () => {
-      (WorklogService.getIdsOfWorklogsDeletedSince as Mock).mockRejectedValue(new Error('Invalid since parameter'));
+      (jira.issues.getIdsOfWorklogsDeletedSince as Mock).mockRejectedValue(new Error('Invalid since parameter'));
 
       const result = await jiraService.getWorklogsDeletedSince(-1);
 
@@ -154,17 +111,17 @@ describe('JiraService', () => {
 
     it('gets ids of worklogs modified since a given time', async () => {
       const mockChanges = { values: [{ worklogId: 100, updatedTime: 123 }], lastPage: true };
-      (WorklogService.getIdsOfWorklogsModifiedSince as Mock).mockResolvedValue(mockChanges);
+      (jira.issues.getIdsOfWorklogsModifiedSince as Mock).mockResolvedValue(mockChanges);
 
       const result = await jiraService.getWorklogsModifiedSince(1000);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockChanges);
-      expect(WorklogService.getIdsOfWorklogsModifiedSince).toHaveBeenCalledWith(1000);
+      expect(jira.issues.getIdsOfWorklogsModifiedSince).toHaveBeenCalledWith({ since: 1000 });
     });
 
     it('handles errors getting ids of worklogs modified since a given time', async () => {
-      (WorklogService.getIdsOfWorklogsModifiedSince as Mock).mockRejectedValue(new Error('Invalid since parameter'));
+      (jira.issues.getIdsOfWorklogsModifiedSince as Mock).mockRejectedValue(new Error('Invalid since parameter'));
 
       const result = await jiraService.getWorklogsModifiedSince(-1);
 
@@ -174,17 +131,17 @@ describe('JiraService', () => {
 
     it('gets worklogs for a batch of ids', async () => {
       const mockWorklogs = [{ id: '100', timeSpent: '3h' }];
-      (WorklogService.getWorklogsForIds as Mock).mockResolvedValue(mockWorklogs);
+      (jira.issues.getWorklogsForIds as Mock).mockResolvedValue(mockWorklogs);
 
       const result = await jiraService.getWorklogsForIds([100, 101]);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockWorklogs);
-      expect(WorklogService.getWorklogsForIds).toHaveBeenCalledWith({ ids: [100, 101] });
+      expect(jira.issues.getWorklogsForIds).toHaveBeenCalledWith({ requestBody: { ids: [100, 101] } });
     });
 
     it('handles errors getting worklogs for a batch of ids', async () => {
-      (WorklogService.getWorklogsForIds as Mock).mockRejectedValue(new Error('The request contains more than 1000 ids'));
+      (jira.issues.getWorklogsForIds as Mock).mockRejectedValue(new Error('The request contains more than 1000 ids'));
 
       const result = await jiraService.getWorklogsForIds([100]);
 
@@ -195,21 +152,21 @@ describe('JiraService', () => {
   describe('attachments', () => {
     it('adds an attachment with the file wrapped as a File', async () => {
       const mockAttachment = [{ id: '10001', filename: 'test.txt' }];
-      (IssueService.addAttachment as Mock).mockResolvedValue(mockAttachment);
+      (jira.issues.addAttachment as Mock).mockResolvedValue(mockAttachment);
 
       const result = await jiraService.addIssueAttachment(mockIssueKey, 'test.txt', Buffer.from('hello').toString('base64'));
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockAttachment);
-      const [calledIssueKey, calledFormData] = (IssueService.addAttachment as Mock).mock.calls[0];
-      expect(calledIssueKey).toBe(mockIssueKey);
-      expect((calledFormData as { file: File }).file).toBeInstanceOf(File);
-      expect((calledFormData as { file: File }).file.name).toBe('test.txt');
+      const [params] = (jira.issues.addAttachment as Mock).mock.calls[0] as [{ issueIdOrKey: string; formData: { file: File } }];
+      expect(params.issueIdOrKey).toBe(mockIssueKey);
+      expect(params.formData.file).toBeInstanceOf(File);
+      expect(params.formData.file.name).toBe('test.txt');
     });
 
     it('gets attachment capabilities', async () => {
       const mockMeta = { enabled: true, uploadLimit: 10485760 };
-      (AttachmentService.getAttachmentMeta as Mock).mockResolvedValue(mockMeta);
+      (jira.issues.getAttachmentMeta as Mock).mockResolvedValue(mockMeta);
 
       const result = await jiraService.getAttachmentMeta();
 
@@ -219,22 +176,22 @@ describe('JiraService', () => {
 
     it('gets attachment metadata by id', async () => {
       const mockAttachment = { id: '10001', filename: 'test.txt' };
-      (AttachmentService.getAttachment as Mock).mockResolvedValue(mockAttachment);
+      (jira.issues.getAttachment as Mock).mockResolvedValue(mockAttachment);
 
       const result = await jiraService.getAttachment('10001');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockAttachment);
-      expect(AttachmentService.getAttachment).toHaveBeenCalledWith('10001');
+      expect(jira.issues.getAttachment).toHaveBeenCalledWith({ id: '10001' });
     });
 
     it('deletes an attachment', async () => {
-      (AttachmentService.removeAttachment as Mock).mockResolvedValue(undefined);
+      (jira.issues.removeAttachment as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteAttachment('10001');
 
       expect(result.success).toBe(true);
-      expect(AttachmentService.removeAttachment).toHaveBeenCalledWith('10001');
+      expect(jira.issues.removeAttachment).toHaveBeenCalledWith({ id: '10001' });
     });
 
     describe('getAttachmentContent', () => {
@@ -256,7 +213,7 @@ describe('JiraService', () => {
           size: 5,
           content: 'https://jira.example.com/secure/attachment/10001/test.txt',
         };
-        (AttachmentService.getAttachment as Mock).mockResolvedValue(mockAttachment);
+        (jira.issues.getAttachment as Mock).mockResolvedValue(mockAttachment);
         fetchSpy.mockResolvedValue({
           ok: true,
           arrayBuffer: async () => Buffer.from('hello'),
@@ -277,7 +234,7 @@ describe('JiraService', () => {
       });
 
       it('fails when the attachment metadata has no content URL', async () => {
-        (AttachmentService.getAttachment as Mock).mockResolvedValue({ id: '10001', filename: 'test.txt' });
+        (jira.issues.getAttachment as Mock).mockResolvedValue({ id: '10001', filename: 'test.txt' });
 
         const result = await jiraService.getAttachmentContent('10001');
 
@@ -287,7 +244,7 @@ describe('JiraService', () => {
       });
 
       it('fails when the download request is not ok', async () => {
-        (AttachmentService.getAttachment as Mock).mockResolvedValue({
+        (jira.issues.getAttachment as Mock).mockResolvedValue({
           id: '10001',
           content: 'https://jira.example.com/secure/attachment/10001/test.txt',
         });
@@ -301,7 +258,7 @@ describe('JiraService', () => {
     });
 
     it('handles errors when attachments are disabled', async () => {
-      (IssueService.addAttachment as Mock).mockRejectedValue(new Error('Attachments are disabled'));
+      (jira.issues.addAttachment as Mock).mockRejectedValue(new Error('Attachments are disabled'));
 
       const result = await jiraService.addIssueAttachment(mockIssueKey, 'test.txt', 'aGVsbG8=');
 
@@ -311,53 +268,53 @@ describe('JiraService', () => {
   });
   describe('issue links', () => {
     it('links two issues', async () => {
-      (IssueLinkService.linkIssues as Mock).mockResolvedValue(undefined);
+      (jira.issues.linkIssues as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.linkIssues('PROJ-1', 'PROJ-2', 'Blocks');
 
       expect(result.success).toBe(true);
-      expect(IssueLinkService.linkIssues).toHaveBeenCalledWith({
+      expect(jira.issues.linkIssues).toHaveBeenCalledWith({ requestBody: {
         inwardIssue: { key: 'PROJ-1' },
         outwardIssue: { key: 'PROJ-2' },
         type: { name: 'Blocks' },
-      });
+      } });
     });
 
     it('includes an optional comment', async () => {
-      (IssueLinkService.linkIssues as Mock).mockResolvedValue(undefined);
+      (jira.issues.linkIssues as Mock).mockResolvedValue(undefined);
 
       await jiraService.linkIssues('PROJ-1', 'PROJ-2', 'Blocks', 'Linked during triage');
 
-      expect(IssueLinkService.linkIssues).toHaveBeenCalledWith({
+      expect(jira.issues.linkIssues).toHaveBeenCalledWith({ requestBody: {
         inwardIssue: { key: 'PROJ-1' },
         outwardIssue: { key: 'PROJ-2' },
         type: { name: 'Blocks' },
         comment: { body: 'Linked during triage' },
-      });
+      } });
     });
 
     it('gets an issue link', async () => {
       const mockLink = { id: '1000', type: { name: 'Blocks' } };
-      (IssueLinkService.getIssueLink as Mock).mockResolvedValue(mockLink);
+      (jira.issues.getIssueLink as Mock).mockResolvedValue(mockLink);
 
       const result = await jiraService.getIssueLink('1000');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockLink);
-      expect(IssueLinkService.getIssueLink).toHaveBeenCalledWith('1000');
+      expect(jira.issues.getIssueLink).toHaveBeenCalledWith({ linkId: '1000' });
     });
 
     it('deletes an issue link', async () => {
-      (IssueLinkService.deleteIssueLink as Mock).mockResolvedValue(undefined);
+      (jira.issues.deleteIssueLink as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteIssueLink('1000');
 
       expect(result.success).toBe(true);
-      expect(IssueLinkService.deleteIssueLink).toHaveBeenCalledWith('1000');
+      expect(jira.issues.deleteIssueLink).toHaveBeenCalledWith({ linkId: '1000' });
     });
 
     it('handles errors when the link type is unknown', async () => {
-      (IssueLinkService.linkIssues as Mock).mockRejectedValue(new Error('Could not find issue link type'));
+      (jira.issues.linkIssues as Mock).mockRejectedValue(new Error('Could not find issue link type'));
 
       const result = await jiraService.linkIssues('PROJ-1', 'PROJ-2', 'NoSuchType');
 
@@ -368,37 +325,37 @@ describe('JiraService', () => {
   describe('remote issue links', () => {
     it('gets remote issue links for an issue', async () => {
       const mockLinks = [{ id: 1, object: { url: 'https://example.com' } }];
-      (IssueService.getRemoteIssueLinks as Mock).mockResolvedValue(mockLinks);
+      (jira.issues.getRemoteIssueLinks as Mock).mockResolvedValue(mockLinks);
 
       const result = await jiraService.getRemoteIssueLinks(mockIssueKey);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockLinks);
-      expect(IssueService.getRemoteIssueLinks).toHaveBeenCalledWith(mockIssueKey, undefined);
+      expect(jira.issues.getRemoteIssueLinks).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
     });
 
     it('filters remote issue links by globalId', async () => {
-      (IssueService.getRemoteIssueLinks as Mock).mockResolvedValue([]);
+      (jira.issues.getRemoteIssueLinks as Mock).mockResolvedValue([]);
 
       await jiraService.getRemoteIssueLinks(mockIssueKey, 'system=https://example.com');
 
-      expect(IssueService.getRemoteIssueLinks).toHaveBeenCalledWith(mockIssueKey, 'system=https://example.com');
+      expect(jira.issues.getRemoteIssueLinks).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, globalId: 'system=https://example.com' });
     });
 
     it('gets a single remote issue link by id', async () => {
       const mockLink = { id: 1, object: { url: 'https://example.com' } };
-      (IssueService.getRemoteIssueLinkById as Mock).mockResolvedValue(mockLink);
+      (jira.issues.getRemoteIssueLinkById as Mock).mockResolvedValue(mockLink);
 
       const result = await jiraService.getRemoteIssueLink(mockIssueKey, '1');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockLink);
-      expect(IssueService.getRemoteIssueLinkById).toHaveBeenCalledWith('1', mockIssueKey);
+      expect(jira.issues.getRemoteIssueLinkById).toHaveBeenCalledWith({ linkId: '1', issueIdOrKey: mockIssueKey });
     });
 
     it('creates a remote issue link with the minimal fields', async () => {
       const mockLink = { id: 1 };
-      (IssueService.createOrUpdateRemoteIssueLink as Mock).mockResolvedValue(mockLink);
+      (jira.issues.createOrUpdateRemoteIssueLink as Mock).mockResolvedValue(mockLink);
 
       const result = await jiraService.createOrUpdateRemoteIssueLink(mockIssueKey, {
         url: 'https://example.com/page',
@@ -407,13 +364,13 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockLink);
-      expect(IssueService.createOrUpdateRemoteIssueLink).toHaveBeenCalledWith(mockIssueKey, {
+      expect(jira.issues.createOrUpdateRemoteIssueLink).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: {
         object: { url: 'https://example.com/page', title: 'Example page' },
-      });
+      } });
     });
 
     it('creates a remote issue link with all optional fields', async () => {
-      (IssueService.createOrUpdateRemoteIssueLink as Mock).mockResolvedValue({ id: 1 });
+      (jira.issues.createOrUpdateRemoteIssueLink as Mock).mockResolvedValue({ id: 1 });
 
       await jiraService.createOrUpdateRemoteIssueLink(mockIssueKey, {
         url: 'https://example.com/page',
@@ -425,16 +382,16 @@ describe('JiraService', () => {
         applicationType: 'com.example.app',
       });
 
-      expect(IssueService.createOrUpdateRemoteIssueLink).toHaveBeenCalledWith(mockIssueKey, {
+      expect(jira.issues.createOrUpdateRemoteIssueLink).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: {
         globalId: 'system=https://example.com',
         relationship: 'documented by',
         object: { url: 'https://example.com/page', title: 'Example page', summary: 'A summary' },
         application: { name: 'My App', type: 'com.example.app' },
-      });
+      } });
     });
 
     it('updates a remote issue link by id', async () => {
-      (IssueService.updateRemoteIssueLink as Mock).mockResolvedValue(undefined);
+      (jira.issues.updateRemoteIssueLink as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.updateRemoteIssueLink(mockIssueKey, '1', {
         url: 'https://example.com/page',
@@ -443,33 +400,33 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ updated: true, linkId: '1' });
-      expect(IssueService.updateRemoteIssueLink).toHaveBeenCalledWith('1', mockIssueKey, {
+      expect(jira.issues.updateRemoteIssueLink).toHaveBeenCalledWith({ linkId: '1', issueIdOrKey: mockIssueKey, requestBody: {
         object: { url: 'https://example.com/page', title: 'Updated title' },
-      });
+      } });
     });
 
     it('deletes a remote issue link by id', async () => {
-      (IssueService.deleteRemoteIssueLinkById as Mock).mockResolvedValue(undefined);
+      (jira.issues.deleteRemoteIssueLinkById as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteRemoteIssueLink(mockIssueKey, '1');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ deleted: true, linkId: '1' });
-      expect(IssueService.deleteRemoteIssueLinkById).toHaveBeenCalledWith('1', mockIssueKey);
+      expect(jira.issues.deleteRemoteIssueLinkById).toHaveBeenCalledWith({ linkId: '1', issueIdOrKey: mockIssueKey });
     });
 
     it('deletes a remote issue link by globalId', async () => {
-      (IssueService.deleteRemoteIssueLinkByGlobalId as Mock).mockResolvedValue(undefined);
+      (jira.issues.deleteRemoteIssueLinkByGlobalId as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteRemoteIssueLinkByGlobalId(mockIssueKey, 'system=https://example.com');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ deleted: true, globalId: 'system=https://example.com' });
-      expect(IssueService.deleteRemoteIssueLinkByGlobalId).toHaveBeenCalledWith(mockIssueKey, 'system=https://example.com');
+      expect(jira.issues.deleteRemoteIssueLinkByGlobalId).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, globalId: 'system=https://example.com' });
     });
 
     it('handles API errors', async () => {
-      (IssueService.getRemoteIssueLinks as Mock).mockRejectedValue(new Error('Issue linking is disabled'));
+      (jira.issues.getRemoteIssueLinks as Mock).mockRejectedValue(new Error('Issue linking is disabled'));
 
       const result = await jiraService.getRemoteIssueLinks(mockIssueKey);
 
@@ -480,7 +437,7 @@ describe('JiraService', () => {
   describe('issue link types', () => {
     it('gets issue link types', async () => {
       const mockTypes = { issueLinkTypes: [{ id: '10000', name: 'Blocks' }] };
-      (IssueLinkTypeService.getIssueLinkTypes as Mock).mockResolvedValue(mockTypes);
+      (jira.issues.getIssueLinkTypes as Mock).mockResolvedValue(mockTypes);
 
       const result = await jiraService.getIssueLinkTypes();
 
@@ -490,45 +447,45 @@ describe('JiraService', () => {
 
     it('creates an issue link type', async () => {
       const mockType = { id: '10000', name: 'Blocks' };
-      (IssueLinkTypeService.createIssueLinkType as Mock).mockResolvedValue(mockType);
+      (jira.issues.createIssueLinkType as Mock).mockResolvedValue(mockType);
 
       const result = await jiraService.createIssueLinkType('Blocks', 'is blocked by', 'blocks');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockType);
-      expect(IssueLinkTypeService.createIssueLinkType).toHaveBeenCalledWith({
+      expect(jira.issues.createIssueLinkType).toHaveBeenCalledWith({ requestBody: {
         name: 'Blocks',
         inward: 'is blocked by',
         outward: 'blocks',
-      });
+      } });
     });
 
     it('updates an issue link type', async () => {
       const mockType = { id: '10000', name: 'Blocks v2' };
-      (IssueLinkTypeService.updateIssueLinkType as Mock).mockResolvedValue(mockType);
+      (jira.issues.updateIssueLinkType as Mock).mockResolvedValue(mockType);
 
       const result = await jiraService.updateIssueLinkType('10000', 'Blocks v2');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockType);
-      expect(IssueLinkTypeService.updateIssueLinkType).toHaveBeenCalledWith('10000', {
+      expect(jira.issues.updateIssueLinkType).toHaveBeenCalledWith({ issueLinkTypeId: '10000', requestBody: {
         name: 'Blocks v2',
         inward: undefined,
         outward: undefined,
-      });
+      } });
     });
 
     it('deletes an issue link type', async () => {
-      (IssueLinkTypeService.deleteIssueLinkType as Mock).mockResolvedValue(undefined);
+      (jira.issues.deleteIssueLinkType as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteIssueLinkType('10000');
 
       expect(result.success).toBe(true);
-      expect(IssueLinkTypeService.deleteIssueLinkType).toHaveBeenCalledWith('10000');
+      expect(jira.issues.deleteIssueLinkType).toHaveBeenCalledWith({ issueLinkTypeId: '10000' });
     });
 
     it('handles errors', async () => {
-      (IssueLinkTypeService.deleteIssueLinkType as Mock).mockRejectedValue(new Error('No issue link type with the given id exists'));
+      (jira.issues.deleteIssueLinkType as Mock).mockRejectedValue(new Error('No issue link type with the given id exists'));
 
       const result = await jiraService.deleteIssueLinkType('missing');
 
