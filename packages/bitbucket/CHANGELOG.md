@@ -1,5 +1,30 @@
 # Change Log
 
+## 0.4.0
+
+### Minor Changes
+
+- [`d336f34`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/d336f3416f667bdaa8f4b6f5cfc39fd36634abe2) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Expand the Bitbucket MCP surface (all additions live-verified against a Bitbucket Data Center 9.3.2 instance):
+
+  - **5 new read tools**: `bitbucket_get_commit_changes` (files changed in a commit), `bitbucket_get_commit_pull_requests` (PRs containing a commit), `bitbucket_get_compare_diff` (raw diff between two refs), `bitbucket_get_repository_labels`, and `bitbucket_get_pull_request_blocker_comments` (a PR's unresolved tasks).
+  - **2 new resources**: `bitbucket://project/{key}` and `bitbucket://commit/{key}/{slug}/{commitId}`, alongside the existing repo and pull-request resources.
+  - **3 new prompts**: `bitbucket_triage_open_pull_requests`, `bitbucket_investigate_merge_readiness`, and `bitbucket_prepare_pull_request`, alongside the existing review prompt.
+  - **Opt-in pagination**: `bitbucket_get_branches` and `bitbucket_get_tags` accept `fetchAll` to follow pagination and return every page as a flat array (safety-capped). Commit and pull-request listings stay single-page.
+
+- [`6df9e9d`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6df9e9de4933533a7d99c3752fc2af3232cd9229) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Roll tool annotations out to Confluence (101 tools) and Bitbucket (114 tools) via the shared `registerAnnotatedTool` helper, so every tool across all three products now advertises `readOnlyHint`/`destructiveHint`/`idempotentHint`/`title`/`openWorldHint`.
+
+  The core classifier learned the vocabulary these products use: it skips the `admin_` namespace token so `confluence_admin_delete_user` is correctly flagged destructive, treats `convert`/`compare`/`browse`/`can`/`is` as read-only, and classifies `grant`/`revoke`/`enable`/`disable`/`watch`/`unwatch`/`edit` as idempotent non-destructive writes. Pull-request and version merges are flagged destructive.
+
+- [`8e5a1e3`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/8e5a1e32c9d6459775fa7ee05922771f713c215c) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Add two MCP protocol maturity features across all three products:
+
+  - **Server `instructions`**: each server now advertises an `instructions` string in its `initialize` result, telling the client/model what the server is, that every call acts as the single configured user, the `<product>_<verb>_<noun>` naming and read/write/destructive annotations, how to search (JQL/CQL), the `fetchAll` pagination opt-in, and the addressable resource URIs. `createMcpServer` gained an optional `instructions` field.
+  - **Argument completions (`completion/complete`)**: prompt arguments and resource-template variables now offer live autocompletion, backed by list endpoints and filtered against the partial input (case-insensitive substring, capped). Confluence completes `spaceKey`; Jira completes `projectKey` and `boardId`; Bitbucket completes `projectKey` and (scoped to the chosen project) `repositorySlug`. A shared `filterCompletions` helper was added to core. Completions never throw — a failed lookup yields an empty list. Verified live against Confluence Data Center 9.2.21 and Bitbucket Data Center 9.3.2 instances.
+
+### Patch Changes
+
+- Updated dependencies [[`6df9e9d`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6df9e9de4933533a7d99c3752fc2af3232cd9229), [`6bdf2db`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6bdf2dbaa5340aa5e9e25bc5dc37edfccf60c460), [`7f1c16a`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/7f1c16a1671ffee0e53881da90fb2870220982a1), [`8e5a1e3`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/8e5a1e32c9d6459775fa7ee05922771f713c215c)]:
+  - datacenter-mcp-core@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,5 +1,27 @@
 # Change Log
 
+## 0.4.0
+
+### Minor Changes
+
+- [`6df9e9d`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6df9e9de4933533a7d99c3752fc2af3232cd9229) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Roll tool annotations out to Confluence (101 tools) and Bitbucket (114 tools) via the shared `registerAnnotatedTool` helper, so every tool across all three products now advertises `readOnlyHint`/`destructiveHint`/`idempotentHint`/`title`/`openWorldHint`.
+
+  The core classifier learned the vocabulary these products use: it skips the `admin_` namespace token so `confluence_admin_delete_user` is correctly flagged destructive, treats `convert`/`compare`/`browse`/`can`/`is` as read-only, and classifies `grant`/`revoke`/`enable`/`disable`/`watch`/`unwatch`/`edit` as idempotent non-destructive writes. Pull-request and version merges are flagged destructive.
+
+- [`6bdf2db`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6bdf2dbaa5340aa5e9e25bc5dc37edfccf60c460) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Mature the Jira MCP surface:
+
+  - **Tool annotations** on all Jira tools. A new `deriveToolAnnotations` / `registerAnnotatedTool` helper in core derives `readOnlyHint`/`destructiveHint`/`idempotentHint`/`title`/`openWorldHint` from each tool's `<product>_<verb>_<noun>` name, so hosts can auto-approve read-only calls and warn before destructive ones (delete/remove/merge-version).
+  - **More resources**: added `jira://project/{key}`, `jira://board/{id}`, and `jira://user/{username}` alongside the existing `jira://issue/{key}`.
+  - **More prompts**: added `jira_plan_sprint`, `jira_break_down_epic`, and `jira_build_jql` alongside `jira_triage_issue`.
+  - **Opt-in pagination**: the bounded agile listers (`jira_get_boards`, `jira_get_board_sprints`, `jira_get_board_versions`, `jira_get_board_epics`) accept `fetchAll` to follow pagination and return every page as a flat array (safety-capped). The JQL-backed issue listings stay single-page and agent-driven.
+
+- [`7f1c16a`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/7f1c16a1671ffee0e53881da90fb2870220982a1) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Add a configurable response-size cap so oversized API responses no longer blow the model's context window. Every tool response is serialized through `formatToolResponse`, which now truncates payloads larger than `ATLASSIAN_DC_MCP_MAX_RESPONSE_CHARS` (default 100,000 characters, ~25k tokens) and appends a clear marker explaining the payload was cut and how to get the rest (narrow the query, use a smaller limit or pagination, request specific fields). Set the env var to `0` to disable the cap. This protects Jira, Confluence, and Bitbucket uniformly against large diffs, long page bodies, and big unfiltered list results.
+
+- [`8e5a1e3`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/8e5a1e32c9d6459775fa7ee05922771f713c215c) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Add two MCP protocol maturity features across all three products:
+
+  - **Server `instructions`**: each server now advertises an `instructions` string in its `initialize` result, telling the client/model what the server is, that every call acts as the single configured user, the `<product>_<verb>_<noun>` naming and read/write/destructive annotations, how to search (JQL/CQL), the `fetchAll` pagination opt-in, and the addressable resource URIs. `createMcpServer` gained an optional `instructions` field.
+  - **Argument completions (`completion/complete`)**: prompt arguments and resource-template variables now offer live autocompletion, backed by list endpoints and filtered against the partial input (case-insensitive substring, capped). Confluence completes `spaceKey`; Jira completes `projectKey` and `boardId`; Bitbucket completes `projectKey` and (scoped to the chosen project) `repositorySlug`. A shared `filterCompletions` helper was added to core. Completions never throw — a failed lookup yields an empty list. Verified live against Confluence Data Center 9.2.21 and Bitbucket Data Center 9.3.2 instances.
+
 ## 0.3.0
 
 ### Minor Changes
