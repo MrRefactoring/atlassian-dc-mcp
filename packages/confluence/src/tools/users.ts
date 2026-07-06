@@ -1,11 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import { confluenceInstanceType } from '../constants.js';
 import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService } from '../confluenceService.js';
 
 export function registerUserTools(server: McpServer, service: ConfluenceService) {
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_current_user',
     {
       description: `Get information about the current logged in user in ${confluenceInstanceType}`,
@@ -18,7 +18,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_anonymous_user',
     {
       description: `Get information about how the anonymous user is represented in ${confluenceInstanceType}`,
@@ -31,7 +31,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_user',
     {
       description: `Get a user by user key or username in ${confluenceInstanceType}`,
@@ -44,7 +44,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_users',
     {
       description: `Get a paginated collection of all registered users in ${confluenceInstanceType}`,
@@ -57,7 +57,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_user_groups',
     {
       description: `Get the groups a user is a member of in ${confluenceInstanceType}`,
@@ -70,7 +70,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_update_current_user',
     {
       description: `Update the current user's full name and/or email in ${confluenceInstanceType}`,
@@ -83,7 +83,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_change_current_user_password',
     {
       description: `Change the password for the current user in ${confluenceInstanceType}`,
@@ -96,7 +96,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_group',
     {
       description: `Get a user group by name in ${confluenceInstanceType}`,
@@ -109,7 +109,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_groups',
     {
       description: `Get a paginated collection of all user groups in ${confluenceInstanceType}`,
@@ -122,7 +122,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_group_members',
     {
       description: `Get the users that are members of a group in ${confluenceInstanceType}`,
@@ -135,7 +135,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_nested_group_members',
     {
       description: `Get the groups nested directly within a group in ${confluenceInstanceType}`,
@@ -148,7 +148,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_add_user_to_group',
     {
       description: `Add a user to a group in ${confluenceInstanceType}. Idempotent.`,
@@ -161,7 +161,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_remove_user_from_group',
     {
       description: `Remove a user from a group in ${confluenceInstanceType}. Idempotent.`,
@@ -174,7 +174,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_admin_create_user',
     {
       description: `Create a new user in ${confluenceInstanceType}. Requires system administrator permission.`,
@@ -187,7 +187,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_admin_update_user',
     {
       description: `Update a user's full name and/or email in ${confluenceInstanceType}. Requires system administrator permission.`,
@@ -200,7 +200,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_admin_delete_user',
     {
       description: `Delete a user in ${confluenceInstanceType}. Requires system administrator permission. Runs asynchronously.`,
@@ -213,7 +213,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_admin_disable_user',
     {
       description: `Disable a user in ${confluenceInstanceType}. Requires system administrator permission. Idempotent.`,
@@ -226,7 +226,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_admin_enable_user',
     {
       description: `Enable a user in ${confluenceInstanceType}. Requires system administrator permission. Idempotent.`,
@@ -239,7 +239,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_admin_change_user_password',
     {
       description: `Change another user's password in ${confluenceInstanceType}. Requires system administrator permission.`,
@@ -252,7 +252,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_admin_create_group',
     {
       description: `Create a new user group in ${confluenceInstanceType}. Requires system administrator permission.`,
@@ -265,7 +265,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_admin_delete_group',
     {
       description: `Delete a user group in ${confluenceInstanceType}. Requires system administrator permission.`,
@@ -278,7 +278,7 @@ export function registerUserTools(server: McpServer, service: ConfluenceService)
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_admin_get_active_users',
     {
       description: `Get a paginated collection of active (license-counting) users in ${confluenceInstanceType}`,

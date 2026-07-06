@@ -1,11 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import { confluenceInstanceType } from '../constants.js';
 import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService, ConfluenceSpace } from '../confluenceService.js';
 
 export function registerSpaceTools(server: McpServer, service: ConfluenceService) {
-  server.registerTool('confluence_search_space',
+  registerAnnotatedTool(server, 'confluence_search_space',
     {
       description: `Search for spaces in ${confluenceInstanceType}`,
       inputSchema: confluenceToolSchemas.searchSpaces,
@@ -22,7 +22,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
       return formatToolResponse(result);
     });
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_space',
     {
       description: `Get information about a single space in ${confluenceInstanceType}`,
@@ -35,7 +35,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_spaces',
     {
       description: `List spaces with optional filters in ${confluenceInstanceType}`,
@@ -48,7 +48,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_create_space',
     {
       description: `Create a new space in ${confluenceInstanceType}`,
@@ -65,7 +65,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_update_space',
     {
       description: `Update a space's name and description in ${confluenceInstanceType}`,
@@ -82,7 +82,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_delete_space',
     {
       description: `Delete a space in ${confluenceInstanceType}`,
@@ -95,7 +95,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_space_content',
     {
       description: `Get the content in a space in ${confluenceInstanceType}`,
@@ -108,7 +108,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_archive_space',
     {
       description: `Archive a space in ${confluenceInstanceType}`,
@@ -121,7 +121,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_restore_space',
     {
       description: `Restore an archived space in ${confluenceInstanceType}`,
@@ -134,7 +134,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_space_properties',
     {
       description: `Get the properties stored on a space in ${confluenceInstanceType}`,
@@ -147,7 +147,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_space_property',
     {
       description: `Get a single space property by key in ${confluenceInstanceType}`,
@@ -160,7 +160,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_create_space_property',
     {
       description: `Create a space property in ${confluenceInstanceType}`,
@@ -173,7 +173,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_update_space_property',
     {
       description: `Update a space property in ${confluenceInstanceType}`,
@@ -186,7 +186,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_delete_space_property',
     {
       description: `Delete a space property in ${confluenceInstanceType}`,
@@ -199,7 +199,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_all_space_permissions',
     {
       description: `Get all permissions granted to users, groups and the anonymous user in a space in ${confluenceInstanceType}`,
@@ -212,7 +212,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_set_space_permissions',
     {
       description: `Set the full permission set for up to 40 users/groups/anonymous user in a space in ${confluenceInstanceType}. Replaces each listed subject's existing permissions.`,
@@ -225,7 +225,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_anonymous_space_permissions',
     {
       description: `Get the permissions granted to the anonymous user in a space in ${confluenceInstanceType}`,
@@ -238,7 +238,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_group_space_permissions',
     {
       description: `Get the permissions granted to a group in a space in ${confluenceInstanceType}`,
@@ -251,7 +251,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_user_space_permissions',
     {
       description: `Get the permissions granted to a user in a space in ${confluenceInstanceType}`,
@@ -264,7 +264,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_grant_anonymous_space_permissions',
     {
       description: `Grant space permissions to the anonymous user in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
@@ -277,7 +277,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_grant_group_space_permissions',
     {
       description: `Grant space permissions to a group in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
@@ -290,7 +290,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_grant_user_space_permissions',
     {
       description: `Grant space permissions to a user in ${confluenceInstanceType}. Adds to existing permissions; does not override them.`,
@@ -303,7 +303,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_revoke_anonymous_space_permissions',
     {
       description: `Revoke space permissions from the anonymous user in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
@@ -316,7 +316,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_revoke_group_space_permissions',
     {
       description: `Revoke space permissions from a group in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,
@@ -329,7 +329,7 @@ export function registerSpaceTools(server: McpServer, service: ConfluenceService
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_revoke_user_space_permissions',
     {
       description: `Revoke space permissions from a user in ${confluenceInstanceType}. Permissions not currently held are silently skipped.`,

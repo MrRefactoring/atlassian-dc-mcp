@@ -1,10 +1,10 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import type { BitbucketService } from '../bitbucketService.js';
 import { bitbucketToolSchemas } from '../bitbucketService.js';
 
 export function registerProjectTools(server: McpServer, service: BitbucketService) {
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_projects',
     {
       description: 'Get a list of Bitbucket projects',
@@ -17,7 +17,7 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_project',
     {
       description: 'Get a specific Bitbucket project by key',
@@ -30,7 +30,7 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_create_project',
     {
       description: 'Create a new Bitbucket project. Requires PROJECT_CREATE permission. The key must be unique.',
@@ -43,7 +43,7 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_update_project',
     {
       description: 'Update an existing Bitbucket project\'s name or description. Requires PROJECT_ADMIN permission. The project key is never changed. Only the provided fields are updated.',
@@ -56,7 +56,7 @@ export function registerProjectTools(server: McpServer, service: BitbucketServic
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_delete_project',
     {
       description: 'Delete a Bitbucket project. Requires PROJECT_ADMIN permission. The project must contain no repositories or the call fails with a conflict.',

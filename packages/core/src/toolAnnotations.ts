@@ -16,17 +16,37 @@ import type { ZodRawShape } from 'zod';
  * merged over the derived hints and wins.
  */
 
-// Reads never mutate: the host can auto-approve them.
-const READ_VERBS = new Set(['get', 'find', 'validate', 'search', 'list', 'download']);
+// Leading tokens that name a resource namespace rather than the verb (e.g.
+// `confluence_admin_delete_user`). They are skipped so the real verb is read.
+const NAMESPACE_TOKENS = new Set(['admin']);
 
-// Destructive writes may irreversibly remove data: the host should warn first.
-// `merge` covers merge-version, which reassigns issues and drops the source version.
+// Reads never mutate: the host can auto-approve them. `convert`/`compare` are
+// pure transformations that return a result without persisting; `is`/`can`/
+// `browse` are boolean or listing checks.
+const READ_VERBS = new Set([
+  'get',
+  'find',
+  'validate',
+  'search',
+  'list',
+  'download',
+  'browse',
+  'compare',
+  'convert',
+  'can',
+  'is',
+]);
+
+// Destructive writes may irreversibly remove data or integrate irreversibly: the
+// host should warn first. `merge` covers merge-version (drops the source version)
+// and merge-pull-request (permanently integrates a branch).
 const DESTRUCTIVE_VERBS = new Set(['delete', 'remove', 'merge']);
 
 // Idempotent writes: re-applying the same call with the same args is a no-op.
 const IDEMPOTENT_WRITE_VERBS = new Set([
   'update',
   'set',
+  'edit',
   'rename',
   'reset',
   'restore',
@@ -38,6 +58,12 @@ const IDEMPOTENT_WRITE_VERBS = new Set([
   'partial',
   'rank',
   'release',
+  'grant',
+  'revoke',
+  'enable',
+  'disable',
+  'watch',
+  'unwatch',
 ]);
 
 // Any other verb (create/add/post/upload/link/notify/start/transition/…) is a
@@ -56,7 +82,8 @@ function humanizeToolName(name: string): string {
  * true.
  */
 export function deriveToolAnnotations(name: string): ToolAnnotations {
-  const verb = name.split('_')[1] ?? '';
+  const tokens = name.split('_').slice(1); // drop the product prefix
+  const verb = NAMESPACE_TOKENS.has(tokens[0]) ? tokens[1] : tokens[0];
   const base: ToolAnnotations = {
     title: humanizeToolName(name),
     openWorldHint: true,

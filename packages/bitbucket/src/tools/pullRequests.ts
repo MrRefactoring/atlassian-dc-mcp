@@ -1,11 +1,11 @@
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import type { BitbucketService } from '../bitbucketService.js';
 import { bitbucketToolSchemas } from '../bitbucketService.js';
 
 export function registerPullRequestTools(server: McpServer, service: BitbucketService) {
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_pull_requests',
     {
       description: 'Get pull requests for a Bitbucket repository',
@@ -18,7 +18,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_pull_request',
     {
       description: 'Get a specific pull request by ID. Returns full details including title, description, reviewers, participants, author, source/target branches, current state, and version (needed for bitbucket_update_pull_request).',
@@ -31,7 +31,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_pr_comments_and_action',
     {
       description: 'Get comments for a Bitbucket pull request and other actions, like approvals',
@@ -44,7 +44,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_pull_request_changes',
     {
       description: 'Get the changes for a Bitbucket pull request',
@@ -57,7 +57,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_user',
     {
       description: 'Get a Bitbucket user by their slug, or search for users by name/email to discover their slug. Use this to resolve userSlug for bitbucket_submit_pull_request_review when it is not already known from a comment response or PR participant list.',
@@ -70,7 +70,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_post_pull_request_comment',
     {
       description: 'Post a comment to a Bitbucket pull request. Use pending: true to create a draft comment that is only visible to you until you call bitbucket_submit_pull_request_review. NOTE: pending only works when filePath is provided (file-level or inline comments). True top-level PR comments (no filePath) are always posted live and cannot be drafted. Use severity: \'BLOCKER\' to post the comment as a task — tasks must be resolved before the PR can be merged.',
@@ -83,7 +83,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_update_pull_request_comment',
     {
       description: 'Update an existing pull request comment. Use to edit text, change severity, or resolve/reopen it via state. On a regular comment, state: \'RESOLVED\' resolves the comment thread (the \'Resolve\' button in the UI) and \'OPEN\' reopens it. On a BLOCKER (task) comment, \'RESOLVED\' also ticks the task and \'OPEN\' un-ticks it. Resolution is driven by the root comment\'s state. Requires the current \'version\' from optimistic locking; fetch it via bitbucket_get_pr_comments_and_action or use the version returned when the comment was created.',
@@ -96,7 +96,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_submit_pull_request_review',
     {
       description: 'Submit a pull request review, publishing all pending (draft) comments and setting the reviewer\'s verdict. This is equivalent to clicking \'Submit Review\' in the Bitbucket UI. Use after posting comments with pending: true. To resolve userSlug: (1) check author.slug in any comment you posted this session, (2) check the reviewers/participants array from bitbucket_get_pull_request, or (3) call bitbucket_get_user with a name/email filter as a last resort.',
@@ -109,7 +109,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_add_pull_request_reviewer',
     {
       description: 'Add a single reviewer to a pull request without replacing existing reviewers (unlike bitbucket_update_pull_request, which replaces the whole reviewer list). Resolve userSlug via bitbucket_get_user if needed.',
@@ -122,7 +122,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_remove_pull_request_reviewer',
     {
       description: 'Remove a reviewer from a pull request. The user remains a participant but loses the REVIEWER role.',
@@ -135,7 +135,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_pull_request_participants',
     {
       description: 'List the participants of a pull request — everyone who has interacted with it (author, reviewers, and anyone else who has commented or approved), unlike bitbucket_get_required_reviewers which only covers reviewers requested up front.',
@@ -148,7 +148,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_can_merge_pull_request',
     {
       description: 'Check whether a pull request can be merged. Returns canMerge, conflicted, and a list of vetoes (e.g. unresolved tasks, insufficient approvals, merge conflicts). Use this as a read-only guard before calling bitbucket_merge_pull_request.',
@@ -161,7 +161,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_merge_pull_request',
     {
       description: 'Merge a pull request. IMPORTANT: You MUST first call bitbucket_get_pull_request to get the current \'version\' (optimistic locking) — the call fails without it. Recommended: call bitbucket_can_merge_pull_request first to ensure there are no merge vetoes. Optionally pass a custom merge message and a strategyId (must be enabled on the repository).',
@@ -174,7 +174,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_decline_pull_request',
     {
       description: 'Decline (reject) an open pull request without merging. IMPORTANT: You MUST first call bitbucket_get_pull_request to get the current \'version\' (optimistic locking). Optionally pass a comment explaining the decision. A declined PR can later be reopened with bitbucket_reopen_pull_request.',
@@ -187,7 +187,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_reopen_pull_request',
     {
       description: 'Reopen a previously declined pull request. IMPORTANT: You MUST first call bitbucket_get_pull_request to get the current \'version\' (optimistic locking). Only works on PRs in the DECLINED state.',
@@ -200,7 +200,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_pull_request_diff',
     {
       description: 'Get text diff for a specific file in a Bitbucket pull request. Returns plain text diff format. Note: Before getting diff, use getPullRequestChanges to understand what files were changed in the PR',
@@ -213,7 +213,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_create_pull_request',
     {
       description: 'Create a new pull request in a Bitbucket repository. IMPORTANT: Before creating a PR, use bitbucket_get_required_reviewers to fetch required reviewers for the source and target branches to ensure the PR is not created without mandatory reviewers.',
@@ -226,7 +226,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_update_pull_request',
     {
       description: 'Update the title, description, reviewers, destination branch or draft status of an existing pull request. IMPORTANT: You MUST first call bitbucket_get_pull_request to get the current \'version\' number — this is required for optimistic locking and the call will fail without it. The reviewers parameter replaces ALL existing reviewers. If you want to preserve existing reviewers, include those from the current PR details along with any new ones you want to add.',
@@ -239,7 +239,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_required_reviewers',
     {
       description: 'Get required reviewers for pull request creation. Returns a set of users who are required reviewers for pull requests created from the given source repository and ref to the given target ref in this repository.',
@@ -252,7 +252,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_inbox_pull_requests',
     {
       description: 'Get pull requests from the authenticated user\'s inbox that need their review. Returns PRs across all repositories where the user is a reviewer.',
@@ -265,7 +265,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_dashboard_pull_requests',
     {
       description: 'Get pull requests from the Bitbucket dashboard across all repositories. Useful for finding all PRs where you are the author, reviewer, or participant without specifying a project or repository.',
@@ -278,7 +278,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_delete_pull_request_comment',
     {
       description: 'Delete a comment from a Bitbucket pull request. Requires the current comment \'version\' for optimistic locking. A comment that has replies cannot be deleted.',
@@ -291,7 +291,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_apply_pull_request_suggestion',
     {
       description: 'Apply a code suggestion contained in a pull request comment directly to the source branch, creating a commit. Requires the current comment version and pull request version. Equivalent to the \'Apply suggestion\' button in the Bitbucket UI.',
@@ -304,7 +304,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_get_default_reviewer_conditions',
     {
       description: 'List the default reviewer conditions configured for a Bitbucket repository. Each condition maps a source/target ref matcher to a set of default reviewers and a required-approvals count.',
@@ -317,7 +317,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_watch_pull_request',
     {
       description: 'Start watching a pull request, subscribing the authenticated user to its notifications.',
@@ -330,7 +330,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_create_default_reviewer_condition',
     {
       description: 'Create a default reviewer condition on a Bitbucket repository. Matchers are specified by type (ANY_REF, BRANCH, PATTERN, MODEL_CATEGORY, MODEL_BRANCH) and value. Reviewers are given as numeric user IDs (resolve usernames via bitbucket_get_user).',
@@ -343,7 +343,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_update_default_reviewer_condition',
     {
       description: 'Update a default reviewer condition on a Bitbucket repository. This replaces the whole condition, so provide the complete desired matchers and reviewer set.',
@@ -356,7 +356,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_delete_default_reviewer_condition',
     {
       description: 'Delete a default reviewer condition from a Bitbucket repository by its ID.',
@@ -369,7 +369,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'bitbucket_unwatch_pull_request',
     {
       description: 'Stop watching a pull request, unsubscribing the authenticated user from its notifications.',

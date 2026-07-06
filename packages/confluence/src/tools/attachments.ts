@@ -1,11 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse } from 'datacenter-mcp-core';
+import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import { confluenceInstanceType } from '../constants.js';
 import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService } from '../confluenceService.js';
 
 export function registerAttachmentTools(server: McpServer, service: ConfluenceService) {
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_get_attachments',
     {
       description: `Get the attachments on a piece of content in ${confluenceInstanceType}`,
@@ -18,7 +18,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_remove_attachment',
     {
       description: `Remove an attachment from a piece of content in ${confluenceInstanceType}`,
@@ -31,7 +31,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_create_attachment',
     {
       description: `Upload a new attachment to a piece of content in ${confluenceInstanceType}`,
@@ -54,7 +54,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_update_attachment_meta',
     {
       description: `Update an attachment's metadata (filename, media type, comment) in ${confluenceInstanceType}`,
@@ -76,7 +76,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_update_attachment_data',
     {
       description: `Replace the binary data of an attachment in ${confluenceInstanceType}, adding a new version`,
@@ -89,7 +89,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_move_attachment',
     {
       description: `Move an attachment to a different content entity in ${confluenceInstanceType}, optionally renaming it`,
@@ -102,7 +102,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_delete_attachment',
     {
       description: `Delete an attachment from ${confluenceInstanceType}`,
@@ -115,7 +115,7 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
     },
   );
 
-  server.registerTool(
+  registerAnnotatedTool(server,
     'confluence_delete_attachment_version',
     {
       description: `Delete a specific version of an attachment in ${confluenceInstanceType}`,
