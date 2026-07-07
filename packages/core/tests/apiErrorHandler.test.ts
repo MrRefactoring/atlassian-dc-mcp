@@ -121,4 +121,36 @@ describe('handleApiOperation', () => {
       vi.useRealTimers();
     }
   });
+
+  it('honours a server Retry-After over its own backoff', async () => {
+    const err = { status: 429, statusText: 'Too Many Requests', body: {}, retryAfterMs: 4 };
+    const operation = vi.fn().mockRejectedValueOnce(err).mockResolvedValueOnce('ok');
+
+    const result = await handleApiOperation(operation, 'Error', { maxRetries: 3, baseDelayMs: 1, maxDelayMs: 1, maxRetryAfterMs: 1000 });
+
+    expect(result).toEqual({ success: true, data: 'ok' });
+    const logEntry = JSON.parse(stderrSpy.mock.calls[0][0] as string);
+    expect(logEntry).toMatchObject({ retryAfter: true, delayMs: 4 });
+  });
+
+  it('clamps a large Retry-After to maxRetryAfterMs so a call cannot hang', async () => {
+    const err = { status: 503, statusText: 'Service Unavailable', body: {}, retryAfterMs: 600_000 };
+    const operation = vi.fn().mockRejectedValueOnce(err).mockResolvedValueOnce('ok');
+
+    const result = await handleApiOperation(operation, 'Error', { maxRetries: 3, baseDelayMs: 1, maxDelayMs: 1, maxRetryAfterMs: 5 });
+
+    expect(result).toEqual({ success: true, data: 'ok' });
+    const logEntry = JSON.parse(stderrSpy.mock.calls[0][0] as string);
+    expect(logEntry).toMatchObject({ retryAfter: true, delayMs: 5 });
+  });
+
+  it('falls back to backoff (retryAfter false) when the error carries no Retry-After', async () => {
+    const operation = vi.fn().mockRejectedValueOnce(apiError(429, 'Too Many Requests')).mockResolvedValueOnce('ok');
+
+    const result = await handleApiOperation(operation, 'Error', { maxRetries: 3, baseDelayMs: 1, maxDelayMs: 1 });
+
+    expect(result).toEqual({ success: true, data: 'ok' });
+    const logEntry = JSON.parse(stderrSpy.mock.calls[0][0] as string);
+    expect(logEntry.retryAfter).toBe(false);
+  });
 });

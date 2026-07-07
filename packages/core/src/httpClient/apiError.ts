@@ -10,13 +10,16 @@ export class ApiError extends Error {
   readonly status: number;
   readonly statusText: string;
   readonly body: unknown;
+  /** Parsed `Retry-After` response header in milliseconds, when the server sent one (e.g. on 429/503). */
+  readonly retryAfterMs?: number;
 
-  constructor(args: { url: string; status: number; statusText: string; body: unknown; message: string }) {
+  constructor(args: { url: string; status: number; statusText: string; body: unknown; message: string; retryAfterMs?: number }) {
     super(args.message);
     this.name = 'ApiError';
     this.url = args.url;
     this.status = args.status;
     this.statusText = args.statusText;
     this.body = args.body;
+    this.retryAfterMs = args.retryAfterMs;
   }
 }

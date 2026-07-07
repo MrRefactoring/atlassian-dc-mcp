@@ -199,6 +199,29 @@ const getResponseBody = async (
 };
 
 /**
+ * Parse an HTTP `Retry-After` header into milliseconds. Per RFC 7231 the value is
+ * either a non-negative number of seconds (`"120"`) or an HTTP-date (`"Wed, 21 Oct
+ * 2015 07:28:00 GMT"`). Returns `undefined` for a missing or unparseable value.
+ */
+export const parseRetryAfterMs = (value: string | null): number | undefined => {
+  if (value === null) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (/^\d+$/.test(trimmed)) {
+    return Number(trimmed) * 1000;
+  }
+
+  const dateMs = Date.parse(trimmed);
+  if (!Number.isNaN(dateMs)) {
+    return Math.max(dateMs - Date.now(), 0);
+  }
+
+  return undefined;
+};
+
+/**
  * Create an {@link HttpClient} bound to an Atlassian Data Center instance.
  *
  * Shared by every product's api client (Bitbucket, Jira, …). Performs a single fetch
@@ -233,6 +256,7 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
           status: response.status,
           statusText: response.statusText,
           body: responseBody,
+          retryAfterMs: parseRetryAfterMs(response.headers.get('Retry-After')),
           message: `API request failed: ${response.status} ${response.statusText}`,
         });
       }

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { createHttpClient, ApiError } from '../src/httpClient/index.js';
+import { createHttpClient, ApiError, parseRetryAfterMs } from '../src/httpClient/index.js';
 
 const originalFetch = global.fetch;
 
@@ -126,5 +126,39 @@ describe('createHttpClient', () => {
     await expect(client.sendRequest({ url: '/x', method: 'GET' })).rejects.toThrow(/abort/i);
 
     process.env.ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS = prev;
+  });
+
+  it('captures the Retry-After header into ApiError on a 429', async () => {
+    mockFetch(new Response('rate limited', { status: 429, statusText: 'Too Many Requests', headers: { 'Retry-After': '12' } }));
+    const client = createHttpClient(base);
+
+    await expect(client.sendRequest({ url: '/x', method: 'GET' })).rejects.toMatchObject({
+      status: 429,
+      retryAfterMs: 12000,
+    });
+  });
+});
+
+describe('parseRetryAfterMs', () => {
+  it('parses delta-seconds into milliseconds', () => {
+    expect(parseRetryAfterMs('120')).toBe(120000);
+    expect(parseRetryAfterMs('0')).toBe(0);
+  });
+
+  it('returns undefined for a missing or unparseable value', () => {
+    expect(parseRetryAfterMs(null)).toBeUndefined();
+    expect(parseRetryAfterMs('soon')).toBeUndefined();
+  });
+
+  it('parses an HTTP-date into a non-negative delay from now', () => {
+    const future = new Date(Date.now() + 60_000).toUTCString();
+    const ms = parseRetryAfterMs(future);
+    expect(ms).toBeGreaterThan(50_000);
+    expect(ms).toBeLessThanOrEqual(60_000);
+  });
+
+  it('clamps a past HTTP-date to 0', () => {
+    const past = new Date(Date.now() - 60_000).toUTCString();
+    expect(parseRetryAfterMs(past)).toBe(0);
   });
 });

@@ -17,17 +17,24 @@ export interface RetryOptions {
   baseDelayMs?: number;
   /** Upper bound for the (pre-jitter) computed delay, in milliseconds (default: 5000). */
   maxDelayMs?: number;
+  /**
+   * Ceiling applied when honouring a server `Retry-After` header, in milliseconds
+   * (default: 30000). A server can legitimately ask us to wait longer than
+   * `maxDelayMs`, but we never block a tool call indefinitely.
+   */
+  maxRetryAfterMs?: number;
 }
 
 const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_BASE_DELAY_MS = 300;
 const DEFAULT_MAX_DELAY_MS = 5000;
+const DEFAULT_MAX_RETRY_AFTER_MS = 30_000;
 
 /**
- * The generated OpenAPI clients throw this shape on a non-2xx response
- * (see `<product>-client/core/request.ts`'s `catchErrorCodes`).
+ * The hand-written HTTP client throws this shape on a non-2xx response (see core's
+ * `ApiError`). `retryAfterMs` is the parsed `Retry-After` header when the server sent one.
  */
-type ApiClientError = { status: number; body: any; statusText: string };
+type ApiClientError = { status: number; body: any; statusText: string; retryAfterMs?: number };
 
 function isApiClientError(e: unknown): e is ApiClientError {
   return !!e && typeof e === 'object' && 'status' in e && 'body' in e;
@@ -86,6 +93,7 @@ export async function handleApiOperation<T>(
   const maxRetries = retryOptions.maxRetries ?? DEFAULT_MAX_RETRIES;
   const baseDelayMs = retryOptions.baseDelayMs ?? DEFAULT_BASE_DELAY_MS;
   const maxDelayMs = retryOptions.maxDelayMs ?? DEFAULT_MAX_DELAY_MS;
+  const maxRetryAfterMs = retryOptions.maxRetryAfterMs ?? DEFAULT_MAX_RETRY_AFTER_MS;
 
   for (let attempt = 0; ; attempt++) {
     try {
@@ -99,12 +107,19 @@ export async function handleApiOperation<T>(
       const status = isApiClientError(e) ? e.status : undefined;
       const canRetry = status !== undefined && isRetryableStatus(status) && attempt < maxRetries;
       if (canRetry) {
-        const delayMs = computeDelayMs(attempt, baseDelayMs, maxDelayMs);
+        // Honour a server-provided Retry-After (429/503) over our own backoff, clamped so a
+        // large value can't hang the call; otherwise fall back to exponential backoff + jitter.
+        const retryAfterMs = isApiClientError(e) ? e.retryAfterMs : undefined;
+        const honoursRetryAfter = retryAfterMs !== undefined;
+        const delayMs = honoursRetryAfter
+          ? Math.min(retryAfterMs, maxRetryAfterMs)
+          : computeDelayMs(attempt, baseDelayMs, maxDelayMs);
         logger.warn(`${errorPrefix}: retrying after ${status}`, {
           status,
           attempt: attempt + 1,
           maxRetries,
           delayMs: Math.round(delayMs),
+          retryAfter: honoursRetryAfter,
         });
         await sleep(delayMs);
         continue;
