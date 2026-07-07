@@ -32,6 +32,7 @@ export * from './pullRequest.js';
 export * from './pullRequestActivity.js';
 export * from './pullRequestAssignParticipantRoleRequest.js';
 export * from './pullRequestAssignStatusRequest.js';
+export * from './pullRequestFinishReviewRequest.js';
 export * from './pullRequestCondition.js';
 export * from './pullRequestDeclineRequest.js';
 export * from './pullRequestMergeRequest.js';

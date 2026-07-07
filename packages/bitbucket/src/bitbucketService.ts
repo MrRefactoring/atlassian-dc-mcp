@@ -1164,33 +1164,40 @@ export class BitbucketService {
   }
 
   /**
-   * Submit a pull request review, publishing all pending (draft) comments and updating the reviewer's status.
-   * This is the equivalent of clicking "Submit Review" in the Bitbucket UI.
+   * Submit a pull request review, publishing all pending (draft) comments and setting the
+   * reviewer's status. This is the equivalent of clicking "Submit Review" in the Bitbucket UI.
+   *
+   * Uses the `PUT .../pull-requests/{id}/review` (finishReview) endpoint, which acts as the
+   * authenticated user (the PAT owner) and atomically publishes their pending comments — the
+   * participant-status endpoint (`updateStatus`) only sets a status and leaves drafts unpublished.
    * @param projectKey The project key
    * @param repositorySlug The repository slug
    * @param pullRequestId The pull request ID
-   * @param userSlug The username/slug of the reviewer submitting the review (the PAT token owner).
    * @param status The review verdict: 'APPROVED', 'NEEDS_WORK', or 'UNAPPROVED'
    * @param lastReviewedCommit Optional last reviewed commit hash (for tracking review progress)
+   * @param commentText Optional summary comment posted with the review
    * @returns Promise with updated participant data
    */
   async submitPullRequestReview(
     projectKey: string,
     repositorySlug: string,
     pullRequestId: string,
-    userSlug: string,
     status: 'APPROVED' | 'NEEDS_WORK' | 'UNAPPROVED',
     lastReviewedCommit?: string,
+    commentText?: string,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
-    const requestBody: any = {
-      status,
-      ...(lastReviewedCommit ? { lastReviewedCommit } : {}),
-    };
 
     return handleApiOperation(
-      () => this.bb.pullRequests.updateStatus({ projectKey: projectKey, userSlug: userSlug, pullRequestId: pullRequestId, repositorySlug: repositorySlug, ...(requestBody) }),
+      () => this.bb.pullRequests.finishReview({
+        projectKey: projectKey,
+        repositorySlug: repositorySlug,
+        pullRequestId: pullRequestId,
+        participantStatus: status,
+        ...(lastReviewedCommit ? { lastReviewedCommit } : {}),
+        ...(commentText ? { commentText } : {}),
+      }),
       'Error submitting pull request review',
     );
   }
@@ -3626,9 +3633,9 @@ export const bitbucketToolSchemas = {
     projectKey: z.string().describe('The project key'),
     repositorySlug: z.string().describe('The repository slug'),
     pullRequestId: z.string().describe('The pull request ID'),
-    userSlug: z.string().describe('The username/slug of the PAT token owner — the same user whose credentials are in BITBUCKET_API_TOKEN. Resolution order: (1) author.slug from any comment posted this session, (2) reviewers/participants array from getPullRequest, (3) bitbucket_getUser with a name/email filter.'),
     status: z.enum(['APPROVED', 'NEEDS_WORK', 'UNAPPROVED']).describe('The review verdict: APPROVED, NEEDS_WORK, or UNAPPROVED'),
     lastReviewedCommit: z.string().optional().describe('Optional hash of the last commit reviewed, used to track review progress'),
+    commentText: z.string().optional().describe('Optional summary comment posted together with the review'),
   },
   getPullRequestDiff: {
     projectKey: z.string().describe('The project key'),

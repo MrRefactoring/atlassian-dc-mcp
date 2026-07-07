@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createComment as createPullRequestComment } from '../src/bitbucketClient/api/pullRequests.js';
+import { createComment as createPullRequestComment, finishReview } from '../src/bitbucketClient/api/pullRequests.js';
 import { createComment as createCommitComment } from '../src/bitbucketClient/api/repositories.js';
 import type { HttpClient } from 'datacenter-mcp-core';
 
@@ -66,5 +66,25 @@ describe('createComment api body assembly', () => {
       text: 'Commit inline',
       anchor: { path: 'src/index.ts', line: 5 },
     });
+  });
+});
+
+describe('finishReview api request', () => {
+  it('PUTs the /review endpoint with participantStatus in the body (publishes pending comments)', async () => {
+    const { client, sent } = recordingClient();
+
+    await finishReview(client, {
+      projectKey: 'TEST',
+      repositorySlug: 'repo',
+      pullRequestId: '1',
+      participantStatus: 'NEEDS_WORK',
+      commentText: 'Summary',
+    } as any);
+
+    const req = sent();
+    expect(req.method).toBe('PUT');
+    // Must be the review endpoint (publishes drafts), NOT /participants/{userSlug} (status only).
+    expect(req.url).toBe('/api/latest/projects/TEST/repos/repo/pull-requests/1/review');
+    expect(req.body).toMatchObject({ participantStatus: 'NEEDS_WORK', commentText: 'Summary' });
   });
 });

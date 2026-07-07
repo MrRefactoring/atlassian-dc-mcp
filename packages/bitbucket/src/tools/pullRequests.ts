@@ -60,7 +60,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
   registerAnnotatedTool(server,
     'bitbucket_get_user',
     {
-      description: 'Get a Bitbucket user by their slug, or search for users by name/email to discover their slug. Use this to resolve userSlug for bitbucket_submit_pull_request_review when it is not already known from a comment response or PR participant list.',
+      description: 'Get a Bitbucket user by their slug, or search for users by name/email to discover their slug.',
       inputSchema: bitbucketToolSchemas.getUser,
     },
     async ({ userSlug, filter }) => {
@@ -99,11 +99,11 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
   registerAnnotatedTool(server,
     'bitbucket_submit_pull_request_review',
     {
-      description: 'Submit a pull request review, publishing all pending (draft) comments and setting the reviewer\'s verdict. This is equivalent to clicking \'Submit Review\' in the Bitbucket UI. Use after posting comments with pending: true. To resolve userSlug: (1) check author.slug in any comment you posted this session, (2) check the reviewers/participants array from bitbucket_get_pull_request, or (3) call bitbucket_get_user with a name/email filter as a last resort.',
+      description: 'Submit a pull request review, publishing all pending (draft) comments and setting the reviewer\'s verdict. This is equivalent to clicking \'Submit Review\' in the Bitbucket UI. Use after posting comments with pending: true. The review is submitted as the authenticated user (the PAT owner) — no userSlug is needed.',
       inputSchema: bitbucketToolSchemas.submitPullRequestReview,
     },
-    async ({ projectKey, repositorySlug, pullRequestId, userSlug, status, lastReviewedCommit }) => {
-      const result = await service.submitPullRequestReview(projectKey, repositorySlug, pullRequestId, userSlug, status, lastReviewedCommit);
+    async ({ projectKey, repositorySlug, pullRequestId, status, lastReviewedCommit, commentText }) => {
+      const result = await service.submitPullRequestReview(projectKey, repositorySlug, pullRequestId, status, lastReviewedCommit, commentText);
 
       return formatToolResponse(result);
     },

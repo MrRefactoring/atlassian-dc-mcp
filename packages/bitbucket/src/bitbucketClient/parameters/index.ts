@@ -116,5 +116,6 @@ export * from './updatePullRequestSettings.js';
 export * from './updateRepository.js';
 export * from './updateRequiredBuildsMergeCheck.js';
 export * from './updateStatus.js';
+export * from './finishReview.js';
 export * from './updateWebhook.js';
 export * from './watch.js';
