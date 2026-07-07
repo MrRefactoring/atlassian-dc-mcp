@@ -13,6 +13,7 @@ const bb = vi.hoisted(() => ({
     unassignParticipantRole: vi.fn(),
     listParticipants: vi.fn(),
     updateStatus: vi.fn(),
+    finishReview: vi.fn(),
   },
 }));
 
@@ -476,86 +477,85 @@ describe('BitbucketService', () => {
   describe('submitPullRequestReview', () => {
     const mockUserSlug = 'test-user';
 
-    it('should submit a NEEDS_WORK review and call updateStatus with correct args', async () => {
+    it('should finish the review (publishing pending comments) with participantStatus', async () => {
       const mockParticipant = {
         user: { name: mockUserSlug },
         role: 'REVIEWER',
         status: 'NEEDS_WORK',
       };
-      (bb.pullRequests.updateStatus as Mock).mockResolvedValue(mockParticipant);
+      (bb.pullRequests.finishReview as Mock).mockResolvedValue(mockParticipant);
 
       const result = await bitbucketService.submitPullRequestReview(
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        mockUserSlug,
         'NEEDS_WORK',
       );
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockParticipant);
-      expect(bb.pullRequests.updateStatus).toHaveBeenCalledWith({
+      // Must hit the /review (finishReview) endpoint, NOT participant updateStatus —
+      // only finishReview publishes the reviewer's pending draft comments.
+      expect(bb.pullRequests.updateStatus).not.toHaveBeenCalled();
+      expect(bb.pullRequests.finishReview).toHaveBeenCalledWith({
         projectKey: mockProjectKey,
-        userSlug: mockUserSlug,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        status: 'NEEDS_WORK',
+        participantStatus: 'NEEDS_WORK',
       });
     });
 
     it('should submit an APPROVED review', async () => {
       const mockParticipant = { user: { name: mockUserSlug }, status: 'APPROVED' };
-      (bb.pullRequests.updateStatus as Mock).mockResolvedValue(mockParticipant);
+      (bb.pullRequests.finishReview as Mock).mockResolvedValue(mockParticipant);
 
       const result = await bitbucketService.submitPullRequestReview(
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        mockUserSlug,
         'APPROVED',
       );
 
       expect(result.success).toBe(true);
-      expect(bb.pullRequests.updateStatus).toHaveBeenCalledWith({
+      expect(bb.pullRequests.finishReview).toHaveBeenCalledWith({
         projectKey: mockProjectKey,
-        userSlug: mockUserSlug,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        status: 'APPROVED',
+        participantStatus: 'APPROVED',
       });
     });
 
-    it('should include lastReviewedCommit when provided', async () => {
+    it('should include lastReviewedCommit and commentText when provided', async () => {
       const mockParticipant = { user: { name: mockUserSlug }, status: 'NEEDS_WORK' };
-      (bb.pullRequests.updateStatus as Mock).mockResolvedValue(mockParticipant);
+      (bb.pullRequests.finishReview as Mock).mockResolvedValue(mockParticipant);
 
       await bitbucketService.submitPullRequestReview(
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        mockUserSlug,
         'NEEDS_WORK',
         'abc123def456',
+        'Overall looks good, minor nits',
       );
 
-      expect(bb.pullRequests.updateStatus).toHaveBeenCalledWith({
+      expect(bb.pullRequests.finishReview).toHaveBeenCalledWith({
         projectKey: mockProjectKey,
-        userSlug: mockUserSlug,
         pullRequestId: mockPullRequestId,
         repositorySlug: mockRepositorySlug,
-        status: 'NEEDS_WORK', lastReviewedCommit: 'abc123def456',
+        participantStatus: 'NEEDS_WORK',
+        lastReviewedCommit: 'abc123def456',
+        commentText: 'Overall looks good, minor nits',
       });
     });
 
     it('should handle API errors gracefully', async () => {
       const mockError = new Error('Forbidden');
-      (bb.pullRequests.updateStatus as Mock).mockRejectedValue(mockError);
+      (bb.pullRequests.finishReview as Mock).mockRejectedValue(mockError);
 
       const result = await bitbucketService.submitPullRequestReview(
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        mockUserSlug,
         'APPROVED',
       );
 

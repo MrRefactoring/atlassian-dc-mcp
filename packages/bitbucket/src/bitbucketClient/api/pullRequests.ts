@@ -3,9 +3,9 @@ import { route, pickBody } from 'datacenter-mcp-core';
 import { restPage } from '../core/page.js';
 import type { RestPage } from '../interface/index.js';
 import { z } from 'zod';
-import { ChangeSchema, CommentSchema, PullRequestActivitySchema, PullRequestConditionSchema, PullRequestMergeabilitySchema, PullRequestParticipantSchema, PullRequestSchema, ApplySuggestionRequestSchema, PullRequestAssignParticipantRoleRequestSchema, DefaultReviewersRequestSchema, PullRequestDeclineRequestSchema, PullRequestMergeRequestSchema, PullRequestReopenRequestSchema, PullRequestAssignStatusRequestSchema } from '../models/index.js';
+import { ChangeSchema, CommentSchema, PullRequestActivitySchema, PullRequestConditionSchema, PullRequestMergeabilitySchema, PullRequestParticipantSchema, PullRequestSchema, ApplySuggestionRequestSchema, PullRequestAssignParticipantRoleRequestSchema, DefaultReviewersRequestSchema, PullRequestDeclineRequestSchema, PullRequestMergeRequestSchema, PullRequestReopenRequestSchema, PullRequestAssignStatusRequestSchema, PullRequestFinishReviewRequestSchema } from '../models/index.js';
 import type { Change, Comment, PullRequest, PullRequestActivity, PullRequestCondition, PullRequestMergeability, PullRequestParticipant } from '../models/index.js';
-import type { ApplySuggestion, AssignParticipantRole, CanMerge, Create, CreatePullRequestComment, CreatePullRequestCondition, Decline, DeleteComment, DeletePullRequestCondition, GetPullRequest, GetPullRequestBlockerComments, GetActivities, GetPage, GetPullRequestConditions, GetReviewers, ListParticipants, Merge, Reopen, StreamPullRequestChanges, UnassignParticipantRole, Unwatch, Update, UpdateComment, UpdatePullRequestCondition, UpdateStatus, Watch } from '../parameters/index.js';
+import type { ApplySuggestion, AssignParticipantRole, CanMerge, Create, CreatePullRequestComment, CreatePullRequestCondition, Decline, DeleteComment, DeletePullRequestCondition, GetPullRequest, GetPullRequestBlockerComments, GetActivities, GetPage, GetPullRequestConditions, GetReviewers, ListParticipants, Merge, Reopen, StreamPullRequestChanges, UnassignParticipantRole, Unwatch, Update, UpdateComment, UpdatePullRequestCondition, UpdateStatus, FinishReview, Watch } from '../parameters/index.js';
 
 export function applySuggestion(client: HttpClient, params: ApplySuggestion): Promise<void> {
   return client.sendRequest({
@@ -223,6 +223,21 @@ export function updateStatus(client: HttpClient, params: UpdateStatus): Promise<
     method: 'PUT',
     searchParams: { version: params.version },
     body: pickBody(params, PullRequestAssignStatusRequestSchema),
+    contentType: 'application/json',
+    schema: PullRequestParticipantSchema,
+  });
+}
+
+// Complete a review as the authenticated user (the PAT owner). Unlike `updateStatus`
+// (which only sets a participant's approval status), this PUBLISHES the user's pending
+// (draft) comments and sets their status in one atomic operation — the REST equivalent
+// of the UI's "Submit review" button. The reviewer is implicit (the caller), so there is
+// no userSlug in the path.
+export function finishReview(client: HttpClient, params: FinishReview): Promise<PullRequestParticipant> {
+  return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/review`,
+    method: 'PUT',
+    body: pickBody(params, PullRequestFinishReviewRequestSchema),
     contentType: 'application/json',
     schema: PullRequestParticipantSchema,
   });
