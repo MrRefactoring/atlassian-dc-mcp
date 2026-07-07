@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`9d61f30`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/9d61f30c5053df05ef11c8eab8b2640d527b1124)]:
+  - datacenter-mcp-core@0.4.1
+
 ## 0.4.0
 
 ### Minor Changes
