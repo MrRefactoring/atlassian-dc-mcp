@@ -1,6 +1,3 @@
-[![MSeeP.ai Security Assessment Badge](https://mseep.net/pr/b1ff-atlassian-dc-mcp-badge.png)](https://mseep.ai/app/b1ff-atlassian-dc-mcp)
-
-[![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/2a87ecc6-e53a-4a21-b63e-ede9b6a2bc4a)
 [![npm jira-datacenter-mcp](https://img.shields.io/npm/v/jira-datacenter-mcp.svg?label=jira-datacenter-mcp)](https://www.npmjs.com/package/jira-datacenter-mcp)
 [![npm confluence-datacenter-mcp](https://img.shields.io/npm/v/confluence-datacenter-mcp.svg?label=confluence-datacenter-mcp)](https://www.npmjs.com/package/confluence-datacenter-mcp)
 [![npm bitbucket-datacenter-mcp](https://img.shields.io/npm/v/bitbucket-datacenter-mcp.svg?label=bitbucket-datacenter-mcp)](https://www.npmjs.com/package/bitbucket-datacenter-mcp)
