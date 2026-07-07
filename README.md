@@ -8,21 +8,96 @@
 
 # Atlassian Data Center MCP
 
-> **Note:** This is a community-maintained project and is **not affiliated with, endorsed by, or supported by Atlassian**.
-> Use at your own discretion.
+> **Community project — not affiliated with, endorsed by, or supported by Atlassian.** Use at your own discretion.
 
-[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers that connect **Claude Desktop**, **Claude Code**, **Cursor**, and any other MCP-compatible AI assistant to self-hosted **Atlassian Data Center** instances — **Jira**, **Confluence**, and **Bitbucket** (also known by their older name, Atlassian *Server*). Search and create Jira issues, read and edit Confluence pages, and browse Bitbucket repositories and pull requests, all from your AI assistant, without granting it direct API credentials.
+[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers that connect **Claude Desktop**, **Claude Code**, **Cursor**, and any other MCP-compatible AI assistant to self-hosted **Atlassian Data Center** (formerly *Server*) instances: **Jira**, **Confluence**, and **Bitbucket**.
 
-| Package | Version | Description |
-|---------|---------|--------------|
-| [`jira-datacenter-mcp`](https://www.npmjs.com/package/jira-datacenter-mcp) | [![npm](https://img.shields.io/npm/v/jira-datacenter-mcp.svg)](https://www.npmjs.com/package/jira-datacenter-mcp) | MCP server for Jira Data Center / Server |
-| [`confluence-datacenter-mcp`](https://www.npmjs.com/package/confluence-datacenter-mcp) | [![npm](https://img.shields.io/npm/v/confluence-datacenter-mcp.svg)](https://www.npmjs.com/package/confluence-datacenter-mcp) | MCP server for Confluence Data Center / Server |
-| [`bitbucket-datacenter-mcp`](https://www.npmjs.com/package/bitbucket-datacenter-mcp) | [![npm](https://img.shields.io/npm/v/bitbucket-datacenter-mcp.svg)](https://www.npmjs.com/package/bitbucket-datacenter-mcp) | MCP server for Bitbucket Data Center / Server |
-| [`datacenter-mcp-core`](https://www.npmjs.com/package/datacenter-mcp-core) | [![npm](https://img.shields.io/npm/v/datacenter-mcp-core.svg)](https://www.npmjs.com/package/datacenter-mcp-core) | Shared runtime used by the three servers above (not used directly) |
+Search and manage Jira issues, read and edit Confluence pages, review Bitbucket pull requests — from your AI assistant, with credentials stored in your OS keychain instead of pasted into a client config.
 
-## Quick Setup
+| Package | Version | Server for |
+|---------|---------|------------|
+| [`jira-datacenter-mcp`](https://www.npmjs.com/package/jira-datacenter-mcp) | [![npm](https://img.shields.io/npm/v/jira-datacenter-mcp.svg)](https://www.npmjs.com/package/jira-datacenter-mcp) | Jira Data Center / Server |
+| [`confluence-datacenter-mcp`](https://www.npmjs.com/package/confluence-datacenter-mcp) | [![npm](https://img.shields.io/npm/v/confluence-datacenter-mcp.svg)](https://www.npmjs.com/package/confluence-datacenter-mcp) | Confluence Data Center / Server |
+| [`bitbucket-datacenter-mcp`](https://www.npmjs.com/package/bitbucket-datacenter-mcp) | [![npm](https://img.shields.io/npm/v/bitbucket-datacenter-mcp.svg)](https://www.npmjs.com/package/bitbucket-datacenter-mcp) | Bitbucket Data Center / Server |
+| [`datacenter-mcp-core`](https://www.npmjs.com/package/datacenter-mcp-core) | [![npm](https://img.shields.io/npm/v/datacenter-mcp-core.svg)](https://www.npmjs.com/package/datacenter-mcp-core) | Shared runtime (installed automatically — not run directly) |
 
-Each package ships an interactive `setup` subcommand that stores your credentials in the most secure place available on your OS. Run it once per product:
+Each product is a separate package — install only the ones you need.
+
+---
+
+## Contents
+
+- [Capabilities](#capabilities)
+- [Quick start](#quick-start)
+- [Connecting a client](#connecting-a-client) — [Claude Desktop](#claude-desktop) · [Claude Code](#claude-code) · [Cursor & others](#cursor--other-mcp-clients)
+- [Authentication & tokens](#authentication--tokens)
+- [Configuration reference](#configuration-reference)
+- [Features](#features)
+- [Development](#development)
+- [License](#license)
+
+---
+
+## Capabilities
+
+Each server exposes MCP **tools** (actions the assistant can call), **resources** (readable context endpoints), and **prompts** (ready-made workflows). Tools are grouped by domain and follow the naming pattern `<product>_verb_noun` (e.g. `jira_search_issues`, `bitbucket_get_pull_request`).
+
+| Server | Tools | Resources | Prompts |
+|--------|------:|----------:|--------:|
+| Jira | **288** | 4 | 4 |
+| Confluence | **112** | 4 | 4 |
+| Bitbucket | **119** | 4 | 4 |
+
+<details>
+<summary><strong>Jira</strong> — 288 tools</summary>
+
+| Group | Tools | Covers |
+|-------|------:|--------|
+| `issues` | 71 | search (JQL), create/update/transition, comments, worklogs, links, attachments, watchers, votes |
+| `projects` | 48 | projects, versions, components, roles, categories |
+| `users` | 29 | user lookup/search, groups, assignable-user queries |
+| `workflows` | 25 | workflows, statuses, schemes |
+| `agile` | 22 | boards, sprints, backlog, epics |
+| `admin` | 93 | fields, screens, permissions, notification/security schemes, and other administrative reads/writes |
+
+</details>
+
+<details>
+<summary><strong>Confluence</strong> — 112 tools</summary>
+
+| Group | Tools | Covers |
+|-------|------:|--------|
+| `content` | 32 | pages/blogposts CRUD, bodies, versions, labels, children/descendants, search (CQL) |
+| `spaces` | 30 | spaces, space content, permissions, watchers |
+| `users` | 22 | users, groups, memberships |
+| `admin` | 11 | global permissions, access mode, and other admin reads |
+| `webhooks` | 9 | webhook registration and management |
+| `attachments` | 8 | upload, download, list, update attachments |
+
+</details>
+
+<details>
+<summary><strong>Bitbucket</strong> — 119 tools</summary>
+
+| Group | Tools | Covers |
+|-------|------:|--------|
+| `repositories` | 54 | repos, branches, commits, files/browse, diffs, tags, labels, settings |
+| `pullRequests` | 30 | PR CRUD, diffs/changes, inline & file comments, tasks, reviews, merge/decline, participants |
+| `builds` | 13 | build status and code-insights reports |
+| `permissions` | 8 | project/repository permission grants |
+| `authentication` | 6 | access tokens, SSH & GPG keys |
+| `projects` | 5 | project CRUD |
+| `security` | 3 | security-related reads |
+
+</details>
+
+Every tool carries MCP annotations (read-only vs. destructive hints), and argument **completions** are provided for common identifiers (project keys, board IDs, repository slugs) so compatible clients can autocomplete them.
+
+---
+
+## Quick start
+
+Each package ships an interactive `setup` command that stores credentials in the most secure place your OS offers (macOS Keychain, or a `0600` file elsewhere). Run it once per product:
 
 ```bash
 npx jira-datacenter-mcp setup
@@ -30,458 +105,280 @@ npx confluence-datacenter-mcp setup
 npx bitbucket-datacenter-mcp setup
 ```
 
-The setup CLI prompts for host, API base path, default page size, and API token. The token can be left blank for instances that allow anonymous access — the MCP server then makes unauthenticated requests. Before saving, it validates obvious input mistakes and, if a token was entered, performs a timed authenticated request to the selected Atlassian product, so a bad host, base path, or token is caught during setup.
+Setup prompts for host, API base path, default page size, and API token, then makes a live authenticated request to verify everything before saving — a wrong host or token is caught immediately. Leave the token blank to configure **anonymous** (unauthenticated) access on instances that allow it.
 
-### CLI flags and non-interactive mode
+After setup, the server boots with **zero environment variables** — see [Connecting a client](#connecting-a-client).
 
-Setup accepts flags so you can prefill values or skip prompts entirely (useful for scripted bootstrap, CI, or remote sessions). Run `npx <product>-datacenter-mcp setup --help` for the full list.
+> **Prefer explicit config?** You can skip `setup` entirely and pass credentials via environment variables or a [shared config file](#shared-config-file) instead. See the [Configuration reference](#configuration-reference).
+
+### Scripted / non-interactive setup
+
+Setup accepts flags for CI or remote bootstrap (`--help` for the full list):
 
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--host <value>` | `-H` | Host, e.g. `jira.example.com` |
 | `--api-base-path <value>` | `-b` | API base path or full URL |
-| `--token <value>` | `-t` | API token |
+| `--token <value>` | `-t` | API token (PAT) |
 | `--username <value>` | `-u` | Username for Basic auth (alternative to `--token`) |
-| `--password <value>` | `-p` | Password for Basic auth (paired with `--username`) |
+| `--password <value>` | `-p` | Password for Basic auth (with `--username`) |
 | `--default-page-size <n>` | `-s` | Default page size (positive integer) |
-| `--profile <name>` | `-P` | Named profile — separate home file and Keychain entry, for managing more than one instance per product |
-| `--non-interactive` | `-n` | Skip prompts; fail if a required value cannot be resolved |
-| `--help` | `-h` | Show usage and exit |
-
-In interactive mode, any flag you pass prefills its prompt (so e.g. `--host` skips the host prompt but still asks for the rest). In `--non-interactive` mode, setup resolves anything missing from existing configuration (process env, `~/.atlassian-dc-mcp/<product>.env`, or macOS Keychain) and exits non-zero only if a host (or full-URL `--api-base-path`) cannot be found. The token is optional — omit it (and don't keep an existing one) to configure anonymous access. An existing token is reused when `--token` is omitted; an existing password is reused the same way when `--password` is omitted. Basic auth (`--username`/`--password`) takes precedence over the token when both are configured.
-
-### Multiple instances per product (profiles)
-
-By default, `setup` reads and writes one unsuffixed home file / Keychain entry per product. To manage more than one instance of the same product (e.g. two separate Jira Data Center sites), give each one a distinct `--profile` name at setup time, then set `ATLASSIAN_DC_MCP_PROFILE` to the same name when launching the server so it reads that profile back:
+| `--profile <name>` | `-P` | Named profile for a second instance of the same product |
+| `--non-interactive` | `-n` | No prompts; exit non-zero if a required value is missing |
+| `--help` | `-h` | Show usage |
 
 ```bash
-npx jira-datacenter-mcp setup --profile work --host jira-work.example.com --token "$WORK_TOKEN"
+# Fully scripted
+npx jira-datacenter-mcp setup --non-interactive --host jira.example.com --token "$JIRA_TOKEN"
+
+# Re-validate an already-stored token without re-entering it
+npx jira-datacenter-mcp setup --non-interactive --host jira.example.com
+```
+
+In `--non-interactive` mode, missing values are resolved from existing configuration and the command exits `1` on the first validation failure — usable as a CI gate.
+
+---
+
+## Connecting a client
+
+Once `setup` has stored your credentials, the `env` block can be empty. The examples below pass credentials inline for clarity; drop the `env` entries if you ran `setup`.
+
+Set `*_HOST` to a domain (+ optional port) **without** a protocol — `https://` is assumed. To point at a non-standard path or force `http://`, use `*_API_BASE_PATH` with a full URL instead (the product-specific API suffix is appended automatically — don't include it).
+
+### Claude Desktop
+
+Config file: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) · `%APPDATA%\Claude\claude_desktop_config.json` (Windows). Keep only the servers you need.
+
+```json
+{
+  "mcpServers": {
+    "atlassian-jira-dc": {
+      "command": "npx",
+      "args": ["-y", "jira-datacenter-mcp"],
+      "env": { "JIRA_HOST": "jira.example.com", "JIRA_API_TOKEN": "your-token" }
+    },
+    "atlassian-confluence-dc": {
+      "command": "npx",
+      "args": ["-y", "confluence-datacenter-mcp"],
+      "env": { "CONFLUENCE_HOST": "confluence.example.com", "CONFLUENCE_API_TOKEN": "your-token" }
+    },
+    "atlassian-bitbucket-dc": {
+      "command": "npx",
+      "args": ["-y", "bitbucket-datacenter-mcp"],
+      "env": { "BITBUCKET_HOST": "bitbucket.example.com", "BITBUCKET_API_TOKEN": "your-token" }
+    }
+  }
+}
+```
+
+After running `setup`, this collapses to:
+
+```json
+{
+  "mcpServers": {
+    "atlassian-jira-dc": { "command": "npx", "args": ["-y", "jira-datacenter-mcp"] }
+  }
+}
+```
+
+### Claude Code
+
+```bash
+# Project scope (writes .mcp.json); add -s user for all projects
+claude mcp add atlassian-jira-dc \
+  -e JIRA_HOST=jira.example.com \
+  -e JIRA_API_TOKEN=your-token \
+  -- npx -y jira-datacenter-mcp
+```
+
+Swap `-e JIRA_HOST=…` for `-e JIRA_API_BASE_PATH=https://jira.example.com/rest`, or drop the `-e` flags entirely if you ran `setup`.
+
+### Cursor & other MCP clients
+
+Any stdio MCP client works. Point it at the command `npx -y <product>-datacenter-mcp` and supply credentials through its `env` mechanism (or rely on `setup`). For remote/multi-client hosting, use the [HTTP transport](#transport-stdio--http).
+
+---
+
+## Authentication & tokens
+
+Three modes, resolved per request:
+
+- **Personal Access Token (recommended)** — set `*_API_TOKEN`. Sent as `Authorization: Bearer <token>`.
+- **Basic auth** — set `*_USERNAME` + `*_PASSWORD` (for older instances without PATs). Takes precedence over a token if both are configured.
+- **Anonymous** — set neither. No `Authorization` header is sent; works on instances that allow unauthenticated reads.
+
+### Generating a Personal Access Token
+
+| Product | Path in the web UI |
+|---------|--------------------|
+| Jira | Profile → **Personal Access Tokens** → Create token |
+| Confluence | Profile/Settings → **Personal Access Tokens** → Create token |
+| Bitbucket | Manage account → **HTTP access tokens** → Create token |
+
+Give the token the minimum permissions it needs and copy it immediately — it is shown only once.
+
+---
+
+## Configuration reference
+
+### Per-product variables
+
+Each product reads its own prefix (`JIRA_*`, `CONFLUENCE_*`, `BITBUCKET_*`):
+
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| `*_HOST` | ✅¹ | Domain (+ port), no protocol — e.g. `jira.example.com` |
+| `*_API_BASE_PATH` | ✅¹ | Full base URL incl. protocol — alternative to `*_HOST` |
+| `*_API_TOKEN` | — | Personal Access Token (Bearer auth) |
+| `*_USERNAME` / `*_PASSWORD` | — | Basic auth pair (alternative to the token) |
+| `*_DEFAULT_PAGE_SIZE` | — | Default page size for paged endpoints |
+
+¹ Provide **one** of `*_HOST` or `*_API_BASE_PATH`. The API suffix is appended for you and must **not** be included: Jira `/rest` (+ `/api/2`), Confluence `/rest/api`, Bitbucket `/rest` (+ `/api/latest`).
+
+### Global variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ATLASSIAN_DC_MCP_CONFIG_FILE` | — | Absolute path to a shared dotenv file (see below); fails fast if set but missing |
+| `ATLASSIAN_DC_MCP_PROFILE` | — | Selects a named profile's stored credentials ([multiple instances](#multiple-instances-profiles)) |
+| `ATLASSIAN_DC_MCP_HTTP_PORT` | — | Serve over [HTTP](#transport-stdio--http) instead of stdio |
+| `ATLASSIAN_DC_MCP_LOG_LEVEL` | `info` | `debug` · `info` · `warn` · `error` |
+| `ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS` | `30000` | Per-request timeout to the Atlassian API |
+| `ATLASSIAN_DC_MCP_MAX_RESPONSE_CHARS` | `100000` | Cap on a tool result's characters; `0` disables the cap |
+
+### Precedence
+
+At startup each config key is resolved by walking these sources in order and taking the first non-empty value:
+
+| Priority | Source | Provides |
+|---------:|--------|----------|
+| 100 | `process.env` | all keys |
+| 80 | env file — `ATLASSIAN_DC_MCP_CONFIG_FILE`, or `./.env` | all keys |
+| 60 | home file — `~/.atlassian-dc-mcp/<product>.env` (`%USERPROFILE%\…` on Windows) | all keys |
+| 40 | macOS Keychain — service `atlassian-dc-mcp`, account `<product>-token` / `<product>-password` | token, password |
+
+Process env always wins, so you can override a stored credential for a single session. Keychain reads are cached once at startup — tool calls never shell out.
+
+### Shared config file
+
+To reuse one set of credentials across several MCP hosts on a machine, put the `*_HOST` / `*_API_TOKEN` / … variables in one dotenv file and point every server at it with an absolute `ATLASSIAN_DC_MCP_CONFIG_FILE`:
+
+```dotenv
+JIRA_HOST=jira.example.com
+JIRA_API_TOKEN=your-jira-token
+
+CONFLUENCE_HOST=confluence.example.com
+CONFLUENCE_API_TOKEN=your-confluence-token
+
+BITBUCKET_HOST=bitbucket.example.com
+BITBUCKET_API_TOKEN=your-bitbucket-token
+```
+
+```json
+{
+  "mcpServers": {
+    "atlassian-jira-dc": {
+      "command": "npx",
+      "args": ["-y", "jira-datacenter-mcp"],
+      "env": { "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/you/.config/atlassian-dc-mcp.env" }
+    }
+  }
+}
+```
+
+---
+
+## Features
+
+### Where credentials are stored
+
+`setup` splits secrets from non-secrets:
+
+- **macOS** — token/password go to the login Keychain (service `atlassian-dc-mcp`); the copy in the home file is cleared after a successful write, so there's never a second copy in a less-secure place.
+- **Linux** — home file `~/.atlassian-dc-mcp/<product>.env`, mode `0600` (your user only).
+- **Windows** — `%USERPROFILE%\.atlassian-dc-mcp\<product>.env`, inheriting your user-profile ACL.
+
+Non-secret fields (host, base path, page size) always live in the home file.
+
+### Multiple instances (profiles)
+
+To run two instances of the same product (e.g. two Jira sites), give each a `--profile` at setup and select it at launch with `ATLASSIAN_DC_MCP_PROFILE`:
+
+```bash
+npx jira-datacenter-mcp setup --profile work     --host jira-work.example.com     --token "$WORK_TOKEN"
 npx jira-datacenter-mcp setup --profile personal --host jira-personal.example.com --token "$PERSONAL_TOKEN"
 ```
 
 ```json
 {
   "mcpServers": {
-    "atlassian-jira-work": {
-      "command": "npx",
-      "args": ["-y", "jira-datacenter-mcp"],
-      "env": { "ATLASSIAN_DC_MCP_PROFILE": "work" }
-    },
-    "atlassian-jira-personal": {
-      "command": "npx",
-      "args": ["-y", "jira-datacenter-mcp"],
-      "env": { "ATLASSIAN_DC_MCP_PROFILE": "personal" }
-    }
+    "jira-work":     { "command": "npx", "args": ["-y", "jira-datacenter-mcp"], "env": { "ATLASSIAN_DC_MCP_PROFILE": "work" } },
+    "jira-personal": { "command": "npx", "args": ["-y", "jira-datacenter-mcp"], "env": { "ATLASSIAN_DC_MCP_PROFILE": "personal" } }
   }
 }
 ```
 
-A profile only changes which home file (`~/.atlassian-dc-mcp/<product>.<profile>.env`) and Keychain account (`<product>-<profile>-token` / `<product>-<profile>-password`) are used — it has no effect on `process.env` or `ATLASSIAN_DC_MCP_CONFIG_FILE`, which already let you point separate processes at fully separate configuration and take priority over both regardless of profile.
+A profile only changes which home file (`<product>.<profile>.env`) and Keychain account are used.
 
-```bash
-# Scripted, no prompts, write everything from flags
-npx jira-datacenter-mcp setup --non-interactive \
-  --host jira.example.com \
-  --token "$JIRA_TOKEN"
+### Transport: stdio & HTTP
 
-# Re-validate the existing token without re-entering it
-npx jira-datacenter-mcp setup --non-interactive --host jira.example.com
-```
-
-Credential validation behaves differently between modes: interactive mode offers retry/save-anyway prompts on failure, while `--non-interactive` exits with code 1 on the first validation failure so it can be used as a CI gate.
-
-Token storage:
-
-- **macOS** — written to the login Keychain via `/usr/bin/security` (service `atlassian-dc-mcp`, account `<product>-token`).
-- **Linux** — written to `~/.atlassian-dc-mcp/<product>.env` with POSIX mode `0600` (read/write for your user only; other local user accounts cannot read it).
-- **Windows** — written to `%USERPROFILE%\.atlassian-dc-mcp\<product>.env`. Node passes the mode bits but Windows ignores them, so the file inherits the ACL of your user profile directory — typically readable only by your user, SYSTEM, and Administrators.
-
-Non-secret fields (host, API base path, default page size) are always written to the home file — `~/.atlassian-dc-mcp/<product>.env` on macOS/Linux, `%USERPROFILE%\.atlassian-dc-mcp\<product>.env` on Windows. After a successful Keychain write, the token line is cleared from the home file so there is never a second copy in a less-secure place.
-
-Once setup has run, the MCP servers can boot with no environment variables at all:
-
-```json
-{
-  "mcpServers": {
-    "atlassian-jira-dc": { "command": "npx", "args": ["-y", "jira-datacenter-mcp"] },
-    "atlassian-confluence-dc": { "command": "npx", "args": ["-y", "confluence-datacenter-mcp"] },
-    "atlassian-bitbucket-dc": { "command": "npx", "args": ["-y", "bitbucket-datacenter-mcp"] }
-  }
-}
-```
-
-You can still pass credentials via environment variables or `ATLASSIAN_DC_MCP_CONFIG_FILE` as shown in the sections below — they take precedence over values saved by setup.
-
-## Configuration Sources & Precedence
-
-At startup, each MCP server resolves each config key by walking sources in this order and taking the first non-empty value:
-
-| Priority | Source | Reads | Written by setup |
-|---------:|--------|-------|------------------|
-| 100 | `process.env` (`JIRA_*`, `CONFLUENCE_*`, `BITBUCKET_*`) | all keys | — |
-| 80  | env file — `ATLASSIAN_DC_MCP_CONFIG_FILE` or `./.env` | all keys | — |
-| 60  | home file — `~/.atlassian-dc-mcp/<product>.env` on macOS/Linux, `%USERPROFILE%\.atlassian-dc-mcp\<product>.env` on Windows (mode `0600` on POSIX; Windows inherits the user-profile ACL) | all keys | host, apiBasePath, username, defaultPageSize (always); token, password (non-darwin or keychain fallback) |
-| 40  | macOS Keychain — service `atlassian-dc-mcp`, accounts `<product>-token` / `<product>-password` | token, password | token, password (darwin only) |
-
-Notes:
-
-- Process env wins over everything, so you can always override a stored credential for one session.
-- `ATLASSIAN_DC_MCP_CONFIG_FILE` must be an absolute path; if set and missing, the server fails fast.
-- Keychain reads are cached at init (one `execFileSync` per product-secret), so tool calls never shell out.
-- If a higher-priority source shadows the value setup is about to save, setup prints a warning naming the env var so you can unset it.
-- Atlassian API requests time out after 30 seconds by default. Set `ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS` to a positive millisecond value to override it.
-- Transient failures (HTTP 429 and 5xx) are retried automatically with exponential backoff and jitter (up to 3 retries) before a tool call reports an error. 4xx client errors (bad input, auth, not found, ...) are never retried.
-- `datacenter-mcp-core` exports a `paginateAll` helper for auto-paginating naturally small, bounded startAt-paged endpoints (e.g. a project's versions, a page's labels) internally in a service method, so callers get one fully-assembled list instead of hand-rolling a startAt loop. It's not used for open-ended search endpoints (JQL/CQL, repository listings), which stay single-page and agent-driven so a broad query can't flood the conversation with an unbounded amount of data.
-- Each product also accepts `*_USERNAME`/`*_PASSWORD` for Basic auth, as an alternative to `*_API_TOKEN` (useful for older instances without personal access tokens). If both are set, Basic auth takes precedence over the Bearer token.
-
-## Transport
-
-By default, every MCP server speaks stdio — what Claude Desktop and other local MCP hosts expect. Setting `ATLASSIAN_DC_MCP_HTTP_PORT` to a positive integer instead starts the [MCP Streamable HTTP transport](https://modelcontextprotocol.io/docs/concepts/transports#streamable-http) (the current spec's recommendation for remote/multi-client access, superseding the legacy SSE transport) on that port; the two transports are mutually exclusive per process — set the env var only for a standalone, network-reachable instance, not for a Claude Desktop-launched one:
+By default every server speaks **stdio** — what local hosts like Claude Desktop expect. Set `ATLASSIAN_DC_MCP_HTTP_PORT` to a positive integer to serve the [Streamable HTTP transport](https://modelcontextprotocol.io/docs/concepts/transports#streamable-http) instead (for remote/multi-client access); the two are mutually exclusive per process.
 
 ```bash
 ATLASSIAN_DC_MCP_HTTP_PORT=3000 npx jira-datacenter-mcp
 ```
 
-The transport is stateful: it demultiplexes many concurrent client sessions by the `Mcp-Session-Id` header over one long-lived process, so exposing it beyond localhost needs your own reverse proxy / TLS termination and network access control — the transport itself does not add authentication on top of the Atlassian credentials already configured for the server.
+The HTTP transport carries no auth of its own beyond the configured Atlassian credentials — put your own reverse proxy, TLS, and access control in front of it before exposing it beyond localhost.
 
-## Logging
+### Resilience
 
-The stdio transport reserves stdout exclusively for JSON-RPC protocol messages, so all logging — at any level, on any transport — goes to stderr as one JSON object per line (`{"timestamp", "level", "message", ...fields}`), safe to capture separately from the protocol stream. Levels are `debug` < `info` < `warn` < `error`; the default is `info`. Set `ATLASSIAN_DC_MCP_LOG_LEVEL` to change it:
+- **Retries** — transient failures (HTTP 429 and 5xx) are retried with exponential backoff and jitter (up to 3 attempts). A server-provided `Retry-After` header is honored (clamped to 30s) instead of the computed backoff. 4xx client errors are never retried.
+- **Response cap** — tool results larger than `ATLASSIAN_DC_MCP_MAX_RESPONSE_CHARS` (default 100k chars) are truncated with a marker, so a single broad query can't flood the context window. Set `0` to disable.
+- **Bounded pagination** — small, naturally finite lists (a project's versions, a page's labels) are auto-assembled into one result; open-ended searches (JQL/CQL, repo listings) stay single-page and agent-driven so they can't return an unbounded amount of data.
+
+### Logging
+
+All logs go to **stderr** as one JSON object per line (`{"timestamp","level","message",…}`), keeping stdout clean for the stdio protocol. Control verbosity with `ATLASSIAN_DC_MCP_LOG_LEVEL`:
 
 ```bash
 ATLASSIAN_DC_MCP_LOG_LEVEL=debug npx jira-datacenter-mcp
 ```
 
-## Claude Desktop Configuration
+---
 
-[Official Anthropic quick start guide](https://modelcontextprotocol.io/docs/getting-started/intro)
+## Development
 
-To use these MCP connectors with Claude Desktop, add the following to your Claude Desktop configuration.
+A [pnpm](https://pnpm.io/) workspace monorepo. Four packages under `packages/`: `core` (shared runtime) and one per product.
 
-Set `*_HOST` variables only to domain + port without protocol (e.g., `your-instance.atlassian.net`). The https protocol is assumed.
-
-Alternatively, you can use `*_API_BASE_PATH` variables instead of `*_HOST` to specify the complete API base URL including protocol (e.g., `https://your-instance.atlassian.net/rest`). Note that the `/api/latest/` part is static and added automatically in the code, so you don't need to include it in the `*_API_BASE_PATH` values.
-
-You can leave only the services you need in the configuration.
-
-macOS:
-```
-~/Library/Application Support/Claude/claude_desktop_config.json
-```
-
-Windows:
-```
-%APPDATA%\Claude\claude_desktop_config.json
-```
-
-
-```json
-{
-  "mcpServers": {
-    "atlassian-jira-dc": {
-      "command": "npx",
-      "args": ["-y", "jira-datacenter-mcp"],
-      "env": {
-        "JIRA_HOST": "your-jira-host",
-        "JIRA_API_TOKEN": "your-token"
-      }
-    },
-    "atlassian-confluence-dc": {
-      "command": "npx",
-      "args": ["-y", "confluence-datacenter-mcp"],
-      "env": {
-        "CONFLUENCE_HOST": "your-confluence-host",
-        "CONFLUENCE_API_TOKEN": "your-token"
-      }
-    },
-    "atlassian-bitbucket-dc": {
-      "command": "npx",
-      "args": ["-y", "bitbucket-datacenter-mcp"],
-      "env": {
-        "BITBUCKET_HOST": "your-bitbucket-host",
-        "BITBUCKET_API_TOKEN": "your-token"
-      }
-    }
-  }
-}
-```
-
-You can also use the alternative API base path configuration:
-
-```json
-{
-  "mcpServers": {
-    "atlassian-jira-dc": {
-      "command": "npx",
-      "args": ["-y", "jira-datacenter-mcp"],
-      "env": {
-        "JIRA_API_BASE_PATH": "https://your-jira-host/rest",
-        "JIRA_API_TOKEN": "your-token"
-      }
-    },
-    "atlassian-confluence-dc": {
-      "command": "npx",
-      "args": ["-y", "confluence-datacenter-mcp"],
-      "env": {
-        "CONFLUENCE_API_BASE_PATH": "https://your-confluence-host/rest",
-        "CONFLUENCE_API_TOKEN": "your-token"
-      }
-    },
-    "atlassian-bitbucket-dc": {
-      "command": "npx",
-      "args": ["-y", "bitbucket-datacenter-mcp"],
-      "env": {
-        "BITBUCKET_API_BASE_PATH": "https://your-bitbucket-host/rest",
-        "BITBUCKET_API_TOKEN": "your-token"
-      }
-    }
-  }
-}
-```
-
-## Shared External Config File
-
-If you want multiple MCP hosts or tools on one machine to reuse the same Atlassian credentials, put the existing `JIRA_*`, `CONFLUENCE_*`, and `BITBUCKET_*` variables into one dotenv-style file and point each MCP server at it with `ATLASSIAN_DC_MCP_CONFIG_FILE`.
-
-The path must be absolute. Direct environment variables still override values from the shared file.
-
-Example shared file:
-
-```dotenv
-JIRA_HOST=your-jira-host
-JIRA_API_TOKEN=your-jira-token
-JIRA_DEFAULT_PAGE_SIZE=50
-
-CONFLUENCE_HOST=your-confluence-host
-CONFLUENCE_API_TOKEN=your-confluence-token
-
-BITBUCKET_HOST=your-bitbucket-host
-BITBUCKET_API_TOKEN=your-bitbucket-token
-BITBUCKET_DEFAULT_PAGE_SIZE=50
-```
-
-Claude Desktop example using one shared file:
-
-```json
-{
-  "mcpServers": {
-    "atlassian-jira-dc": {
-      "command": "npx",
-      "args": ["-y", "jira-datacenter-mcp"],
-      "env": {
-        "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
-      }
-    },
-    "atlassian-confluence-dc": {
-      "command": "npx",
-      "args": ["-y", "confluence-datacenter-mcp"],
-      "env": {
-        "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
-      }
-    },
-    "atlassian-bitbucket-dc": {
-      "command": "npx",
-      "args": ["-y", "bitbucket-datacenter-mcp"],
-      "env": {
-        "ATLASSIAN_DC_MCP_CONFIG_FILE": "/Users/your-user/.config/atlassian-dc-mcp.env"
-      }
-    }
-  }
-}
-```
-
-Windows example path:
-
-```json
-{
-  "mcpServers": {
-    "atlassian-jira-dc": {
-      "command": "npx",
-      "args": ["-y", "jira-datacenter-mcp"],
-      "env": {
-        "ATLASSIAN_DC_MCP_CONFIG_FILE": "C:\\\\Users\\\\your-user\\\\AppData\\\\Roaming\\\\atlassian-dc-mcp.env"
-      }
-    }
-  }
-}
-```
-
-## Claude Code CLI Configuration
-
-To use these MCP connectors with [Claude Code](https://docs.anthropic.com/en/docs/claude-code), add MCP servers using the `claude mcp add` command.
-
-You can add servers at the project scope (stored in `.mcp.json`) or user scope (`-s user`). Adjust the scope and included services to your needs.
-
-```bash
-# Jira
-claude mcp add atlassian-jira-dc \
-  -e JIRA_HOST=your-jira-host \
-  -e JIRA_API_TOKEN=your-token \
-  -- npx -y jira-datacenter-mcp
-
-# Confluence
-claude mcp add atlassian-confluence-dc \
-  -e CONFLUENCE_HOST=your-confluence-host \
-  -e CONFLUENCE_API_TOKEN=your-token \
-  -- npx -y confluence-datacenter-mcp
-
-# Bitbucket
-claude mcp add atlassian-bitbucket-dc \
-  -e BITBUCKET_HOST=your-bitbucket-host \
-  -e BITBUCKET_API_TOKEN=your-token \
-  -- npx -y bitbucket-datacenter-mcp
-```
-
-You can also use `*_API_BASE_PATH` instead of `*_HOST` (same as the Claude Desktop examples above):
-
-```bash
-claude mcp add atlassian-jira-dc \
-  -e JIRA_API_BASE_PATH=https://your-jira-host/rest \
-  -e JIRA_API_TOKEN=your-token \
-  -- npx -y jira-datacenter-mcp
-```
-
-To add servers at user scope (available across all projects):
-
-```bash
-claude mcp add -s user atlassian-jira-dc \
-  -e JIRA_HOST=your-jira-host \
-  -e JIRA_API_TOKEN=your-token \
-  -- npx -y jira-datacenter-mcp
-```
-
-To use the shared config file instead of passing credentials inline:
-
-```bash
-claude mcp add atlassian-jira-dc \
-  -e ATLASSIAN_DC_MCP_CONFIG_FILE=/Users/your-user/.config/atlassian-dc-mcp.env \
-  -- npx -y jira-datacenter-mcp
-```
-
-Windows PowerShell example:
-
-```powershell
-claude mcp add atlassian-jira-dc `
-  -e ATLASSIAN_DC_MCP_CONFIG_FILE=C:\Users\your-user\AppData\Roaming\atlassian-dc-mcp.env `
-  -- npx -y jira-datacenter-mcp
-```
-
-### Generating API Tokens
-
-For Data Center installations, you'll need to generate Personal Access Tokens (PAT) for each service:
-
-#### Jira Data Center
-1. Log in to your Jira instance
-2. Go to Profile > Personal Access Tokens
-3. Click "Create token"
-4. Give it a meaningful name and set appropriate permissions
-5. Copy the generated token immediately (it won't be shown again)
-
-#### Confluence Data Center
-1. Log in to your Confluence instance
-2. Go to Settings > Personal Access Tokens
-3. Click "Create token"
-4. Name your token and set required permissions
-5. Save and copy the token (only shown once)
-
-#### Bitbucket Data Center
-1. Log in to Bitbucket
-2. Go to Manage Account > HTTP access tokens
-3. Click "Create token"
-4. Set a name and permissions
-5. Generate and copy the token immediately
-
-Store these tokens securely and use them in your Claude Desktop configuration as shown above.
-
-## Overview
-
-The Atlassian DC MCP allows AI assistants to interact with Atlassian products through a standardized interface. It provides tools for:
-
-- **Jira**: Search, view, and create issues
-- **Confluence**: Access and manage content
-- **Bitbucket**: Interact with repositories and code
-
-## Prerequisites
-
-- Node.js 26 or higher
-- pnpm (pinned via the `packageManager` field, currently 11.9.0) — install however's convenient: the [standalone installer](https://pnpm.io/installation), `npm install -g pnpm`, or Corepack if you already have it. CI uses `pnpm/action-setup`, independent of Corepack.
-- Atlassian Data Center instance or Cloud instance
-- API tokens for the Atlassian products you want to use (optional if the instance allows anonymous access)
-
-## Installation
-
-Clone the repository:
+**Prerequisites:** Node.js ≥ 26 · pnpm (pinned to `11.9.0` via `packageManager`) · a reachable Atlassian DC/Server instance.
 
 ```bash
 git clone https://github.com/MrRefactoring/atlassian-dc-mcp.git
 cd atlassian-dc-mcp
-```
-
-## Development
-
-This project is structured as a pnpm monorepo using workspaces (see `pnpm-workspace.yaml`). The workspaces are organized in the `packages/` directory, with separate packages for each Atlassian product integration.
-
-### Installing Dependencies
-
-To install all dependencies for all packages in the monorepo:
-
-```bash
 pnpm install
+
+pnpm build          # build all packages (core first — others depend on its types)
+pnpm typecheck      # tsc --noEmit across src + tests
+pnpm lint           # ESLint (flat config, whole repo)
+pnpm test           # unit tests (Vitest); the API client is mocked — no network
+
+pnpm dev:jira       # watch-mode build for one product (also :confluence, :bitbucket)
 ```
 
-This will install:
-- Root-level dependencies defined in the root `package.json`
-- All dependencies for each package in the workspaces
-
-To install a dependency for a specific package:
-
-```bash
-pnpm add <package-name> --filter jira-datacenter-mcp
-```
-
-To install a dependency at the root level:
-
-```bash
-pnpm add <package-name> -w
-```
-
-### Building the Project
-
-To build all packages:
-
-```bash
-pnpm build
-```
-
-To build a specific package:
+Build or test a single package with `--filter`:
 
 ```bash
 pnpm --filter jira-datacenter-mcp build
+pnpm --filter jira-datacenter-mcp test
 ```
 
-### Running in Development Mode
+### Live smoke test
 
-To run a specific package in development mode:
-
-```bash
-pnpm dev:jira     # For Jira
-pnpm dev:confluence  # For Confluence
-pnpm dev:bitbucket   # For Bitbucket
-```
-
-### Testing
-
-```bash
-pnpm test                                    # unit tests, all packages (mocked API client — no network)
-pnpm --filter jira-datacenter-mcp test       # unit tests, one package
-pnpm lint                                    # ESLint across the whole repo
-```
-
-Every existing test mocks the generated API client, so none of them can catch a real auth/network/API-shape regression against an actual Data Center instance. `packages/jira/src/__tests__/live/jira-service.live.test.ts` is a reference template for that: an opt-in, read-only smoke test that skips itself entirely (not a failure) when unconfigured, so `pnpm test` stays green with zero setup. To run it against a real instance:
+Unit tests mock the API client, so they can't catch an auth/network/API-shape regression against a real instance. Each product can run an opt-in, read-only live test that **skips itself** (not a failure) when unconfigured:
 
 ```bash
 cp packages/jira/.env.live.example packages/jira/.env.live
-# edit packages/jira/.env.live with a real host + token (or username/password)
+# edit .env.live with a real host + token (or username/password)
 pnpm --filter jira-datacenter-mcp test -- jira-service.live
 ```
 
@@ -489,46 +386,15 @@ pnpm --filter jira-datacenter-mcp test -- jira-service.live
 
 ### Releasing
 
-This project uses [Changesets](https://github.com/changesets/changesets) for versioning and publishing (not lerna); all 4 packages are kept in lockstep via a `fixed` group. Any PR that changes package behavior should include a changeset:
+Versioning and publishing use [Changesets](https://github.com/changesets/changesets); all four packages move in lockstep (a `fixed` group). Any behavior-changing PR should include one:
 
 ```bash
 pnpm changeset
 ```
 
-Pick the affected packages and bump type, write a short summary, and commit the generated `.changeset/*.md` file alongside your code change. Merging to `master` opens/updates a "Version Packages" pull request; merging *that* PR is what actually triggers the npm publish and MCP Registry publish.
+Commit the generated `.changeset/*.md` alongside your change. Merging the resulting "Version Packages" PR is what publishes to npm and the MCP Registry.
 
-## Configuration
-
-For production use, prefer the [Quick Setup](#quick-setup) CLI above — it writes to the macOS Keychain (for tokens) and the home file for non-secret fields (`~/.atlassian-dc-mcp/<product>.env` on macOS/Linux, `%USERPROFILE%\.atlassian-dc-mcp\<product>.env` on Windows) automatically.
-
-For local development, create a `.env` file in the root directory, or a shared dotenv-style file anywhere on disk and point `ATLASSIAN_DC_MCP_CONFIG_FILE` to it, with the following variables:
-
-```
-# Jira configuration - choose one of these options:
-JIRA_HOST=your-instance.atlassian.net
-# OR
-JIRA_API_BASE_PATH=https://your-instance.atlassian.net/rest
-# Note: part /api/2/search/ is added automatically, do not include it
-JIRA_API_TOKEN=your-api-token
-
-# Confluence configuration - choose one of these options:
-CONFLUENCE_HOST=your-instance.atlassian.net
-# OR
-CONFLUENCE_API_BASE_PATH=https://your-instance.atlassian.net/confluence
-# Note: part /rest/api is added automatically, do not include it
-CONFLUENCE_API_TOKEN=your-api-token
-
-# Bitbucket configuration - choose one of these options:
-BITBUCKET_HOST=your-instance.atlassian.net
-# OR
-BITBUCKET_API_BASE_PATH=https://your-instance.atlassian.net/rest
-# Note: part /api/latest/ is added automatically, do not include it
-BITBUCKET_API_TOKEN=your-api-token
-```
-
-Only a host (or full-URL API base path) is required. `*_API_TOKEN` is optional — omit it to connect anonymously, for instances that allow unauthenticated read access. Without a token, no `Authorization` header is sent at all.
-
-Resolution order for each key is `process.env` → `ATLASSIAN_DC_MCP_CONFIG_FILE` (or `./.env`) → home file (`~/.atlassian-dc-mcp/<product>.env` on macOS/Linux, `%USERPROFILE%\.atlassian-dc-mcp\<product>.env` on Windows) → macOS Keychain. See [Configuration Sources & Precedence](#configuration-sources--precedence) above.
+---
 
 ## License
 
