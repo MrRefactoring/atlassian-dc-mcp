@@ -7,6 +7,23 @@ export const CommentSchema = z.looseObject({
   id: z.number().optional(),
   version: z.number().optional(),
   text: z.string().optional(),
+  // Attaches the comment to a file/line in the diff. Declared here so `pickBody(params,
+  // CommentSchema)` keeps it in the POST body — otherwise an inline comment silently posts
+  // as a general (unanchored) comment. looseObject: extra fields (multilineMarker/Span, …) pass through.
+  anchor: z.looseObject({
+    path: z.string().optional(),
+    srcPath: z.string().optional(),
+    line: z.number().optional(),
+    lineType: z.string().optional(),
+    fileType: z.string().optional(),
+    diffType: z.string().optional(),
+    fromHash: z.string().optional(),
+    toHash: z.string().optional(),
+  }).optional(),
+  // Parent reference for a reply; without it a reply posts as a top-level comment.
+  parent: z.looseObject({
+    id: z.number().optional(),
+  }).optional(),
   author: z.looseObject({
     name: z.string().optional(),
     emailAddress: z.string().optional(),
