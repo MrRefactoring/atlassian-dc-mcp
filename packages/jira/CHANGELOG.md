@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - datacenter-mcp-core@0.4.2
+
 ## 0.4.1
 
 ### Patch Changes
