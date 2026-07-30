@@ -43,6 +43,7 @@ export * from './deleteSshKey.js';
 export * from './deleteUserAccessToken.js';
 export * from './deleteWebhook.js';
 export * from './disableHook.js';
+export * from './downloadRaw.js';
 export * from './editFile.js';
 export * from './enableHook.js';
 export * from './findWebhooks.js';

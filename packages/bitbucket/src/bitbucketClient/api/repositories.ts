@@ -4,7 +4,7 @@ import { restPage } from '../core/page.js';
 import type { RestPage } from '../interface/index.js';
 import { SettingsSchema, AutoDeclineSettingsSchema, AutoMergeRestrictedSettingsSchema, BranchSchema, ChangeSchema, CommentSchema, CommitSchema, DiffSchema, LabelSchema, PullRequestSchema, RefRestrictionSchema, RepositoryHookSchema, RepositoryPullRequestSettingsSchema, TagSchema, WebhookSchema, BranchCreateRequestSchema, CreateTagRequestSchema, BranchDeleteRequestSchema, MultipartFormDataSchema, AutoDeclineSettingsRequestSchema, AutoMergeSettingsRequestSchema } from '../models/index.js';
 import type { Settings, AutoDeclineSettings, AutoMergeRestrictedSettings, Branch, Change, Comment, Commit, Diff, Label, PullRequest, RefRestriction, RepositoryHook, RepositoryPullRequestSettings, Tag, Webhook } from '../models/index.js';
-import type { CreateBranch, CreateCommitComment, CreateRestrictions, CreateTagForRepository, CreateWebhook, DeleteAutoDeclineSettings, DeleteAutoMergeSettings, DeleteBranch, DeleteRestriction, DeleteWebhook, DisableHook, EditFile, EnableHook, FindWebhooks, GetAutoDeclineSettings, GetAutoMergeSettings, GetBranches, GetComments, GetCommit, GetCommitChanges, GetCommitPullRequests, GetCommits, GetCompareDiff, GetContent, GetDefaultBranch, GetPullRequestSettings, GetRepositoryHooks, GetRepositoryLabels, GetRestriction, GetRestrictions, GetSettings, GetTag, GetTags, GetWebhook, SetAutoDeclineSettings, SetAutoMergeSettings, SetSettings, StreamCompareChanges, StreamCommits, StreamDiff, StreamRaw, UpdatePullRequestSettings, UpdateWebhook } from '../parameters/index.js';
+import type { CreateBranch, CreateCommitComment, CreateRestrictions, CreateTagForRepository, CreateWebhook, DeleteAutoDeclineSettings, DeleteAutoMergeSettings, DeleteBranch, DeleteRestriction, DeleteWebhook, DisableHook, DownloadRaw, EditFile, EnableHook, FindWebhooks, GetAutoDeclineSettings, GetAutoMergeSettings, GetBranches, GetComments, GetCommit, GetCommitChanges, GetCommitPullRequests, GetCommits, GetCompareDiff, GetContent, GetDefaultBranch, GetPullRequestSettings, GetRepositoryHooks, GetRepositoryLabels, GetRestriction, GetRestrictions, GetSettings, GetTag, GetTags, GetWebhook, SetAutoDeclineSettings, SetAutoMergeSettings, SetSettings, StreamCompareChanges, StreamCommits, StreamDiff, StreamRaw, UpdatePullRequestSettings, UpdateWebhook } from '../parameters/index.js';
 
 export function createBranch(client: HttpClient, params: CreateBranch): Promise<Branch> {
   return client.sendRequest({
@@ -99,6 +99,21 @@ export function disableHook(client: HttpClient, params: DisableHook): Promise<Re
     url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/settings/hooks/${params.hookKey}/enabled`,
     method: 'DELETE',
     schema: RepositoryHookSchema,
+  });
+}
+
+/**
+ * The same raw-file endpoint as {@link streamRaw}, read as bytes instead of text. `streamRaw`
+ * falls through the client's text path, which corrupts anything that is not UTF-8; this asks
+ * for `arraybuffer` and skips the markup/render query params, which only apply to text.
+ */
+export function downloadRaw(client: HttpClient, params: DownloadRaw): Promise<Uint8Array> {
+  return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/raw/${params.path}`,
+    method: 'GET',
+    searchParams: { at: params.at },
+    responseType: 'arraybuffer',
+    headers: { Accept: '*/*' },
   });
 }
 
