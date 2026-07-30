@@ -1,7 +1,7 @@
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { ConfluenceService } from '../src/confluenceService.js';
 
@@ -300,5 +300,94 @@ describe('ConfluenceService attachment downloads', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toContain('boom');
+  });
+});
+
+describe('ConfluenceService bulk page attachment downloads', () => {
+  const attachment = (title: string, mediaType: string) => ({
+    id: `att-${title}`,
+    title,
+    extensions: { mediaType },
+    _links: { download: `/download/attachments/123/${title}` },
+  });
+
+  let service: ConfluenceService;
+  let dir: string;
+
+  beforeEach(async () => {
+    service = new ConfluenceService('test-host', 'test-token');
+    vi.clearAllMocks();
+    conf.request.mockResolvedValue(new Uint8Array([9]));
+    dir = await mkdtemp(join(tmpdir(), 'confluence-bulk-'));
+  });
+
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it('writes every attachment into the output directory', async () => {
+    conf.attachments.getAttachments.mockResolvedValue({
+      results: [attachment('a.png', 'image/png'), attachment('b.pdf', 'application/pdf')],
+    });
+
+    const result = await service.downloadPageAttachments('123', dir);
+
+    expect(result.success).toBe(true);
+    expect(result.data).toMatchObject({ outputDir: dir, matched: 2, skipped: 0, failed: [] });
+    expect(result.data?.downloaded.map((f) => f.savedTo)).toEqual([join(dir, 'a.png'), join(dir, 'b.pdf')]);
+    expect(new Uint8Array(await readFile(join(dir, 'a.png')))).toEqual(new Uint8Array([9]));
+  });
+
+  it('filters by a media type prefix', async () => {
+    conf.attachments.getAttachments.mockResolvedValue({
+      results: [attachment('a.png', 'image/png'), attachment('b.jpg', 'image/jpeg'), attachment('c.pdf', 'application/pdf')],
+    });
+
+    const result = await service.downloadPageAttachments('123', dir, 'image/');
+
+    expect(result.data).toMatchObject({ matched: 2 });
+    expect(result.data?.downloaded.map((f) => f.filename)).toEqual(['a.png', 'b.jpg']);
+  });
+
+  it('filters by exact file names', async () => {
+    conf.attachments.getAttachments.mockResolvedValue({
+      results: [attachment('a.png', 'image/png'), attachment('b.png', 'image/png')],
+    });
+
+    const result = await service.downloadPageAttachments('123', dir, undefined, ['b.png']);
+
+    expect(result.data?.downloaded.map((f) => f.filename)).toEqual(['b.png']);
+  });
+
+  it('caps the number of files written and reports the remainder as skipped', async () => {
+    conf.attachments.getAttachments.mockResolvedValue({
+      results: [attachment('a.png', 'image/png'), attachment('b.png', 'image/png'), attachment('c.png', 'image/png')],
+    });
+
+    const result = await service.downloadPageAttachments('123', dir, undefined, undefined, 2);
+
+    expect(result.data).toMatchObject({ matched: 3, skipped: 1 });
+    expect(result.data?.downloaded).toHaveLength(2);
+  });
+
+  it('records a per-file failure without aborting the rest', async () => {
+    conf.attachments.getAttachments.mockResolvedValue({
+      results: [attachment('a.png', 'image/png'), attachment('b.png', 'image/png')],
+    });
+    conf.request.mockRejectedValueOnce(new Error('gone')).mockResolvedValue(new Uint8Array([9]));
+
+    const result = await service.downloadPageAttachments('123', dir);
+
+    expect(result.success).toBe(true);
+    expect(result.data?.failed).toEqual([{ filename: 'a.png', error: 'gone' }]);
+    expect(result.data?.downloaded.map((f) => f.filename)).toEqual(['b.png']);
+  });
+
+  it('fails up front when the output directory is not absolute', async () => {
+    const result = await service.downloadPageAttachments('123', 'relative/dir');
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('absolute path');
+    expect(conf.attachments.getAttachments).not.toHaveBeenCalled();
   });
 });

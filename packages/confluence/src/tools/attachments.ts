@@ -32,6 +32,19 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
   );
 
   registerAnnotatedTool(server,
+    'confluence_download_page_attachments',
+    {
+      description: `Download every attachment on a piece of content in ${confluenceInstanceType} into a local directory, optionally filtered by media type or file name. Always writes to disk.`,
+      inputSchema: confluenceToolSchemas.downloadPageAttachments,
+    },
+    async ({ contentId, outputDir, mediaType, filenames, maxFiles }) => {
+      const result = await service.downloadPageAttachments(contentId, outputDir, mediaType, filenames, maxFiles);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
     'confluence_remove_attachment',
     {
       description: `Remove an attachment from a piece of content in ${confluenceInstanceType}`,
