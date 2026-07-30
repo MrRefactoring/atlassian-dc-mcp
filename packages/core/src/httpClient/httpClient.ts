@@ -62,24 +62,41 @@ const resolveCredential = (source: CredentialSource): string | undefined => {
   return value ?? undefined;
 };
 
+/**
+ * Build the `Authorization` header for a set of Atlassian credentials: Bearer for a
+ * personal access token, Basic when both username and password are present (Basic wins,
+ * matching the order the credentials are applied in). Returns an empty object when the
+ * instance is reachable anonymously.
+ *
+ * Exported so callers that must fetch a URL outside the client's `baseUrl` — e.g. Jira's
+ * absolute attachment `content` URL, which lives under `/secure/`, not `/rest/` — reuse
+ * the same credential resolution instead of hand-rolling a Bearer header.
+ */
+export const resolveAuthHeader = (
+  config: Pick<HttpClientConfig, 'token' | 'username' | 'password'>,
+): Record<string, string> => {
+  const token = resolveCredential(config.token);
+  const username = resolveCredential(config.username);
+  const password = resolveCredential(config.password);
+
+  if (isStringWithValue(username) && isStringWithValue(password)) {
+    return { Authorization: `Basic ${base64(`${username}:${password}`)}` };
+  }
+
+  if (isStringWithValue(token)) {
+    return { Authorization: `Bearer ${token}` };
+  }
+
+  return {};
+};
+
 const buildHeaders = (config: HttpClientConfig, options: SendRequestOptions): Headers => {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     ...config.headers,
     ...options.headers,
+    ...resolveAuthHeader(config),
   };
-
-  const token = resolveCredential(config.token);
-  const username = resolveCredential(config.username);
-  const password = resolveCredential(config.password);
-
-  if (isStringWithValue(token)) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  if (isStringWithValue(username) && isStringWithValue(password)) {
-    headers['Authorization'] = `Basic ${base64(`${username}:${password}`)}`;
-  }
 
   // Content-Type is derived from an explicit `body` only. A multipart upload lives in
   // `options.formData` (body stays undefined), so no Content-Type is set here and fetch
@@ -219,6 +236,32 @@ export const parseRetryAfterMs = (value: string | null): number | undefined => {
   }
 
   return undefined;
+};
+
+/**
+ * Fetch an absolute URL as raw bytes, sharing the request timeout and {@link ApiError}
+ * contract of {@link createHttpClient}. For paths under a client's `baseUrl` prefer
+ * `client.request({ responseType: 'arraybuffer' })`; this exists for the download URLs the
+ * API hands back as absolute links outside that prefix.
+ */
+export const downloadBinary = async (
+  url: string,
+  headers: Record<string, string> = {},
+): Promise<Uint8Array> => {
+  const response = await doFetch(url, { method: 'GET', headers: { Accept: '*/*', ...headers } });
+
+  if (!response.ok) {
+    throw new ApiError({
+      url,
+      status: response.status,
+      statusText: response.statusText,
+      body: undefined,
+      retryAfterMs: parseRetryAfterMs(response.headers.get('Retry-After')),
+      message: `Binary download failed: ${response.status} ${response.statusText}`,
+    });
+  }
+
+  return new Uint8Array(await response.arrayBuffer());
 };
 
 /**
