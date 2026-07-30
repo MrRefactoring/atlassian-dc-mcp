@@ -45,6 +45,19 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
   );
 
   registerAnnotatedTool(server,
+    'confluence_download_page_images',
+    {
+      description: `Download the images embedded in a page's body in ${confluenceInstanceType} into a local directory. Reads the page's storage-format markup, so it picks exactly the images the page displays (including ones attached to another page) and skips attachments it merely stores. External image URLs are reported, not downloaded.`,
+      inputSchema: confluenceToolSchemas.downloadPageImages,
+    },
+    async ({ contentId, outputDir, maxFiles }) => {
+      const result = await service.downloadPageImages(contentId, outputDir, maxFiles);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
     'confluence_remove_attachment',
     {
       description: `Remove an attachment from a piece of content in ${confluenceInstanceType}`,

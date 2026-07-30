@@ -15,6 +15,7 @@ import {
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import type { ConfluenceBodyMode } from './confluenceResponseMapper.js';
 import { shapeConfluenceContent } from './confluenceResponseMapper.js';
+import { extractStorageImages } from './storageImages.js';
 
 /**
  * Escapes user input for safe use inside a CQL quoted string.
@@ -563,6 +564,65 @@ export class ConfluenceService {
   }
 
   /**
+   * Download the images embedded in a page's body into a directory. Unlike
+   * {@link downloadPageAttachments} this reads the page's storage-format markup, so it picks
+   * exactly the images the page displays — including ones attached to a different page — and
+   * ignores attachments that are merely stored on it. External `<ri:url>` images are reported
+   * rather than downloaded: they live outside the instance.
+   * @param contentId The ID of the page whose embedded images to download
+   * @param outputDir Absolute directory path to write the images into
+   * @param maxFiles Maximum number of images to write (default 50)
+   */
+  async downloadPageImages(contentId: string, outputDir: string, maxFiles?: number) {
+    return handleApiOperation(async () => {
+      if (!isAbsolute(outputDir)) {
+        throw new Error(`outputDir must be an absolute path, got '${outputDir}'`);
+      }
+
+      const content = await this.conf.content.getContentById({
+        id: contentId,
+        expand: 'body.storage',
+      }) as { body?: { storage?: { value?: string } } };
+      const storage = content.body?.storage?.value;
+
+      if (storage === undefined) {
+        throw new Error(`Content ${contentId} has no storage-format body to read embedded images from`);
+      }
+
+      const { attachments, external } = extractStorageImages(storage);
+      const selected = attachments.slice(0, maxFiles ?? DEFAULT_BULK_DOWNLOAD_LIMIT);
+
+      const downloaded: SavedBinaryAsset[] = [];
+      const failed: Array<{ filename: string; error: string }> = [];
+
+      for (const ref of selected) {
+        try {
+          const sourceContentId = ref.contentTitle
+            ? await this.findContentIdByTitle(ref.contentTitle, ref.spaceKey)
+            : contentId;
+          const meta = await this.findAttachment(sourceContentId, undefined, ref.filename);
+
+          downloaded.push(await saveBinaryAsset(await this.fetchAttachment(sourceContentId, meta), outputDir));
+        } catch (error) {
+          failed.push({
+            filename: ref.filename,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
+      return {
+        outputDir,
+        found: attachments.length,
+        skipped: attachments.length - selected.length,
+        downloaded,
+        failed,
+        external,
+      };
+    }, 'Error downloading page images');
+  }
+
+  /**
    * Remove an attachment from a piece of content.
    * @param attachmentId The ID of the attachment to remove
    * @param contentId The ID of the content the attachment is on
@@ -667,6 +727,26 @@ export class ConfluenceService {
     }
 
     return found;
+  }
+
+  /**
+   * Resolve the ID of the page an embedded image's `<ri:page>` points at. Storage format names
+   * the page by title (and space), never by ID, so this is a CQL lookup.
+   */
+  private async findContentIdByTitle(title: string, spaceKey?: string): Promise<string> {
+    const cql = `type=page AND title="${escapeSearchTextForCql(title)}"`
+      + (spaceKey ? ` AND space="${escapeSearchTextForCql(spaceKey)}"` : '');
+    const page = await this.conf.content.search1({ cql, limit: '1' }) as { results?: Array<{ id?: string }> };
+    const id = page.results?.[0]?.id;
+
+    if (!id) {
+      throw new Error(
+        `Page '${title}' referenced by an embedded image was not found`
+        + (spaceKey ? ` in space ${spaceKey}` : ''),
+      );
+    }
+
+    return id;
   }
 
   /**
@@ -1824,6 +1904,11 @@ export const confluenceToolSchemas = {
     mediaType: z.string().optional().describe('Only download attachments whose media type starts with this prefix (e.g. \'image/\' for every image, or \'image/png\')'),
     filenames: z.array(z.string()).optional().describe('Only download attachments with these exact file names'),
     maxFiles: z.number().optional().describe('Maximum number of files to write. Defaults to 50; the remainder is reported as skipped.'),
+  },
+  downloadPageImages: {
+    contentId: z.string().describe('ID of the page whose embedded images to download'),
+    outputDir: z.string().describe('Absolute directory path on the machine running this MCP server to write the images into. Created if missing.'),
+    maxFiles: z.number().optional().describe('Maximum number of images to write. Defaults to 50; the remainder is reported as skipped.'),
   },
   removeAttachment: {
     attachmentId: z.string().describe('ID of the attachment to remove'),

@@ -15,6 +15,10 @@ const conf = vi.hoisted(() => ({
     removeAttachment: vi.fn(),
     removeAttachmentVersion: vi.fn(),
   },
+  content: {
+    getContentById: vi.fn(),
+    search1: vi.fn(),
+  },
   request: vi.fn(),
 }));
 
@@ -389,5 +393,103 @@ describe('ConfluenceService bulk page attachment downloads', () => {
     expect(result.success).toBe(false);
     expect(result.error).toContain('absolute path');
     expect(conf.attachments.getAttachments).not.toHaveBeenCalled();
+  });
+});
+
+describe('ConfluenceService embedded page image downloads', () => {
+  const attachment = (title: string) => ({
+    id: `att-${title}`,
+    title,
+    extensions: { mediaType: 'image/png' },
+    _links: { download: `/download/attachments/123/${title}` },
+  });
+  const body = (storage: string) => ({ body: { storage: { value: storage } } });
+
+  let service: ConfluenceService;
+  let dir: string;
+
+  beforeEach(async () => {
+    service = new ConfluenceService('test-host', 'test-token');
+    vi.clearAllMocks();
+    conf.request.mockResolvedValue(new Uint8Array([7]));
+    dir = await mkdtemp(join(tmpdir(), 'confluence-images-'));
+  });
+
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it('downloads the images the page embeds', async () => {
+    conf.content.getContentById.mockResolvedValue(body('<ac:image><ri:attachment ri:filename="one.png" /></ac:image>'));
+    conf.attachments.getAttachments.mockResolvedValue({ results: [attachment('one.png')] });
+
+    const result = await service.downloadPageImages('123', dir);
+
+    expect(conf.content.getContentById).toHaveBeenCalledWith({ id: '123', expand: 'body.storage' });
+    expect(result.data).toMatchObject({ outputDir: dir, found: 1, skipped: 0, failed: [], external: [] });
+    expect(result.data?.downloaded.map((f) => f.savedTo)).toEqual([join(dir, 'one.png')]);
+  });
+
+  it('reports external images without downloading them', async () => {
+    conf.content.getContentById.mockResolvedValue(body('<ac:image><ri:url ri:value="https://example.com/logo.png" /></ac:image>'));
+
+    const result = await service.downloadPageImages('123', dir);
+
+    expect(result.data).toMatchObject({ found: 0, external: ['https://example.com/logo.png'] });
+    expect(conf.request).not.toHaveBeenCalled();
+  });
+
+  it('resolves an image attached to another page by title and space', async () => {
+    conf.content.getContentById.mockResolvedValue(body('<ac:image><ri:attachment ri:filename="shared.png"><ri:page ri:content-title="Design Notes" ri:space-key="DEV" /></ri:attachment></ac:image>'));
+    conf.content.search1.mockResolvedValue({ results: [{ id: '999' }] });
+    conf.attachments.getAttachments.mockResolvedValue({ results: [attachment('shared.png')] });
+
+    const result = await service.downloadPageImages('123', dir);
+
+    expect(conf.content.search1).toHaveBeenCalledWith({
+      cql: 'type=page AND title="Design Notes" AND space="DEV"',
+      limit: '1',
+    });
+    expect(conf.attachments.getAttachments).toHaveBeenCalledWith({ id: '999', filename: 'shared.png', limit: '200', start: '0' });
+    expect(result.data?.downloaded).toHaveLength(1);
+  });
+
+  it('records a failure for an image whose source page cannot be found', async () => {
+    conf.content.getContentById.mockResolvedValue(body('<ac:image><ri:attachment ri:filename="shared.png"><ri:page ri:content-title="Gone" /></ri:attachment></ac:image>'));
+    conf.content.search1.mockResolvedValue({ results: [] });
+
+    const result = await service.downloadPageImages('123', dir);
+
+    expect(result.success).toBe(true);
+    expect(result.data?.failed).toEqual([{ filename: 'shared.png', error: 'Page \'Gone\' referenced by an embedded image was not found' }]);
+  });
+
+  it('fails when the content has no storage body', async () => {
+    conf.content.getContentById.mockResolvedValue({ id: '123' });
+
+    const result = await service.downloadPageImages('123', dir);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('no storage-format body');
+  });
+
+  it('caps the number of images written', async () => {
+    conf.content.getContentById.mockResolvedValue(body(
+      '<ac:image><ri:attachment ri:filename="one.png" /></ac:image><ac:image><ri:attachment ri:filename="two.png" /></ac:image>',
+    ));
+    conf.attachments.getAttachments.mockResolvedValue({ results: [attachment('one.png'), attachment('two.png')] });
+
+    const result = await service.downloadPageImages('123', dir, 1);
+
+    expect(result.data).toMatchObject({ found: 2, skipped: 1 });
+    expect(result.data?.downloaded).toHaveLength(1);
+  });
+
+  it('fails up front when the output directory is not absolute', async () => {
+    const result = await service.downloadPageImages('123', 'relative/dir');
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('absolute path');
+    expect(conf.content.getContentById).not.toHaveBeenCalled();
   });
 });
