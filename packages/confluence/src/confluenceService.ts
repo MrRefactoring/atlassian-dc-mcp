@@ -1,7 +1,14 @@
 import { z } from 'zod';
 import { createConfluenceClient } from './confluenceClient/index.js';
 import type { ConfluenceClient, Content, MockAttachmentRequest } from './confluenceClient/index.js';
-import { handleApiOperation, paginateAll, resolveOpenApiBase } from 'datacenter-mcp-core';
+import {
+  deliverBinaryAsset,
+  guessMimeType,
+  handleApiOperation,
+  paginateAll,
+  resolveOpenApiBase,
+  type BinaryAsset,
+} from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import type { ConfluenceBodyMode } from './confluenceResponseMapper.js';
 import { shapeConfluenceContent } from './confluenceResponseMapper.js';
@@ -58,6 +65,17 @@ export interface SpacePermissionsForSubjectInput {
   operations?: OperationDescriptionInput[];
 }
 
+/** Page size used when listing a content's attachments to resolve one for download. */
+const ATTACHMENT_LOOKUP_PAGE_SIZE = '200';
+
+/** The subset of Confluence's attachment representation the download path relies on. */
+interface AttachmentMeta {
+  id?: string;
+  title?: string;
+  extensions?: { mediaType?: string; fileSize?: number };
+  _links?: { download?: string };
+}
+
 export interface WebhookInput {
   name: string;
   url: string;
@@ -73,6 +91,8 @@ export class ConfluenceService {
 
   private readonly conf: ConfluenceClient;
 
+  private readonly baseUrl: string;
+
   constructor(
     host: string | undefined,
     token: string | (() => string | undefined),
@@ -81,13 +101,14 @@ export class ConfluenceService {
     username?: string | (() => string | undefined),
     password?: string | (() => string | undefined),
   ) {
+    this.baseUrl = resolveOpenApiBase({
+      host,
+      apiBasePath,
+      defaultBasePath: CONFLUENCE_PRODUCT.defaultApiBasePath ?? '',
+      strippableSuffixes: CONFLUENCE_PRODUCT.apiBasePathStrippableSuffixes,
+    });
     this.conf = createConfluenceClient({
-      baseUrl: resolveOpenApiBase({
-        host,
-        apiBasePath,
-        defaultBasePath: CONFLUENCE_PRODUCT.defaultApiBasePath ?? '',
-        strippableSuffixes: CONFLUENCE_PRODUCT.apiBasePathStrippableSuffixes,
-      }),
+      baseUrl: this.baseUrl,
       token,
       username,
       password,
@@ -461,6 +482,23 @@ export class ConfluenceService {
   }
 
   /**
+   * Download an attachment's binary content. Identify the attachment by its ID or by its
+   * exact file name; with an `outputPath` the bytes are written to disk, otherwise they are
+   * returned for inline delivery.
+   * @param contentId The ID of the content the attachment is on
+   * @param attachmentId The ID of the attachment (mutually exclusive with filename)
+   * @param filename The exact file name of the attachment (mutually exclusive with attachmentId)
+   * @param outputPath Absolute file or directory path to write the attachment to
+   */
+  async downloadAttachment(contentId: string, attachmentId?: string, filename?: string, outputPath?: string) {
+    return handleApiOperation(async () => {
+      const meta = await this.findAttachment(contentId, attachmentId, filename);
+
+      return deliverBinaryAsset(await this.fetchAttachment(contentId, meta), outputPath);
+    }, 'Error downloading attachment');
+  }
+
+  /**
    * Remove an attachment from a piece of content.
    * @param attachmentId The ID of the attachment to remove
    * @param contentId The ID of the content the attachment is on
@@ -530,6 +568,87 @@ export class ConfluenceService {
       },
       startAt !== undefined ? { startAt } : {},
     );
+  }
+
+  /**
+   * Locate a single attachment on a piece of content. A `filename` is filtered server-side
+   * (exact match); an `attachmentId` is matched against the content's full attachment list.
+   */
+  private async findAttachment(
+    contentId: string,
+    attachmentId?: string,
+    filename?: string,
+  ): Promise<AttachmentMeta> {
+    if (!attachmentId && !filename) {
+      throw new Error('Provide either attachmentId or filename to identify the attachment');
+    }
+
+    const results = await this.collectConfluencePages((start) =>
+      this.conf.attachments.getAttachments({
+        id: contentId,
+        filename,
+        limit: ATTACHMENT_LOOKUP_PAGE_SIZE,
+        start: start.toString(),
+      })) as AttachmentMeta[];
+
+    const found = attachmentId ? results.find((a) => a.id === attachmentId) : results[0];
+
+    if (!found) {
+      const available = results.map((a) => a.title).filter(Boolean).join(', ');
+
+      throw new Error(
+        `Attachment '${attachmentId ?? filename}' not found on content ${contentId}`
+        + (available ? `. Attachments on this content: ${available}` : ''),
+      );
+    }
+
+    return found;
+  }
+
+  /**
+   * Fetch an attachment's bytes through the API client, so authentication, the request
+   * timeout and `ApiError` handling are shared with every other call.
+   */
+  private async fetchAttachment(contentId: string, meta: AttachmentMeta): Promise<BinaryAsset> {
+    const filename = meta.title ?? 'attachment';
+    const bytes = await this.conf.request<Uint8Array>({
+      method: 'GET',
+      url: this.toRequestPath(meta._links?.download),
+      responseType: 'arraybuffer',
+      // Without this the client asks for application/json and Confluence refuses the download.
+      headers: { Accept: '*/*' },
+    });
+
+    return {
+      uri: `confluence://attachment/${contentId}/${filename}`,
+      filename,
+      mimeType: meta.extensions?.mediaType ?? guessMimeType(filename),
+      size: bytes.length,
+      bytes,
+    };
+  }
+
+  /**
+   * Turn an attachment's `_links.download` into a path the client can request. Confluence
+   * returns it relative to the instance's context path, which is exactly what `baseUrl` is;
+   * an absolute link has that context path stripped so it is not applied twice.
+   */
+  private toRequestPath(link: string | undefined): string {
+    if (!link) {
+      throw new Error('Attachment metadata did not include a download link');
+    }
+
+    if (!/^https?:\/\//i.test(link)) {
+      return link.startsWith('/') ? link : `/${link}`;
+    }
+
+    const { pathname, search } = new URL(link);
+    const contextPath = new URL(this.baseUrl).pathname.replace(/\/$/, '');
+    const relative = contextPath && pathname.startsWith(`${contextPath}/`)
+      ? pathname.slice(contextPath.length)
+      : pathname;
+
+    return `${relative}${search}`;
   }
 
   async getSpaces(
@@ -1628,6 +1747,12 @@ export const confluenceToolSchemas = {
     start: z.number().optional().describe('Start index for pagination'),
     mediaType: z.string().optional().describe('Return only attachments matching this media type (e.g. image/png)'),
     fetchAll: z.boolean().optional().describe('Follow pagination and return every attachment as a flat array (safety-capped). Overrides single-page behaviour.'),
+  },
+  downloadAttachment: {
+    contentId: z.string().describe('ID of the content (page or blogpost) the attachment is on'),
+    attachmentId: z.string().optional().describe('ID of the attachment to download (e.g. att1234567). Pass this or filename.'),
+    filename: z.string().optional().describe('Exact file name of the attachment to download. Pass this or attachmentId.'),
+    outputPath: z.string().optional().describe('Absolute path on the machine running this MCP server to write the file to. An existing directory saves the file under its own name. Omit to get the bytes inline in the response, which only works for small files.'),
   },
   removeAttachment: {
     attachmentId: z.string().describe('ID of the attachment to remove'),
