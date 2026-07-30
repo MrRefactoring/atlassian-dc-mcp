@@ -220,6 +220,9 @@ The server registers 101 tools, grouped below by area. All tools operate against
 #### Attachments
 
 - `confluence_getAttachments` — Get the attachments on a piece of content
+- `confluence_download_attachment` — Download an attachment's binary content, by id or exact file name. Pass `outputPath` to write it to disk.
+- `confluence_download_page_attachments` — Download every attachment on a piece of content into a directory, optionally filtered by media type or file name.
+- `confluence_download_page_images` — Download the images a page embeds into a directory, resolved from its storage-format body.
 - `confluence_createAttachment` — Upload a new attachment to a piece of content
 - `confluence_updateAttachmentMeta` — Update an attachment's metadata (filename, media type, comment)
 - `confluence_updateAttachmentData` — Replace the binary data of an attachment, adding a new version

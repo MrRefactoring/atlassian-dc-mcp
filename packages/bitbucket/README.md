@@ -201,6 +201,7 @@ This server registers 114 tools, grouped below by area.
 - `bitbucket_getRepositoryForks` — List the direct forks of a repository (one level deep only).
 - `bitbucket_browseRepository` — Browse a repository path: list a directory, read a file's content, or fetch blame.
 - `bitbucket_getFileContent` — Get the raw text content of a file at a given ref or commit.
+- `bitbucket_download_file` — Download a file as bytes, preserving binary content. Pass `outputPath` to write it to disk.
 - `bitbucket_editFile` — Create or edit a file and commit the change in one call, with optimistic conflict detection.
 - `bitbucket_searchCode` — Search code across Bitbucket using `project:`/`repo:`/`ext:` modifiers.
 

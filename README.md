@@ -42,8 +42,8 @@ Each server exposes MCP **tools** (actions the assistant can call), **resources*
 | Server | Tools | Resources | Prompts |
 |--------|------:|----------:|--------:|
 | Jira | **288** | 4 | 4 |
-| Confluence | **112** | 4 | 4 |
-| Bitbucket | **119** | 4 | 4 |
+| Confluence | **115** | 4 | 4 |
+| Bitbucket | **120** | 4 | 4 |
 
 <details>
 <summary><strong>Jira</strong> — 288 tools</summary>
@@ -60,7 +60,7 @@ Each server exposes MCP **tools** (actions the assistant can call), **resources*
 </details>
 
 <details>
-<summary><strong>Confluence</strong> — 112 tools</summary>
+<summary><strong>Confluence</strong> — 115 tools</summary>
 
 | Group | Tools | Covers |
 |-------|------:|--------|
@@ -69,16 +69,16 @@ Each server exposes MCP **tools** (actions the assistant can call), **resources*
 | `users` | 22 | users, groups, memberships |
 | `admin` | 11 | global permissions, access mode, and other admin reads |
 | `webhooks` | 9 | webhook registration and management |
-| `attachments` | 8 | upload, download, list, update attachments |
+| `attachments` | 11 | upload, list, update attachments; download binary content, page attachments and embedded images |
 
 </details>
 
 <details>
-<summary><strong>Bitbucket</strong> — 119 tools</summary>
+<summary><strong>Bitbucket</strong> — 120 tools</summary>
 
 | Group | Tools | Covers |
 |-------|------:|--------|
-| `repositories` | 54 | repos, branches, commits, files/browse, diffs, tags, labels, settings |
+| `repositories` | 55 | repos, branches, commits, files/browse (text and binary), diffs, tags, labels, settings |
 | `pullRequests` | 30 | PR CRUD, diffs/changes, inline & file comments, tasks, reviews, merge/decline, participants |
 | `builds` | 13 | build status and code-insights reports |
 | `permissions` | 8 | project/repository permission grants |
@@ -242,6 +242,7 @@ Each product reads its own prefix (`JIRA_*`, `CONFLUENCE_*`, `BITBUCKET_*`):
 | `ATLASSIAN_DC_MCP_LOG_LEVEL` | `info` | `debug` · `info` · `warn` · `error` |
 | `ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS` | `30000` | Per-request timeout to the Atlassian API |
 | `ATLASSIAN_DC_MCP_MAX_RESPONSE_CHARS` | `100000` | Cap on a tool result's characters; `0` disables the cap |
+| `ATLASSIAN_DC_MCP_MAX_INLINE_BYTES` | `1048576` | Largest downloaded file returned inline instead of requiring `outputPath`; `0` always requires it |
 
 ### Precedence
 
@@ -332,6 +333,7 @@ The HTTP transport carries no auth of its own beyond the configured Atlassian cr
 - **Retries** — transient failures (HTTP 429 and 5xx) are retried with exponential backoff and jitter (up to 3 attempts). A server-provided `Retry-After` header is honored (clamped to 30s) instead of the computed backoff. 4xx client errors are never retried.
 - **Response cap** — tool results larger than `ATLASSIAN_DC_MCP_MAX_RESPONSE_CHARS` (default 100k chars) are truncated with a marker, so a single broad query can't flood the context window. Set `0` to disable.
 - **Bounded pagination** — small, naturally finite lists (a project's versions, a page's labels) are auto-assembled into one result; open-ended searches (JQL/CQL, repo listings) stay single-page and agent-driven so they can't return an unbounded amount of data.
+- **Binary downloads** — every download tool takes an optional absolute `outputPath`: with it the file is written to disk and only its metadata comes back, so size is irrelevant. Without it the bytes are returned as their own content block (an image, or a base64 resource blob), bypassing the response cap; anything over `ATLASSIAN_DC_MCP_MAX_INLINE_BYTES` is refused with a pointer to `outputPath` rather than truncated.
 
 ### Logging
 
