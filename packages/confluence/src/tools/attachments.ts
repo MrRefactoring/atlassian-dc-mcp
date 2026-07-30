@@ -1,5 +1,5 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
+import { formatAssetToolResponse, formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import { confluenceInstanceType } from '../constants.js';
 import { confluenceToolSchemas } from '../confluenceService.js';
 import type { ConfluenceService } from '../confluenceService.js';
@@ -15,6 +15,19 @@ export function registerAttachmentTools(server: McpServer, service: ConfluenceSe
       const result = await service.getAttachments(contentId, expand, filename, limit, start, mediaType, fetchAll);
 
       return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'confluence_download_attachment',
+    {
+      description: `Download the binary content of an attachment from ${confluenceInstanceType}, identified by its ID or exact file name. Pass outputPath to write the file to disk; omit it to get the bytes inline, which only works for small files.`,
+      inputSchema: confluenceToolSchemas.downloadAttachment,
+    },
+    async ({ contentId, attachmentId, filename, outputPath }) => {
+      const result = await service.downloadAttachment(contentId, attachmentId, filename, outputPath);
+
+      return formatAssetToolResponse(result);
     },
   );
 
