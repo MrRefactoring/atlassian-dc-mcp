@@ -1,4 +1,5 @@
 export * from './apiErrorHandler.js';
+export * from './binaryDelivery.js';
 export * from './completions.js';
 export * from './pagination.js';
 export * from './config/index.js';
