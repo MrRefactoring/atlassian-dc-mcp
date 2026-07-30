@@ -1,5 +1,15 @@
 import { z } from 'zod';
-import { handleApiOperation, paginateAll, resolveOpenApiBase, route } from 'datacenter-mcp-core';
+import {
+  deliverBinaryAsset,
+  downloadBinary,
+  guessMimeType,
+  handleApiOperation,
+  paginateAll,
+  resolveAuthHeader,
+  resolveOpenApiBase,
+  route,
+  type HttpClientConfig,
+} from 'datacenter-mcp-core';
 import { createJiraClient, type JiraClient } from './jiraClient/index.js';
 import type { VersionMoveBean } from './jiraClient/models/versionMoveBean.js';
 import type { MoveFieldBean } from './jiraClient/models/moveFieldBean.js';
@@ -24,7 +34,12 @@ function toIssueFieldSelection(fields: string[]): Array<StringList> {
 export class JiraService {
   private readonly getPageSize: () => number;
   private readonly jira: JiraClient;
-  private readonly resolveToken: () => string | undefined;
+  /**
+   * Kept so a download URL the API hands back outside the client's `baseUrl` can be fetched
+   * with the same credentials the client uses. Thunks are stored unresolved, so a credential
+   * rotated after construction is still picked up.
+   */
+  private readonly credentials: Pick<HttpClientConfig, 'token' | 'username' | 'password'>;
 
   constructor(
     host: string | undefined,
@@ -45,7 +60,7 @@ export class JiraService {
       username,
       password,
     });
-    this.resolveToken = () => (typeof token === 'function' ? token() : token);
+    this.credentials = { token, username, password };
     this.getPageSize = getPageSize;
   }
 
@@ -509,28 +524,31 @@ export class JiraService {
     return handleApiOperation(() => this.jira.issues.getAttachment({ id: attachmentId }), 'Error getting attachment');
   }
 
-  async getAttachmentContent(attachmentId: string) {
+  /**
+   * Download an attachment's binary content. With an `outputPath` the bytes are written to
+   * disk, otherwise they are returned for inline delivery.
+   * @param attachmentId Id of the attachment to download
+   * @param outputPath Absolute file or directory path to write the attachment to
+   */
+  async getAttachmentContent(attachmentId: string, outputPath?: string) {
     return handleApiOperation(async () => {
       const meta = await this.jira.issues.getAttachment({ id: attachmentId }) as Record<string, any>;
-      const contentUrl = meta?.content;
+      const contentUrl = meta.content;
       if (!contentUrl) {
         throw new Error('Attachment metadata did not include a content URL');
       }
-      const token = this.resolveToken();
-      const response = await fetch(contentUrl, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to download attachment content: ${response.status} ${response.statusText}`);
-      }
-      const arrayBuffer = await response.arrayBuffer();
+      // The content URL lives under /secure/, outside the client's /rest baseUrl, so it is
+      // fetched directly — with the client's credentials, timeout and error contract.
+      const bytes = await downloadBinary(contentUrl, resolveAuthHeader(this.credentials));
+      const filename = meta.filename ?? 'attachment';
 
-      return {
-        filename: meta.filename,
-        mimeType: meta.mimeType,
-        size: meta.size,
-        contentBase64: Buffer.from(arrayBuffer).toString('base64'),
-      };
+      return deliverBinaryAsset({
+        uri: `jira://attachment/${attachmentId}`,
+        filename,
+        mimeType: meta.mimeType ?? guessMimeType(filename),
+        size: bytes.length,
+        bytes,
+      }, outputPath);
     }, 'Error downloading attachment content');
   }
 
@@ -2536,6 +2554,7 @@ export const jiraToolSchemas = {
   },
   getAttachmentContent: {
     attachmentId: z.string().describe('Id of the attachment to download'),
+    outputPath: z.string().optional().describe('Absolute path on the machine running this MCP server to write the file to. An existing directory saves the file under its own name. Omit to get the bytes inline in the response, which only works for small files.'),
   },
   deleteAttachment: {
     attachmentId: z.string().describe('Id of the attachment to delete'),

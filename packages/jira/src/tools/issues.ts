@@ -1,5 +1,5 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
+import { formatAssetToolResponse, formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import { jiraInstanceType } from '../constants.js';
 import { jiraToolSchemas } from '../jiraService.js';
 import type { JiraService } from '../jiraService.js';
@@ -566,13 +566,13 @@ export function registerIssueTools(server: McpServer, service: JiraService) {
   registerAnnotatedTool(server,
     'jira_get_attachment_content',
     {
-      description: `Download the raw content of an attachment from the ${jiraInstanceType} as base64. Fetches the file behind the attachment's download URI.`,
+      description: `Download the binary content of an attachment from the ${jiraInstanceType}, fetching the file behind the attachment's download URI. Pass outputPath to write the file to disk; omit it to get the bytes inline, which only works for small files.`,
       inputSchema: jiraToolSchemas.getAttachmentContent,
     },
-    async ({ attachmentId }) => {
-      const result = await service.getAttachmentContent(attachmentId);
+    async ({ attachmentId, outputPath }) => {
+      const result = await service.getAttachmentContent(attachmentId, outputPath);
 
-      return formatToolResponse(result);
+      return formatAssetToolResponse(result);
     },
   );
 
