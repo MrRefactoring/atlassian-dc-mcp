@@ -1,3 +1,6 @@
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { BitbucketService } from '../src/bitbucketService.js';
@@ -8,6 +11,7 @@ const bb = vi.hoisted(() => ({
     deleteBranch: vi.fn(),
     getBranches: vi.fn(),
     streamRaw: vi.fn(),
+    downloadRaw: vi.fn(),
     editFile: vi.fn(),
     getContent: vi.fn(),
     getDefaultBranch: vi.fn(),
@@ -244,6 +248,77 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('The repository does not exist.');
+    });
+  });
+
+  describe('downloadFile', () => {
+    const bytes = new Uint8Array([137, 80, 78, 71]);
+
+    it('returns the file bytes for inline delivery, guessing the media type from the path', async () => {
+      (bb.repositories.downloadRaw as Mock).mockResolvedValue(bytes);
+
+      const result = await bitbucketService.downloadFile(
+        mockProjectKey,
+        mockRepositorySlug,
+        'docs/architecture.png',
+      );
+
+      expect(bb.repositories.downloadRaw).toHaveBeenCalledWith({
+        path: 'docs/architecture.png',
+        projectKey: mockProjectKey,
+        repositorySlug: mockRepositorySlug,
+        at: undefined,
+      });
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({
+        uri: 'bitbucket://raw/TEST/test-repo/docs/architecture.png',
+        filename: 'architecture.png',
+        mimeType: 'image/png',
+        size: 4,
+        bytes,
+      });
+    });
+
+    it('normalizes the project key and repository slug and passes the at ref through', async () => {
+      (bb.repositories.downloadRaw as Mock).mockResolvedValue(bytes);
+
+      await bitbucketService.downloadFile('test', 'Test-Repo', 'logo.png', 'refs/heads/main');
+
+      expect(bb.repositories.downloadRaw).toHaveBeenCalledWith({
+        path: 'logo.png',
+        projectKey: 'TEST',
+        repositorySlug: 'test-repo',
+        at: 'refs/heads/main',
+      });
+    });
+
+    it('writes the file to disk when an outputPath is given', async () => {
+      (bb.repositories.downloadRaw as Mock).mockResolvedValue(bytes);
+      const dir = await mkdtemp(join(tmpdir(), 'bitbucket-download-'));
+
+      try {
+        const result = await bitbucketService.downloadFile(
+          mockProjectKey,
+          mockRepositorySlug,
+          'docs/architecture.png',
+          undefined,
+          dir,
+        );
+
+        expect(result.data).toMatchObject({ savedTo: join(dir, 'architecture.png') });
+        expect(new Uint8Array(await readFile(join(dir, 'architecture.png')))).toEqual(bytes);
+      } finally {
+        await rm(dir, { recursive: true, force: true });
+      }
+    });
+
+    it('handles API errors gracefully', async () => {
+      (bb.repositories.downloadRaw as Mock).mockRejectedValue(new Error('The path does not exist.'));
+
+      const result = await bitbucketService.downloadFile(mockProjectKey, mockRepositorySlug, 'missing.png');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('The path does not exist.');
     });
   });
 

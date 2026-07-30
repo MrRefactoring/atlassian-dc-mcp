@@ -1,7 +1,14 @@
 import { z } from 'zod';
 import { createBitbucketClient, route } from './bitbucketClient/index.js';
 import type { BitbucketClient, AccessTokenRequest } from './bitbucketClient/index.js';
-import { handleApiOperation, paginateAll, resolveOpenApiBase } from 'datacenter-mcp-core';
+import { basename } from 'node:path';
+import {
+  deliverBinaryAsset,
+  guessMimeType,
+  handleApiOperation,
+  paginateAll,
+  resolveOpenApiBase,
+} from 'datacenter-mcp-core';
 import { simplifyInboxPullRequests } from './inboxPrMapper.js';
 import { BITBUCKET_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import type {
@@ -253,6 +260,39 @@ export class BitbucketService {
       () => this.bb.repositories.streamRaw({ path: path, projectKey: projectKey, repositorySlug: repositorySlug, at: at }),
       'Error fetching file content',
     );
+  }
+
+  /**
+   * Download a file from a repository as bytes. Unlike {@link getFileContent}, which reads the
+   * same endpoint as text, this preserves binary content (images, archives, fonts).
+   * @param projectKey The project key
+   * @param repositorySlug The repository slug
+   * @param path The path of the file to download
+   * @param at Optional commit hash or ref; defaults to the default branch
+   * @param outputPath Absolute file or directory path to write the file to
+   */
+  async downloadFile(
+    projectKey: string,
+    repositorySlug: string,
+    path: string,
+    at?: string,
+    outputPath?: string,
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+
+    return handleApiOperation(async () => {
+      const bytes = await this.bb.repositories.downloadRaw({ path, projectKey, repositorySlug, at });
+      const filename = basename(path);
+
+      return deliverBinaryAsset({
+        uri: `bitbucket://raw/${projectKey}/${repositorySlug}/${path}`,
+        filename,
+        mimeType: guessMimeType(filename),
+        size: bytes.length,
+        bytes,
+      }, outputPath);
+    }, 'Error downloading file');
   }
 
   /**
@@ -3569,6 +3609,13 @@ export const bitbucketToolSchemas = {
     repositorySlug: z.string().describe('The repository slug'),
     path: z.string().describe('The path of the file to retrieve (e.g. \'src/index.ts\')'),
     at: z.string().optional().describe('Optional commit hash or ref to read the file at (e.g. \'refs/heads/main\' or a commit id). Defaults to the repository\'s default branch.'),
+  },
+  downloadFile: {
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    path: z.string().describe('The path of the file to download (e.g. \'docs/architecture.png\')'),
+    at: z.string().optional().describe('Optional commit hash or ref to read the file at (e.g. \'refs/heads/main\' or a commit id). Defaults to the repository\'s default branch.'),
+    outputPath: z.string().optional().describe('Absolute path on the machine running this MCP server to write the file to. An existing directory saves the file under its own name. Omit to get the bytes inline in the response, which only works for small files.'),
   },
   browseRepository: {
     projectKey: z.string().describe('The project key'),

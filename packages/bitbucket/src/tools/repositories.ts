@@ -1,5 +1,5 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
+import { formatAssetToolResponse, formatToolResponse, registerAnnotatedTool } from 'datacenter-mcp-core';
 import type { BitbucketService } from '../bitbucketService.js';
 import { bitbucketToolSchemas } from '../bitbucketService.js';
 
@@ -163,13 +163,26 @@ export function registerRepositoryTools(server: McpServer, service: BitbucketSer
   registerAnnotatedTool(server,
     'bitbucket_get_file_content',
     {
-      description: 'Get the raw text content of a file in a Bitbucket repository at a given ref or commit. Lets you read source files without cloning. Defaults to the repository\'s default branch when \'at\' is omitted.',
+      description: 'Get the raw text content of a file in a Bitbucket repository at a given ref or commit. Lets you read source files without cloning. Defaults to the repository\'s default branch when \'at\' is omitted. Use bitbucket_download_file for binary files, which this would corrupt.',
       inputSchema: bitbucketToolSchemas.getFileContent,
     },
     async ({ projectKey, repositorySlug, path, at }) => {
       const result = await service.getFileContent(projectKey, repositorySlug, path, at);
 
       return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
+    'bitbucket_download_file',
+    {
+      description: 'Download a file from a Bitbucket repository as bytes, preserving binary content (images, archives, fonts). Pass outputPath to write the file to disk; omit it to get the bytes inline, which only works for small files.',
+      inputSchema: bitbucketToolSchemas.downloadFile,
+    },
+    async ({ projectKey, repositorySlug, path, at, outputPath }) => {
+      const result = await service.downloadFile(projectKey, repositorySlug, path, at, outputPath);
+
+      return formatAssetToolResponse(result);
     },
   );
 
