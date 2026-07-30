@@ -1,3 +1,6 @@
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock, type MockInstance } from 'vitest';
 import { JiraService } from '../src/jiraService.js';
 
@@ -205,14 +208,15 @@ describe('JiraService', () => {
         fetchSpy.mockRestore();
       });
 
-      it('downloads and base64-encodes the attachment content', async () => {
-        const mockAttachment = {
-          id: '10001',
-          filename: 'test.txt',
-          mimeType: 'text/plain',
-          size: 5,
-          content: 'https://jira.example.com/secure/attachment/10001/test.txt',
-        };
+      const mockAttachment = {
+        id: '10001',
+        filename: 'test.txt',
+        mimeType: 'text/plain',
+        size: 5,
+        content: 'https://jira.example.com/secure/attachment/10001/test.txt',
+      };
+
+      it('returns the attachment bytes for inline delivery', async () => {
         (jira.issues.getAttachment as Mock).mockResolvedValue(mockAttachment);
         fetchSpy.mockResolvedValue({
           ok: true,
@@ -223,13 +227,47 @@ describe('JiraService', () => {
 
         expect(result.success).toBe(true);
         expect(result.data).toEqual({
+          uri: 'jira://attachment/10001',
           filename: 'test.txt',
           mimeType: 'text/plain',
           size: 5,
-          contentBase64: Buffer.from('hello').toString('base64'),
+          bytes: new Uint8Array(Buffer.from('hello')),
         });
         expect(fetchSpy).toHaveBeenCalledWith(mockAttachment.content, expect.objectContaining({
-          headers: { Authorization: 'Bearer test-token' },
+          headers: { Accept: '*/*', Authorization: 'Bearer test-token' },
+        }));
+      });
+
+      it('writes the attachment to disk when an outputPath is given', async () => {
+        (jira.issues.getAttachment as Mock).mockResolvedValue(mockAttachment);
+        fetchSpy.mockResolvedValue({
+          ok: true,
+          arrayBuffer: async () => Buffer.from('hello'),
+        } as unknown as Response);
+        const dir = await mkdtemp(join(tmpdir(), 'jira-attachment-'));
+
+        try {
+          const result = await jiraService.getAttachmentContent('10001', dir);
+
+          expect(result.data).toMatchObject({ savedTo: join(dir, 'test.txt') });
+          expect(await readFile(join(dir, 'test.txt'), 'utf8')).toBe('hello');
+        } finally {
+          await rm(dir, { recursive: true, force: true });
+        }
+      });
+
+      it('authenticates with basic auth when a username and password are configured', async () => {
+        const basicAuthService = new JiraService('jira.example.com', () => undefined, undefined, () => 25, 'user', 'pass');
+        (jira.issues.getAttachment as Mock).mockResolvedValue(mockAttachment);
+        fetchSpy.mockResolvedValue({
+          ok: true,
+          arrayBuffer: async () => Buffer.from('hello'),
+        } as unknown as Response);
+
+        await basicAuthService.getAttachmentContent('10001');
+
+        expect(fetchSpy).toHaveBeenCalledWith(mockAttachment.content, expect.objectContaining({
+          headers: { Accept: '*/*', Authorization: `Basic ${Buffer.from('user:pass').toString('base64')}` },
         }));
       });
 
@@ -248,12 +286,17 @@ describe('JiraService', () => {
           id: '10001',
           content: 'https://jira.example.com/secure/attachment/10001/test.txt',
         });
-        fetchSpy.mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' } as unknown as Response);
+        fetchSpy.mockResolvedValue({
+          ok: false,
+          status: 404,
+          statusText: 'Not Found',
+          headers: new Headers(),
+        } as unknown as Response);
 
         const result = await jiraService.getAttachmentContent('10001');
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('Failed to download attachment content: 404 Not Found');
+        expect(result.error).toContain('404 Not Found');
       });
     });
 
