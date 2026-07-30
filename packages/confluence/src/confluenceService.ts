@@ -1,3 +1,4 @@
+import { isAbsolute } from 'node:path';
 import { z } from 'zod';
 import { createConfluenceClient } from './confluenceClient/index.js';
 import type { ConfluenceClient, Content, MockAttachmentRequest } from './confluenceClient/index.js';
@@ -7,7 +8,9 @@ import {
   handleApiOperation,
   paginateAll,
   resolveOpenApiBase,
+  saveBinaryAsset,
   type BinaryAsset,
+  type SavedBinaryAsset,
 } from 'datacenter-mcp-core';
 import { CONFLUENCE_PRODUCT, getDefaultPageSize, getMissingConfig } from './config.js';
 import type { ConfluenceBodyMode } from './confluenceResponseMapper.js';
@@ -67,6 +70,9 @@ export interface SpacePermissionsForSubjectInput {
 
 /** Page size used when listing a content's attachments to resolve one for download. */
 const ATTACHMENT_LOOKUP_PAGE_SIZE = '200';
+
+/** How many files a single bulk download writes before the rest are reported as skipped. */
+const DEFAULT_BULK_DOWNLOAD_LIMIT = 50;
 
 /** The subset of Confluence's attachment representation the download path relies on. */
 interface AttachmentMeta {
@@ -496,6 +502,64 @@ export class ConfluenceService {
 
       return deliverBinaryAsset(await this.fetchAttachment(contentId, meta), outputPath);
     }, 'Error downloading attachment');
+  }
+
+  /**
+   * Download every attachment on a piece of content into a directory. Always writes to disk —
+   * a page's worth of assets is far too large to return inline. A file that fails to download
+   * is reported in `failed` without aborting the rest.
+   * @param contentId The ID of the content whose attachments to download
+   * @param outputDir Absolute directory path to write the files into
+   * @param mediaType Optional media type prefix filter (e.g. 'image/' or 'image/png')
+   * @param filenames Optional exact file names to restrict the download to
+   * @param maxFiles Maximum number of files to write (default 50)
+   */
+  async downloadPageAttachments(
+    contentId: string,
+    outputDir: string,
+    mediaType?: string,
+    filenames?: string[],
+    maxFiles?: number,
+  ) {
+    return handleApiOperation(async () => {
+      if (!isAbsolute(outputDir)) {
+        throw new Error(`outputDir must be an absolute path, got '${outputDir}'`);
+      }
+
+      const all = await this.collectConfluencePages((start) =>
+        this.conf.attachments.getAttachments({
+          id: contentId,
+          limit: ATTACHMENT_LOOKUP_PAGE_SIZE,
+          start: start.toString(),
+        })) as AttachmentMeta[];
+
+      const matching = all.filter((attachment) =>
+        (!mediaType || (attachment.extensions?.mediaType ?? '').startsWith(mediaType))
+        && (!filenames?.length || filenames.includes(attachment.title ?? '')));
+      const selected = matching.slice(0, maxFiles ?? DEFAULT_BULK_DOWNLOAD_LIMIT);
+
+      const downloaded: SavedBinaryAsset[] = [];
+      const failed: Array<{ filename: string; error: string }> = [];
+
+      for (const meta of selected) {
+        try {
+          downloaded.push(await saveBinaryAsset(await this.fetchAttachment(contentId, meta), outputDir));
+        } catch (error) {
+          failed.push({
+            filename: meta.title ?? '(unnamed)',
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
+      return {
+        outputDir,
+        matched: matching.length,
+        skipped: matching.length - selected.length,
+        downloaded,
+        failed,
+      };
+    }, 'Error downloading page attachments');
   }
 
   /**
@@ -1753,6 +1817,13 @@ export const confluenceToolSchemas = {
     attachmentId: z.string().optional().describe('ID of the attachment to download (e.g. att1234567). Pass this or filename.'),
     filename: z.string().optional().describe('Exact file name of the attachment to download. Pass this or attachmentId.'),
     outputPath: z.string().optional().describe('Absolute path on the machine running this MCP server to write the file to. An existing directory saves the file under its own name. Omit to get the bytes inline in the response, which only works for small files.'),
+  },
+  downloadPageAttachments: {
+    contentId: z.string().describe('ID of the content (page or blogpost) whose attachments to download'),
+    outputDir: z.string().describe('Absolute directory path on the machine running this MCP server to write the files into. Created if missing.'),
+    mediaType: z.string().optional().describe('Only download attachments whose media type starts with this prefix (e.g. \'image/\' for every image, or \'image/png\')'),
+    filenames: z.array(z.string()).optional().describe('Only download attachments with these exact file names'),
+    maxFiles: z.number().optional().describe('Maximum number of files to write. Defaults to 50; the remainder is reported as skipped.'),
   },
   removeAttachment: {
     attachmentId: z.string().describe('ID of the attachment to remove'),
