@@ -1,3 +1,4 @@
+import { mkdir } from 'node:fs/promises';
 import { isAbsolute } from 'node:path';
 import { z } from 'zod';
 import { createConfluenceClient } from './confluenceClient/index.js';
@@ -523,9 +524,7 @@ export class ConfluenceService {
     maxFiles?: number,
   ) {
     return handleApiOperation(async () => {
-      if (!isAbsolute(outputDir)) {
-        throw new Error(`outputDir must be an absolute path, got '${outputDir}'`);
-      }
+      await this.prepareOutputDir(outputDir);
 
       const all = await this.collectConfluencePages((start) =>
         this.conf.attachments.getAttachments({
@@ -575,9 +574,7 @@ export class ConfluenceService {
    */
   async downloadPageImages(contentId: string, outputDir: string, maxFiles?: number) {
     return handleApiOperation(async () => {
-      if (!isAbsolute(outputDir)) {
-        throw new Error(`outputDir must be an absolute path, got '${outputDir}'`);
-      }
+      await this.prepareOutputDir(outputDir);
 
       const content = await this.conf.content.getContentById({
         id: contentId,
@@ -695,6 +692,19 @@ export class ConfluenceService {
   }
 
   /**
+   * Validate a bulk download's target directory and create it. Creating it up front is what
+   * makes `saveBinaryAsset` treat it as a directory — otherwise a not-yet-existing path looks
+   * like a file name to it and every attachment would be written over the last one.
+   */
+  private async prepareOutputDir(outputDir: string): Promise<void> {
+    if (!isAbsolute(outputDir)) {
+      throw new Error(`outputDir must be an absolute path, got '${outputDir}'`);
+    }
+
+    await mkdir(outputDir, { recursive: true });
+  }
+
+  /**
    * Locate a single attachment on a piece of content. A `filename` is filtered server-side
    * (exact match); an `attachmentId` is matched against the content's full attachment list.
    */
@@ -736,8 +746,11 @@ export class ConfluenceService {
   private async findContentIdByTitle(title: string, spaceKey?: string): Promise<string> {
     const cql = `type=page AND title="${escapeSearchTextForCql(title)}"`
       + (spaceKey ? ` AND space="${escapeSearchTextForCql(spaceKey)}"` : '');
-    const page = await this.conf.content.search1({ cql, limit: '1' }) as { results?: Array<{ id?: string }> };
-    const id = page.results?.[0]?.id;
+    // Search results wrap the matched entity: the id is at `results[].content.id`, not `results[].id`.
+    const page = await this.conf.content.search1({ cql, limit: '1' }) as {
+      results?: Array<{ content?: { id?: string } }>;
+    };
+    const id = page.results?.[0]?.content?.id;
 
     if (!id) {
       throw new Error(
