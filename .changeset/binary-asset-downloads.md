@@ -17,4 +17,6 @@ Every download tool takes an optional absolute `outputPath`: with it the file is
 
 **Bitbucket** — `bitbucket_download_file` reads a repository file as bytes. `bitbucket_get_file_content` hits the same endpoint through the client's text path, which corrupts anything that is not UTF-8; its description now points at the new tool for binary files.
 
+The Confluence tools were verified end-to-end against a Confluence Data Center 9.2.21 instance: files on disk are sha256-identical to a direct instance download, a 264 KB attachment (well past the old truncation threshold) arrives whole, and a page embedding six images — three of them attached to a different page — downloads all six.
+
 **Jira** — `jira_get_attachment_content` gains `outputPath` and now fetches the download URL with the client's credentials, configured request timeout and `ApiError` contract instead of a hand-rolled `fetch` that only spoke Bearer auth. **Breaking:** the response no longer carries `data.contentBase64`; the bytes arrive as a content block, or `data.savedTo` names the written file.
