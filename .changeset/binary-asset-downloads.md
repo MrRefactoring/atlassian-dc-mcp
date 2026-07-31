@@ -15,7 +15,7 @@ Every download tool takes an optional absolute `outputPath`: with it the file is
 - `confluence_download_page_attachments` — every attachment on a piece of content into a directory, optionally filtered by media-type prefix or exact file names, capped at 50 files with the remainder reported as skipped. A per-file failure is reported without aborting the rest.
 - `confluence_download_page_images` — the images a page actually displays, resolved from `<ac:image>` in its storage-format body (following `<ri:page>` to an image attached to another page). External `<ri:url>` images are listed rather than fetched.
 
-**Bitbucket** — `bitbucket_download_file` reads a repository file as bytes. `bitbucket_get_file_content` hits the same endpoint through the client's text path, which corrupts anything that is not UTF-8; its description now points at the new tool for binary files.
+**Bitbucket** — `bitbucket_download_file` reads a repository file as bytes. `bitbucket_get_file_content` hits the same endpoint through the client's text path, which corrupts anything that is not UTF-8; its description now points at the new tool for binary files. Verified against Bitbucket Data Center 10.4.1: on a 20 000-byte binary the text path returns 36 122 bytes of replacement characters while the new tool returns the original 20 000 with a matching sha256, and a `.zip` confirms the base64 `resource` blob path for non-images.
 
 The Confluence tools were verified end-to-end against a Confluence Data Center 9.2.21 instance: files on disk are sha256-identical to a direct instance download, a 264 KB attachment (well past the old truncation threshold) arrives whole, and a page embedding six images — three of them attached to a different page — downloads all six.
 
