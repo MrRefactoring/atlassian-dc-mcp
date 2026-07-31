@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -342,6 +342,21 @@ describe('ConfluenceService bulk page attachment downloads', () => {
     expect(new Uint8Array(await readFile(join(dir, 'a.png')))).toEqual(new Uint8Array([9]));
   });
 
+  it('creates a missing output directory and keeps the files separate in it', async () => {
+    conf.attachments.getAttachments.mockResolvedValue({
+      results: [attachment('a.png', 'image/png'), attachment('b.png', 'image/png')],
+    });
+    const missingDir = join(dir, 'not', 'created', 'yet');
+
+    const result = await service.downloadPageAttachments('123', missingDir);
+
+    expect(result.data?.downloaded.map((f) => f.savedTo)).toEqual([
+      join(missingDir, 'a.png'),
+      join(missingDir, 'b.png'),
+    ]);
+    expect((await readdir(missingDir)).sort()).toEqual(['a.png', 'b.png']);
+  });
+
   it('filters by a media type prefix', async () => {
     conf.attachments.getAttachments.mockResolvedValue({
       results: [attachment('a.png', 'image/png'), attachment('b.jpg', 'image/jpeg'), attachment('c.pdf', 'application/pdf')],
@@ -420,14 +435,23 @@ describe('ConfluenceService embedded page image downloads', () => {
   });
 
   it('downloads the images the page embeds', async () => {
-    conf.content.getContentById.mockResolvedValue(body('<ac:image><ri:attachment ri:filename="one.png" /></ac:image>'));
-    conf.attachments.getAttachments.mockResolvedValue({ results: [attachment('one.png')] });
+    conf.content.getContentById.mockResolvedValue(body('<ac:image><ri:attachment ri:filename="one.png" /></ac:image><ac:image><ri:attachment ri:filename="two.png" /></ac:image>'));
+    // The real endpoint filters on `filename`; mirror that so each embedded image resolves to
+    // its own attachment rather than always to the first result.
+    const all = [attachment('one.png'), attachment('two.png')];
+    conf.attachments.getAttachments.mockImplementation(({ filename }: { filename?: string }) =>
+      Promise.resolve({ results: filename ? all.filter((a) => a.title === filename) : all }));
+    const missingDir = join(dir, 'images-not-created-yet');
 
-    const result = await service.downloadPageImages('123', dir);
+    const result = await service.downloadPageImages('123', missingDir);
 
     expect(conf.content.getContentById).toHaveBeenCalledWith({ id: '123', expand: 'body.storage' });
-    expect(result.data).toMatchObject({ outputDir: dir, found: 1, skipped: 0, failed: [], external: [] });
-    expect(result.data?.downloaded.map((f) => f.savedTo)).toEqual([join(dir, 'one.png')]);
+    expect(result.data).toMatchObject({ outputDir: missingDir, found: 2, skipped: 0, failed: [], external: [] });
+    expect(result.data?.downloaded.map((f) => f.savedTo)).toEqual([
+      join(missingDir, 'one.png'),
+      join(missingDir, 'two.png'),
+    ]);
+    expect((await readdir(missingDir)).sort()).toEqual(['one.png', 'two.png']);
   });
 
   it('reports external images without downloading them', async () => {
@@ -441,7 +465,8 @@ describe('ConfluenceService embedded page image downloads', () => {
 
   it('resolves an image attached to another page by title and space', async () => {
     conf.content.getContentById.mockResolvedValue(body('<ac:image><ri:attachment ri:filename="shared.png"><ri:page ri:content-title="Design Notes" ri:space-key="DEV" /></ri:attachment></ac:image>'));
-    conf.content.search1.mockResolvedValue({ results: [{ id: '999' }] });
+    // Real search response shape: the matched page is nested under `content`.
+    conf.content.search1.mockResolvedValue({ results: [{ content: { id: '999', title: 'Design Notes' } }] });
     conf.attachments.getAttachments.mockResolvedValue({ results: [attachment('shared.png')] });
 
     const result = await service.downloadPageImages('123', dir);
