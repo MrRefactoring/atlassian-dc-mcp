@@ -7,13 +7,25 @@ import { formatToolResponse } from './server.js';
 export const MAX_INLINE_BYTES_ENV_VAR = 'ATLASSIAN_DC_MCP_MAX_INLINE_BYTES';
 
 /**
- * Default ceiling on a binary payload returned inline in a tool response. Base64 inflates
- * bytes by 4/3, so 1 MiB of file becomes ~1.4M characters of context — already large. Files
- * above the cap must be written to disk via the tool's `outputPath`, which keeps the response
- * to a few hundred characters regardless of file size. Set
+ * Default ceiling on a raster image returned inline in a tool response. An `image` block is
+ * decoded as a picture by the host rather than read as text, so a megapixel-scale file costs
+ * roughly what any other image in the conversation costs.
+ *
+ * Files above the cap must be written to disk via the tool's `outputPath`, which keeps the
+ * response to a few hundred characters regardless of file size. Set
  * ATLASSIAN_DC_MCP_MAX_INLINE_BYTES to raise/lower it, or to 0 to disable inline delivery.
  */
 export const DEFAULT_MAX_INLINE_BYTES = 1_048_576;
+
+/**
+ * Default ceiling on everything that is not a raster image. A `resource` blob carries base64
+ * that a host has no way to interpret as anything but text: bytes inflate by 4/3, so 256 KiB
+ * already costs ~350k characters of context. The lower default keeps an accidental
+ * `outputPath`-less download of an archive or a video from swallowing the context window,
+ * while the image path stays generous. Overriding ATLASSIAN_DC_MCP_MAX_INLINE_BYTES replaces
+ * both ceilings with the given value.
+ */
+export const DEFAULT_MAX_INLINE_RESOURCE_BYTES = 262_144;
 
 /** A downloaded binary payload not yet delivered anywhere. */
 export interface BinaryAsset {
@@ -64,15 +76,22 @@ export function guessMimeType(filename: string): string {
   return (extension && MIME_TYPES_BY_EXTENSION[extension]) || 'application/octet-stream';
 }
 
-function resolveMaxInlineBytes(): number {
+// SVG is markup, not a raster image hosts can decode from an `image` block, so it goes through
+// the resource blob path with every other non-image type.
+function isRasterImage(mimeType: string): boolean {
+  return mimeType.startsWith('image/') && mimeType !== 'image/svg+xml';
+}
+
+function resolveMaxInlineBytes(mimeType: string): number {
+  const fallback = isRasterImage(mimeType) ? DEFAULT_MAX_INLINE_BYTES : DEFAULT_MAX_INLINE_RESOURCE_BYTES;
   const raw = process.env[MAX_INLINE_BYTES_ENV_VAR];
   if (raw === undefined || raw.trim() === '') {
-    return DEFAULT_MAX_INLINE_BYTES;
+    return fallback;
   }
 
   const parsed = Number.parseInt(raw, 10);
 
-  return Number.isNaN(parsed) || parsed < 0 ? DEFAULT_MAX_INLINE_BYTES : parsed;
+  return Number.isNaN(parsed) || parsed < 0 ? fallback : parsed;
 }
 
 export function isSavedBinaryAsset(asset: BinaryAsset | SavedBinaryAsset): asset is SavedBinaryAsset {
@@ -139,24 +158,21 @@ export function formatAssetToolResponse(
     return formatToolResponse(result);
   }
 
-  const maxInlineBytes = resolveMaxInlineBytes();
+  const maxInlineBytes = resolveMaxInlineBytes(asset.mimeType);
   if (asset.size > maxInlineBytes) {
     return formatToolResponse({
       success: false,
-      error: `${asset.filename} is ${asset.size} bytes, above the ${maxInlineBytes}-byte inline limit. Pass an absolute outputPath to write it to disk instead, or raise ${MAX_INLINE_BYTES_ENV_VAR}.`,
+      error: `${asset.filename} is ${asset.size} bytes, above the ${maxInlineBytes}-byte inline limit for ${asset.mimeType}. Pass an absolute outputPath to write it to disk instead, or raise ${MAX_INLINE_BYTES_ENV_VAR}.`,
     });
   }
 
   const { bytes, ...meta } = asset;
   const data = Buffer.from(bytes).toString('base64');
-  // SVG is markup, not a raster image hosts can decode from an `image` block, so it goes
-  // through the resource blob path with every other non-image type.
-  const isRasterImage = asset.mimeType.startsWith('image/') && asset.mimeType !== 'image/svg+xml';
 
   return {
     content: [
       ...formatToolResponse({ success: true, data: meta }).content,
-      isRasterImage
+      isRasterImage(asset.mimeType)
         ? { type: 'image' as const, data, mimeType: asset.mimeType }
         : {
           type: 'resource' as const,

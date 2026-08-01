@@ -242,7 +242,7 @@ Each product reads its own prefix (`JIRA_*`, `CONFLUENCE_*`, `BITBUCKET_*`):
 | `ATLASSIAN_DC_MCP_LOG_LEVEL` | `info` | `debug` · `info` · `warn` · `error` |
 | `ATLASSIAN_DC_MCP_REQUEST_TIMEOUT_MS` | `30000` | Per-request timeout to the Atlassian API |
 | `ATLASSIAN_DC_MCP_MAX_RESPONSE_CHARS` | `100000` | Cap on a tool result's characters; `0` disables the cap |
-| `ATLASSIAN_DC_MCP_MAX_INLINE_BYTES` | `1048576` | Largest downloaded file returned inline instead of requiring `outputPath`; `0` always requires it |
+| `ATLASSIAN_DC_MCP_MAX_INLINE_BYTES` | `1048576` images<br>`262144` other | Largest downloaded file returned inline instead of requiring `outputPath`. Setting it applies one value to both; `0` always requires `outputPath` |
 
 ### Precedence
 
@@ -333,7 +333,7 @@ The HTTP transport carries no auth of its own beyond the configured Atlassian cr
 - **Retries** — transient failures (HTTP 429 and 5xx) are retried with exponential backoff and jitter (up to 3 attempts). A server-provided `Retry-After` header is honored (clamped to 30s) instead of the computed backoff. 4xx client errors are never retried.
 - **Response cap** — tool results larger than `ATLASSIAN_DC_MCP_MAX_RESPONSE_CHARS` (default 100k chars) are truncated with a marker, so a single broad query can't flood the context window. Set `0` to disable.
 - **Bounded pagination** — small, naturally finite lists (a project's versions, a page's labels) are auto-assembled into one result; open-ended searches (JQL/CQL, repo listings) stay single-page and agent-driven so they can't return an unbounded amount of data.
-- **Binary downloads** — every download tool takes an optional absolute `outputPath`: with it the file is written to disk and only its metadata comes back, so size is irrelevant. Without it the bytes are returned as their own content block (an image, or a base64 resource blob), bypassing the response cap; anything over `ATLASSIAN_DC_MCP_MAX_INLINE_BYTES` is refused with a pointer to `outputPath` rather than truncated.
+- **Binary downloads** — every download tool takes an optional absolute `outputPath`: with it the file is written to disk and only its metadata comes back, so size is irrelevant. Without it the bytes are returned as their own content block (an image, or a base64 resource blob), bypassing the response cap; anything over `ATLASSIAN_DC_MCP_MAX_INLINE_BYTES` is refused with a pointer to `outputPath` rather than truncated. That ceiling is 1 MiB for raster images, which a host decodes as a picture, and 256 KiB for everything else, whose base64 a host can only read as text.
 
 ### Logging
 
