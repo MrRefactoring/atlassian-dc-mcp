@@ -7,7 +7,7 @@
 
 Add binary asset downloads across all three servers, with a shared delivery contract.
 
-Every download tool takes an optional absolute `outputPath`: with it the file is written to disk and only its metadata is returned, so file size is irrelevant. Without it the bytes come back as their own MCP content block — an `image` for raster images, a base64 `resource` blob otherwise — which bypasses the response cap that used to corrupt them. A file above `ATLASSIAN_DC_MCP_MAX_INLINE_BYTES` (default 1 MiB) is refused with a pointer to `outputPath` instead of being silently truncated.
+Every download tool takes an optional absolute `outputPath`: with it the file is written to disk and only its metadata is returned, so file size is irrelevant. Without it the bytes come back as their own MCP content block — an `image` for raster images, a base64 `resource` blob otherwise — which bypasses the response cap that used to corrupt them. A file above `ATLASSIAN_DC_MCP_MAX_INLINE_BYTES` is refused with a pointer to `outputPath` instead of being silently truncated. That ceiling defaults to 1 MiB for raster images, which a host decodes as a picture, and 256 KiB for everything else, whose base64 a host has no way to read except as text — 256 KiB of it is already ~350k characters of context. Setting the variable applies a single value to both.
 
 **Confluence** — attachments could be listed, uploaded and replaced but never read back; there was no way to get a page's assets at all. Three new tools:
 

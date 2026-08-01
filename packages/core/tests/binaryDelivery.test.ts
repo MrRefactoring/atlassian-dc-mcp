@@ -5,6 +5,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DEFAULT_MAX_INLINE_BYTES,
+  DEFAULT_MAX_INLINE_RESOURCE_BYTES,
   deliverBinaryAsset,
   formatAssetToolResponse,
   guessMimeType,
@@ -166,12 +167,55 @@ describe('formatAssetToolResponse', () => {
     expect(textAt(content, 0)).toContain(MAX_INLINE_BYTES_ENV_VAR);
   });
 
+  it('holds non-images to a lower default than raster images', () => {
+    const size = DEFAULT_MAX_INLINE_RESOURCE_BYTES + 1;
+
+    expect(DEFAULT_MAX_INLINE_RESOURCE_BYTES).toBeLessThan(DEFAULT_MAX_INLINE_BYTES);
+
+    const zip = asset({ filename: 'a.zip', mimeType: 'application/zip', size, bytes: new Uint8Array(1) });
+    const refused = formatAssetToolResponse({ success: true, data: zip });
+
+    expect(refused.content).toHaveLength(1);
+    expect(textAt(refused.content, 0)).toContain(`${DEFAULT_MAX_INLINE_RESOURCE_BYTES}-byte inline limit`);
+    expect(textAt(refused.content, 0)).toContain('application/zip');
+
+    const png = asset({ size, bytes: new Uint8Array(1) });
+    const delivered = formatAssetToolResponse({ success: true, data: png });
+
+    expect(delivered.content).toHaveLength(2);
+    expect(delivered.content[1]).toMatchObject({ type: 'image' });
+  });
+
+  it('holds SVG to the non-image limit, since it travels as a resource blob', () => {
+    const svg = asset({
+      filename: 'a.svg',
+      mimeType: 'image/svg+xml',
+      size: DEFAULT_MAX_INLINE_RESOURCE_BYTES + 1,
+      bytes: new Uint8Array(1),
+    });
+    const { content } = formatAssetToolResponse({ success: true, data: svg });
+
+    expect(content).toHaveLength(1);
+    expect(textAt(content, 0)).toContain(`${DEFAULT_MAX_INLINE_RESOURCE_BYTES}-byte inline limit`);
+  });
+
   it('honors a custom inline limit from the env var', () => {
     vi.stubEnv(MAX_INLINE_BYTES_ENV_VAR, '2');
     const { content } = formatAssetToolResponse({ success: true, data: asset() });
 
     expect(content).toHaveLength(1);
     expect(textAt(content, 0)).toContain('inline limit');
+  });
+
+  it('applies an explicit env var override to images and non-images alike', () => {
+    vi.stubEnv(MAX_INLINE_BYTES_ENV_VAR, String(DEFAULT_MAX_INLINE_RESOURCE_BYTES + 2));
+    const size = DEFAULT_MAX_INLINE_RESOURCE_BYTES + 1;
+
+    const zip = asset({ filename: 'a.zip', mimeType: 'application/zip', size, bytes: new Uint8Array(1) });
+    const png = asset({ size, bytes: new Uint8Array(1) });
+
+    expect(formatAssetToolResponse({ success: true, data: zip }).content).toHaveLength(2);
+    expect(formatAssetToolResponse({ success: true, data: png }).content).toHaveLength(2);
   });
 
   it('disables inline delivery entirely when the env var is 0', () => {
