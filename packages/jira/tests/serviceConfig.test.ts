@@ -5,8 +5,8 @@ import { initializeRuntimeConfig } from 'datacenter-mcp-core';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import { JiraService } from '../src/jiraService.js';
 
-const createJiraClient = vi.hoisted(() => vi.fn((_config: unknown) => ({})));
-vi.mock('../src/jiraClient/index.js', () => ({ createJiraClient }));
+const createJiraClient = vi.hoisted(() => vi.fn((_config: unknown) => () => ({})));
+vi.mock('../src/jiraClient.js', () => ({ createJiraClient }));
 
 describe('JiraService', () => {
   // Unlike the other split files, every test here constructs its own JiraService
@@ -16,20 +16,26 @@ describe('JiraService', () => {
     vi.clearAllMocks();
   });
 
-  describe('constructor base URL resolution', () => {
-    it('builds baseUrl from host + default /rest when apiBasePath is missing', () => {
+  // jira.js is given the instance rather than its REST root, and puts `/rest` on each request itself.
+  describe('constructor host resolution', () => {
+    it('builds the host from JIRA_HOST when apiBasePath is missing', () => {
       new JiraService('jira.example.com', 'test-token');
-      expect(createJiraClient).toHaveBeenCalledWith(expect.objectContaining({ baseUrl: 'https://jira.example.com/rest' }));
+      expect(createJiraClient).toHaveBeenCalledWith(expect.objectContaining({ host: 'https://jira.example.com' }));
     });
 
     it('strips accidentally-included /api/2 suffix from saved apiBasePath', () => {
       new JiraService('jira.example.com', 'test-token', '/rest/api/2');
-      expect(createJiraClient).toHaveBeenCalledWith(expect.objectContaining({ baseUrl: 'https://jira.example.com/rest' }));
+      expect(createJiraClient).toHaveBeenCalledWith(expect.objectContaining({ host: 'https://jira.example.com' }));
     });
 
     it('accepts a fully-qualified apiBasePath as an override', () => {
       new JiraService('ignored.example.com', 'test-token', 'https://real.example.com/rest');
-      expect(createJiraClient).toHaveBeenCalledWith(expect.objectContaining({ baseUrl: 'https://real.example.com/rest' }));
+      expect(createJiraClient).toHaveBeenCalledWith(expect.objectContaining({ host: 'https://real.example.com' }));
+    });
+
+    it('keeps a context path, which is what the /rest suffix hangs off', () => {
+      new JiraService('jira.example.com', 'test-token', '/jira/rest');
+      expect(createJiraClient).toHaveBeenCalledWith(expect.objectContaining({ host: 'https://jira.example.com/jira' }));
     });
   });
   describe('constructor auth wiring', () => {

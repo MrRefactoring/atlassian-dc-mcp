@@ -1,12 +1,17 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { JiraService } from '../src/jiraService.js';
 
+// jira.js groups its Data Center surface into sixty-one modules, so the stand-in conjures a module the first time one
+// is asked for and a mock the first time a method on it is. `createJiraClient` hands back a provider, which is what
+// lets the service re-read its credentials per call.
 const jira = vi.hoisted(() => {
-  const group = () => new Proxy({} as Record<string, ReturnType<typeof vi.fn>>, { get: (t, p: string) => (t[p] ??= vi.fn()) });
+  const module_ = () => new Proxy({} as Record<string, ReturnType<typeof vi.fn>>, { get: (t, p: string) => (t[p] ??= vi.fn()) });
 
-  return { issues: group(), projects: group(), users: group(), workflows: group(), agile: group(), admin: group(), request: vi.fn() };
+  return new Proxy({} as Record<string, unknown>, {
+    get: (t, p: string) => (t[p] ??= p === 'request' ? vi.fn() : module_()),
+  }) as Record<string, ReturnType<typeof module_>> & { request: ReturnType<typeof vi.fn> };
 });
-vi.mock('../src/jiraClient/index.js', () => ({ createJiraClient: () => jira }));
+vi.mock('../src/jiraClient.js', () => ({ createJiraClient: () => () => jira }));
 
 describe('JiraService', () => {
   let jiraService: JiraService;
@@ -93,9 +98,7 @@ describe('JiraService', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(jira.issues.doTransition).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: {
-        transition: { id: '21' },
-      } });
+      expect(jira.issues.doTransition).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, transition: { id: '21' } });
     });
 
     it('should successfully transition with additional fields', async () => {
@@ -111,13 +114,11 @@ describe('JiraService', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(jira.issues.doTransition).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: {
-        transition: { id: '31' },
+      expect(jira.issues.doTransition).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, transition: { id: '31' },
         fields: {
           resolution: { name: 'Done' },
           comment: { body: 'Closing this issue' },
-        },
-      } });
+        } });
     });
 
     it('should handle invalid transition ID errors', async () => {
@@ -208,7 +209,7 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockComment);
-      expect(jira.issues.updateComment).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, id: '10000', requestBody: { body: 'Updated text' } });
+      expect(jira.issues.updateComment).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, id: '10000', body: { body: 'Updated text' } });
     });
 
     it('handles comment not found errors', async () => {
@@ -242,17 +243,17 @@ describe('JiraService', () => {
   describe('comment entity properties', () => {
     it('gets comment property keys', async () => {
       const mockKeys = { keys: [{ key: 'my-property', self: 'https://example.com' }] };
-      (jira.issues.getCommentPropertiesKeys as Mock).mockResolvedValue(mockKeys);
+      (jira.issueComments.getCommentPropertyKeys as Mock).mockResolvedValue(mockKeys);
 
       const result = await jiraService.getCommentPropertyKeys('10000');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockKeys);
-      expect(jira.issues.getCommentPropertiesKeys).toHaveBeenCalledWith({ commentId: '10000' });
+      expect(jira.issueComments.getCommentPropertyKeys).toHaveBeenCalledWith({ commentId: '10000' });
     });
 
     it('handles errors getting comment property keys', async () => {
-      (jira.issues.getCommentPropertiesKeys as Mock).mockRejectedValue(new Error('The comment with given key or id does not exist'));
+      (jira.issueComments.getCommentPropertyKeys as Mock).mockRejectedValue(new Error('The comment with given key or id does not exist'));
 
       const result = await jiraService.getCommentPropertyKeys('99999');
 
@@ -262,17 +263,17 @@ describe('JiraService', () => {
 
     it('gets a comment property', async () => {
       const mockProperty = { key: 'my-property', value: '{"a":1}' };
-      (jira.issues.getCommentProperty as Mock).mockResolvedValue(mockProperty);
+      (jira.issueComments.getCommentProperty as Mock).mockResolvedValue(mockProperty);
 
       const result = await jiraService.getCommentProperty('10000', 'my-property');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockProperty);
-      expect(jira.issues.getCommentProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', commentId: '10000' });
+      expect(jira.issueComments.getCommentProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', commentId: '10000' });
     });
 
     it('handles errors getting a comment property', async () => {
-      (jira.issues.getCommentProperty as Mock).mockRejectedValue(new Error('The property with given key is not found'));
+      (jira.issueComments.getCommentProperty as Mock).mockRejectedValue(new Error('The property with given key is not found'));
 
       const result = await jiraService.getCommentProperty('10000', 'missing');
 
@@ -281,16 +282,16 @@ describe('JiraService', () => {
     });
 
     it('sets a comment property', async () => {
-      (jira.issues.setCommentProperty as Mock).mockResolvedValue(undefined);
+      (jira.issueComments.setCommentProperty as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.setCommentProperty('10000', 'my-property', '{"a":1}');
 
       expect(result.success).toBe(true);
-      expect(jira.issues.setCommentProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', commentId: '10000', requestBody: '{"a":1}' });
+      expect(jira.issueComments.setCommentProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', commentId: '10000', body: { a: 1 } });
     });
 
     it('handles errors setting a comment property', async () => {
-      (jira.issues.setCommentProperty as Mock).mockRejectedValue(new Error('The calling user does not have permission to administer the comment'));
+      (jira.issueComments.setCommentProperty as Mock).mockRejectedValue(new Error('The calling user does not have permission to administer the comment'));
 
       const result = await jiraService.setCommentProperty('10000', 'my-property', '{"a":1}');
 
@@ -299,16 +300,16 @@ describe('JiraService', () => {
     });
 
     it('deletes a comment property', async () => {
-      (jira.issues.deleteCommentProperty as Mock).mockResolvedValue(undefined);
+      (jira.issueComments.deleteCommentProperty as Mock).mockResolvedValue(undefined);
 
       const result = await jiraService.deleteCommentProperty('10000', 'my-property');
 
       expect(result.success).toBe(true);
-      expect(jira.issues.deleteCommentProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', commentId: '10000' });
+      expect(jira.issueComments.deleteCommentProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', commentId: '10000' });
     });
 
     it('handles errors deleting a comment property', async () => {
-      (jira.issues.deleteCommentProperty as Mock).mockRejectedValue(new Error('The property with given key is not found'));
+      (jira.issueComments.deleteCommentProperty as Mock).mockRejectedValue(new Error('The property with given key is not found'));
 
       const result = await jiraService.deleteCommentProperty('10000', 'missing');
 
@@ -323,7 +324,7 @@ describe('JiraService', () => {
       const result = await jiraService.assignIssue(mockIssueKey, 'john.doe');
 
       expect(result.success).toBe(true);
-      expect(jira.issues.assign).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: { name: 'john.doe' } });
+      expect(jira.issues.assign).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, name: 'john.doe' });
     });
 
     it('unassigns an issue when username is null', async () => {
@@ -332,7 +333,7 @@ describe('JiraService', () => {
       const result = await jiraService.assignIssue(mockIssueKey, null);
 
       expect(result.success).toBe(true);
-      expect(jira.issues.assign).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: { name: null } });
+      expect(jira.issues.assign).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, name: null });
     });
 
     it('handles permission errors', async () => {
@@ -347,17 +348,17 @@ describe('JiraService', () => {
   describe('issue entity properties', () => {
     it('gets issue property keys', async () => {
       const mockKeys = { keys: [{ key: 'my-property', self: 'https://example.com' }] };
-      (jira.issues.getIssuePropertiesKeys as Mock).mockResolvedValue(mockKeys);
+      (jira.issues.getIssuePropertyKeys as Mock).mockResolvedValue(mockKeys);
 
       const result = await jiraService.getIssuePropertyKeys(mockIssueKey);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockKeys);
-      expect(jira.issues.getIssuePropertiesKeys).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
+      expect(jira.issues.getIssuePropertyKeys).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey });
     });
 
     it('handles errors getting issue property keys', async () => {
-      (jira.issues.getIssuePropertiesKeys as Mock).mockRejectedValue(new Error('The issue with given key or id does not exist'));
+      (jira.issues.getIssuePropertyKeys as Mock).mockRejectedValue(new Error('The issue with given key or id does not exist'));
 
       const result = await jiraService.getIssuePropertyKeys('PROJ-999');
 
@@ -391,7 +392,7 @@ describe('JiraService', () => {
       const result = await jiraService.setIssueProperty(mockIssueKey, 'my-property', '{"a":1}');
 
       expect(result.success).toBe(true);
-      expect(jira.issues.setIssueProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', issueIdOrKey: mockIssueKey, requestBody: '{"a":1}' });
+      expect(jira.issues.setIssueProperty).toHaveBeenCalledWith({ propertyKey: 'my-property', issueIdOrKey: mockIssueKey, body: { a: 1 } });
     });
 
     it('handles errors setting an issue property', async () => {
@@ -428,8 +429,7 @@ describe('JiraService', () => {
       const result = await jiraService.notifyIssue(mockIssueKey, 'Heads up', 'Please review', undefined, true, false, true, false, ['john.doe'], ['jira-admins'], ['jira-admins']);
 
       expect(result.success).toBe(true);
-      expect(jira.issues.notify).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: {
-        subject: 'Heads up',
+      expect(jira.issues.notify).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, subject: 'Heads up',
         textBody: 'Please review',
         htmlBody: undefined,
         to: {
@@ -440,8 +440,7 @@ describe('JiraService', () => {
           users: [{ name: 'john.doe' }],
           groups: [{ name: 'jira-admins' }],
         },
-        restrict: { groups: [{ name: 'jira-admins' }] },
-      } });
+        restrict: { groups: [{ name: 'jira-admins' }] } });
     });
 
     it('handles errors sending a manual notification', async () => {
@@ -459,7 +458,7 @@ describe('JiraService', () => {
       const result = await jiraService.setCommentPinned(mockIssueKey, '10000', true);
 
       expect(result.success).toBe(true);
-      expect(jira.issues.setPinComment).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, id: '10000', requestBody: true });
+      expect(jira.issues.setPinComment).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, id: '10000', body: true });
     });
 
     it('handles errors pinning a comment', async () => {
@@ -509,7 +508,7 @@ describe('JiraService', () => {
       const result = await jiraService.addIssueWatcher(mockIssueKey, 'john.doe');
 
       expect(result.success).toBe(true);
-      expect(jira.issues.addWatcher).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, requestBody: 'john.doe' });
+      expect(jira.issues.addWatcher).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, body: 'john.doe' });
     });
 
     it('removes a watcher', async () => {
@@ -562,7 +561,7 @@ describe('JiraService', () => {
   describe('reference data lookups', () => {
     it('gets issue types', async () => {
       const mockTypes = [{ name: 'Bug' }];
-      (jira.workflows.getIssueAllTypes as Mock).mockResolvedValue(mockTypes);
+      (jira.issueTypes.getIssueAllTypes as Mock).mockResolvedValue(mockTypes);
 
       const result = await jiraService.getIssueTypes();
 
@@ -572,7 +571,7 @@ describe('JiraService', () => {
 
     it('gets priorities', async () => {
       const mockPriorities = [{ name: 'High' }];
-      (jira.workflows.getPriorities as Mock).mockResolvedValue(mockPriorities);
+      (jira.issuePriorities.getPriorities as Mock).mockResolvedValue(mockPriorities);
 
       const result = await jiraService.getPriorities();
 
@@ -582,7 +581,7 @@ describe('JiraService', () => {
 
     it('gets resolutions', async () => {
       const mockResolutions = [{ name: 'Fixed' }];
-      (jira.workflows.getResolutions as Mock).mockResolvedValue(mockResolutions);
+      (jira.issueResolutions.getResolutions as Mock).mockResolvedValue(mockResolutions);
 
       const result = await jiraService.getResolutions();
 
@@ -592,7 +591,7 @@ describe('JiraService', () => {
 
     it('gets statuses', async () => {
       const mockStatuses = [{ name: 'Open' }];
-      (jira.workflows.getStatuses as Mock).mockResolvedValue(mockStatuses);
+      (jira.workflowStatuses.getStatuses as Mock).mockResolvedValue(mockStatuses);
 
       const result = await jiraService.getStatuses();
 
@@ -602,53 +601,52 @@ describe('JiraService', () => {
 
     it('gets status categories', async () => {
       const mockCategories = [{ id: 2, key: 'new', name: 'To Do' }];
-      (jira.workflows.getStatusCategories as Mock).mockResolvedValue(mockCategories);
+      (jira.workflowStatusCategories.getStatusCategories as Mock).mockResolvedValue(mockCategories);
 
       const result = await jiraService.getStatusCategories();
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockCategories);
-      expect(jira.workflows.getStatusCategories).toHaveBeenCalledWith({});
+      expect(jira.workflowStatusCategories.getStatusCategories).toHaveBeenCalledWith({});
     });
 
     it('gets a status category by id or key', async () => {
       const mockCategory = { id: 2, key: 'new', name: 'To Do' };
-      (jira.workflows.getStatusCategory as Mock).mockResolvedValue(mockCategory);
+      (jira.workflowStatusCategories.getStatusCategory as Mock).mockResolvedValue(mockCategory);
 
       const result = await jiraService.getStatusCategory('new');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockCategory);
-      expect(jira.workflows.getStatusCategory).toHaveBeenCalledWith({ idOrKey: 'new' });
+      expect(jira.workflowStatusCategories.getStatusCategory).toHaveBeenCalledWith({ idOrKey: 'new' });
     });
 
     it('gets the global configuration', async () => {
       const mockConfig = { votingEnabled: true, timeTrackingEnabled: true };
-      (jira.admin.getConfiguration as Mock).mockResolvedValue(mockConfig);
+      (jira.configuration.getConfiguration as Mock).mockResolvedValue(mockConfig);
 
       const result = await jiraService.getConfiguration();
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockConfig);
-      expect(jira.admin.getConfiguration).toHaveBeenCalledWith({});
+      expect(jira.configuration.getConfiguration).toHaveBeenCalledWith();
     });
 
     it('gets issue picker suggestions', async () => {
       const mockSuggestions = { sections: [{ id: 'cs', label: 'Current Search', issues: [] }] };
-      (jira.issues.getIssuePickerSuggestions as Mock).mockResolvedValue(mockSuggestions);
+      (jira.issues.getIssuePickerResource as Mock).mockResolvedValue(mockSuggestions);
 
       const result = await jiraService.getIssuePickerSuggestions('crawl', 'project = SS');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockSuggestions);
-      expect(jira.issues.getIssuePickerSuggestions).toHaveBeenCalledWith({
+      expect(jira.issues.getIssuePickerResource).toHaveBeenCalledWith({
         query: 'crawl',
         currentJQL: 'project = SS',
         currentIssueKey: undefined,
         currentProjectId: undefined,
         showSubTasks: undefined,
-        showSubTaskParent: undefined,
-      });
+        showSubTaskParent: undefined });
     });
   });
   describe('getCreateIssueMetaIssueTypes', () => {
