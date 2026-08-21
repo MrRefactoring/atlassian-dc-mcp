@@ -1,12 +1,17 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { JiraService } from '../src/jiraService.js';
 
+// jira.js groups its Data Center surface into sixty-one modules, so the stand-in conjures a module the first time one
+// is asked for and a mock the first time a method on it is. `createJiraClient` hands back a provider, which is what
+// lets the service re-read its credentials per call.
 const jira = vi.hoisted(() => {
-  const group = () => new Proxy({} as Record<string, ReturnType<typeof vi.fn>>, { get: (t, p: string) => (t[p] ??= vi.fn()) });
+  const module_ = () => new Proxy({} as Record<string, ReturnType<typeof vi.fn>>, { get: (t, p: string) => (t[p] ??= vi.fn()) });
 
-  return { issues: group(), projects: group(), users: group(), workflows: group(), agile: group(), admin: group(), request: vi.fn() };
+  return new Proxy({} as Record<string, unknown>, {
+    get: (t, p: string) => (t[p] ??= p === 'request' ? vi.fn() : module_()),
+  }) as Record<string, ReturnType<typeof module_>> & { request: ReturnType<typeof vi.fn> };
 });
-vi.mock('../src/jiraClient/index.js', () => ({ createJiraClient: () => jira }));
+vi.mock('../src/jiraClient.js', () => ({ createJiraClient: () => () => jira }));
 
 describe('JiraService', () => {
   let jiraService: JiraService;
@@ -20,45 +25,41 @@ describe('JiraService', () => {
   describe('token optimization paths', () => {
     it('uses the default field profile and page size for search', async () => {
       const mockSearchResults = { issues: [] };
-      (jira.issues.searchByJql as Mock).mockResolvedValue(mockSearchResults);
+      (jira.issueSearch.searchUsingSearchRequest as Mock).mockResolvedValue(mockSearchResults);
 
       const result = await jiraService.searchIssues('project = TEST');
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockSearchResults);
-      expect(jira.issues.searchByJql).toHaveBeenCalledWith({ requestBody: {
-        jql: 'project = TEST',
+      expect(jira.issueSearch.searchUsingSearchRequest).toHaveBeenCalledWith({ jql: 'project = TEST',
         maxResults: 25,
         fields: ['summary', 'description', 'status', 'assignee', 'reporter', 'priority', 'issuetype', 'labels', 'updated'],
         expand: undefined,
-        startAt: undefined,
-      } });
+        startAt: undefined });
     });
 
     it('honors explicit search fields and maxResults', async () => {
       const mockSearchResults = { issues: [] };
-      (jira.issues.searchByJql as Mock).mockResolvedValue(mockSearchResults);
+      (jira.issueSearch.searchUsingSearchRequest as Mock).mockResolvedValue(mockSearchResults);
 
       await jiraService.searchIssues('project = TEST', 20, ['changelog'], 5, ['summary', 'status']);
 
-      expect(jira.issues.searchByJql).toHaveBeenCalledWith({ requestBody: {
-        jql: 'project = TEST',
+      expect(jira.issueSearch.searchUsingSearchRequest).toHaveBeenCalledWith({ jql: 'project = TEST',
         maxResults: 5,
         fields: ['summary', 'status'],
         expand: ['changelog'],
-        startAt: 20,
-      } });
+        startAt: 20 });
     });
 
     it('uses the richer default field profile for single issue reads', async () => {
       const mockIssue = { key: mockIssueKey };
-      (jira.issues.getIssue as Mock).mockResolvedValue(mockIssue);
+      (jira.issues.getAgileIssue as Mock).mockResolvedValue(mockIssue);
 
       const result = await jiraService.getIssue(mockIssueKey);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockIssue);
-      expect(jira.issues.getIssue).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, fields: [
+      expect(jira.issues.getAgileIssue).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, fields: [
         'summary',
         'description',
         'status',
@@ -74,11 +75,11 @@ describe('JiraService', () => {
     });
 
     it('honors explicit issue fields', async () => {
-      (jira.issues.getIssue as Mock).mockResolvedValue({ key: mockIssueKey });
+      (jira.issues.getAgileIssue as Mock).mockResolvedValue({ key: mockIssueKey });
 
       await jiraService.getIssue(mockIssueKey, 'renderedFields', ['summary', 'status']);
 
-      expect(jira.issues.getIssue).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, expand: 'renderedFields', fields: ['summary', 'status'] });
+      expect(jira.issues.getAgileIssue).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, expand: 'renderedFields', fields: ['summary', 'status'] });
     });
 
     it('uses the package default page size for issue comments', async () => {
@@ -103,36 +104,36 @@ describe('JiraService', () => {
   describe('getIssueDevelopmentInfo', () => {
     it('resolves the numeric issue id then requests pull requests by default', async () => {
       const mockDevInfo = { detail: [{ pullRequests: [] }] };
-      (jira.issues.getIssue as Mock).mockResolvedValue({ id: '1314681', key: mockIssueKey });
+      (jira.issues.getAgileIssue as Mock).mockResolvedValue({ id: '1314681', key: mockIssueKey });
       (jira.request as Mock).mockResolvedValue(mockDevInfo);
 
       const result = await jiraService.getIssueDevelopmentInfo(mockIssueKey);
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockDevInfo);
-      expect(jira.issues.getIssue).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, fields: ['id'] });
+      expect(jira.issues.getAgileIssue).toHaveBeenCalledWith({ issueIdOrKey: mockIssueKey, fields: ['id'] });
       expect(jira.request).toHaveBeenCalledWith({
         method: 'GET',
-        url: '/dev-status/1.0/issue/detail',
+        url: '/rest/dev-status/1.0/issue/detail',
         searchParams: { issueId: '1314681', applicationType: 'stash', dataType: 'pullrequest' },
       });
     });
 
     it('honors explicit dataType and applicationType', async () => {
-      (jira.issues.getIssue as Mock).mockResolvedValue({ id: '42' });
+      (jira.issues.getAgileIssue as Mock).mockResolvedValue({ id: '42' });
       (jira.request as Mock).mockResolvedValue({});
 
       await jiraService.getIssueDevelopmentInfo(mockIssueKey, 'repository', 'github');
 
       expect(jira.request).toHaveBeenCalledWith({
         method: 'GET',
-        url: '/dev-status/1.0/issue/detail',
+        url: '/rest/dev-status/1.0/issue/detail',
         searchParams: { issueId: '42', applicationType: 'github', dataType: 'repository' },
       });
     });
 
     it('fails without calling dev-status when the numeric id is missing', async () => {
-      (jira.issues.getIssue as Mock).mockResolvedValue({ key: mockIssueKey });
+      (jira.issues.getAgileIssue as Mock).mockResolvedValue({ key: mockIssueKey });
 
       const result = await jiraService.getIssueDevelopmentInfo(mockIssueKey);
 
@@ -142,7 +143,7 @@ describe('JiraService', () => {
     });
 
     it('surfaces dev-status request errors', async () => {
-      (jira.issues.getIssue as Mock).mockResolvedValue({ id: '1314681' });
+      (jira.issues.getAgileIssue as Mock).mockResolvedValue({ id: '1314681' });
       (jira.request as Mock).mockRejectedValue(new Error('View Development Tools permission required'));
 
       const result = await jiraService.getIssueDevelopmentInfo(mockIssueKey);
@@ -162,18 +163,16 @@ describe('JiraService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe(mockResponse);
-      expect(jira.issues.createIssues).toHaveBeenCalledWith({ requestBody: {
-        issueUpdates: [
-          {
-            fields: {
-              project: { key: 'TEST' },
-              summary: 'First',
-              description: 'desc',
-              issuetype: { id: '10001' },
-            },
+      expect(jira.issues.createIssues).toHaveBeenCalledWith({ issueUpdates: [
+        {
+          fields: {
+            project: { key: 'TEST' },
+            summary: 'First',
+            description: 'desc',
+            issuetype: { id: '10001' },
           },
-        ],
-      } });
+        },
+      ] });
     });
 
     it('bulk archives issues by JQL', async () => {
@@ -182,7 +181,7 @@ describe('JiraService', () => {
       const result = await jiraService.archiveIssues('project = TEST AND resolution = Fixed');
 
       expect(result.success).toBe(true);
-      expect(jira.issues.archiveIssues).toHaveBeenCalledWith({ requestBody: 'project = TEST AND resolution = Fixed' });
+      expect(jira.issues.archiveIssues).toHaveBeenCalledWith({ body: 'project = TEST AND resolution = Fixed' });
     });
 
     it('archives a single issue', async () => {
@@ -218,12 +217,10 @@ describe('JiraService', () => {
       const result = await jiraService.rankIssues(['PROJ-1', 'PROJ-2'], 'PROJ-3');
 
       expect(result.success).toBe(true);
-      expect(jira.issues.rankIssues).toHaveBeenCalledWith({ requestBody: {
-        issues: ['PROJ-1', 'PROJ-2'],
+      expect(jira.issues.rankIssues).toHaveBeenCalledWith({ issues: ['PROJ-1', 'PROJ-2'],
         rankBeforeIssue: 'PROJ-3',
         rankAfterIssue: undefined,
-        rankCustomFieldId: undefined,
-      } });
+        rankCustomFieldId: undefined });
     });
 
     it('handles errors', async () => {

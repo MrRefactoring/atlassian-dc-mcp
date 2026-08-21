@@ -9,11 +9,11 @@ import tseslint from 'typescript-eslint';
 // generated-client carve-outs) is repo-specific.
 export default tseslint.config(
   {
-    // The jira/confluence clients are still committed OpenAPI-generator output —
-    // see CLAUDE.md: "Treat files here as generated output". The bitbucket client
-    // is now hand-written (trello.js-style) and IS linted. Worktrees created by
-    // parallel background agents live under the repo root too; never lint another
-    // branch's checkout.
+    // The confluence client is still committed OpenAPI-generator output — see
+    // CLAUDE.md: "Treat files here as generated output". The jira client is now
+    // jira.js, a dependency, and the bitbucket client is hand-written
+    // (trello.js-style); both are linted. Worktrees created by parallel background
+    // agents live under the repo root too; never lint another branch's checkout.
     ignores: [
       '**/dist/**',
       '**/coverage/**',
@@ -106,16 +106,6 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'off',
-    },
-  },
-  {
-    // The hand-written jira client models mirror the API's enum-bearing shapes:
-    // `export type X` + a sibling `export namespace X { export enum ... }` so the
-    // enum members are reachable as `X.member`. That legitimate pattern trips
-    // `no-namespace`, so allow namespaces in the model files only.
-    files: ['**/jiraClient/models/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-namespace': 'off',
     },
   },
 );

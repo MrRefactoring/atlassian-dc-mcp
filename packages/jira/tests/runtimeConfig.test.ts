@@ -6,9 +6,9 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vites
 import { getJiraRuntimeConfig } from '../src/config.js';
 import { JiraService } from '../src/jiraService.js';
 
-// Integration: credentials flow config file -> JiraService -> createJiraClient ->
-// the shared httpClient, which resolves the (lazy) credential thunks per request.
-// We assert on the Authorization header the client puts on the real fetch call.
+// Integration: credentials flow config file -> JiraService -> createJiraClient -> jira.js, which is handed a fresh
+// client whenever the (lazy) credential thunks resolve to something new. We assert on the Authorization header that
+// reaches the real fetch call.
 describe('Jira runtime config integration', () => {
   const originalEnv = process.env;
   const originalFetch = global.fetch;
@@ -35,7 +35,8 @@ describe('Jira runtime config integration', () => {
     process.env = originalEnv;
   });
 
-  const lastAuth = () => (fetchMock.mock.calls.at(-1)![1]!.headers as Headers).get('Authorization');
+  const lastAuth = () =>
+    (fetchMock.mock.calls.at(-1)![1]!.headers as Record<string, string | undefined>).Authorization ?? null;
 
   const makeService = () => {
     const cfg = getJiraRuntimeConfig();

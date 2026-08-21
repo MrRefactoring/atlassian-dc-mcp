@@ -42,9 +42,10 @@
     "typecheck": "tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
-    "datacenter-mcp-core": "workspace:^",
     "@modelcontextprotocol/sdk": "^1.27.1",
+    "datacenter-mcp-core": "workspace:^",
     "dotenv": "^17.4.2",
+    "jira.js": "link:../../../jira.js",
     "zod": "^4.4.3"
   },
   "devDependencies": {
