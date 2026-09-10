@@ -402,6 +402,8 @@ describe('BitbucketService', () => {
         size: undefined,
         blame: undefined,
         type: undefined,
+        start: undefined,
+        limit: 25,
       });
     });
 
@@ -427,7 +429,55 @@ describe('BitbucketService', () => {
         size: undefined,
         blame: 'true',
         type: 'true',
+        start: undefined,
+        limit: 25,
       });
+    });
+
+    it('should map start and an explicit limit to the generated client', async () => {
+      (bb.repositories.getContent as Mock).mockResolvedValue({ children: { values: [], isLastPage: true } });
+
+      await bitbucketService.browseRepository(
+        mockProjectKey,
+        mockRepositorySlug,
+        'src',
+        undefined,
+        undefined,
+        undefined,
+        40,
+        10,
+      );
+
+      expect(bb.repositories.getContent).toHaveBeenCalledWith({
+        path: 'src',
+        projectKey: mockProjectKey,
+        repositorySlug: mockRepositorySlug,
+        noContent: undefined,
+        at: undefined,
+        size: undefined,
+        blame: undefined,
+        type: undefined,
+        start: 40,
+        limit: 10,
+      });
+    });
+
+    it('should send start=0 rather than dropping it', async () => {
+      (bb.repositories.getContent as Mock).mockResolvedValue({ children: { values: [], isLastPage: true } });
+
+      await bitbucketService.browseRepository(
+        mockProjectKey,
+        mockRepositorySlug,
+        'src',
+        undefined,
+        undefined,
+        undefined,
+        0,
+      );
+
+      expect(bb.repositories.getContent).toHaveBeenCalledWith(
+        expect.objectContaining({ start: 0, limit: 25 }),
+      );
     });
 
     it('should handle API errors gracefully', async () => {

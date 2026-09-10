@@ -9,6 +9,8 @@ export const GetContentSchema = z.object({
   size: z.string().optional(),
   blame: z.string().optional(),
   type: z.string().optional(),
+  start: z.number().optional(),
+  limit: z.number().optional(),
 });
 
 export type GetContent = z.infer<typeof GetContentSchema>;
