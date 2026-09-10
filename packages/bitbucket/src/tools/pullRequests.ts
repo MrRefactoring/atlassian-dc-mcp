@@ -21,7 +21,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
   registerAnnotatedTool(server,
     'bitbucket_get_pull_request',
     {
-      description: 'Get a specific pull request by ID. Returns full details including title, description, reviewers, participants, author, source/target branches, current state, and version (needed for bitbucket_update_pull_request).',
+      description: 'Get a specific pull request by ID. Returns full details including title, description, reviewers, participants, author, source/target branches, current state, and version (optional optimistic locking for bitbucket_update_pull_request).',
       inputSchema: bitbucketToolSchemas.getPullRequest,
     },
     async ({ projectKey, repositorySlug, pullRequestId }) => {
@@ -229,7 +229,7 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
   registerAnnotatedTool(server,
     'bitbucket_update_pull_request',
     {
-      description: 'Update the title, description, reviewers, destination branch or draft status of an existing pull request. IMPORTANT: You MUST first call bitbucket_get_pull_request to get the current \'version\' number — this is required for optimistic locking and the call will fail without it. The reviewers parameter replaces ALL existing reviewers. If you want to preserve existing reviewers, include those from the current PR details along with any new ones you want to add.',
+      description: 'Update the title, description, reviewers or draft status of an existing pull request. Only the fields you pass are changed: the rest are read from the pull request and sent back untouched, so updating a description no longer drops the reviewers. Pass \'version\' only when you want the update to fail on a concurrent change; the reviewers array replaces the whole list, and an empty array removes every reviewer.',
       inputSchema: bitbucketToolSchemas.updatePullRequest,
     },
     async ({ projectKey, repositorySlug, pullRequestId, version, title, description, reviewers, draft, output }) => {

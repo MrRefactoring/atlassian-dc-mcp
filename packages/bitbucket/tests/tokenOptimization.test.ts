@@ -12,6 +12,7 @@ const bb = vi.hoisted(() => ({
     streamChanges: vi.fn(),
     createComment: vi.fn(),
     create: vi.fn(),
+    get: vi.fn(),
     update: vi.fn(),
   },
 }));
@@ -417,6 +418,7 @@ describe('BitbucketService token optimization paths', () => {
         title: 'Raw update',
         state: 'OPEN',
       };
+      (bb.pullRequests.get as Mock).mockResolvedValue({ id: 11, version: 1, title: 'Before', state: 'OPEN' });
       (bb.pullRequests.update as Mock).mockResolvedValue(mockPullRequest);
 
       const result = await service.updatePullRequest('TEST', 'repo', '123', 1, 'Raw update', undefined, undefined, undefined, 'full');

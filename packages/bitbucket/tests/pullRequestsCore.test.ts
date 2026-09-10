@@ -820,267 +820,187 @@ describe('BitbucketService', () => {
   });
 
   describe('updatePullRequest', () => {
-    it('should successfully update PR with only title', async () => {
-      const mockUpdatedPR = {
-        id: 1,
-        version: 1,
+    const currentPullRequest = {
+      id: 1,
+      version: 4,
+      title: 'Original Title',
+      description: 'Original description',
+      draft: false,
+      state: 'OPEN',
+      reviewers: [
+        { user: { name: 'reviewer1' }, role: 'REVIEWER', approved: true, status: 'APPROVED' },
+        { user: { name: 'reviewer2' }, role: 'REVIEWER', approved: false, status: 'UNAPPROVED' },
+      ],
+    };
+
+    const expectBody = (fields: Record<string, unknown>) => expect(bb.pullRequests.update).toHaveBeenCalledWith({
+      projectKey: mockProjectKey,
+      pullRequestId: mockPullRequestId,
+      repositorySlug: mockRepositorySlug,
+      ...fields,
+    });
+
+    beforeEach(() => {
+      (bb.pullRequests.get as Mock).mockResolvedValue(currentPullRequest);
+      (bb.pullRequests.update as Mock).mockResolvedValue({ ...currentPullRequest, version: 5 });
+    });
+
+    it('should keep the current reviewers when only the description changes', async () => {
+      const result = await bitbucketService.updatePullRequest(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId,
+        undefined,
+        undefined,
+        'Updated description',
+      );
+
+      expect(result.success).toBe(true);
+      expectBody({
+        version: 4,
+        title: 'Original Title',
+        description: 'Updated description',
+        draft: false,
+        reviewers: currentPullRequest.reviewers,
+      });
+    });
+
+    it('should keep the current description when only the title changes', async () => {
+      await bitbucketService.updatePullRequest(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId,
+        undefined,
+        'Updated Title',
+      );
+
+      expectBody({
+        version: 4,
         title: 'Updated Title',
         description: 'Original description',
-        state: 'OPEN',
-      };
-      (bb.pullRequests.update as Mock).mockResolvedValue(mockUpdatedPR);
-
-      const result = await bitbucketService.updatePullRequest(
-        mockProjectKey,
-        mockRepositorySlug,
-        mockPullRequestId,
-        0,
-        'Updated Title',
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual({
-        id: 1,
-        version: 1,
-        title: 'Updated Title',
-        state: 'OPEN',
-        reviewerCount: 0,
-      });
-      expect(bb.pullRequests.update).toHaveBeenCalledWith({
-        projectKey: mockProjectKey,
-        pullRequestId: mockPullRequestId,
-        repositorySlug: mockRepositorySlug,
-        version: 0, title: 'Updated Title',
+        draft: false,
+        reviewers: currentPullRequest.reviewers,
       });
     });
 
-    it('should successfully update PR with only description', async () => {
-      const mockUpdatedPR = {
-        id: 1,
-        version: 1,
-        title: 'Original Title',
-        description: 'Updated description',
-        state: 'OPEN',
-      };
-      (bb.pullRequests.update as Mock).mockResolvedValue(mockUpdatedPR);
-
-      const result = await bitbucketService.updatePullRequest(
-        mockProjectKey,
-        mockRepositorySlug,
-        mockPullRequestId,
-        0,
-        undefined,
-        'Updated description',
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual({
-        id: 1,
-        version: 1,
-        title: 'Original Title',
-        state: 'OPEN',
-        reviewerCount: 0,
-      });
-      expect(bb.pullRequests.update).toHaveBeenCalledWith({
-        projectKey: mockProjectKey,
-        pullRequestId: mockPullRequestId,
-        repositorySlug: mockRepositorySlug,
-        version: 0, description: 'Updated description',
-      });
-    });
-
-    it('should successfully update PR with title and description', async () => {
-      const mockUpdatedPR = {
-        id: 1,
-        version: 1,
-        title: 'Updated Title',
-        description: 'Updated description',
-        state: 'OPEN',
-      };
-      (bb.pullRequests.update as Mock).mockResolvedValue(mockUpdatedPR);
-
-      const result = await bitbucketService.updatePullRequest(
-        mockProjectKey,
-        mockRepositorySlug,
-        mockPullRequestId,
-        0,
-        'Updated Title',
-        'Updated description',
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual({
-        id: 1,
-        version: 1,
-        title: 'Updated Title',
-        state: 'OPEN',
-        reviewerCount: 0,
-      });
-      expect(bb.pullRequests.update).toHaveBeenCalledWith({
-        projectKey: mockProjectKey,
-        pullRequestId: mockPullRequestId,
-        repositorySlug: mockRepositorySlug,
-        version: 0, title: 'Updated Title', description: 'Updated description',
-      });
-    });
-
-    it('should successfully update PR with reviewers', async () => {
-      const mockUpdatedPR = {
-        id: 1,
-        version: 1,
-        title: 'Test PR',
-        description: 'Test',
-        state: 'OPEN',
-        reviewers: [
-          { user: { name: 'reviewer1' } },
-          { user: { name: 'reviewer2' } },
-          { user: { name: 'reviewer3' } },
-        ],
-      };
-      (bb.pullRequests.update as Mock).mockResolvedValue(mockUpdatedPR);
-
-      const result = await bitbucketService.updatePullRequest(
-        mockProjectKey,
-        mockRepositorySlug,
-        mockPullRequestId,
-        0,
-        undefined,
-        undefined,
-        ['reviewer1', 'reviewer2', 'reviewer3'],
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual({
-        id: 1,
-        version: 1,
-        title: 'Test PR',
-        state: 'OPEN',
-        reviewerCount: 3,
-      });
-      expect(bb.pullRequests.update).toHaveBeenCalledWith({
-        projectKey: mockProjectKey,
-        pullRequestId: mockPullRequestId,
-        repositorySlug: mockRepositorySlug,
-        version: 0, reviewers: [
-          { user: { name: 'reviewer1' } },
-          { user: { name: 'reviewer2' } },
-          { user: { name: 'reviewer3' } },
-        ],
-      });
-    });
-
-    it('should successfully update PR with all parameters', async () => {
-      const mockUpdatedPR = {
-        id: 1,
-        version: 2,
-        title: 'Updated Title',
-        description: 'Updated description',
-        state: 'OPEN',
-        reviewers: [
-          { user: { name: 'newreviewer1' } },
-          { user: { name: 'newreviewer2' } },
-        ],
-      };
-      (bb.pullRequests.update as Mock).mockResolvedValue(mockUpdatedPR);
-
-      const result = await bitbucketService.updatePullRequest(
+    it('should send the caller version when one is given', async () => {
+      await bitbucketService.updatePullRequest(
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
         1,
         'Updated Title',
-        'Updated description',
+      );
+
+      expect(bb.pullRequests.update).toHaveBeenCalledWith(expect.objectContaining({ version: 1 }));
+    });
+
+    it('should replace the reviewers when a list is given', async () => {
+      await bitbucketService.updatePullRequest(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId,
+        undefined,
+        undefined,
+        undefined,
         ['newreviewer1', 'newreviewer2'],
       );
 
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual({
-        id: 1,
-        version: 2,
-        title: 'Updated Title',
-        state: 'OPEN',
-        reviewerCount: 2,
-      });
-      expect(bb.pullRequests.update).toHaveBeenCalledWith({
-        projectKey: mockProjectKey,
-        pullRequestId: mockPullRequestId,
-        repositorySlug: mockRepositorySlug,
-        version: 1, title: 'Updated Title', description: 'Updated description', reviewers: [
+      expectBody({
+        version: 4,
+        title: 'Original Title',
+        description: 'Original description',
+        draft: false,
+        reviewers: [
           { user: { name: 'newreviewer1' } },
           { user: { name: 'newreviewer2' } },
         ],
       });
     });
 
-    it('should successfully update PR with only version (no changes)', async () => {
-      const mockUpdatedPR = {
-        id: 1,
-        version: 1,
-        title: 'Original Title',
-        description: 'Original description',
-        state: 'OPEN',
-      };
-      (bb.pullRequests.update as Mock).mockResolvedValue(mockUpdatedPR);
-
-      const result = await bitbucketService.updatePullRequest(
+    it('should clear the reviewers when an empty array is given', async () => {
+      await bitbucketService.updatePullRequest(
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        0,
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual({
-        id: 1,
-        version: 1,
-        title: 'Original Title',
-        state: 'OPEN',
-        reviewerCount: 0,
-      });
-      expect(bb.pullRequests.update).toHaveBeenCalledWith({
-        projectKey: mockProjectKey,
-        pullRequestId: mockPullRequestId,
-        repositorySlug: mockRepositorySlug,
-        version: 0,
-      });
-    });
-
-    it('should successfully update PR with empty reviewers array', async () => {
-      const mockUpdatedPR = {
-        id: 1,
-        version: 1,
-        title: 'Test PR',
-        description: 'Test',
-        state: 'OPEN',
-        reviewers: [],
-      };
-      (bb.pullRequests.update as Mock).mockResolvedValue(mockUpdatedPR);
-
-      const result = await bitbucketService.updatePullRequest(
-        mockProjectKey,
-        mockRepositorySlug,
-        mockPullRequestId,
-        0,
+        undefined,
         undefined,
         undefined,
         [],
       );
 
-      expect(result.success).toBe(true);
-      expect(bb.pullRequests.update).toHaveBeenCalledWith(expect.not.objectContaining({
-        reviewers: expect.anything(),
-      }));
+      expectBody({
+        version: 4,
+        title: 'Original Title',
+        description: 'Original description',
+        draft: false,
+        reviewers: [],
+      });
     });
 
-    it('should handle API errors gracefully', async () => {
-      const mockError = new Error('Failed to update PR');
-      (bb.pullRequests.update as Mock).mockRejectedValue(mockError);
+    it('should mark the pull request ready for review without touching the other fields', async () => {
+      await bitbucketService.updatePullRequest(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        true,
+      );
+
+      expectBody({
+        version: 4,
+        title: 'Original Title',
+        description: 'Original description',
+        draft: true,
+        reviewers: currentPullRequest.reviewers,
+      });
+    });
+
+    it('should return a compact acknowledgement by default', async () => {
+      const result = await bitbucketService.updatePullRequest(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId,
+        undefined,
+        'Updated Title',
+      );
+
+      expect(result.data).toEqual({
+        id: 1,
+        version: 5,
+        title: 'Original Title',
+        state: 'OPEN',
+        reviewerCount: 2,
+      });
+    });
+
+    it('should not write anything when the pull request cannot be read', async () => {
+      (bb.pullRequests.get as Mock).mockRejectedValue(new Error('Pull request not found'));
 
       const result = await bitbucketService.updatePullRequest(
         mockProjectKey,
         mockRepositorySlug,
         mockPullRequestId,
-        0,
+        undefined,
+        'Updated Title',
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Pull request not found');
+      expect(bb.pullRequests.update).not.toHaveBeenCalled();
+    });
+
+    it('should handle API errors gracefully', async () => {
+      (bb.pullRequests.update as Mock).mockRejectedValue(new Error('Failed to update PR'));
+
+      const result = await bitbucketService.updatePullRequest(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId,
+        undefined,
         'Updated Title',
       );
 
@@ -1089,8 +1009,7 @@ describe('BitbucketService', () => {
     });
 
     it('should handle version conflict errors', async () => {
-      const mockError = new Error('Version conflict - PR has been modified');
-      (bb.pullRequests.update as Mock).mockRejectedValue(mockError);
+      (bb.pullRequests.update as Mock).mockRejectedValue(new Error('Version conflict - PR has been modified'));
 
       const result = await bitbucketService.updatePullRequest(
         mockProjectKey,
