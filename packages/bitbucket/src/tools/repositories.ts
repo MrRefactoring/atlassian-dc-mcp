@@ -332,7 +332,7 @@ export function registerRepositoryTools(server: McpServer, service: BitbucketSer
   registerAnnotatedTool(server,
     'bitbucket_update_webhook',
     {
-      description: 'Update an existing Bitbucket repository webhook. Requires REPO_ADMIN permission. This replaces the webhook configuration, including its event set, so pass the full desired name/url/events.',
+      description: 'Update an existing Bitbucket repository webhook. Requires REPO_ADMIN permission. Only the fields you pass are changed: name, url, events, active state, SSL verification and the signing secret you leave out are read from the webhook and sent back unchanged. Pass an empty secret to remove the stored one.',
       inputSchema: bitbucketToolSchemas.updateWebhook,
     },
     async ({ projectKey, repositorySlug, webhookId, name, url, events, active, secret, sslVerificationRequired }) => {
