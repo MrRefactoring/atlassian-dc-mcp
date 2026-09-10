@@ -1373,10 +1373,10 @@ export class BitbucketService {
    * @param projectKey The project key
    * @param repositorySlug The repository slug
    * @param pullRequestId The pull request ID
-   * @param version The version of the pull request (required for optimistic locking)
+   * @param version Optional version for optimistic locking; read from the pull request itself when omitted
    * @param title Optional new title for the pull request
    * @param description Optional new description for the pull request
-   * @param reviewers Optional array of reviewer usernames to set
+   * @param reviewers Optional array of reviewer usernames to set; the current reviewers are kept when omitted and cleared by an empty array
    * @param draft Optional flag to mark the pull request as a draft or ready for review
    * @param output Return a compact acknowledgement or the full API response. Defaults to 'ack'.
    * @returns Promise with updated pull request data
@@ -1385,7 +1385,7 @@ export class BitbucketService {
     projectKey: string,
     repositorySlug: string,
     pullRequestId: string,
-    version: number,
+    version?: number,
     title?: string,
     description?: string,
     reviewers?: string[],
@@ -1394,29 +1394,30 @@ export class BitbucketService {
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
+    const current = await handleApiOperation(
+      () => this.bb.pullRequests.get({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug }),
+      'Error reading pull request before update',
+    );
+
+    if (!current.success) {
+      return current;
+    }
+
+    const existing = (current.data ?? {}) as Record<string, any>;
     const pullRequestData: any = {
-      version,
+      version: version ?? existing.version,
+      title: title ?? existing.title,
+      description: description ?? existing.description,
+      draft: draft ?? existing.draft,
+      reviewers: reviewers === undefined
+        ? existing.reviewers
+        : reviewers.map(username => ({
+          user: {
+            name: username,
+          },
+        })),
     };
-
-    if (title !== undefined) {
-      pullRequestData.title = title;
-    }
-
-    if (description !== undefined) {
-      pullRequestData.description = description;
-    }
-
-    if (reviewers && reviewers.length > 0) {
-      pullRequestData.reviewers = reviewers.map(username => ({
-        user: {
-          name: username,
-        },
-      }));
-    }
-
-    if (draft !== undefined) {
-      pullRequestData.draft = draft;
-    }
 
     const result = await handleApiOperation(
       () => this.bb.pullRequests.update({ projectKey: projectKey, pullRequestId: pullRequestId, repositorySlug: repositorySlug, ...(pullRequestData) }),
@@ -3711,11 +3712,11 @@ export const bitbucketToolSchemas = {
     projectKey: z.string().describe('The project key'),
     repositorySlug: z.string().describe('The repository slug'),
     pullRequestId: z.string().describe('The pull request ID'),
-    version: z.number().describe('The current version of the pull request (required for optimistic locking). Obtain this by calling bitbucket_getPullRequest first.'),
+    version: z.number().optional().describe('Optional version for optimistic locking. Omit it to use the version the pull request has at the moment of the call.'),
     title: z.string().optional().describe('The new title for the pull request'),
     description: z.string().optional().describe('The new description for the pull request'),
     draft: z.boolean().optional().describe('If provided, sets the draft (work-in-progress) status of the pull request. Pass true to mark as draft, false to mark as ready for review.'),
-    reviewers: z.array(z.string()).optional().describe('Optional array of reviewer usernames to set (use the \'name\' field from Bitbucket user objects, not \'slug\')'),
+    reviewers: z.array(z.string()).optional().describe('Optional array of reviewer usernames (use the \'name\' field from Bitbucket user objects, not \'slug\'). Omit it to keep the current reviewers; pass an empty array to remove all of them.'),
     output: z.enum(['ack', 'full']).optional().describe('Return a compact acknowledgement or the full API response. Defaults to ack.'),
   },
   canMergePullRequest: {
