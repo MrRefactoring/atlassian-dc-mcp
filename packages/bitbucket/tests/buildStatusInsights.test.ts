@@ -285,18 +285,65 @@ describe('BitbucketService', () => {
       expect(result.error).toBeDefined();
     });
 
-    it('should update a merge check coercing the id to a number', async () => {
-      const mockData = { id: 1 };
-      (bb.builds.updateRequiredBuildsMergeCheck as Mock).mockResolvedValue(mockData);
+    describe('updateRequiredBuildsMergeCheck', () => {
+      const storedCheck = {
+        id: 1,
+        buildParentKeys: ['build-stored'],
+        refMatcher: { id: 'ANY_REF_MATCHER_ID', displayId: 'ANY_REF_MATCHER_ID', type: { id: 'ANY_REF' } },
+        exemptRefMatcher: { id: 'refs/heads/main', displayId: 'main', type: { id: 'BRANCH' } },
+      };
 
-      const result = await bitbucketService.updateRequiredBuildsMergeCheck(
-        'test', 'Test-Repo', '1', ['build-foo', 'build-bar'], 'BRANCH', 'refs/heads/master', 'master',
-      );
+      beforeEach(() => {
+        (bb.builds.getPageOfRequiredBuildsMergeChecks as Mock).mockResolvedValue({ values: [storedCheck], isLastPage: true });
+        (bb.builds.updateRequiredBuildsMergeCheck as Mock).mockResolvedValue({ id: 1 });
+      });
 
-      expect(result.success).toBe(true);
-      expect(result.data).toBe(mockData);
-      expect(bb.builds.updateRequiredBuildsMergeCheck).toHaveBeenCalledWith({
-        projectKey: 'TEST', id: 1, repositorySlug: 'test-repo', buildParentKeys: ['build-foo', 'build-bar'], refMatcher: { id: 'refs/heads/master', displayId: 'master', type: { id: 'BRANCH' } },
+      it('should update a merge check coercing the id to a number', async () => {
+        const result = await bitbucketService.updateRequiredBuildsMergeCheck(
+          'test', 'Test-Repo', '1', ['build-foo', 'build-bar'], 'BRANCH', 'refs/heads/master', 'master',
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.data).toEqual({ id: 1 });
+        expect(bb.builds.updateRequiredBuildsMergeCheck).toHaveBeenCalledWith({
+          projectKey: 'TEST',
+          id: 1,
+          repositorySlug: 'test-repo',
+          buildParentKeys: ['build-foo', 'build-bar'],
+          refMatcher: { id: 'refs/heads/master', displayId: 'master', type: { id: 'BRANCH' } },
+          exemptRefMatcher: storedCheck.exemptRefMatcher,
+        });
+      });
+
+      it('should keep the exempt matcher and the ref matcher when only the build keys change', async () => {
+        await bitbucketService.updateRequiredBuildsMergeCheck('test', 'Test-Repo', '1', ['build-foo']);
+
+        expect(bb.builds.updateRequiredBuildsMergeCheck).toHaveBeenCalledWith({
+          projectKey: 'TEST',
+          id: 1,
+          repositorySlug: 'test-repo',
+          buildParentKeys: ['build-foo'],
+          refMatcher: storedCheck.refMatcher,
+          exemptRefMatcher: storedCheck.exemptRefMatcher,
+        });
+      });
+
+      it('should report an unknown merge check without writing', async () => {
+        const result = await bitbucketService.updateRequiredBuildsMergeCheck('test', 'Test-Repo', '404', ['build-foo']);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('no merge check with id 404');
+        expect(bb.builds.updateRequiredBuildsMergeCheck).not.toHaveBeenCalled();
+      });
+
+      it('should not write anything when the existing checks cannot be read', async () => {
+        (bb.builds.getPageOfRequiredBuildsMergeChecks as Mock).mockRejectedValue(new Error('Merge checks unavailable'));
+
+        const result = await bitbucketService.updateRequiredBuildsMergeCheck('test', 'Test-Repo', '1', ['build-foo']);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Merge checks unavailable');
+        expect(bb.builds.updateRequiredBuildsMergeCheck).not.toHaveBeenCalled();
       });
     });
 

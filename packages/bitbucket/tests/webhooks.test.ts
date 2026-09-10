@@ -99,18 +99,71 @@ describe('BitbucketService', () => {
       });
     });
 
-    it('should update a webhook', async () => {
-      const mockData = { id: 5 };
-      (bb.repositories.updateWebhook as Mock).mockResolvedValue(mockData);
+    describe('updateWebhook', () => {
+      const storedWebhook = {
+        id: 5,
+        name: 'stored',
+        url: 'https://example.com/stored',
+        events: ['repo:refs_changed'],
+        active: true,
+        sslVerificationRequired: true,
+        configuration: { secret: 'stored-secret' },
+      };
 
-      const result = await bitbucketService.updateWebhook(
-        'test', 'Test-Repo', '5', 'renamed', 'https://example.com/new', ['pr:declined'], false,
-      );
+      beforeEach(() => {
+        (bb.repositories.getWebhook as Mock).mockResolvedValue(storedWebhook);
+        (bb.repositories.updateWebhook as Mock).mockResolvedValue({ id: 5 });
+      });
 
-      expect(result.success).toBe(true);
-      expect(result.data).toBe(mockData);
-      expect(bb.repositories.updateWebhook).toHaveBeenCalledWith({
-        projectKey: 'TEST', webhookId: '5', repositorySlug: 'test-repo', name: 'renamed', url: 'https://example.com/new', events: ['pr:declined'], active: false,
+      it('should keep the stored secret and the untouched fields when only the url changes', async () => {
+        const result = await bitbucketService.updateWebhook('test', 'Test-Repo', '5', undefined, 'https://example.com/new');
+
+        expect(result.success).toBe(true);
+        expect(bb.repositories.updateWebhook).toHaveBeenCalledWith({
+          projectKey: 'TEST',
+          webhookId: '5',
+          repositorySlug: 'test-repo',
+          name: 'stored',
+          url: 'https://example.com/new',
+          events: ['repo:refs_changed'],
+          active: true,
+          sslVerificationRequired: true,
+          configuration: { secret: 'stored-secret' },
+        });
+      });
+
+      it('should replace every field the caller passes', async () => {
+        await bitbucketService.updateWebhook(
+          'test', 'Test-Repo', '5', 'renamed', 'https://example.com/new', ['pr:declined'], false, 'new-secret', false,
+        );
+
+        expect(bb.repositories.updateWebhook).toHaveBeenCalledWith({
+          projectKey: 'TEST',
+          webhookId: '5',
+          repositorySlug: 'test-repo',
+          name: 'renamed',
+          url: 'https://example.com/new',
+          events: ['pr:declined'],
+          active: false,
+          sslVerificationRequired: false,
+          configuration: { secret: 'new-secret' },
+        });
+      });
+
+      it('should remove the stored secret when an empty one is given', async () => {
+        await bitbucketService.updateWebhook('test', 'Test-Repo', '5', undefined, undefined, undefined, undefined, '');
+
+        expect(bb.repositories.updateWebhook).toHaveBeenCalledWith(expect.objectContaining({ configuration: {} }));
+      });
+
+      it('should not write anything when the webhook cannot be read', async () => {
+        (bb.repositories.getWebhook as Mock).mockRejectedValue(new Error('Webhook not found'));
+
+        const result = await bitbucketService.updateWebhook('test', 'Test-Repo', '5', 'renamed');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Webhook not found');
+        expect(bb.repositories.updateWebhook).not.toHaveBeenCalled();
       });
     });
 

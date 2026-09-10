@@ -1866,11 +1866,11 @@ export class BitbucketService {
    * @param projectKey The project key
    * @param repositorySlug The repository slug
    * @param webhookId The ID of the webhook to update
-   * @param name The webhook name
-   * @param url The endpoint URL the webhook will POST to
-   * @param events List of event IDs to subscribe to
+   * @param name Optional new webhook name; the current one is kept when omitted
+   * @param url Optional new endpoint URL; the current one is kept when omitted
+   * @param events Optional list of event IDs to subscribe to; the current set is kept when omitted
    * @param active Optional flag controlling whether the webhook is enabled
-   * @param secret Optional secret used to sign webhook payloads (HMAC)
+   * @param secret Optional secret used to sign webhook payloads (HMAC); the stored secret is kept when omitted and removed by an empty string
    * @param sslVerificationRequired Optional flag for SSL verification on the endpoint URL
    * @returns Promise with the updated webhook
    */
@@ -1878,16 +1878,34 @@ export class BitbucketService {
     projectKey: string,
     repositorySlug: string,
     webhookId: string,
-    name: string,
-    url: string,
-    events: string[],
+    name?: string,
+    url?: string,
+    events?: string[],
     active?: boolean,
     secret?: string,
     sslVerificationRequired?: boolean,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
-    const requestBody = this.buildWebhookBody(name, url, events, active, secret, sslVerificationRequired);
+
+    const current = await handleApiOperation(
+      () => this.bb.repositories.getWebhook({ projectKey: projectKey, webhookId: webhookId, repositorySlug: repositorySlug }),
+      'Error reading webhook before update',
+    );
+
+    if (!current.success) {
+      return current;
+    }
+
+    const existing = (current.data ?? {}) as Record<string, any>;
+    const requestBody = {
+      name: name ?? existing.name,
+      url: url ?? existing.url,
+      events: events ?? existing.events,
+      active: active ?? existing.active,
+      sslVerificationRequired: sslVerificationRequired ?? existing.sslVerificationRequired,
+      configuration: secret === undefined ? existing.configuration : secret === '' ? {} : { secret: secret },
+    };
 
     return handleApiOperation(
       () => this.bb.repositories.updateWebhook({ projectKey: projectKey, webhookId: webhookId, repositorySlug: repositorySlug, ...(requestBody) }),
@@ -1985,11 +2003,11 @@ export class BitbucketService {
    * @param projectKey The project key
    * @param repositorySlug The repository slug
    * @param id The ID of the merge check to update
-   * @param buildParentKeys Non-empty list of build parent keys
-   * @param refMatcherType Matcher type for the target ref
-   * @param refMatcherValue Matcher value for the target ref
+   * @param buildParentKeys Optional list of build parent keys; the current list is kept when omitted
+   * @param refMatcherType Optional matcher type for the target ref; the current matcher is kept when the type or the value is omitted
+   * @param refMatcherValue Optional matcher value for the target ref
    * @param refMatcherDisplayId Optional display value for the ref matcher
-   * @param exemptRefMatcherType Optional matcher type for the exempt source ref
+   * @param exemptRefMatcherType Optional matcher type for the exempt source ref; the current exemption is kept when the type or the value is omitted
    * @param exemptRefMatcherValue Optional matcher value for the exempt source ref
    * @param exemptRefMatcherDisplayId Optional display value for the exempt ref matcher
    * @returns Promise with the updated merge check
@@ -1998,9 +2016,9 @@ export class BitbucketService {
     projectKey: string,
     repositorySlug: string,
     id: string,
-    buildParentKeys: string[],
-    refMatcherType: string,
-    refMatcherValue: string,
+    buildParentKeys?: string[],
+    refMatcherType?: string,
+    refMatcherValue?: string,
     refMatcherDisplayId?: string,
     exemptRefMatcherType?: string,
     exemptRefMatcherValue?: string,
@@ -2008,10 +2026,34 @@ export class BitbucketService {
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
-    const requestBody = this.buildRequiredBuildsBody(
-      buildParentKeys, refMatcherType, refMatcherValue, refMatcherDisplayId,
-      exemptRefMatcherType, exemptRefMatcherValue, exemptRefMatcherDisplayId,
+
+    const current = await handleApiOperation(
+      () => paginateAll<Record<string, any>>(async (start) => {
+        const page = await this.bb.builds.getPageOfRequiredBuildsMergeChecks({ projectKey: projectKey, repositorySlug: repositorySlug, start: start, limit: this.getPageSize() });
+
+        return { items: (page.values ?? []) as Record<string, any>[], isLast: page.isLastPage ?? true, nextStart: page.nextPageStart };
+      }),
+      'Error reading required builds merge check before update',
     );
+
+    if (!current.success) {
+      return current;
+    }
+
+    const existing = (current.data ?? []).find(check => String(check.id) === String(id));
+
+    if (!existing) {
+      return {
+        success: false,
+        error: `Error updating required builds merge check: no merge check with id ${id} in ${projectKey}/${repositorySlug}`,
+      };
+    }
+
+    const requestBody = {
+      buildParentKeys: buildParentKeys ?? existing.buildParentKeys,
+      refMatcher: this.buildRefMatcher(refMatcherType, refMatcherValue, refMatcherDisplayId) ?? existing.refMatcher,
+      exemptRefMatcher: this.buildRefMatcher(exemptRefMatcherType, exemptRefMatcherValue, exemptRefMatcherDisplayId) ?? existing.exemptRefMatcher,
+    };
 
     return handleApiOperation(
       () => this.bb.builds.updateRequiredBuildsMergeCheck({ projectKey: projectKey, id: Number(id), repositorySlug: repositorySlug, ...(requestBody) }),
@@ -2233,6 +2275,14 @@ export class BitbucketService {
     };
   }
 
+  private buildRefMatcher(type?: string, value?: string, displayId?: string) {
+    if (!type || !value) {
+      return undefined;
+    }
+
+    return { id: value, displayId: displayId ?? value, type: { id: type } };
+  }
+
   private buildRequiredBuildsBody(
     buildParentKeys: string[],
     refMatcherType: string,
@@ -2242,22 +2292,12 @@ export class BitbucketService {
     exemptRefMatcherValue?: string,
     exemptRefMatcherDisplayId?: string,
   ): any {
+    const exemptRefMatcher = this.buildRefMatcher(exemptRefMatcherType, exemptRefMatcherValue, exemptRefMatcherDisplayId);
+
     return {
       buildParentKeys,
-      refMatcher: {
-        id: refMatcherValue,
-        displayId: refMatcherDisplayId ?? refMatcherValue,
-        type: { id: refMatcherType },
-      },
-      ...(exemptRefMatcherType && exemptRefMatcherValue
-        ? {
-          exemptRefMatcher: {
-            id: exemptRefMatcherValue,
-            displayId: exemptRefMatcherDisplayId ?? exemptRefMatcherValue,
-            type: { id: exemptRefMatcherType },
-          },
-        }
-        : {}),
+      refMatcher: this.buildRefMatcher(refMatcherType, refMatcherValue, refMatcherDisplayId),
+      ...(exemptRefMatcher ? { exemptRefMatcher } : {}),
     };
   }
 
@@ -3902,11 +3942,11 @@ export const bitbucketToolSchemas = {
     projectKey: z.string().describe('The project key'),
     repositorySlug: z.string().describe('The repository slug'),
     id: z.string().describe('The ID of the merge check to update'),
-    buildParentKeys: z.array(z.string()).describe('Non-empty list of build parent keys. The update replaces the whole check, so pass the complete desired list.'),
-    refMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).describe('Matcher type for the target ref'),
-    refMatcherValue: z.string().describe('Matcher value for the target ref'),
+    buildParentKeys: z.array(z.string()).optional().describe('Complete list of build parent keys to require. Omit it to keep the current list; passing one replaces the whole list.'),
+    refMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe('Matcher type for the target ref. Omit the type or the value to keep the current matcher.'),
+    refMatcherValue: z.string().optional().describe('Matcher value for the target ref'),
     refMatcherDisplayId: z.string().optional().describe('Display value for the ref matcher (defaults to the matcher value)'),
-    exemptRefMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe('Matcher type for source refs exempt from the check'),
+    exemptRefMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe('Matcher type for source refs exempt from the check. Omit the type or the value to keep the current exemption.'),
     exemptRefMatcherValue: z.string().optional().describe('Matcher value for source refs exempt from the check'),
     exemptRefMatcherDisplayId: z.string().optional().describe('Display value for the exempt ref matcher (defaults to its value)'),
   },
@@ -4012,12 +4052,12 @@ export const bitbucketToolSchemas = {
     projectKey: z.string().describe('The project key'),
     repositorySlug: z.string().describe('The repository slug'),
     webhookId: z.string().describe('The ID of the webhook to update'),
-    name: z.string().describe('The webhook name'),
-    url: z.string().describe('The endpoint URL the webhook will POST to'),
-    events: z.array(z.string()).describe('List of event IDs to subscribe to. This replaces the existing event set.'),
-    active: z.boolean().optional().describe('Whether the webhook is enabled'),
-    secret: z.string().optional().describe('Optional secret used to sign webhook payloads (HMAC)'),
-    sslVerificationRequired: z.boolean().optional().describe('Whether SSL verification is required for the endpoint URL'),
+    name: z.string().optional().describe('New webhook name. Omit it to keep the current one.'),
+    url: z.string().optional().describe('New endpoint URL the webhook will POST to. Omit it to keep the current one.'),
+    events: z.array(z.string()).optional().describe('List of event IDs to subscribe to. Omit it to keep the current set; passing one replaces the whole set.'),
+    active: z.boolean().optional().describe('Whether the webhook is enabled. Omit it to keep the current state.'),
+    secret: z.string().optional().describe('Secret used to sign webhook payloads (HMAC). Omit it to keep the stored secret; pass an empty string to remove it.'),
+    sslVerificationRequired: z.boolean().optional().describe('Whether SSL verification is required for the endpoint URL. Omit it to keep the current setting.'),
   },
   deleteWebhook: {
     projectKey: z.string().describe('The project key'),
