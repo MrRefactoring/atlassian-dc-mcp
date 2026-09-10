@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { createHttpClient, ApiError, parseRetryAfterMs } from '../src/httpClient/index.js';
+import { createHttpClient, ApiError, parseRetryAfterMs, route } from '../src/httpClient/index.js';
 
 const originalFetch = global.fetch;
 
@@ -160,5 +160,28 @@ describe('parseRetryAfterMs', () => {
   it('clamps a past HTTP-date to 0', () => {
     const past = new Date(Date.now() - 60_000).toUTCString();
     expect(parseRetryAfterMs(past)).toBe(0);
+  });
+});
+
+describe('route', () => {
+  it('keeps separators inside a multi-segment path parameter', () => {
+    expect(route`/repos/${'demo'}/browse/${'src/lib/index.ts'}`).toBe('/repos/demo/browse/src/lib/index.ts');
+  });
+
+  it('escapes characters that would otherwise end the path', () => {
+    expect(route`/browse/${'docs/design #1?.md'}`).toBe('/browse/docs/design%20%231%3F.md');
+    expect(route`/browse/${'a&b=c.txt'}`).toBe('/browse/a%26b%3Dc.txt');
+  });
+
+  it('escapes each segment of a path parameter independently', () => {
+    expect(route`/browse/${'my dir/my file.md'}`).toBe('/browse/my%20dir/my%20file.md');
+  });
+
+  it('accepts numbers and booleans', () => {
+    expect(route`/pull-requests/${42}/changes/${true}`).toBe('/pull-requests/42/changes/true');
+  });
+
+  it('returns a template with no interpolation unchanged', () => {
+    expect(route`/api/latest/projects`).toBe('/api/latest/projects');
   });
 });
