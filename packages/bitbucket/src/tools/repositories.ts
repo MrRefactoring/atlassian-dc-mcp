@@ -241,11 +241,11 @@ export function registerRepositoryTools(server: McpServer, service: BitbucketSer
   registerAnnotatedTool(server,
     'bitbucket_browse_repository',
     {
-      description: 'Browse a repository path in a Bitbucket repository. Omit \'path\' (or pass empty) to list the root directory; a directory path lists its children; a file path returns the file content as paginated lines. Use \'type: true\' to fetch only the node type (FILE/DIRECTORY/SUBMODULE).',
+      description: 'Browse a repository path in a Bitbucket repository. Omit \'path\' (or pass empty) to list the root directory; a directory path lists its children; a file path returns the file content as paginated lines. Use \'type: true\' to fetch only the node type (FILE/DIRECTORY/SUBMODULE). Both listings are paginated: continue with \'start\' set to the previous response\'s nextPageStart while isLastPage is false.',
       inputSchema: bitbucketToolSchemas.browseRepository,
     },
-    async ({ projectKey, repositorySlug, path, at, type, blame }) => {
-      const result = await service.browseRepository(projectKey, repositorySlug, path, at, type, blame);
+    async ({ projectKey, repositorySlug, path, at, type, blame, start, limit }) => {
+      const result = await service.browseRepository(projectKey, repositorySlug, path, at, type, blame, start, limit);
 
       return formatToolResponse(result);
     },
