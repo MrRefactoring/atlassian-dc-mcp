@@ -11,7 +11,7 @@ export function add(client: HttpClient, params: Add): Promise<void> {
     url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/commits/${params.commitId}/builds`,
     method: 'POST',
     body: pickBody(params, BuildStatusSetRequestSchema),
-    contentType: '*/*',
+    contentType: 'application/json',
   });
 }
 
@@ -29,7 +29,7 @@ export function createRequiredBuildsMergeCheck(client: HttpClient, params: Creat
     url: route`/required-builds/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/condition`,
     method: 'POST',
     body: pickBody(params, RequiredBuildConditionSetRequestSchema),
-    contentType: '*/*',
+    contentType: 'application/json',
     schema: RequiredBuildConditionSchema,
   });
 }
@@ -114,7 +114,7 @@ export function updateRequiredBuildsMergeCheck(client: HttpClient, params: Updat
     url: route`/required-builds/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/condition/${params.id}`,
     method: 'PUT',
     body: pickBody(params, RequiredBuildConditionSetRequestSchema),
-    contentType: '*/*',
+    contentType: 'application/json',
     schema: RequiredBuildConditionSchema,
   });
 }
