@@ -2004,10 +2004,10 @@ export class BitbucketService {
    * @param repositorySlug The repository slug
    * @param id The ID of the merge check to update
    * @param buildParentKeys Optional list of build parent keys; the current list is kept when omitted
-   * @param refMatcherType Optional matcher type for the target ref; the current matcher is kept when the type or the value is omitted
+   * @param refMatcherType Optional matcher type for the target ref; the current matcher is kept when both the type and the value are omitted, and passing only one of them is an error
    * @param refMatcherValue Optional matcher value for the target ref
    * @param refMatcherDisplayId Optional display value for the ref matcher
-   * @param exemptRefMatcherType Optional matcher type for the exempt source ref; the current exemption is kept when the type or the value is omitted
+   * @param exemptRefMatcherType Optional matcher type for the exempt source ref; the current exemption is kept when both the type and the value are omitted, removed by 'NONE', and passing only one of them is an error
    * @param exemptRefMatcherValue Optional matcher value for the exempt source ref
    * @param exemptRefMatcherDisplayId Optional display value for the exempt ref matcher
    * @returns Promise with the updated merge check
@@ -2026,6 +2026,19 @@ export class BitbucketService {
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
+
+    const refMatcherError = this.incompleteMatcherError('refMatcher', refMatcherType, refMatcherValue);
+
+    if (refMatcherError) {
+      return { success: false, error: refMatcherError };
+    }
+
+    const removeExemption = exemptRefMatcherType === 'NONE';
+    const exemptRefMatcherError = removeExemption ? undefined : this.incompleteMatcherError('exemptRefMatcher', exemptRefMatcherType, exemptRefMatcherValue);
+
+    if (exemptRefMatcherError) {
+      return { success: false, error: exemptRefMatcherError };
+    }
 
     const current = await handleApiOperation(
       () => paginateAll<Record<string, any>>(async (start) => {
@@ -2052,7 +2065,9 @@ export class BitbucketService {
     const requestBody = {
       buildParentKeys: buildParentKeys ?? existing.buildParentKeys,
       refMatcher: this.buildRefMatcher(refMatcherType, refMatcherValue, refMatcherDisplayId) ?? existing.refMatcher,
-      exemptRefMatcher: this.buildRefMatcher(exemptRefMatcherType, exemptRefMatcherValue, exemptRefMatcherDisplayId) ?? existing.exemptRefMatcher,
+      exemptRefMatcher: removeExemption
+        ? undefined
+        : (this.buildRefMatcher(exemptRefMatcherType, exemptRefMatcherValue, exemptRefMatcherDisplayId) ?? existing.exemptRefMatcher),
     };
 
     return handleApiOperation(
@@ -2281,6 +2296,17 @@ export class BitbucketService {
     }
 
     return { id: value, displayId: displayId ?? value, type: { id: type } };
+  }
+
+  private incompleteMatcherError(name: string, type?: string, value?: string) {
+    const hasType = type !== undefined;
+    const hasValue = value !== undefined;
+
+    if (hasType === hasValue) {
+      return undefined;
+    }
+
+    return `Error updating required builds merge check: pass both ${name}Type and ${name}Value, or neither`;
   }
 
   private buildRequiredBuildsBody(
@@ -3943,11 +3969,11 @@ export const bitbucketToolSchemas = {
     repositorySlug: z.string().describe('The repository slug'),
     id: z.string().describe('The ID of the merge check to update'),
     buildParentKeys: z.array(z.string()).optional().describe('Complete list of build parent keys to require. Omit it to keep the current list; passing one replaces the whole list.'),
-    refMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe('Matcher type for the target ref. Omit the type or the value to keep the current matcher.'),
-    refMatcherValue: z.string().optional().describe('Matcher value for the target ref'),
+    refMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe('Matcher type for the target ref. Omit both the type and the value to keep the current matcher; passing only one of them fails the call.'),
+    refMatcherValue: z.string().optional().describe('Matcher value for the target ref. Required whenever refMatcherType is given.'),
     refMatcherDisplayId: z.string().optional().describe('Display value for the ref matcher (defaults to the matcher value)'),
-    exemptRefMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH']).optional().describe('Matcher type for source refs exempt from the check. Omit the type or the value to keep the current exemption.'),
-    exemptRefMatcherValue: z.string().optional().describe('Matcher value for source refs exempt from the check'),
+    exemptRefMatcherType: z.enum(['ANY_REF', 'BRANCH', 'PATTERN', 'MODEL_CATEGORY', 'MODEL_BRANCH', 'NONE']).optional().describe('Matcher type for source refs exempt from the check. Omit both the type and the value to keep the current exemption, pass NONE to remove it; passing only one of them fails the call.'),
+    exemptRefMatcherValue: z.string().optional().describe('Matcher value for source refs exempt from the check. Required whenever exemptRefMatcherType is given, except for NONE.'),
     exemptRefMatcherDisplayId: z.string().optional().describe('Display value for the exempt ref matcher (defaults to its value)'),
   },
   deleteRequiredBuildsMergeCheck: {

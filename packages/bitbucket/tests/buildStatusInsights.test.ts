@@ -345,6 +345,40 @@ describe('BitbucketService', () => {
         expect(result.error).toBe('Merge checks unavailable');
         expect(bb.builds.updateRequiredBuildsMergeCheck).not.toHaveBeenCalled();
       });
+
+      it('should reject a ref matcher type without its value instead of keeping the stored matcher', async () => {
+        const result = await bitbucketService.updateRequiredBuildsMergeCheck('test', 'Test-Repo', '1', undefined, 'BRANCH');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('pass both refMatcherType and refMatcherValue');
+        expect(bb.builds.getPageOfRequiredBuildsMergeChecks).not.toHaveBeenCalled();
+        expect(bb.builds.updateRequiredBuildsMergeCheck).not.toHaveBeenCalled();
+      });
+
+      it('should reject an exempt matcher value without its type', async () => {
+        const result = await bitbucketService.updateRequiredBuildsMergeCheck(
+          'test', 'Test-Repo', '1', undefined, undefined, undefined, undefined, undefined, 'refs/heads/release',
+        );
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('pass both exemptRefMatcherType and exemptRefMatcherValue');
+        expect(bb.builds.updateRequiredBuildsMergeCheck).not.toHaveBeenCalled();
+      });
+
+      it('should remove the exemption when the exempt matcher type is NONE', async () => {
+        await bitbucketService.updateRequiredBuildsMergeCheck(
+          'test', 'Test-Repo', '1', undefined, undefined, undefined, undefined, 'NONE',
+        );
+
+        expect(bb.builds.updateRequiredBuildsMergeCheck).toHaveBeenCalledWith({
+          projectKey: 'TEST',
+          id: 1,
+          repositorySlug: 'test-repo',
+          buildParentKeys: storedCheck.buildParentKeys,
+          refMatcher: storedCheck.refMatcher,
+          exemptRefMatcher: undefined,
+        });
+      });
     });
 
     it('should delete a merge check coercing the id and return an ack', async () => {
