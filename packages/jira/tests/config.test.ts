@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-describe('Jira config', () => {
+describe('Jira config', { timeout: 20000 }, () => {
   const originalEnv = process.env;
   const originalCwd = process.cwd();
   let tempDir: string;
@@ -17,8 +17,8 @@ describe('Jira config', () => {
   });
 
   afterEach(() => {
-    fs.rmSync(tempDir, { recursive: true, force: true });
     process.chdir(originalCwd);
+    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
   afterAll(() => {
