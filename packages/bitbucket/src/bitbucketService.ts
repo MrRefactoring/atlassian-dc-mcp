@@ -1904,7 +1904,7 @@ export class BitbucketService {
       events: events ?? existing.events,
       active: active ?? existing.active,
       sslVerificationRequired: sslVerificationRequired ?? existing.sslVerificationRequired,
-      configuration: secret === undefined ? existing.configuration : secret === '' ? {} : { secret: secret },
+      configuration: this.buildWebhookConfiguration(existing.configuration, secret),
     };
 
     return handleApiOperation(
@@ -3097,6 +3097,18 @@ export class BitbucketService {
       () => this.bb.repositories.setSettings({ projectKey: projectKey, hookKey: hookKey, repositorySlug: repositorySlug, ...(settings) }),
       'Error updating repository hook settings',
     );
+  }
+
+  private buildWebhookConfiguration(current: any, secret?: string) {
+    if (secret === undefined) {
+      return current;
+    }
+
+    if (secret === '') {
+      return {};
+    }
+
+    return { secret: secret };
   }
 
   private buildWebhookBody(
