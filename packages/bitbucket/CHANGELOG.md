@@ -1,5 +1,32 @@
 # Change Log
 
+## 0.6.0
+
+### Minor Changes
+
+- [#10](https://github.com/MrRefactoring/atlassian-dc-mcp/pull/10) [`6ccb210`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/6ccb21030112840ab55f9fdefd2bb0d85d836afb) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Stop dropping reviewers when a pull request is updated.
+
+  `PUT /pull-requests/{id}` in Bitbucket Data Center replaces the pull request with the body it receives instead of patching it, so a body of `{version, description}` tells the server that the pull request should have no reviewers at all. Editing a description through `bitbucket_update_pull_request` removed every reviewer from the pull request. Atlassian closed this as expected behaviour in BSERV-19139 and pointed at reading the pull request before writing it.
+
+  `bitbucket_update_pull_request` now does exactly that: it reads the pull request and sends back its title, description, draft flag and reviewers, overriding only the fields the caller passed. Passing `reviewers` still replaces the whole list, and an empty array now clears it.
+
+  `version` became optional as a result. Pass it to keep the optimistic locking that fails the call when someone else changed the pull request in the meantime; omit it to use the version read during the update.
+
+- [#10](https://github.com/MrRefactoring/atlassian-dc-mcp/pull/10) [`9192f2b`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/9192f2b215ab7d6960a19423e99b7eeb25751dae) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Stop dropping the webhook secret and the required-builds exemption on update, and send build payloads as JSON.
+
+  Bitbucket Data Center treats a `PUT` body as the entity's new state, not as a patch, so every field left out of the body is cleared. Probing a live 9.6.5 instance confirmed three of them:
+
+  - `bitbucket_update_webhook` removed the stored HMAC secret whenever it was called without one, so changing a webhook's url silently unsigned every future delivery. The tool now reads the webhook and keeps its name, url, events, active state, SSL setting and secret unless you pass a replacement. An empty secret removes the stored one.
+  - `bitbucket_update_required_builds_merge_check` removed the exempt ref matcher the same way. It now reads the existing check and keeps the build keys, ref matcher and exemption you leave out, and reports an unknown check id instead of writing. A matcher needs both its type and its value: passing one half now fails the call instead of silently keeping the stored matcher, and `exemptRefMatcherType: 'NONE'` removes the exemption.
+  - `bitbucket_add_build_status` and both required-builds merge check tools sent their JSON body under `Content-Type: */*`, which Bitbucket answers with `415 Unsupported Media Type`. They now send `application/json`.
+
+  Updating a project or a repository was probed as well and needs no change: Bitbucket keeps the fields those endpoints do not receive.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - datacenter-mcp-core@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes
