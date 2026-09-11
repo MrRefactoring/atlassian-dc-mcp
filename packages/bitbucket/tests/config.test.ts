@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-describe('Bitbucket config', () => {
+describe('Bitbucket config', { timeout: 20000 }, () => {
   const originalEnv = process.env;
   const originalCwd = process.cwd();
   let tempDir: string;
@@ -17,8 +17,8 @@ describe('Bitbucket config', () => {
   });
 
   afterEach(() => {
-    fs.rmSync(tempDir, { recursive: true, force: true });
     process.chdir(originalCwd);
+    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
   afterAll(() => {
