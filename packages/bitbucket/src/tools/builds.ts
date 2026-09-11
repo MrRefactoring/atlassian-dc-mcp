@@ -150,7 +150,7 @@ export function registerBuildTools(server: McpServer, service: BitbucketService)
   registerAnnotatedTool(server,
     'bitbucket_update_required_builds_merge_check',
     {
-      description: 'Update a required-builds merge check on a Bitbucket repository. Requires REPO_ADMIN. Only the fields you pass are changed: the build keys, ref matcher and exempt matcher you leave out are read from the existing check and sent back unchanged.',
+      description: 'Update a required-builds merge check on a Bitbucket repository. Requires REPO_ADMIN. Only the fields you pass are changed: the build keys, ref matcher and exempt matcher you leave out are read from the existing check and sent back unchanged. A matcher needs both its type and its value — passing one half fails the call instead of silently keeping the old matcher. Pass exemptRefMatcherType NONE to remove the exemption.',
       inputSchema: bitbucketToolSchemas.updateRequiredBuildsMergeCheck,
     },
     async ({ projectKey, repositorySlug, id, buildParentKeys, refMatcherType, refMatcherValue, refMatcherDisplayId, exemptRefMatcherType, exemptRefMatcherValue, exemptRefMatcherDisplayId }) => {
