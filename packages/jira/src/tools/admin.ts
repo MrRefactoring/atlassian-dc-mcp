@@ -565,6 +565,19 @@ export function registerAdminTools(server: McpServer, service: JiraService) {
   );
 
   registerAnnotatedTool(server,
+    'jira_update_application_role',
+    {
+      description: `Update an application role in the ${jiraInstanceType}. Only the fields you pass are changed: the rest are read from the role and sent back untouched. This matters because Jira replaces the role with the body it receives, so a partial write would empty its groups and revoke the application from every user holding it.`,
+      inputSchema: jiraToolSchemas.updateApplicationRole,
+    },
+    async ({ key, groups, defaultGroups, selectedByDefault }) => {
+      const result = await service.updateApplicationRole(key, groups, defaultGroups, selectedByDefault);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
     'jira_get_notification_schemes',
     {
       description: `Get a paginated list of notification schemes in the ${jiraInstanceType}`,
