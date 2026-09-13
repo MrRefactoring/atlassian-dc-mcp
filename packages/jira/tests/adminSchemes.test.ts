@@ -451,6 +451,59 @@ describe('JiraService', () => {
       expect(jira.admin.get).toHaveBeenCalledWith({ key: 'jira-software' });
     });
 
+    describe('updateApplicationRole', () => {
+      const storedRole = {
+        key: 'jira-software',
+        name: 'Jira Software',
+        groups: ['jira-administrators', 'jira-software-users'],
+        defaultGroups: ['jira-software-users'],
+        selectedByDefault: true,
+        numberOfSeats: 10,
+      };
+
+      beforeEach(() => {
+        (jira.admin.get as Mock).mockResolvedValue(storedRole);
+        (jira.request as Mock).mockResolvedValue({ ...storedRole, selectedByDefault: false });
+      });
+
+      it('keeps the groups when only the default flag changes', async () => {
+        const result = await jiraService.updateApplicationRole('jira-software', undefined, undefined, false);
+
+        expect(result.success).toBe(true);
+        expect(jira.request).toHaveBeenCalledWith({
+          method: 'PUT',
+          url: '/api/2/applicationrole/jira-software',
+          body: { ...storedRole, selectedByDefault: false },
+        });
+      });
+
+      it('replaces the groups when a list is given', async () => {
+        await jiraService.updateApplicationRole('jira-software', ['jira-administrators'], ['jira-administrators']);
+
+        expect(jira.request).toHaveBeenCalledWith(expect.objectContaining({
+          body: { ...storedRole, groups: ['jira-administrators'], defaultGroups: ['jira-administrators'] },
+        }));
+      });
+
+      it('revokes the application when an empty group list is given', async () => {
+        await jiraService.updateApplicationRole('jira-software', []);
+
+        expect(jira.request).toHaveBeenCalledWith(expect.objectContaining({
+          body: { ...storedRole, groups: [] },
+        }));
+      });
+
+      it('does not write anything when the role cannot be read', async () => {
+        (jira.admin.get as Mock).mockRejectedValue(new Error('The current user is not an administrator'));
+
+        const result = await jiraService.updateApplicationRole('jira-software', undefined, undefined, false);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('The current user is not an administrator');
+        expect(jira.request).not.toHaveBeenCalled();
+      });
+    });
+
     it('handles errors', async () => {
       (jira.admin.getAll as Mock).mockRejectedValue(new Error('The current user is not an administrator'));
 

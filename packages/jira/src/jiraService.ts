@@ -1605,6 +1605,34 @@ export class JiraService {
     return handleApiOperation(() => this.jira.admin.get({ key }), 'Error getting application role');
   }
 
+  async updateApplicationRole(
+    key: string,
+    groups?: string[],
+    defaultGroups?: string[],
+    selectedByDefault?: boolean,
+  ) {
+    const current = await handleApiOperation(
+      () => this.jira.admin.get({ key }),
+      'Error reading application role before update',
+    );
+
+    if (!current.success) {
+      return current;
+    }
+
+    const requestBody = {
+      ...(current.data ?? {}),
+      ...(groups !== undefined ? { groups } : {}),
+      ...(defaultGroups !== undefined ? { defaultGroups } : {}),
+      ...(selectedByDefault !== undefined ? { selectedByDefault } : {}),
+    };
+
+    return handleApiOperation(
+      () => this.jira.request({ method: 'PUT', url: route`/api/2/applicationrole/${key}`, body: requestBody }),
+      'Error updating application role',
+    );
+  }
+
   async getWorkflows(workflowName?: string) {
     return handleApiOperation(
       () => this.jira.workflows.getAllWorkflows({ workflowName }),
@@ -3143,7 +3171,13 @@ export const jiraToolSchemas = {
   },
   getApplicationRoles: {},
   getApplicationRole: {
-    key: z.string().describe('Key of the application role, e.g. \'jira-software\'. Use jira_getApplicationRoles to find valid keys.'),
+    key: z.string().describe('Key of the application role, e.g. \'jira-software\'. Use jira_get_application_roles to find valid keys.'),
+  },
+  updateApplicationRole: {
+    key: z.string().describe('Key of the application role to update, e.g. \'jira-software\'. Use jira_get_application_roles to find valid keys.'),
+    groups: z.array(z.string()).optional().describe('Complete list of group names granted this application. Omit it to keep the current groups; passing one replaces the whole list, and an empty array revokes the application from every user.'),
+    defaultGroups: z.array(z.string()).optional().describe('Complete list of group names new users are added to for this application. Omit it to keep the current list; passing one replaces the whole list. Every default group must also be in groups, otherwise Jira rejects the call.'),
+    selectedByDefault: z.boolean().optional().describe('Whether new users are granted this application by default. Omit it to keep the current setting.'),
   },
   getWorkflows: {
     workflowName: z.string().optional().describe('Name of a specific workflow to return. Omit to return all workflows.'),
