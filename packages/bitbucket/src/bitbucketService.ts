@@ -341,12 +341,14 @@ export class BitbucketService {
     at?: string,
     type?: boolean,
     blame?: boolean,
+    start?: number,
+    limit?: number,
   ) {
     projectKey = projectKey.toUpperCase();
     repositorySlug = repositorySlug.toLowerCase();
 
     return handleApiOperation(
-      () => this.bb.repositories.getContent({ path: path, projectKey: projectKey, repositorySlug: repositorySlug, at: at, blame: blame ? 'true' : undefined, type: type ? 'true' : undefined }),
+      () => this.bb.repositories.getContent({ path: path, projectKey: projectKey, repositorySlug: repositorySlug, at: at, blame: blame ? 'true' : undefined, type: type ? 'true' : undefined, start: start, limit: limit ?? this.getPageSize() }),
       'Error browsing repository content',
     );
   }
@@ -3703,6 +3705,8 @@ export const bitbucketToolSchemas = {
     at: z.string().optional().describe('Optional commit hash or ref to browse at. Defaults to the repository\'s default branch.'),
     type: z.boolean().optional().describe('If true, return only the node type (FILE, DIRECTORY, or SUBMODULE) of the path instead of its content.'),
     blame: z.boolean().optional().describe('If true, include blame information in the response.'),
+    start: z.number().optional().describe('Start number for pagination. Use the nextPageStart of the previous response: for a directory it sits under \'children\', for a file at the response root.'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   getPullRequestComments: {
     projectKey: z.string().describe('The project key'),
