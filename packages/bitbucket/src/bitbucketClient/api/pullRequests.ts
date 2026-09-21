@@ -5,7 +5,7 @@ import type { RestPage } from '../interface/index.js';
 import { z } from 'zod';
 import { ChangeSchema, CommentSchema, PullRequestActivitySchema, PullRequestConditionSchema, PullRequestMergeabilitySchema, PullRequestParticipantSchema, PullRequestSchema, ApplySuggestionRequestSchema, PullRequestAssignParticipantRoleRequestSchema, DefaultReviewersRequestSchema, PullRequestDeclineRequestSchema, PullRequestMergeRequestSchema, PullRequestReopenRequestSchema, PullRequestAssignStatusRequestSchema, PullRequestFinishReviewRequestSchema } from '../models/index.js';
 import type { Change, Comment, PullRequest, PullRequestActivity, PullRequestCondition, PullRequestMergeability, PullRequestParticipant } from '../models/index.js';
-import type { ApplySuggestion, AssignParticipantRole, CanMerge, Create, CreatePullRequestComment, CreatePullRequestCondition, Decline, DeleteComment, DeletePullRequestCondition, GetPullRequest, GetPullRequestBlockerComments, GetActivities, GetPage, GetPullRequestConditions, GetReviewers, ListParticipants, Merge, Reopen, StreamPullRequestChanges, UnassignParticipantRole, Unwatch, Update, UpdateComment, UpdatePullRequestCondition, UpdateStatus, FinishReview, Watch } from '../parameters/index.js';
+import type { ApplySuggestion, AssignParticipantRole, CanMerge, Create, CreatePullRequestComment, CreatePullRequestCondition, Decline, DeleteComment, DeletePullRequestCondition, GetPullRequest, GetPullRequestBlockerComments, GetActivities, GetPage, GetPendingReview, GetPullRequestConditions, GetReviewers, ListParticipants, Merge, Reopen, StreamPullRequestChanges, UnassignParticipantRole, Unwatch, Update, UpdateComment, UpdatePullRequestCondition, UpdateStatus, FinishReview, Watch } from '../parameters/index.js';
 
 export function applySuggestion(client: HttpClient, params: ApplySuggestion): Promise<void> {
   return client.sendRequest({
@@ -113,6 +113,15 @@ export function getPage(client: HttpClient, params: GetPage): Promise<RestPage<P
     method: 'GET',
     searchParams: { withAttributes: params.withAttributes, at: params.at, withProperties: params.withProperties, draft: params.draft, filterText: params.filterText, state: params.state, order: params.order, direction: params.direction, start: params.start, limit: params.limit },
     schema: restPage(PullRequestSchema),
+  });
+}
+
+export function getPendingReview(client: HttpClient, params: GetPendingReview): Promise<RestPage<Comment>> {
+  return client.sendRequest({
+    url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/pull-requests/${params.pullRequestId}/review`,
+    method: 'GET',
+    searchParams: { start: params.start, limit: params.limit },
+    schema: restPage(CommentSchema),
   });
 }
 

@@ -45,6 +45,19 @@ export function registerPullRequestTools(server: McpServer, service: BitbucketSe
   );
 
   registerAnnotatedTool(server,
+    'bitbucket_get_pending_review',
+    {
+      description: 'Get the authenticated user\'s pending draft review comments for a Bitbucket pull request. Use before retrying review publication to detect drafts that were already created but not submitted.',
+      inputSchema: bitbucketToolSchemas.getPendingReview,
+    },
+    async ({ projectKey, repositorySlug, pullRequestId, start, limit }) => {
+      const result = await service.getPendingReview(projectKey, repositorySlug, pullRequestId, start, limit);
+
+      return formatToolResponse(result);
+    },
+  );
+
+  registerAnnotatedTool(server,
     'bitbucket_get_pull_request_changes',
     {
       description: 'Get the changes for a Bitbucket pull request',
