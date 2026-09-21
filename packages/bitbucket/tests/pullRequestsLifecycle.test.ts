@@ -14,6 +14,7 @@ const bb = vi.hoisted(() => ({
     listParticipants: vi.fn(),
     updateStatus: vi.fn(),
     finishReview: vi.fn(),
+    getPendingReview: vi.fn(),
   },
 }));
 
@@ -561,6 +562,54 @@ describe('BitbucketService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Forbidden');
+    });
+  });
+
+  describe('getPendingReview', () => {
+    it('should return pending comments for the authenticated user', async () => {
+      const mockData = {
+        values: [{ id: 42, text: '<!-- marker -->', state: 'PENDING' }],
+        isLastPage: true,
+      };
+      (bb.pullRequests.getPendingReview as Mock).mockResolvedValue(mockData);
+
+      const result = await bitbucketService.getPendingReview(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId,
+        5,
+        10,
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(mockData);
+      expect(bb.pullRequests.getPendingReview).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        repositorySlug: mockRepositorySlug,
+        pullRequestId: mockPullRequestId,
+        start: 5,
+        limit: 10,
+      });
+    });
+
+    it('should use the default page size and handle API errors', async () => {
+      (bb.pullRequests.getPendingReview as Mock).mockRejectedValue(new Error('Forbidden'));
+
+      const result = await bitbucketService.getPendingReview(
+        mockProjectKey,
+        mockRepositorySlug,
+        mockPullRequestId,
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Forbidden');
+      expect(bb.pullRequests.getPendingReview).toHaveBeenCalledWith({
+        projectKey: mockProjectKey,
+        repositorySlug: mockRepositorySlug,
+        pullRequestId: mockPullRequestId,
+        start: undefined,
+        limit: 25,
+      });
     });
   });
 });

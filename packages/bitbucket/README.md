@@ -183,7 +183,7 @@ pnpm dev
 
 ### Available Tools
 
-This server registers 114 tools, grouped below by area.
+This server registers 121 tools, grouped below by area.
 
 #### Projects & Repositories
 
@@ -271,6 +271,7 @@ This server registers 114 tools, grouped below by area.
 - `bitbucket_addPullRequestReviewer` — Add a single reviewer to a pull request without replacing existing reviewers.
 - `bitbucket_removePullRequestReviewer` — Remove a reviewer from a pull request (remains a participant).
 - `bitbucket_getPullRequestParticipants` — List everyone who has interacted with a pull request (author, reviewers, and anyone who has commented or approved), not just the requested reviewers.
+- `bitbucket_get_pending_review` — Get the authenticated user's pending draft review comments for a pull request.
 - `bitbucket_submitPullRequestReview` — Publish all pending (draft) comments and set the reviewer's verdict.
 - `bitbucket_watchPullRequest` — Start watching a pull request for notifications.
 - `bitbucket_unwatchPullRequest` — Stop watching a pull request.

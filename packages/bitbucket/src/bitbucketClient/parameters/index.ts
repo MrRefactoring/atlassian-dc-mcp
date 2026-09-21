@@ -65,6 +65,7 @@ export * from './getForkedRepositories.js';
 export * from './getKeysForUser.js';
 export * from './getPage.js';
 export * from './getPageOfRequiredBuildsMergeChecks.js';
+export * from './getPendingReview.js';
 export * from './getProject.js';
 export * from './getProjectAccessTokens.js';
 export * from './getProjectGroupsWithAnyPermission.js';

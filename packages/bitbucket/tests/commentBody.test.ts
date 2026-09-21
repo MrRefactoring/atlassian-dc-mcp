@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createComment as createPullRequestComment, finishReview } from '../src/bitbucketClient/api/pullRequests.js';
+import { createComment as createPullRequestComment, finishReview, getPendingReview } from '../src/bitbucketClient/api/pullRequests.js';
 import { createComment as createCommitComment } from '../src/bitbucketClient/api/repositories.js';
 import type { HttpClient } from 'datacenter-mcp-core';
 
@@ -86,5 +86,31 @@ describe('finishReview api request', () => {
     // Must be the review endpoint (publishes drafts), NOT /participants/{userSlug} (status only).
     expect(req.url).toBe('/api/latest/projects/TEST/repos/repo/pull-requests/1/review');
     expect(req.body).toMatchObject({ participantStatus: 'NEEDS_WORK', commentText: 'Summary' });
+  });
+});
+
+describe('getPendingReview api request', () => {
+  it('GETs the /review endpoint and accepts a page of pending comments', async () => {
+    const { client, sent } = recordingClient();
+
+    await getPendingReview(client, {
+      projectKey: 'TEST',
+      repositorySlug: 'repo',
+      pullRequestId: '1',
+      start: 5,
+      limit: 10,
+    });
+
+    const req = sent();
+    expect(req.method).toBe('GET');
+    expect(req.url).toBe('/api/latest/projects/TEST/repos/repo/pull-requests/1/review');
+    expect(req.searchParams).toEqual({ start: 5, limit: 10 });
+    expect(req.schema.parse({
+      size: 1,
+      limit: 10,
+      isLastPage: true,
+      start: 5,
+      values: [{ id: 42, text: '<!-- marker -->', state: 'PENDING' }],
+    }).values).toEqual([{ id: 42, text: '<!-- marker -->', state: 'PENDING' }]);
   });
 });

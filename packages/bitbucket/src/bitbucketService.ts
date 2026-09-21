@@ -993,6 +993,22 @@ export class BitbucketService {
     return result;
   }
 
+  async getPendingReview(
+    projectKey: string,
+    repositorySlug: string,
+    pullRequestId: string,
+    start?: number,
+    limit?: number,
+  ) {
+    projectKey = projectKey.toUpperCase();
+    repositorySlug = repositorySlug.toLowerCase();
+
+    return handleApiOperation(
+      () => this.bb.pullRequests.getPendingReview({ projectKey, repositorySlug, pullRequestId, start, limit: limit ?? this.getPageSize() }),
+      'Error fetching pending pull request review',
+    );
+  }
+
   /**
    * Get pull request changes
    * @param projectKey The project key
@@ -3712,6 +3728,13 @@ export const bitbucketToolSchemas = {
     limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
     output: z.enum(['summary', 'compact', 'full']).optional().describe('Choose between summary lines, compact structured output, or the full API payload. Defaults to compact.'),
     includeResolved: z.boolean().optional().describe('Include resolved comment threads and their replies. Defaults to false, so resolved threads are omitted.'),
+  },
+  getPendingReview: {
+    projectKey: z.string().describe('The project key'),
+    repositorySlug: z.string().describe('The repository slug'),
+    pullRequestId: z.string().describe('The pull request ID'),
+    start: z.number().optional().describe('Start number for pagination'),
+    limit: z.number().optional().describe('Number of items to return. If not passed, the package default page size is used.'),
   },
   getPullRequestChanges: {
     projectKey: z.string().describe('The project key'),
