@@ -199,7 +199,7 @@ export function getContent(client: HttpClient, params: GetContent): Promise<unkn
   return client.sendRequest({
     url: route`/api/latest/projects/${params.projectKey}/repos/${params.repositorySlug}/browse/${params.path}`,
     method: 'GET',
-    searchParams: { noContent: params.noContent, at: params.at, size: params.size, blame: params.blame, type: params.type },
+    searchParams: { noContent: params.noContent, at: params.at, size: params.size, blame: params.blame, type: params.type, start: params.start, limit: params.limit },
   });
 }
 
