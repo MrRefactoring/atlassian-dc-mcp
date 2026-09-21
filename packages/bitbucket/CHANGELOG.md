@@ -1,5 +1,46 @@
 # Change Log
 
+## 0.6.0
+
+### Minor Changes
+
+- [#8](https://github.com/MrRefactoring/atlassian-dc-mcp/pull/8) [`506f588`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/506f58812dc48344a043f186cd65638550f522a6) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Paginate `bitbucket_browse_repository` with `start` and `limit`.
+
+  `/browse` returns both a directory's children and a file's lines as a page, with `isLastPage` and `nextPageStart` to continue from. The tool sent neither `start` nor `limit`, so whatever the server chose as its default page was all you ever got: a directory with more entries than that was silently cut off, and nothing in the tool could reach the rest. For files the gap was survivable, since `bitbucket_get_file_content` reads the whole file raw, but a large directory had no way out at all.
+
+  Both parameters are optional. `limit` defaults to the package page size, matching the other paginated tools; `start` takes the `nextPageStart` of the previous response, which sits under `children` for a directory and at the response root for a file.
+
+- [`c42b935`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/c42b935340514b51b66eee9acad1df833956ebcb) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Stop dropping reviewers when a pull request is updated.
+
+  `PUT /pull-requests/{id}` in Bitbucket Data Center replaces the pull request with the body it receives instead of patching it, so a body of `{version, description}` tells the server that the pull request should have no reviewers at all. Editing a description through `bitbucket_update_pull_request` removed every reviewer from the pull request. Atlassian closed this as expected behaviour in BSERV-19139 and pointed at reading the pull request before writing it.
+
+  `bitbucket_update_pull_request` now does exactly that: it reads the pull request and sends back its title, description, draft flag and reviewers, overriding only the fields the caller passed. Passing `reviewers` still replaces the whole list, and an empty array now clears it.
+
+  `version` became optional as a result. Pass it to keep the optimistic locking that fails the call when someone else changed the pull request in the meantime; omit it to use the version read during the update.
+
+- [`37c8862`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/37c8862e8bb9d1203903ac2eb6597da0dae6ccd0) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Stop dropping the webhook secret and the required-builds exemption on update, and send build payloads as JSON.
+
+  Bitbucket Data Center treats a `PUT` body as the entity's new state, not as a patch, so every field left out of the body is cleared. Probing a live 9.6.5 instance confirmed three of them:
+
+  - `bitbucket_update_webhook` removed the stored HMAC secret whenever it was called without one, so changing a webhook's url silently unsigned every future delivery. The tool now reads the webhook and keeps its name, url, events, active state, SSL setting and secret unless you pass a replacement. An empty secret removes the stored one.
+  - `bitbucket_update_required_builds_merge_check` removed the exempt ref matcher the same way. It now reads the existing check and keeps the build keys, ref matcher and exemption you leave out, and reports an unknown check id instead of writing. A matcher needs both its type and its value: passing one half now fails the call instead of silently keeping the stored matcher, and `exemptRefMatcherType: 'NONE'` removes the exemption.
+  - `bitbucket_add_build_status` and both required-builds merge check tools sent their JSON body under `Content-Type: */*`, which Bitbucket answers with `415 Unsupported Media Type`. They now send `application/json`.
+
+  Updating a project or a repository was probed as well and needs no change: Bitbucket keeps the fields those endpoints do not receive.
+
+### Patch Changes
+
+- [#9](https://github.com/MrRefactoring/atlassian-dc-mcp/pull/9) [`d70cf2a`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/d70cf2ae24566d15676ce05da4cb03b18110ec40) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Escape reserved characters in URL path parameters.
+
+  `route`, the tagged template every client builds its paths with, encoded interpolated values with `encodeURI`. That leaves `#`, `?`, `&`, `=`, `+`, `,`, `:`, `;` and `@` untouched, so anything named with one of them produced a URL that meant something else: a repository file called `design #draft?.md` became `/browse/docs/design%20#draft?.md`, where the `#` opens a fragment and the rest of the path never reaches the server. Every endpoint that interpolates a path was affected, across all three products.
+
+  Values are now escaped one `/`-separated segment at a time, which keeps separators in file-path parameters like `browse/{path}` while escaping everything else. Callers pass the same values as before.
+
+- [#13](https://github.com/MrRefactoring/atlassian-dc-mcp/pull/13) [`41e943c`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/41e943c20cb3e787e3b9153e39a8dd1c95b28008) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Add `bitbucket_get_pending_review`, a read-only tool that returns the authenticated user's pending draft review comments for a pull request. This lets callers detect drafts that were created before an interrupted review submission and avoid posting duplicate comments when retrying.
+
+- Updated dependencies [[`d70cf2a`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/d70cf2ae24566d15676ce05da4cb03b18110ec40)]:
+  - datacenter-mcp-core@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes

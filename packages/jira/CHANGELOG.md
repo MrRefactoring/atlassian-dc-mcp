@@ -1,5 +1,28 @@
 # Change Log
 
+## 0.6.0
+
+### Minor Changes
+
+- [#11](https://github.com/MrRefactoring/atlassian-dc-mcp/pull/11) [`e9aa5f6`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/e9aa5f681ff1d8e0c984b72cfa511b46b4b3c7e0) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Add `jira_update_application_role`, the one write that was missing from the application role surface.
+
+  Until now the application roles could only be read (`jira_get_application_roles`, `jira_get_application_role`), so granting a group access to Jira Software through the tools was impossible.
+
+  Like Bitbucket's update endpoints, `PUT /applicationrole/{key}` replaces the role with the body it receives. Probing a live Jira DC 10.3 instance confirmed it: a body of `{key, selectedByDefault}` empties `groups` and `defaultGroups`, which revokes the application from every user holding it — `userCount` dropped from 1 to 0. The tool therefore reads the role and sends it back with only the fields you passed overridden, serializes concurrent updates to the same role, and fails an unknown role key on that read instead of writing anything.
+
+  `numberOfSeats` is deliberately not exposed: the server accepts it and silently keeps the licensed value.
+
+### Patch Changes
+
+- [#9](https://github.com/MrRefactoring/atlassian-dc-mcp/pull/9) [`d70cf2a`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/d70cf2ae24566d15676ce05da4cb03b18110ec40) Thanks [@MrRefactoring](https://github.com/MrRefactoring)! - Escape reserved characters in URL path parameters.
+
+  `route`, the tagged template every client builds its paths with, encoded interpolated values with `encodeURI`. That leaves `#`, `?`, `&`, `=`, `+`, `,`, `:`, `;` and `@` untouched, so anything named with one of them produced a URL that meant something else: a repository file called `design #draft?.md` became `/browse/docs/design%20#draft?.md`, where the `#` opens a fragment and the rest of the path never reaches the server. Every endpoint that interpolates a path was affected, across all three products.
+
+  Values are now escaped one `/`-separated segment at a time, which keeps separators in file-path parameters like `browse/{path}` while escaping everything else. Callers pass the same values as before.
+
+- Updated dependencies [[`d70cf2a`](https://github.com/MrRefactoring/atlassian-dc-mcp/commit/d70cf2ae24566d15676ce05da4cb03b18110ec40)]:
+  - datacenter-mcp-core@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes
