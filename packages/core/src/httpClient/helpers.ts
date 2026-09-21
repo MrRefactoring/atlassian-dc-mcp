@@ -1,13 +1,17 @@
+const encodePathValue = (value: string | number | boolean): string =>
+  String(value).split('/').map(encodeURIComponent).join('/');
+
 /**
  * Tagged-template URL path builder.
  *
- * Interpolated values are encoded with `encodeURI` (not `encodeURIComponent`) so `/` is
- * preserved — file-path parameters like `browse/{path}` must keep their separators. Call
- * sites write ``route`/api/latest/projects/${projectKey}/repos/${slug}` `` instead of
+ * Interpolated values are encoded one `/`-separated segment at a time, so separators in
+ * file-path parameters like `browse/{path}` survive while everything else in a segment is
+ * escaped — a file named `design #1?.md` would otherwise cut the path short at the `#`.
+ * Call sites write ``route`/api/latest/projects/${projectKey}/repos/${slug}` `` instead of
  * wrapping every segment by hand.
  */
 export const route = (strings: TemplateStringsArray, ...values: (string | number | boolean)[]): string =>
-  strings.reduce((out, str, i) => out + str + (i < values.length ? encodeURI(String(values[i])) : ''), '');
+  strings.reduce((out, str, i) => out + str + (i < values.length ? encodePathValue(values[i]) : ''), '');
 
 /**
  * Build a request body from a flat parameters object.
